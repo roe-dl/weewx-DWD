@@ -7,6 +7,8 @@ Achtung! Diese Dateien sind noch sehr beta!
 
 Alle Dateien müssen in die jeweiligen Verzeichnisse kopiert und mit `chmod +x Dateiname` ausführbar gemacht werden.
 
+Die Icons (Symbole) können beim DWD unter [Warnicons](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/icons/warnicons_nach_stufen_50x50_zip.zip?__blob=publicationFile&v=2) heruntergeladen werden.
+
 # Konfiguration
 
 ## Text-Vorhersage im HTML-Template
