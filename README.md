@@ -32,10 +32,10 @@ ISO3166-2 | Bundesland             | DWD-JSONP | Warnlage | VHDL |
 SN        | Sachsen                | SN        | sac      | DWLG |
 ST        | Sachsen-Anhalt         | SA        | saa      |      |
 TH        | Thüringen              | TH        | thu      |      |
-BB        | Brandenburg            |           | bb       |      |
+BB        | Brandenburg            | BB        | bb       |      |
 BE        | Berlin                 |           | bb       |      |
-MV        | Mecklenburg-Vorpommern |           | mv       |      |
-NI        | Niedersachsen          |           | nds      |      |
+MV        | Mecklenburg-Vorpommern | MV        | mv       |      |
+NI        | Niedersachsen          | NS        | nds      |      |
 
 # Konfiguration
 
