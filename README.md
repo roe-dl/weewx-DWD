@@ -23,6 +23,20 @@ Dieses Python-Script bereitet die JSONP-Datei des DWD mit den Wetterwarnungen au
 
 Dieses Script sorgt dafür, daß die beiden Scripte `wget-dwd` und `dwd-warnings` regelmäßig aufgerufen werden.
 
+# Bundesländer
+
+Der Deutsche Wetterdienst (DWD) hält sich nicht an die genormten Abkürzungen der Bundesländer, sondern kocht sein eigenes Süppchen, und das noch nicht einmal einheitlich.
+
+ISO3166-2 | Bundesland             | DWD-JSONP | Warnlage | VHDL |
+----------|------------------------|-----------|----------|------|
+SN        | Sachsen                | SN        | sac      | DWLG |
+ST        | Sachsen-Anhalt         | SA        | saa      |      |
+TH        | Thüringen              | TH        | thu      |      |
+BB        | Brandenburg            |           | bb       |      |
+BE        | Berlin                 |           | bb       |      |
+MV        | Mecklenburg-Vorpommern |           | mv       |      |
+NI        | Niedersachsen          |           | nds      |      |
+
 # Konfiguration
 
 ## Text-Vorhersage im HTML-Template
