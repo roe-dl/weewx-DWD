@@ -30,12 +30,12 @@ Der Deutsche Wetterdienst (DWD) hält sich nicht an die genormten Abkürzungen d
 ISO3166-2 | Bundesland             | warnings.json | Warnlage | VHDL |
 ----------|------------------------|---------------|----------|------|
 SN        | Sachsen                | SN            | sac      | DWLG |
-ST        | Sachsen-Anhalt         | SA            | saa      |      |
-TH        | Thüringen              | TH            | thu      |      |
-BB        | Brandenburg            | BB            | bb       |      |
-BE        | Berlin                 |               | bb       |      |
-MV        | Mecklenburg-Vorpommern | MV            | mv       |      |
-NI        | Niedersachsen          | NS            | nds      |      |
+ST        | Sachsen-Anhalt         | SA            | saa      | DWLH |
+TH        | Thüringen              | TH            | thu      | DWLI |
+BB        | Brandenburg            | BB            | bb       | DWPG |
+BE        | Berlin                 |               | bb       | DWPG |
+MV        | Mecklenburg-Vorpommern | MV            | mv       | DWPH |
+NI        | Niedersachsen          | NS            | nds      | DWHG |
 
 # Konfiguration
 
