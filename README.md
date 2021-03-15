@@ -1,7 +1,15 @@
 # weewx-DWD
 Daten vom Deutschen Wetterdienst (DWD) herunterladen und für WeeWX aufbereiten
 
-# Text-Vorhersage im HTML-Template
+Achtung! Diese Dateien sind noch sehr beta!
+
+# Installation
+
+Alle Dateien müssen in die jeweiligen Verzeichnisse kopiert und mit `chmod +x Dateiname` ausführbar gemacht werden.
+
+# Konfiguration
+
+## Text-Vorhersage im HTML-Template
 
 ```
   <div class="col-sm-12" style="margin-bottom:1em">
@@ -15,7 +23,7 @@ Daten vom Deutschen Wetterdienst (DWD) herunterladen und für WeeWX aufbereiten
   </div>
 ```
 
-# Wetterwarnungen im HTML-Template
+## Wetterwarnungen im HTML-Template
 
 "DL" durch den jeweiligen Gebietscode ersetzen wie in `/usr/local/bin/dwd-warnings` definiert.
 
