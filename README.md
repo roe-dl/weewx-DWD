@@ -27,15 +27,15 @@ Dieses Script sorgt dafür, daß die beiden Scripte `wget-dwd` und `dwd-warnings
 
 Der Deutsche Wetterdienst (DWD) hält sich nicht an die genormten Abkürzungen der Bundesländer, sondern kocht sein eigenes Süppchen, und das noch nicht einmal einheitlich.
 
-ISO3166-2 | Bundesland             | DWD-JSONP | Warnlage | VHDL |
-----------|------------------------|-----------|----------|------|
-SN        | Sachsen                | SN        | sac      | DWLG |
-ST        | Sachsen-Anhalt         | SA        | saa      |      |
-TH        | Thüringen              | TH        | thu      |      |
-BB        | Brandenburg            | BB        | bb       |      |
-BE        | Berlin                 |           | bb       |      |
-MV        | Mecklenburg-Vorpommern | MV        | mv       |      |
-NI        | Niedersachsen          | NS        | nds      |      |
+ISO3166-2 | Bundesland             | warnings.json | Warnlage | VHDL |
+----------|------------------------|---------------|----------|------|
+SN        | Sachsen                | SN            | sac      | DWLG |
+ST        | Sachsen-Anhalt         | SA            | saa      |      |
+TH        | Thüringen              | TH            | thu      |      |
+BB        | Brandenburg            | BB            | bb       |      |
+BE        | Berlin                 |               | bb       |      |
+MV        | Mecklenburg-Vorpommern | MV            | mv       |      |
+NI        | Niedersachsen          | NS            | nds      |      |
 
 # Konfiguration
 
