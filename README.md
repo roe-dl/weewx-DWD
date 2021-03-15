@@ -9,6 +9,20 @@ Alle Dateien müssen in die jeweiligen Verzeichnisse kopiert und mit `chmod +x D
 
 Die Icons (Symbole) können beim DWD unter [Warnicons](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/icons/warnicons_nach_stufen_50x50_zip.zip?__blob=publicationFile&v=2) heruntergeladen werden.
 
+# Programme
+
+## wget-dwd
+
+Dieses Script lädt die nötigen Dateien vom Webserver des DWD herunter unt speichert sie. Dabei wird eine Log-Datei unter /var/log/ abgelegt, aus der man ersehen kann, ob es geklappt hat.
+
+## dwd-warnings
+
+Dieses Python-Script bereitet die JSONP-Datei des DWD mit den Wetterwarnungen auf und erzeugt daraus HTML-Texte. Am Beginn der Datei müssen die gewünschten Landkreise in der vom DWD benutzten Schreibweise eingetragen werden. Um herauszufinden, wie der Landkreis korrekt geschrieben werden muß, öffnet man die Datei `warnings.json`, die von `wget-dwd` heruntergeladen wurde, mit einem Browser, der JSON-Dateien anzeigen kann (z.B. Firefox). Dort kann man dann den gewünschten Landkreis suchen und sehen, wie er geschrieben wurde. Beachte: Wenn der Landkreis keine Warnungen hat, kommt er in der Datei gar nicht vor. Dann muß man warten, bis es wieder Warnungen gibt.
+
+## /etc/cron.hourly/dwd
+
+Dieses Script sorgt dafür, daß die beiden Scripte `wget-dwd` und `dwd-warnings` regelmäßig aufgerufen werden.
+
 # Konfiguration
 
 ## Text-Vorhersage im HTML-Template
