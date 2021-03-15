@@ -13,7 +13,7 @@ Die Icons (Symbole) können beim DWD unter [Warnicons](https://www.dwd.de/DE/wet
 
 ## wget-dwd
 
-Dieses Script lädt die nötigen Dateien vom Webserver des DWD herunter unt speichert sie. Dabei wird eine Log-Datei unter /var/log/ abgelegt, aus der man ersehen kann, ob es geklappt hat.
+Dieses Script lädt die nötigen Dateien vom Webserver des DWD herunter und speichert sie. Dabei wird eine Log-Datei unter /var/log/ abgelegt, aus der man ersehen kann, ob es geklappt hat.
 
 ## dwd-warnings
 
