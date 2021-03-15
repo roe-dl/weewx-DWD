@@ -1,0 +1,12 @@
+#!/bin/bash
+# Daten beim Deutschen Wetterdienst herunterladen
+# Copyright (C) 2021 Johanna Roedenbeck
+# licensed under the terms of the General Public Licens (GPL) v3
+
+# Diese Datei ist unter /etc/cron.hourly zu speichern. Sie muss
+# ausfuehrbar sein.
+
+/usr/local/bin/wget-dwd 2>/dev/null
+/usr/local/bin/dwd-warnings 2>/dev/null >/dev/null
+
+exit 0

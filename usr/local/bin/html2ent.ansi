@@ -1,0 +1,28 @@
+#!/bin/bash
+
+#!/bin/bash
+# replace german umlauts and predefined character sequences
+# with html-entities in a file given as parameter
+# place it into /usr/local/bin, make it executable
+# to all and add it to nautilus-actions
+# Michael Luthardt 2007
+# http://dr-luthardt.de/
+
+sed -e 's/\Ä/\&Auml;/g' \
+    -e 's/\ä/\&auml;/g' \
+    -e 's/\Ö/\&Ouml;/g' \
+    -e 's/\ö/\&ouml;/g' \
+    -e 's/\Ü/\&Uuml;/g' \
+    -e 's/\ü/\&uuml;/g' \
+    -e 's/\ß/\&szlig;/g' \
+    -e 's/\^&/\&amp;/g' \
+    -e 's/\^\^/\&#94;/g' \
+    -e 's/\^x/\&times;/g' \
+    -e 's/\^r/\&rarr;/g' \
+    -e 's/\^b/\&bull;/g' \
+    -e 's/\^e/\&#8644;/g' \
+    -e 's/<pre.*>/ /g' \
+    -e 's/<\/pre>/ /g'
+
+
+#     -e 's/<pre style="font-family: sans-serif">/ /g' \
