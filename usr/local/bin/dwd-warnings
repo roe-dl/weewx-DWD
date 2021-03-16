@@ -5,25 +5,44 @@
 
 import json
 import time
+import configobj
 
-# vom Benutzer anzupassen
+config = configobj.ConfigObj("/etc/weewx/weewx.conf")
 
-states=['Sachsen','Thüringen']
-counties={
-  'Kreis Mittelsachsen - Tiefland':'DL',
-  'Stadt Döbeln':'DL',
-  'Stadt Leipzig':'L',
-  'Stadt Jena':'J',
-  'Stadt Dresden':'DD'}
-
-ICON_PTH="../dwd/warn_icons_50x50"
+if 'DeutscherWetterdienst' in config and 'warning' in config['DeutscherWetterdienst']:
+    # Bundeslaender und Landkreise, fuer die Warndaten
+    # bereitgestellt werden sollen, aus weewx.conf lesen
+    if 'states' in config['DeutscherWetterdienst']['warning']:
+        states = config['DeutscherWetterdienst']['warning']['states']
+        if not isinstance(states,list):
+            states=[states]
+    else:
+        states=[]
+    counties=config['DeutscherWetterdienst']['warning']['counties']
+    ICON_PTH=config['DeutscherWetterdienst']['warning']['icons']
+    target_path=config['DeutscherWetterdienst']['path']
+else:
+    # test only
+    # vom Benutzer anzupassen
+    states=['Sachsen','Thüringen']
+    counties={
+        'Kreis Mittelsachsen - Tiefland':'DL',
+        'Stadt Döbeln':'DL',
+        'Stadt Leipzig':'L',
+        'Stadt Jena':'J',
+        'Stadt Dresden':'DD'}
+    ICON_PTH="../dwd/warn_icons_50x50"
+    target_path='/etc/weewx/skins/Belchertown-de/dwd'
 
 # Der DWD verwendet ganz offensichtlich nicht die nach ISO genormten
 # Abkuerzungen fuer Bundeslaender.
 dwd_copy={
   'SN':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/sachsen/warnlage_sac_node.html',
   'TH':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/thueringen/warnlage_thu_node.html',
-  'SA':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/sachen_anhalt/warnlage_saa_node.html'}
+  'SA':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/sachen_anhalt/warnlage_saa_node.html',
+  'BB':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/berlin_brandenburg/warnlage_bb_node.html',
+  'MV':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/mecklenburg_vorpommern/warnlage_mv_node.html',
+  'NS':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/niedersachsen_bremen/warnlage_nds_node.html'}
 
 # Ende des vom Benutzer anzupassenden Bereichs
 
@@ -63,7 +82,7 @@ def dwd_level_text(level):
 
 # read JSONP file and remove function call from it
 __x=None
-with open('/etc/weewx/skins/Belchertown-de/dwd/warnings.json',encoding='utf-8') as file:
+with open('%s/warnings.json' % target_path,encoding='utf-8') as file:
     __x=file.read().split('(',1)
     if __x[0]=="warnWetter.loadWarnings":
         __x=json.loads(__x[1][:-2])
@@ -105,11 +124,11 @@ if __x is not None:
                         wwarn[counties[__j['regionName']]]=[]
                     wwarn[counties[__j['regionName']]].append(__j)
                     
-        for __i in region:
-            print("%s" % (__i,))
+        #for __i in region:
+        #    print("%s" % (__i,))
 
-        for __i in wwarn:
-            print(__i)        
+        #for __i in wwarn:
+        #    print(__i)        
 
     for __ww in wwarn:
         s=""
@@ -140,9 +159,9 @@ if __x is not None:
         else:
             s='<p>zur Zeit keine Warnungen</p>'
 
-        print("--> %s" % __ww)
-        print(s)
+        #print("--> %s" % __ww)
+        #print(s)
         
-        with open("/etc/weewx/skins/Belchertown-de/dwd/warn-%s.inc" % __ww,"w") as file:
+        with open("%s/warn-%s.inc" % (target_path,__ww),"w") as file:
             file.write(s)
         

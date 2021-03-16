@@ -17,7 +17,9 @@ Dieses Script lädt die nötigen Dateien vom Webserver des DWD herunter und spei
 
 ## dwd-warnings
 
-Dieses Python-Script bereitet die JSONP-Datei des DWD mit den Wetterwarnungen auf und erzeugt daraus HTML-Texte. Am Beginn der Datei müssen die gewünschten Landkreise in der vom DWD benutzten Schreibweise eingetragen werden. Um herauszufinden, wie der Landkreis korrekt geschrieben werden muß, öffnet man die Datei `warnings.json`, die von `wget-dwd` heruntergeladen wurde, mit einem Browser, der JSON-Dateien anzeigen kann (z.B. Firefox). Dort kann man dann den gewünschten Landkreis suchen und sehen, wie er geschrieben wurde. Beachte: Wenn der Landkreis keine Warnungen hat, kommt er in der Datei gar nicht vor. Dann muß man warten, bis es wieder Warnungen gibt.
+Dieses Python-Script bereitet die JSONP-Datei des DWD mit den Wetterwarnungen auf und erzeugt daraus HTML-Texte.
+Dazu müssen die gewünschten Landkreise in der vom DWD benutzten Schreibweise
+in `weewx.conf` eingetragen werden. Um herauszufinden, wie der Landkreis korrekt geschrieben werden muß, öffnet man die Datei `warnings.json`, die von `wget-dwd` heruntergeladen wurde, mit einem Browser, der JSON-Dateien anzeigen kann (z.B. Firefox). Dort kann man dann den gewünschten Landkreis suchen und sehen, wie er geschrieben wurde. Beachte: Wenn der Landkreis keine Warnungen hat, kommt er in der Datei gar nicht vor. Dann muß man warten, bis es wieder Warnungen gibt.
 
 [Namen der Landkreise in der Schreibweise des Deutschen Wetterdienstes](https://github.com/roe-dl/weewx-DWD/wiki/Namen-der-Landkreise-in-der-Schreibweise-des-Deutschen-Wetterdienstes)
 
@@ -35,6 +37,34 @@ Die Warnungen in der JSONP-Datei `warnings.json` ist nach Landkreisen gegliedert
 # Konfiguration
 
 Im Verzeichnis der Visualisierung (skin), wo die Meldungen des DWD angezeigt werden sollen, muß ein Unterverzeichnis (Ordner) `dwd` angelegt werden. (Es sind auch andere Namen möglich.) In die Skripte `wget-dwd` und `dwd-warning` muß der komplette Pfad dieses Verzeichnisses eingetragen werden.
+
+## Konfiguration in weewx.conf
+
+Die Eintragungen in weewx.conf müssen mit der Hand vorgenommen werden. Es
+gibt gegenwärtig kein Installationsprogramm dafür.
+
+Beispiel:
+```
+[DeutscherWetterdienst]
+    path='/etc/weewx/skins/Belchertown/dwd'
+    [[warning]]
+        icons='../dwd/warn_icons_50x50'
+        states='Sachsen','Thüringen'
+        [[[counties]]]
+              'Kreis Mittelsachsen - Tiefland'='DL'
+              'Stadt Döbeln'='DL'
+              'Stadt Leipzig'='L'
+              'Stadt Jena'='J'
+              'Stadt Dresden'='DD'
+```
+
+Die Pfade, Bundesländer und Landkreise sind den Erfordernissen bzw.
+tatsächlichen Verhältnissen entsprechend einzutragen.
+
+Für jeden Landkreis, für den Warnungen angezeigt werden sollen, muß
+ein Eintrag unter "counties" vorhanden sein. Das Kürzel hinter dem
+Gleichheitszeichen fasst die Meldungen in Dateien zusammen, für jedes
+Kürzel eine. Ansonsten kann das Kürzel frei gewählt werden.
 
 ## Text-Vorhersage im HTML-Template
 
