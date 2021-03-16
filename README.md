@@ -25,19 +25,12 @@ Dieses Python-Script bereitet die JSONP-Datei des DWD mit den Wetterwarnungen au
 
 Dieses Script sorgt dafür, daß die beiden Scripte `wget-dwd` und `dwd-warnings` regelmäßig aufgerufen werden.
 
-# Bundesländer
+# Warnregionen
 
-Der Deutsche Wetterdienst (DWD) hält sich nicht an die genormten Abkürzungen der Bundesländer, sondern kocht sein eigenes Süppchen, und das noch nicht einmal einheitlich.
+Die Warnungen in der JSONP-Datei `warnings.json` ist nach Landkreisen gegliedert. Manche Landkreise sind dann noch weiter nach Landschaftsmerkmalen wie etwa Bergland und Tiefland unterteilt. Im Wiki sind die vom Deutschen Wetterdienst verwendeten Bezeichnungen und Abkürzungen beschrieben:
 
-ISO3166-2 | Bundesland             | warnings.json | Warnlage | VHDL |
-----------|------------------------|---------------|----------|------|
-SN        | Sachsen                | SN            | sac      | DWLG |
-ST        | Sachsen-Anhalt         | SA            | saa      | DWLH |
-TH        | Thüringen              | TH            | thu      | DWLI |
-BB        | Brandenburg            | BB            | bb       | DWPG |
-BE        | Berlin                 |               | bb       | DWPG |
-MV        | Mecklenburg-Vorpommern | MV            | mv       | DWPH |
-NI        | Niedersachsen          | NS            | nds      | DWHG |
+* [Abkürzungen der Bundesländer](https://github.com/roe-dl/weewx-DWD/wiki/Abkürzungen-der-Bundesländer-beim-Deutschen-Wetterdienst)
+* [Bezeichnungen der Warnregionen](https://github.com/roe-dl/weewx-DWD/wiki/Namen-der-Landkreise-in-der-Schreibweise-des-Deutschen-Wetterdienstes)
 
 # Konfiguration
 
