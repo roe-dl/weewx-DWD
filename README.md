@@ -36,7 +36,7 @@ Die Warnungen in der JSONP-Datei `warnings.json` ist nach Landkreisen gegliedert
 
 # Konfiguration
 
-Im Verzeichnis der Visualisierung (skin), wo die Meldungen des DWD angezeigt werden sollen, muß ein Unterverzeichnis (Ordner) `dwd` angelegt werden. (Es sind auch andere Namen möglich.) In die Skripte `wget-dwd` und `dwd-warning` muß der komplette Pfad dieses Verzeichnisses eingetragen werden.
+Im Verzeichnis der Visualisierung (skin), wo die Meldungen des DWD angezeigt werden sollen, muß ein Unterverzeichnis (Ordner) `dwd` angelegt werden. (Es sind auch andere Namen möglich.) In das Skripte `wget-dwd` sowie die Konfigurationsdatei `weewx.conf` (siehe unten) muß der komplette Pfad dieses Verzeichnisses eingetragen werden.
 
 ## Konfiguration in weewx.conf
 
