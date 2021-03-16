@@ -64,6 +64,10 @@ Bitte "DL" durch den jeweiligen Gebietscode ersetzen wie in `/usr/local/bin/dwd-
 
 ```
 
+Beispiel für eine Wetterwarnung:
+
+<img src="Wetterwarnung-JSON.png" width="500px" />
+
 ## Wetterkarte im HTML-Template
 
 Der Pfad, hier `dwd`, ist entsprechend der eigenen Konfiguration anzupassen. Das Anhängsel mit `getmtime` ist notwendig, damit der Browser keine veralteten Karten anzeigt. Damit wird der Cache beim Nutzer überlistet.
