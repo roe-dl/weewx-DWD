@@ -42,11 +42,11 @@ Bitte "DWLG" im folgenden Beispiel durch die Abkürzung des gewünschten Bundesl
   <div class="col-sm-12" style="margin-bottom:1em">
     #if os.path.exists("dwd/VHDL50_DWLG_LATEST.html")
     #include raw "dwd/VHDL50_DWLG_LATEST.html"
-    #end if
     [Quelle:
     <a
     href="https://www.dwd.de/DE/wetter/wetterundklima_vorort/sachsen/sac_node.html"
     target="_blank">DWD</a>]
+    #end if
   </div>
 ```
 
@@ -60,6 +60,20 @@ Bitte "DL" durch den jeweiligen Gebietscode ersetzen wie in `/usr/local/bin/dwd-
     #include raw "dwd/warn-DL.inc"
   </div>
 
+```
+
+## Wetterkarte im HTML-Template
+
+Der Pfad, hier `dwd` ist entsprechend der eigenen Konfiguration anzupassen. Das Anhängsel mit `gmtime` ist notwendig, damit der Browser keine veralteten Karten anzeigt.
+
+```
+  <div class="col-sm-12 snapshot-records-text">
+    Wetterkarte (Luftdruck am Boden)
+  </div>
+  
+  <div class="col-sm-12">
+    <img src="$relative_url/dwd/bwk_bodendruck_na_ana.png?v=<%=os.path.getmtime("/etc/weewx/skins/Belchertown-de/dwd/bwk_bodendruck_na_ana.png")%>" />
+  </div>
 ```
 
 # Verweise
