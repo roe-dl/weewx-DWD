@@ -41,6 +41,8 @@ NI        | Niedersachsen          | NS            | nds      | DWHG |
 
 ## Text-Vorhersage im HTML-Template
 
+Bitte "DWLG" im folgenden Beispiel durch die Abkürzung des gewünschten Bundeslandes aus Spalte "VHDL" ersetzen.
+
 ```
   <div class="col-sm-12" style="margin-bottom:1em">
     #if os.path.exists("dwd/VHDL50_DWLG_LATEST.html")
@@ -55,7 +57,7 @@ NI        | Niedersachsen          | NS            | nds      | DWHG |
 
 ## Wetterwarnungen im HTML-Template
 
-"DL" durch den jeweiligen Gebietscode ersetzen wie in `/usr/local/bin/dwd-warnings` definiert.
+Bitte "DL" durch den jeweiligen Gebietscode ersetzen wie in `/usr/local/bin/dwd-warnings` definiert.
 
 ```
   <div class="col-sm-6">
