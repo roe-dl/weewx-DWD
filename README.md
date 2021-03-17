@@ -124,3 +124,4 @@ Damit die Wetterkarte auch mit auf den Server hochgeladen wird, muß sie in `ski
 
 * [Seite "Homepagewetter" des Deutschen Wetterdienstes](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/objekteinbindung_node.html)
 * [Warnicons](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/icons/warnicons_nach_stufen_50x50_zip.zip?__blob=publicationFile&v=2)
+* [gesprochene Wetterberichte mit Python](https://beltoforion.de/de/wetterbericht/)
