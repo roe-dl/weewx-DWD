@@ -24,6 +24,7 @@ PTH="/etc/weewx/skins/Belchertown-de/dwd"
 
 # Programm zum Herunterladen
 WGET="/usr/bin/wget"
+TOUCH="/usr/bin/touch"
 
 # Logdatei loeschen
 /bin/rm "$LOG_FN" 2>/dev/null
@@ -32,8 +33,12 @@ WGET="/usr/bin/wget"
 for i in 50 51 52 53 54; do
 
   FN="VHDL${i}_${DWD_BUNDESLAND}_LATEST"
-  $WGET -N -a "$LOG_FN" -O - "$DWD_URL/${FN}_html" | \
-  /usr/local/bin/html2ent.ansi >"$PTH/$FN.html"
+  $WGET -N -a "$LOG_FN" -O "$PTH/temp" "$DWD_URL/${FN}_html"
+  if [ "$?" -eq 0 ]; then
+    /usr/local/bin/html2ent.ansi <"$PTH/temp" >"$PTH/$FN.html"
+    $TOUCH -r "$PTH/temp" "$PTH/$FN.html"
+    rm "$PTH/temp"
+  fi
 
 done
 
