@@ -61,6 +61,9 @@ Beispiel:
 Die Pfade, Bundesländer und Landkreise sind den Erfordernissen bzw.
 tatsächlichen Verhältnissen entsprechend einzutragen.
 
+**Beachte**: Der Pfad bei `icons` bezieht sich auf den Web-Server. 
+Er darf nicht mit `/` beginnen.
+
 Für jeden Landkreis, für den Warnungen angezeigt werden sollen, muß
 ein Eintrag unter "counties" vorhanden sein. Das Kürzel hinter dem
 Gleichheitszeichen fasst die Meldungen in Dateien zusammen, für jedes
