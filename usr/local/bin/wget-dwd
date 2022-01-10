@@ -10,6 +10,7 @@
 DWD_URL="https://opendata.dwd.de/weather/text_forecasts/html"
 DWD_BUNDESLAND="DWLG"
 DWD_MAP="https://www.dwd.de/DWD/wetter/wv_spez/hobbymet/wetterkarten/bwk_bodendruck_na_ana.png"
+DWD_MAP2="https://www.dwd.de/DWD/wetter/wv_spez/hobbymet/wetterkarten/bwk_bodendruck_weu_ana.png"
 DWD_WARN="https://www.dwd.de/DWD/warnungen/warnstatus/SchilderLZ.jpg"
 DWD_WARNJ="https://www.dwd.de/DWD/warnungen/warnapp/json/warnings.json"
 
@@ -18,7 +19,7 @@ LOG_FN="/var/log/wget-dwd.log"
 
 # Zielpfad zum Speichern der Dateien
 # (Das Verzeichnis muss vorher vom Benutzer angelegt werden.)
-PTH="/etc/weewx/skins/Belchertown-de/dwd"
+PTH="/etc/weewx/skins/Belchertown/dwd"
 
 # Ende des vom Benutzer anzupassenden Bereichs
 
@@ -44,5 +45,6 @@ done
 
 # Herunterladen der uebrigen Dateien
 $WGET -N -a "$LOG_FN" -O "$PTH/${DWD_MAP##*/}" $DWD_MAP
+$WGET -N -a "$LOG_FN" -O "$PTH/${DWD_MAP2##*/}" $DWD_MAP2
 $WGET -N -a "$LOG_FN" -O "$PTH/${DWD_WARN##*/}" $DWD_WARN
 $WGET -N -a "$LOG_FN" -O "$PTH/${DWD_WARNJ##*/}" $DWD_WARNJ

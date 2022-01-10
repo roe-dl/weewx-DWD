@@ -142,7 +142,7 @@ if __x is not None:
     for __ww in wwarn:
         s=""
         r=None
-        for __i in wwarn[__ww]:
+        for idx,__i in enumerate(wwarn[__ww]):
             if r is None or r!=__i['regionName']:
                 r=__i['regionName']
                 s+='<p style="margin-top:5px"><strong>%s</strong></p>\n' % r
@@ -151,6 +151,7 @@ if __x is not None:
             __icon_fn=dwd_warn_icon_file(__i['type'],__i['level'])
             if __icon_fn is not None:
                 s+='<td style="width:60px"><img src="%s/%s" /></td>\n' % (ICON_PTH,__icon_fn)
+                wwarn[__ww][idx]["icon"] = "%s/%s" % (ICON_PTH,__icon_fn)
             __size=110 if int(__i['level'])>2 else 100
             s+='<td><p style="font-size:%i%%;margin-bottom:0">%s</p>\n' % (__size,__i['headline'])
             s='%s<p style="font-size:80%%">gültig vom %s bis %s</p></td>\n' % (s,time.strftime("%d.%m. %H:%M",time.localtime(__i['start']/1000)),time.strftime("%d.%m. %H:%M",time.localtime(__i['end']/1000)))
@@ -161,6 +162,7 @@ if __x is not None:
             if 'instruction' in __i and __i['instruction']:
                 s+="<p>%s</p>\n" % __i['instruction']
             
+            wwarn[__ww][idx]["level_text"] = dwd_level_text(__i['level'])
             s+='<p style="font-size:40%%">%s &ndash; %s &emsp;&ndash;&emsp; %s &ndash; %s</p>' % (__i['type'],__i['event'],__i['level'],dwd_level_text(__i['level']))
         
         if s:
@@ -174,3 +176,6 @@ if __x is not None:
         with open("%s/warn-%s.inc" % (target_path,__ww),"w") as file:
             file.write(s)
         
+        with open("%s/warn-%s.json" % (target_path,__ww),"w") as file:
+            json.dump(wwarn[__ww],file,indent=4)
+            
