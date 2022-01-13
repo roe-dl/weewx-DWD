@@ -37,7 +37,6 @@ import csv
 import io
 import urllib.parse
 from email.utils import formatdate
-import xml.etree.ElementTree as ET
 import html.parser
 import zipfile
 
@@ -135,7 +134,7 @@ CAP_SEVERITY = {
 CAP_EVENT = {
   'FROST':(5,22),
   'GLÄTTE':(6,24),
-  'GLATTEIS':(6,),
+  'GLATTEIS':(6,None),
   'GEWITTER':(0,31),
   'WINDBÖEN':(1,51),
   # 'STURM':(1,58),
@@ -192,6 +191,9 @@ def get_eventtype_from_cap(capevent,eventtypeii):
     if 'SCHNEEFALL' in capevent: return 3
     if 'FROST' in capevent: return 5
     if 'TAUWETTER' in capevent: return 7
+    for ii in CAP_EVENT:
+        if CAP_EVENT[ii][1]==eventtypeii: 
+            return CAP_EVENT[ii][0]
     return None
 
 def get_cap_url(resolution, strategy, rule, diff):
@@ -403,7 +405,7 @@ class DwdWarnings(object):
             print(wcids)
             #for i in wcids: print(i)
 
-    def dir(self, diff):
+    def dir(self, diff, lang='de'):
     
         if diff:
             url = self.dwd_diff_url
@@ -418,7 +420,7 @@ class DwdWarnings(object):
         if reply.status_code==200:
             if self.log_success or self.verbose:
                 loginf('zip file list successfully downloaded')
-            parser = CapDirParser('de')
+            parser = CapDirParser(lang)
             parser.feed(reply.text)
             return parser.get_files()
         else:
@@ -508,7 +510,7 @@ class DwdWarnings(object):
         #print(ti)
         return int(ti.timestamp()*1000)
         
-    def get_warnings(self, diff, filename, log_tags=False):
+    def get_warnings(self, diff, filename, lang='de', log_tags=False):
         if self.verbose:
             loginf('processing file %s' % filename)
         # initialize dict for all regions to collect warnings for
@@ -536,7 +538,7 @@ class DwdWarnings(object):
                         # each language
                         if lvl2=='info':
                             try:
-                                if lvl1_dict[lvl2]['language'][0:2].lower()=='de':
+                                if lvl1_dict[lvl2]['language'][0:2].lower()==lang:
                                     info_dict = lvl1_dict[lvl2]
                                     # search <info> section for <area> sections
                                     for lvl3 in info_dict:
@@ -716,6 +718,10 @@ if __name__ == "__main__":
                       metavar="VALUE",
                       default=None,
                       help="Overwrite configuration setting for resolution. Possible values are 'county' and 'city'.")
+    parser.add_option("--lang", dest="lang", type=str,
+                      metavar="ISO639",
+                      default='de',
+                      help="Alert language. Default 'de'")
 
     group = optparse.OptionGroup(parser,"Output and logging options")
     group.add_option("--dry-run", action="store_true",
@@ -787,8 +793,8 @@ if __name__ == "__main__":
     
     if options.warncellids:
         dwd.download_warncellids(options.dryrun)
-    elif options.lscap:
-        ff = dwd.dir(options.diff)
+    elif options.lszip:
+        ff = dwd.dir(options.diff,options.lang)
         print('\n'.join(ff))
     elif options.lscap:
         if len(args)>0:
@@ -809,8 +815,8 @@ if __name__ == "__main__":
         if len(args)>0:
             zfn = args[0]
         else:
-            ff = dwd.dir(options.diff)
+            ff = dwd.dir(options.diff,options.lang)
             zfn = ff[-1]
-        wwarn = dwd.get_warnings(options.diff,zfn,options.log_tags)
+        wwarn = dwd.get_warnings(options.diff,zfn,lang=options.lang,log_tags=options.log_tags)
         dwd.write_html(wwarn,options.dry_run)
 
