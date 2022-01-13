@@ -43,11 +43,14 @@ import zipfile
 
 if __name__ == "__main__":
     import optparse
+    import sys
+    def loginf(x):
+        print(x, file=sys.stderr)
+    def logerr(x):
+        print(x, file=sys.stderr)
 
-DEFAULT_DWD_STATUS_URL = "https://opendata.dwd.de/weather/alerts/cap/COMMUNEUNION_CELLS_STAT"
-DEFAULT_DWD_DIFF_URL = "https://opendata.dwd.de/weather/alerts/cap/COMMUNEUNION_CELLS_DIFF"
 DEFAULT_DWD_WARNCELLID_URL = "https://www.dwd.de/DE/leistungen/opendata/help/warnungen/cap_warncellids_csv.csv?__blob=publicationFile&v=3"
-DEFAULT_DWD_WARNCELLID_URL = "https://www.dwd.de/DE/leistungen/opendata/help/warnungen/cap_warncellids_csv.csv?__blob=publicationFile&v=3"
+DEFAULT_DWD_CAP_URL = "https://opendata.dwd.de/weather/alerts/cap"
 
 # Der DWD verwendet ganz offensichtlich nicht die nach ISO genormten
 # Abkuerzungen fuer Bundeslaender.
@@ -157,7 +160,29 @@ CAP_EVENT = {
   'EXTREME HITZE':(8,248)
   }
 
+# räumliche Auflösung
+DWD_CAP_URL_RES = {
+  'county': 'DISTRICT',
+  'city': 'COMMUNEUNION'}
+
+# Aktualisierungsstrategie und Aktualisierungsregeln
+# update strategy and update rules
+DWD_CAP_URL_UPDATE = {
+  'cell': {
+      'dwd': 'DWD',
+      'neutral': 'CELLS'},
+  'event': {
+      'neutral': 'EVENT',
+      None: 'EVENT'}}
+
+# Kompletter Warnstatus oder Differenzmeldungen
+# status or difference messages
+DWD_CAP_URL_STATUS_DIFFERENCE = {
+  False: 'STAT',
+  True: 'DIFF'}
+  
 def get_eventtype_from_cap(capevent,eventtypeii):
+    """ get JSON event type from CAP event and ii """
     if capevent in CAP_EVENT: return CAP_EVENT[capevent][0]
     if 'GEWITTER' in capevent: return 0
     if 'STURM' in capevent: return 1
@@ -167,6 +192,14 @@ def get_eventtype_from_cap(capevent,eventtypeii):
     if 'TAUWETTER' in capevent: return 7
     return None
 
+def get_cap_url(resolution, strategy, rule, diff):
+    """ compose URL for CAP files """
+    try:
+        return DEFAULT_DWD_CAP_URL+'/'+DWD_CAP_URL_RES[resolution]+'_'+DWD_CAP_URL_UPDATE[strategy][rule]+'_'+DWD_CAP_URL_STATUS_DIFFERENCE[diff]
+    except Exception:
+        return None
+    
+    
 ##############################################################################
 #   extract file names from directory listing                                #
 ##############################################################################
@@ -275,28 +308,54 @@ class CAPParser(html.parser.HTMLParser):
                 self.ar[-1][tag] = data
         if self.log_tags:
             print(self.lvl,self.tags,'data',data)
-        
-# Class for processing warnings in CAP files
+
+##############################################################################        
+#   Class for processing warnings in CAP files                               #
+##############################################################################
 
 class DwdWarnings(object):
 
-    def __init__(self, config_dict):
+    def __init__(self, config_dict, verbose=False):
 
+        # target path
+        self.target_path = config_dict['DeutscherWetterdienst']['path']
+        # warning config data
+        warn_dict = config_dict['DeutscherWetterdienst']['warning']
         # Bundeslaender und Landkreise, fuer die Warndaten
         # bereitgestellt werden sollen, aus weewx.conf lesen
-        if 'states' in config_dict['DeutscherWetterdienst']['warning']:
-            self.states = config_dict['DeutscherWetterdienst']['warning']['states']
-            if not isinstance(self.states,list):
-                self.states=[states]
-        else:
-            self.states=[]
-        self.counties=config_dict['DeutscherWetterdienst']['warning']['counties']
-        self.icon_pth=config_dict['DeutscherWetterdienst']['warning']['icons']
-        self.target_path=config_dict['DeutscherWetterdienst']['path']
-        self.dwd_status_url = config_dict['DeutscherWetterdienst']['warning']['dwd_status_url']
-        self.dwd_diff_url = config_dict['DeutscherWetterdienst']['warning']['dwd_diff_url']
+        self.resolution = warn_dict.get('resolution','city')
+        self.states = warn_dict.get('states',[])
+        if not isinstance(self.states,list): self.states=[states]
+        _area = DWD_CAP_URL_RES.get(self.resolution,'COMMUNEUNION' if 'cities' in warn_dict else 'DISTRICT')
+        if _area=='DISTRICT':
+            self.filter_area = warn_dict.get('counties',dict())
+        elif _area=='COMMUNEUNION':
+            self.filter_area = warn_dict.get('cities',dict())
+        # warn icons
+        self.icon_pth = warn_dict['icons']
+        # source urls
+        self.dwd_status_url = warn_dict.get('dwd_status_url',get_cap_url(self.resolution,'cell','neutral',False))
+        self.dwd_diff_url = warn_dict.get('dwd_diff_url',get_cap_url(self.resolution,'cell','neutral',True))
+        # logging
+        self.verbose = verbose
+        self.log_success = warn_dict.get('log_success',config_dict['DeutscherWetterdienst'].get('log_success',config_dict.get('log_success',False)))
+        self.log_failure = warn_dict.get('log_failure',config_dict['DeutscherWetterdienst'].get('log_failure',config_dict.get('log_failure',False)))
+        if int(config_dict.get('debug',0))>0 or verbose:
+            self.log_success = True
+            self.log_failure = True
+            self.verbose = True
+        if __name__ == "__main__" and verbose:
+            print('-- configuration data ----------------------------------')
+            print('log success:  ',self.log_success)
+            print('log failure:  ',self.log_failure)
+            print('status url:   ',self.dwd_status_url)
+            print('diff msgs url:',self.dwd_diff_url)
+            print('filter area:  ',self.filter_area)
+            print('target path:  ',self.target_path)
+            print('--------------------------------------------------------')
 
-    def download_warncellids(self):
+
+    def download_warncellids(self, dryrun=False):
     
         # Path to store the file
         fn = os.path.join(self.target_path,'warncellids.csv')
@@ -307,7 +366,8 @@ class DwdWarnings(object):
         else:
             mtime = 0
             mtime_str = None
-        print('mtime',mtime,mtime_str)
+        if self.verbose:
+            loginf('warncellids.csv mtime %s %s' % (mtime,mtime_str))
         
         # Without specifying a user agent the server sends the error
         # message 403
@@ -316,18 +376,24 @@ class DwdWarnings(object):
         if mtime_str: headers['If-Modified-Since'] = mtime_str
 
         reply = requests.get(DEFAULT_DWD_WARNCELLID_URL,headers=headers)
-        print('URL',reply.url)
+        if self.verbose:
+            loginf('warncellids URL %s' % reply.url)
         
         if reply.status_code==200:
-        
-            with open(fn,'w',encoding='utf-8') as f:
-                f.write(reply.text)
-                
+            if self.log_success or self.verbose:
+                loginf('warncellids successfully downloaded')
+            if dryrun:
+                print(reply.text)
+            else:
+                with open(fn,'w',encoding='utf-8') as f:
+                    f.write(reply.text)
+            
         elif reply.status_code==304:
-            pass
+            if self.log_success or self.verbose:
+                loginf('warncellids.csv is already up to date')
         else:
-        
-            print(reply.status_code,reply.reason)
+            if self.log_failure or self.verbose:
+                logerr('error downloading warncellids: %s %s' % (reply.status_code,reply.reason))
 
         with open(fn,'r',encoding='utf-8') as f:
             f.read(3)
@@ -342,17 +408,20 @@ class DwdWarnings(object):
         else:
             url = self.dwd_status_url
    
+        if self.verbose:
+            loginf('about to download zip file list from %s' % url)
+            
         reply = requests.get(url)
        
         if reply.status_code==200:
-       
+            if self.log_success or self.verbose:
+                loginf('zip file list successfully downloaded')
             parser = CapDirParser('de')
             parser.feed(reply.text)
             return parser.get_files()
-           
         else:
-      
-            print(reply.status_code,reply.reason)
+            if self.log_failure or self.verbose:
+                logerr('error downloading zip file list from %s: %s %s' % (reply.url,reply.status_code,reply.reason))
             return None
             
     def download_zip(self, diff, file_name):
@@ -364,26 +433,33 @@ class DwdWarnings(object):
         
         url = url+'/'+file_name
         
+        if self.verbose:
+            loginf('about to download %s' % url)
+            
         headers={'User-Agent':'weewx-DWD'}
         reply = requests.get(url,headers=headers)
         
         if reply.status_code==200:
-        
+            if self.log_success or self.verbose:
+                loginf('successfully downloaded %s' % reply.url)
             return zipfile.ZipFile(io.BytesIO(reply.content),'r')
-            
         else:
-        
-            print(reply.status_code,reply.reason)
+            if self.log_failure or self.verbose:
+                loginf('error downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
             return None
             
     def process_xml(self, zz, name, log_tags=False):
         """ get file 'name' out of zip file 'zipfile' and
             convert to dict() """
+        if self.verbose:
+            loginf('processing CAP file %s' % name)
         xmltext = zz.read(name).decode(encoding='utf-8')
         parser = CAPParser(log_tags)
         parser.feed(xmltext)
         cap_dict = parser.cap
         parser.close()
+        if self.verbose:
+            loginf('CAP file %s processed' % name)
         return cap_dict
     
     def _area_filter(self, tag, val):
@@ -392,7 +468,7 @@ class DwdWarnings(object):
             if tag=='area':
                 for ii in val:
                     try:
-                        if ii['areadesc'] in self.counties:
+                        if ii['areadesc'] in self.filter_area:
                             wcid = None
                             for jj in ii.get('geocode',[]):
                                 if jj.get('valuename','')=='WARNCELLID':
@@ -413,13 +489,14 @@ class DwdWarnings(object):
                             reply.append((ii['areadesc'],
                                           wcid,alt,cie,
                                           state[0],state[1],
-                                          self.counties[ii['areadesc']]))
+                                          self.filter_area[ii['areadesc']]))
                     except Exception as e:
-                        print(e)
-                        pass
+                        if self.verbose:
+                            logerr(e)
             return reply
-        except Exception:
-            pass
+        except Exception as e:
+            if self.verbose:
+                logerr(e)
         return []
     
     @staticmethod
@@ -430,8 +507,10 @@ class DwdWarnings(object):
         return int(ti.timestamp()*1000)
         
     def get_warnings(self, diff, filename, log_tags=False):
+        if self.verbose:
+            loginf('processing file %s' % filename)
         # initialize dict for all regions to collect warnings for
-        wwarn={self.counties[i]:dict() for i in self.counties}
+        wwarn={self.filter_area[i]:dict() for i in self.filter_area}
         # download CAP file 
         zz = self.download_zip(diff,filename)
         # process alerts included in the CAP file
@@ -546,7 +625,9 @@ class DwdWarnings(object):
             x = []
             for ii in wwarn[__ww]: x.extend(wwarn[__ww][ii])
             wwarn[__ww] = x
-            
+        
+        if self.verbose:
+            loginf('file %s processed' % filename)
         #print(json.dumps(wwarn,indent=4,ensure_ascii=False))
         return wwarn
 
@@ -610,7 +691,10 @@ class DwdWarnings(object):
 
 if __name__ == "__main__":
 
-    usage = None
+    usage = """Usage: %prog [options] [zip_file_name [CAP_file_name]]
+
+  Without an option from the commands group HTML and JSON files are
+  created and saved according to the configuration."""
     
     epilog = None
 
@@ -626,14 +710,27 @@ if __name__ == "__main__":
                       help="Read config from weewx.conf.")
     parser.add_option("--diff", action="store_true",
                       help="Use diff files instead of status files.")
-    parser.add_option("--dry-run", action="store_true",
+
+    group = optparse.OptionGroup(parser,"Output and logging options")
+    group.add_option("--dry-run", action="store_true",
                       help="Print what would happen but do not do it. Default is False.")
-    parser.add_option("--log-tags", action="store_true",
+    group.add_option("--log-tags", action="store_true",
                       help="Log tags while parsing the XML file.")
+    group.add_option("-v","--verbose", action="store_true",
+                      help="Verbose output")
+    parser.add_option_group(group)
     
     # commands
-    parser.add_option("--get-warncellids", dest="warncellids", action="store_true",
+    group = optparse.OptionGroup(parser,"Commands")
+    group.add_option("--get-warncellids", dest="warncellids", action="store_true",
                       help="Download warn cell ids file.")
+    group.add_option("--list-zip", dest="lszip", action="store_true",
+                     help="Download and display zip file list")
+    group.add_option("--list-cap", dest="lscap", action="store_true",
+                     help="List CAP files within a zip file. Requires zip file name as argument")
+    group.add_option("--print-cap", dest="printcap", action="store_true",
+                     help="Convert one CAP file to JSON and print the result. Requires zip file name and CAP file name as arguments")
+    parser.add_option_group(group)
     
     (options, args) = parser.parse_args()
     
@@ -653,6 +750,10 @@ if __name__ == "__main__":
         states=['Sachsen','Thüringen']
         counties={
             'Kreis Mittelsachsen - Tiefland':'DL',
+            'Stadt Leipzig':'L',
+            'Stadt Jena':'J',
+            'Stadt Dresden':'DD'}
+        cities={
             'Stadt Döbeln':'DL',
             'Stadt Leipzig':'L',
             'Stadt Jena':'J',
@@ -661,25 +762,46 @@ if __name__ == "__main__":
         target_path='.'
     
         config = {
+            'log_success':True,
+            'log_failure':True,
             'DeutscherWetterdienst': {
                 'path':target_path,
                 'warning': {
-                    'dwd_status_url': DEFAULT_DWD_STATUS_URL,
-                    'dwd_diff_url': DEFAULT_DWD_DIFF_URL,
+                    #'dwd_status_url': get_cap_url('city','cell','neutral',False),
+                    #'dwd_diff_url': get_cap_url('city','cell','neutral',True),
                     'icons': ICON_PTH,
                     'states' : states,
-                    'counties': counties }}}
+                    'counties': counties,
+                    'cities': cities }}}
     
-    dwd = DwdWarnings(config)
+    dwd = DwdWarnings(config,options.verbose)
     
     if options.warncellids:
-        dwd.download_warncellids()
-    else:
+        dwd.download_warncellids(options.dryrun)
+    elif options.lscap:
         ff = dwd.dir(options.diff)
-        #zz = dwd.download_zip(False,ff[-1])
-        #cc = zz.namelist()
-        #print(len(cc))
-        #cap_dict = dwd.process_xml(zz,cc[0])
-        #print(json.dumps(cap_dict,indent=2,ensure_ascii=False))
-        wwarn = dwd.get_warnings(options.diff,ff[-1],options.log_tags)
+        print('\n'.join(ff))
+    elif options.lscap:
+        if len(args)>0:
+            zz = dwd.download_zip(False,args[0])
+            cc = zz.namelist()
+            print(len(cc),' files in ',args[0])
+            print('\n'.join(cc))
+        else:
+            print("requires 1 file argument")
+    elif options.printcap:
+        if len(args)>=2:
+            zz = dwd.download_zip(False,args[0])
+            cap_dict = dwd.process_xml(zz,args[1])
+            print(json.dumps(cap_dict,indent=2,ensure_ascii=False))
+        else:
+            print("requires 2 file arguments")
+    else:
+        if len(args)>0:
+            zfn = args[0]
+        else:
+            ff = dwd.dir(options.diff)
+            zfn = ff[-1]
+        wwarn = dwd.get_warnings(options.diff,zfn,options.log_tags)
         dwd.write_html(wwarn,options.dry_run)
+
