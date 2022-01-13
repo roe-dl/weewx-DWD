@@ -23,6 +23,46 @@ in `weewx.conf` eingetragen werden. Um herauszufinden, wie der Landkreis korrekt
 
 [Namen der Landkreise in der Schreibweise des Deutschen Wetterdienstes](https://github.com/roe-dl/weewx-DWD/wiki/Namen-der-Landkreise-in-der-Schreibweise-des-Deutschen-Wetterdienstes)
 
+## dwd-cap-warnings
+
+Dieses Pyhton-Script ist eine Alternative zu `dwd-warnings`. Im Gegensatz
+zu diesem wertet es die CAP-Dateien des DWD aus, die nicht nur in einer
+Auflösung auf Landkreisbasis sondern auch auf Gemeindebasis verfügbar
+sind. `dwd-cap-warnings` ist nicht auf einen vorherigen Aufruf von
+`wget-dwd` angewiesen. Es erzeugt dieselben Dateien wie `dwd-warnings`.
+Um es zu nutzen, muß der Aufruf von `dwd-warnings` in `/etc/cron.hourly/dwd`
+durch `dwd-cap-warnings --weewx` ersetzt werden.
+
+`dwd-cap-warnings` kennt die folgenden Optionen:
+```
+Usage: dwd-cap-warnings [options] [zip_file_name [CAP_file_name]]
+
+  Without an option from the commands group HTML and JSON files are
+  created and saved according to the configuration.
+
+Options:
+  -h, --help            show this help message and exit
+  --config=CONFIG_FILE  Use configuration file CONFIG_FILE.
+  --weewx               Read config from weewx.conf.
+  --diff                Use diff files instead of status files.
+  --resolution=VALUE    Overwrite configuration setting for resolution.
+                        Possible values are 'county' and 'city'.
+
+  Output and logging options:
+    --dry-run           Print what would happen but do not do it. Default is
+                        False.
+    --log-tags          Log tags while parsing the XML file.
+    -v, --verbose       Verbose output
+
+  Commands:
+    --get-warncellids   Download warn cell ids file.
+    --list-zip          Download and display zip file list
+    --list-cap          List CAP files within a zip file. Requires zip file
+                        name as argument
+    --print-cap         Convert one CAP file to JSON and print the result.
+                        Requires zip file name and CAP file name as arguments
+```
+
 ## /etc/cron.hourly/dwd
 
 Dieses Script sorgt dafür, daß die beiden Scripte `wget-dwd` und `dwd-warnings` regelmäßig aufgerufen werden.
@@ -52,6 +92,10 @@ Beispiel:
         states='Sachsen','Thüringen'
         [[[counties]]]
               'Kreis Mittelsachsen - Tiefland'='DL'
+              'Stadt Leipzig'='L'
+              'Stadt Jena'='J'
+              'Stadt Dresden'='DD'
+        [[[cities]]]
               'Stadt Döbeln'='DL'
               'Stadt Leipzig'='L'
               'Stadt Jena'='J'
@@ -59,7 +103,9 @@ Beispiel:
 ```
 
 Die Pfade, Bundesländer und Landkreise sind den Erfordernissen bzw.
-tatsächlichen Verhältnissen entsprechend einzutragen.
+tatsächlichen Verhältnissen entsprechend einzutragen. Die Bezeichnungen
+sind der Datei warncellids.csv zu entnehmen, die beim DWD heruntergeladen
+werden kann.
 
 **Beachte**: Der Pfad bei `icons` bezieht sich auf den Web-Server. 
 Er darf nicht mit `/` beginnen.
@@ -68,6 +114,13 @@ Für jeden Landkreis, für den Warnungen angezeigt werden sollen, muß
 ein Eintrag unter "counties" vorhanden sein. Das Kürzel hinter dem
 Gleichheitszeichen fasst die Meldungen in Dateien zusammen, für jedes
 Kürzel eine. Ansonsten kann das Kürzel frei gewählt werden.
+
+Bei Nutzung von `dwd-cap-warnings` können statt Landkreisen auch
+Gemeinden ausgewählt werden, die unter "cities" einzutragen sind.
+Ob die Warnungen auf Landkreis- oder Gemeindebasis angezeigt werden,
+wird mit der Option `--resolution` beim Aufruf von `dwd-cap-warnings`
+eingestellt. Alternativ kann die Option auch in die Konfigurationsdatei
+eingetragen werden.
 
 ## Text-Vorhersage im HTML-Template
 
