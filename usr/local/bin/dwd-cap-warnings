@@ -130,7 +130,91 @@ CAP_SEVERITY = {
   'Moderate':3,
   'Severe':4,
   'Extreme':5}
-  
+
+CAP_II_CAPTION = [
+  'Warnungen',
+  'Küsten-Warnungen',
+  'Hochsee-Warnungen',
+  'Medizin-Meteorologische Warnungen',
+  'Vorabinformationen Unwetter']
+CAP_II = [
+  #II,type,c,name
+  # Warnungen
+  (22,5,0,'Frost'),
+  (24,6,0,'Glätte'),
+  (31,0,0,'Gewitter'),
+  (33,0,0,'starkes Gewitter'),
+  (34,0,0,'starkes Gewitter'),
+  (36,0,0,'starkes Gewitter'),
+  (38,0,0,'starkes Gewitter'),
+  (40,0,0,'schweres Gewitter mit Orkanböen'),
+  (41,0,0,'schweres Gewitter mit extremen Orkanböen'),
+  (42,0,0,'schweres Gewitter mit heftigem Starkregen'),
+  (44,0,0,'schweres Gewitter mit Orkanböen und heftigem Starkregen'),
+  (45,0,0,'schweres Gewitter mit extremen Orkanböen und heftigem Starkregen'),
+  (46,0,0,'schweres Gewitter mit heftigem Starkregen und Hagel'),
+  (48,0,0,'schweres Gewitter mit Orkanböen, heftigem Starkregen und Hagel'),
+  (49,0,0,'schweres Gewitter mit extremen Orkanböen, heftigem Starkregen und Hagel'),
+  (51,1,0,'Windböen'),
+  (52,1,0,'Sturmböen'),
+  (53,1,0,'schwere Sturmböen'),
+  (54,1,0,'orkanartige Böen'),
+  (55,1,0,'Orkanböen'),
+  (56,1,0,'extreme Orkanböen'),
+  (57,1,0,'Starkwind'),
+  (58,1,0,'Sturm'),
+  (59,4,0,'Nebel'),
+  (61,2,0,'Starkregen'),
+  (62,2,0,'heftiger Starkregen'),
+  (63,2,0,'Dauerregen'),
+  (64,2,0,'ergiebiger Dauerregen'),
+  (65,2,0,'extrem ergiebiger Dauerregen'),
+  (66,2,0,'extrem heftiger Starkregen'),
+  (70,3,0,'leichter Schneefall'),
+  (71,3,0,'Schneefall'),
+  (72,3,0,'starker Schneefall'),
+  (73,3,0,'extrem starker Schneefall'),
+  (74,3,0,'Schneeverwehung'),
+  (75,3,0,'starke Scheeverwehung'),
+  (76,3,0,'extrem starke Schneeverwehung'),
+  (79,5,0,'Leiterseilschwingungen'),
+  (82,5,0,'strenger Frost'),
+  (84,6,0,'Glätte'),
+  (85,6,0,'Glatteis'),
+  (87,6,0,'Glatteis'),
+  (88,7,0,'Tauwetter'),
+  (89,7,0,'starkes Tauwetter'),
+  (90,0,0,'Gewitter'),
+  (91,0,0,'starkes Gewitter'),
+  (92,0,0,'schweres Gewitter'),
+  (93,0,0,'extremes Gewitter'),
+  (95,0,0,'schweres Gewitter mit extremem, heftigem Starkregen und Hagel'),
+  (96,0,0,'extremes Gewitter mit Orkanböen, extrem heftigem Starkregen und Hagel'),
+  (98,None,0,'Test-Warnung'),
+  (99,None,0,'Test-Unwetterwarnung'),
+  # Küsten-Warnungen
+  (11,1,1,'Böen'),
+  (12,1,1,'Wind'),
+  (13,1,1,'Sturm'),
+  # Hochsee-Warnungen
+  (14,1,2,'Starkwind'),
+  (15,1,2,'Sturm'),
+  (16,1,2,'schwerer Sturm'),
+  # Medizin-Meteorologische Warnungen
+  (246,9,3,'UV-Index'),
+  (247,8,3,'starke Hitze'),
+  (248,8,3,'extreme Hitze'),
+  # Vorabinformationen Unwetter
+  (40,0,4,'Vorabinformation schweres Gewitter'),
+  (55,1,4,'Vorabinformation Orkanböen'),
+  (65,2,4,'Vorabinformation heftiger/ergiebiger Regen'),
+  (75,3,4,'Vorabinformation starker Schneefall/Schneeverwehung'),
+  (85,6,4,'Vorabinformation Glatteis'),
+  (89,7,4,'Vorabinformation starkes Tauwetter'),
+  (99,None,4,'Test-Vorabinformation Unwetter')]
+
+CAP_II_TYPE = { ii[0]:ii[1] for ii in CAP_II if ii[2]!=4 and ii[1] is not None }
+
 CAP_EVENT = {
   'FROST':(5,22),
   'GLÄTTE':(6,24),
@@ -191,9 +275,7 @@ def get_eventtype_from_cap(capevent,eventtypeii):
     if 'SCHNEEFALL' in capevent: return 3
     if 'FROST' in capevent: return 5
     if 'TAUWETTER' in capevent: return 7
-    for ii in CAP_EVENT:
-        if CAP_EVENT[ii][1]==eventtypeii: 
-            return CAP_EVENT[ii][0]
+    if eventtypeii in CAP_II_TYPE: return CAP_II_TYPE[eventtypeii]
     return None
 
 def get_cap_url(resolution, strategy, rule, diff):
@@ -654,7 +736,7 @@ class DwdWarnings(object):
 
                 # list of warning regions that alert applies to
                 _region = ', '.join([i[0] for i in val['areas'] if i[-1]==__ww])
-                val['regionName'] = _region
+                val['regionName'] = _region.replace('Stadt ','').replace('Gemeinde ','')
                 # if a new region starts, set a caption
                 if r is None or r!=_region:
                     r = _region
@@ -674,7 +756,7 @@ class DwdWarnings(object):
                 if val.get('instruction'):
                     s+="<p>%s</p>\n" % val['instruction']
 
-                s+='<p style="font-size:40%%">%s &ndash; %s &emsp;&ndash;&emsp; %s &ndash; %s &emsp;&ndash;&emsp; II=%s</p>' % (val['type'],val['event'],val['level'],val['level_text'],val.get('eventCode-II',''))
+                s+='<p style="font-size:40%%">%s &ndash; %s &emsp;&ndash;&emsp; %s &ndash; %s &emsp;&ndash;&emsp; II=%s &ndash; %s</p>' % (val['type'],val['event'],val['level'],val['level_text'],val.get('eventCode-II',''),val.get('eventCode-GROUP',''))
 
             if s:
                 s+='<p style="font-size:80%%">Quelle: <a href="%s" target="_blank">DWD</a></p>\n' % dwd_copy.get(stateShort,"https://www.wettergefahren.de")
@@ -736,6 +818,8 @@ if __name__ == "__main__":
     group = optparse.OptionGroup(parser,"Commands")
     group.add_option("--get-warncellids", dest="warncellids", action="store_true",
                       help="Download warn cell ids file.")
+    group.add_option("--list-ii", dest="lsii", action="store_true",
+                     help="List defined II event codes")
     group.add_option("--list-zip", dest="lszip", action="store_true",
                      help="Download and display zip file list")
     group.add_option("--list-cap", dest="lscap", action="store_true",
@@ -791,7 +875,17 @@ if __name__ == "__main__":
     
     dwd = DwdWarnings(config,options.verbose)
     
-    if options.warncellids:
+    if options.lsii:
+        c = -1
+        for ii in CAP_II:
+            if c!=ii[2]:
+                if c>=0: print("")
+                c = ii[2]
+                print(CAP_II_CAPTION[c])
+                print(" II | type | c | event")
+                print("---:|-----:|--:|--------------------------------------------------------------")
+            print("%3s | %4s | %1s | %s" % (ii[0],ii[1],ii[2],ii[3]))
+    elif options.warncellids:
         dwd.download_warncellids(options.dryrun)
     elif options.lszip:
         ff = dwd.dir(options.diff,options.lang)

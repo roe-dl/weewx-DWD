@@ -25,13 +25,13 @@ in `weewx.conf` eingetragen werden. Um herauszufinden, wie der Landkreis korrekt
 
 ## dwd-cap-warnings
 
-Dieses Pyhton-Script ist eine Alternative zu `dwd-warnings`. Im Gegensatz
+Dieses Python-Script ist eine Alternative zu `dwd-warnings`. Im Gegensatz
 zu diesem wertet es die CAP-Dateien des DWD aus, die nicht nur in einer
 Auflösung auf Landkreisbasis sondern auch auf Gemeindebasis verfügbar
 sind. `dwd-cap-warnings` ist nicht auf einen vorherigen Aufruf von
 `wget-dwd` angewiesen. Es erzeugt dieselben Dateien wie `dwd-warnings`.
 Um es zu nutzen, muß der Aufruf von `dwd-warnings` in `/etc/cron.hourly/dwd`
-durch `dwd-cap-warnings --weewx` ersetzt werden.
+durch `dwd-cap-warnings --weewx --resolution=city Z_CAP_C_EDZW_LATEST_PVW_STATUS_PREMIUMCELLS_COMMUNEUNION_DE.zip` ersetzt werden.
 
 `dwd-cap-warnings` kennt die folgenden Optionen:
 ```
