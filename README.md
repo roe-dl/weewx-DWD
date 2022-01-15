@@ -47,6 +47,7 @@ Options:
   --diff                Use diff files instead of status files.
   --resolution=VALUE    Overwrite configuration setting for resolution.
                         Possible values are 'county' and 'city'.
+  --lang=ISO639         Alert language. Default 'de'
 
   Output and logging options:
     --dry-run           Print what would happen but do not do it. Default is
@@ -56,6 +57,7 @@ Options:
 
   Commands:
     --get-warncellids   Download warn cell ids file.
+    --list-ii           List defined II event codes
     --list-zip          Download and display zip file list
     --list-cap          List CAP files within a zip file. Requires zip file
                         name as argument
@@ -76,7 +78,7 @@ Die Warnungen in der JSONP-Datei `warnings.json` ist nach Landkreisen gegliedert
 
 # Konfiguration
 
-Im Verzeichnis der Visualisierung (skin), wo die Meldungen des DWD angezeigt werden sollen, muß ein Unterverzeichnis (Ordner) `dwd` angelegt werden. (Es sind auch andere Namen möglich.) In das Skripte `wget-dwd` sowie die Konfigurationsdatei `weewx.conf` (siehe unten) muß der komplette Pfad dieses Verzeichnisses eingetragen werden.
+Im Verzeichnis der Visualisierung (skin), wo die Meldungen des DWD angezeigt werden sollen, muß ein Unterverzeichnis (Ordner) `dwd` angelegt werden. (Es sind auch andere Namen möglich.) In das Skript `wget-dwd` sowie die Konfigurationsdatei `weewx.conf` (siehe unten) muß der komplette Pfad dieses Verzeichnisses eingetragen werden.
 
 ## Konfiguration in weewx.conf
 
@@ -97,9 +99,10 @@ Beispiel:
               'Stadt Dresden'='DD'
         [[[cities]]]
               'Stadt Döbeln'='DL'
-              'Stadt Leipzig'='L'
+              'Stadt Waldheim'='DL'
+              'Leipzig-Mitte'='L'
               'Stadt Jena'='J'
-              'Stadt Dresden'='DD'
+              'Dresden-Altstadt'='DD'
 ```
 
 Die Pfade, Bundesländer und Landkreise sind den Erfordernissen bzw.
