@@ -111,6 +111,7 @@ dwd_warning_type=(
   'uv')                # 9 uv warning
   
 def dwd_warn_icon_file(type,level):
+    if not type: return None
     if type==8 or type==9:
         return "warn_icons_%s.png" % dwd_warning_type[type]
     if level<2 or level>5: return None
@@ -268,14 +269,18 @@ DWD_CAP_URL_STATUS_DIFFERENCE = {
   
 def get_eventtype_from_cap(capevent,eventtypeii):
     """ get JSON event type from CAP event and ii """
-    if capevent in CAP_EVENT: return CAP_EVENT[capevent][0]
-    if 'GEWITTER' in capevent: return 0
-    if 'STURM' in capevent: return 1
-    if 'REGEN' in capevent: return 2
-    if 'SCHNEEFALL' in capevent: return 3
-    if 'FROST' in capevent: return 5
-    if 'TAUWETTER' in capevent: return 7
-    if eventtypeii in CAP_II_TYPE: return CAP_II_TYPE[eventtypeii]
+    try:
+        if capevent in CAP_EVENT: return CAP_EVENT[capevent][0]
+        if 'GEWITTER' in capevent: return 0
+        if 'STURM' in capevent: return 1
+        if 'REGEN' in capevent: return 2
+        if 'SCHNEEFALL' in capevent: return 3
+        if 'FROST' in capevent: return 5
+        if 'TAUWETTER' in capevent: return 7
+        eventtypeii = int(eventtypeii)
+        if eventtypeii in CAP_II_TYPE: return CAP_II_TYPE[eventtypeii]
+    except Exception:
+        pass
     return None
 
 def get_cap_url(resolution, strategy, rule, diff):
@@ -691,9 +696,12 @@ class DwdWarnings(object):
                     # event type
                     alert['type'] = get_eventtype_from_cap(
                                       info_dict.get('event'),
-                                      info_dict.get('eventCode-II'))
+                                      alert.get('eventCode-II'))
                     # warn icon
-                    alert['icon'] = self.icon_pth+'/'+dwd_warn_icon_file(alert['type'],alert['level'])
+                    try:
+                        alert['icon'] = self.icon_pth+'/'+dwd_warn_icon_file(alert['type'],alert['level'])
+                    except Exception:
+                        pass
                     # 
                     _areas = dict()
                     for ii in areas: _areas[ii[-1]] = True
@@ -736,7 +744,8 @@ class DwdWarnings(object):
 
                 # list of warning regions that alert applies to
                 _region = ', '.join([i[0] for i in val['areas'] if i[-1]==__ww])
-                val['regionName'] = _region.replace('Stadt ','').replace('Gemeinde ','')
+                _region = _region.replace('Stadt ','').replace('Gemeinde ','')
+                val['regionName'] = _region
                 # if a new region starts, set a caption
                 if r is None or r!=_region:
                     r = _region
@@ -744,7 +753,7 @@ class DwdWarnings(object):
                 
                 # alert message 
                 s+='<table style="vertical-align:middle"><tr style="vertical-align:middle">\n'
-                if val['icon']:
+                if val.get('icon'):
                     s+='<td style="width:60px"><img src="%s" /></td>\n' % val['icon']
                 __size=110 if int(val['level'])>2 else 100
                 s+='<td><p style="font-size:%i%%;margin-bottom:0">%s</p>\n' % (__size,val['headline'])
