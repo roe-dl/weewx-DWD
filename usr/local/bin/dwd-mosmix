@@ -100,9 +100,9 @@ WW_LIST = [
     (71,'durchgehend leichter Schneefall','slight snowfall, continuous',15,'snow.png'),
     (69,'mäßger oder starker Schneeregen','moderate or heavy rain and snow',16,'sleet.png'),
     (68,'leichter Schneeregen','slight rain and snow',17,'sleet.png'),
-    (55,'durchgehend starker Sprühregen','heavy drizzle, not freezing, continuous',18,'rain.png'),
-    (53,'durchgehend mäßiger Sprühregen','moderate drizzle, not freezing, continuous',19,'rain.png'),
-    (51,'durchgehend leichter Sprühregen','slight drizzle, not freezing, continuous',20,'rain.png'),
+    (55,'durchgehend starker Sprühregen','heavy drizzle, not freezing, continuous',18,'drizzle.png'),
+    (53,'durchgehend mäßiger Sprühregen','moderate drizzle, not freezing, continuous',19,'drizzle.png'),
+    (51,'durchgehend leichter Sprühregen','slight drizzle, not freezing, continuous',20,'drizzle.png'),
     (65,'durchgehend starker Regen','heavy rain, not freezing, continuous',21,'rain.png'),
     (63,'durchgehend mäßiger Regen','moderate rain, not freezing, continuous',22,'rain.png'),
     (61,'durchgehend leichter Regen','slight rain, not freezing, continuous',23,'rain.png'),
@@ -445,9 +445,11 @@ class DwdMosmix(object):
                     try:
                         if ii=='ww':
                             #wwcode = get_ww(days[day]['ww'],days[day]['Neffavg'],False)
-                            s += '<td%s title="%s"><img src="%s" width="50px"/></td>' % (htmlclass,days[day]['icontitle'].replace('ö','&ouml;').replace('ü','&uuml;'),days[day]['icon'])
+                            icontitle = days[day]['icontitle'].replace('ö','&ouml;').replace('ü','&uuml;')
+                            s += '<td%s title="%s"><img src="%s" width="50px" alt="%s" /></td>' % (htmlclass,icontitle,days[day]['icon'],icontitle)
                         elif ii in ('DD','DDavg'):
-                            s += '<td%s><i class="fa fa-arrow-down" style="transform:rotate(%sdeg)"></i></td>' % (htmlclass,days[day][ii])
+                            #s += '<td%s><i class="fa fa-arrow-down" style="transform:rotate(%sdeg)"></i></td>' % (htmlclass,days[day][ii])
+                            s += '<td%s><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%"></i></td>' % (htmlclass,days[day][ii])
                         else:
                             color = ''
                             if ii[0:3]=='TTT': color = ' style="color:%s"' % DwdMosmix._temp_color(days[day][ii])

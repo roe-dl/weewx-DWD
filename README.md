@@ -71,7 +71,6 @@ Dieses Python-Script erzeugt eine Wettervorhersage in Tabellenform und
 eine JSON-Datei mit den Inhalten der Wettervorhersage.
 
 Zur Darstellung sind folgende Ressourcen nötig:
-* Pfeile von [Font Awesome](https://fontawesome.com/v5.15/icons?d=gallery&p=2&c=arrows)
 * Wetter-Icons der [Belchertown Skin](https://obrienlabs.net/belchertownweather-com-website-theme-for-weewx/)
 * Wetter-Icons von [Erik Flowers](https://erikflowers.github.io/weather-icons/)
 * zusätzliche CSS-Eintragungen
