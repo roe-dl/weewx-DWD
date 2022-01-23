@@ -73,6 +73,8 @@ eine JSON-Datei mit den Inhalten der Wettervorhersage.
 Zur Darstellung sind folgende Ressourcen nötig:
 * Pfeile von [Font Awesome](https://fontawesome.com/v5.15/icons?d=gallery&p=2&c=arrows)
 * Wetter-Icons der [Belchertown Skin](https://obrienlabs.net/belchertownweather-com-website-theme-for-weewx/)
+* Wetter-Icons von [Erik Flowers](https://erikflowers.github.io/weather-icons/)
+* zusätzliche CSS-Eintragungen
 
 `dwd-mosmix` kennt die folgenden Optionen:
 ```
@@ -194,13 +196,41 @@ Beispiel für eine Wetterwarnung:
 
 ## Wettervorhersage im HTML-Template
 
-Bitte "P0291" den gewünschten Stationscode ersetzen.
+Bitte "P0291" durch den gewünschten Stationscode ersetzen.
 
 ```
   <div class="col-sm-8">
     <p style="font-size:110%">Wettervorhersage</p>
     #include raw "dwd/forecast-P0291.inc"
   </div>
+```
+
+Dazu muß die Stylesheet-Datei ergänzt werden, bei der Belchertown-Skin
+wäre das `custom.css`:
+```
+.dwdforecasttable {
+    line-height: 1.0;
+    width: auto;
+}
+.dwdforecasttable td {
+    text-align: center;
+    padding-left: 3px;
+    padding-right: 3px;
+    line-height: 1.2;
+}
+.dwdforecasttable .icons td {
+    padding-top: 5px;
+    padding-bottom: 0px;
+}
+.dwdforecasttable .topdist td {
+    padding-top: 5px;
+}
+.light .dwdforecasttable td.weekend {
+    background-color: #ffe;
+}
+.dark .dwdforecasttable td.weekend {
+    background-color: #333;
+}
 ```
 
 Beispiel für eine Wettervorhersage:
