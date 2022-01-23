@@ -365,22 +365,36 @@ class DwdMosmix(object):
             'RR1c':('<i class="wi wi-umbrella"></i>','Niederschlag','mm'),
             'Rd10':('<i class="wi wi-umbrella"></i>','Wahrscheinlichkeit','%')}
         WEEKDAY = ['Mo','Di','Mi','Do','Fr','Sa','So']
+        AVGS = ['TTT','FF','DD','PPPP','N','Neff']
         symbols = True
         desc = False
+        # create HTML and JSON file for each placemark in KML file
         for placemark in mos.get('Placemark'):
             days = dict()
+            # loop over all timestamps
             for idx,val in enumerate(mos['ForecastTimeSteps']):
                 day = time.strftime('%d.%m.',time.localtime(val*0.001))
                 vals = {ii:placemark['Forecast'][ii][idx] for ii in placemark['Forecast']}
-                if day not in days: days[day] = { 'TTTmin':1000.0,'TTTmax':-273.15,'TTTsum':0.0,'count':0,'FFsum':0.0,'DDsum':0.0,'PPPPsum':0.0,'Nsum':0.0,'Neffsum':0.0,'SunD1':0.0,'RR1c':0.0,'ww':[] }
+                # check if first timestamp of a new day
+                if day not in days: 
+                    days[day] = { 'TTTmin':1000.0,'TTTmax':-273.15,'TTTsum':0.0,'count':0,'FFsum':0.0,'DDsum':0.0,'PPPPsum':0.0,'Nsum':0.0,'Neffsum':0.0,'SunD1':0.0,'RR1c':0.0,'ww':[] }
+                    for ii in AVGS:
+                        days[day][ii+'sum'] = 0.0
+                        days[day][ii+'ct'] = 0
                 days[day]['weekday'] = time.localtime(val*0.001).tm_wday
                 days[day]['count'] += 1
+                # min and max temperature
                 ttt = vals['TTT']
-                days[day]['TTTsum'] += ttt
                 if ttt>days[day]['TTTmax']: days[day]['TTTmax'] = ttt
                 if ttt<days[day]['TTTmin']: days[day]['TTTmin'] = ttt
-                for ii in ['FF','DD','PPPP','N','Neff']:
-                    days[day][ii+'sum'] += vals[ii]
+                # sum values to get the average
+                for ii in AVGS:
+                    try:
+                        days[day][ii+'sum'] += vals[ii]
+                        days[day][ii+'ct'] += 1
+                    except TypeError as e:
+                        logerr("%s: %s" % (ii,e))
+                # sunshine duration
                 days[day]['SunD1'] += vals['SunD1']/3600
                 if vals['RSunD']: days[day]['RSunD'] = vals['RSunD']
                 #try:
@@ -389,26 +403,31 @@ class DwdMosmix(object):
                 #    #print(idx,vals['RSunD'])
                 #except (ValueError,IndexError):
                 #    pass
+                # rain
                 for ii in ['Rd00','Rd02','Rd10','Rd50']:
-                    #if vals[ii]: days[day][ii] = vals[ii]
-                    try:
-                        xx = placemark['Forecast'][ii][idx+1]
-                        if xx: days[day][ii] = xx
-                        #if xx: print(idx,ii,xx)
-                    except (ValueError,IndexError):
-                        pass
+                    if vals[ii]: days[day][ii] = vals[ii]
+                    #try:
+                    #    xx = placemark['Forecast'][ii][idx+1]
+                    #    if xx: days[day][ii] = xx
+                    #    #if xx: print(idx,ii,xx)
+                    #except (ValueError,IndexError):
+                    #    pass
                 if vals['RR1c']: days[day]['RR1c'] += vals['RR1c']
+                # collect weather codes of the day
                 if vals['ww'] and vals['ww'] not in days[day]['ww']: days[day]['ww'].append(vals['ww'])
+            # calculate averages and weather symbol for the days
             for day in days:
-                days[day]['TTTavg'] = days[day]['TTTsum']/days[day]['count']
-                days[day]['FFavg'] = days[day]['FFsum']/days[day]['count']
-                days[day]['DDavg'] = days[day]['DDsum']/days[day]['count']
-                days[day]['PPPPavg'] = days[day]['PPPPsum']/days[day]['count']
-                days[day]['Navg'] = days[day]['Nsum']/days[day]['count']
-                days[day]['Neffavg'] = days[day]['Neffsum']/days[day]['count']
+                # calculate averages
+                for ii in AVGS:
+                    try:
+                        days[day][ii+'avg'] = days[day][ii+'sum']/days[day][ii+'ct']
+                    except (TypeError,ArithmeticError,LookupError,ValueError):
+                        days[day][ii+'avg'] = None
+                # weather symbol
                 wwcode = get_ww(days[day]['ww'],days[day]['Neffavg'],False)
                 days[day]['icon'] = self.icon_pth+'/'+wwcode[4]
                 days[day]['icontitle'] = wwcode[1]
+            # HTML 
             s = ""
             s += '<p><strong>%s</strong></p>\n' % placemark['description']
             s += '<table class="dwdforecasttable">'
