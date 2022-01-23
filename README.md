@@ -192,6 +192,19 @@ Beispiel für eine Wetterwarnung:
 
 <img src="Wetterwarnung-JSON.png" width="500px" />
 
+## Wettervorhersage im HTML-Template
+
+Bitte "P0291" den gewünschten Stationscode ersetzen.
+
+```
+  <div class="col-sm-8">
+    <p style="font-size:110%">Wettervorhersage</p>
+    #include raw "dwd/forecast-P0291.inc"
+  </div>
+```
+
+<img src="MOSMIX-Vorhersage.png" />
+
 ## Wetterkarte im HTML-Template
 
 Der Pfad, hier `dwd`, ist entsprechend der eigenen Konfiguration anzupassen. Das Anhängsel mit `getmtime` ist notwendig, damit der Browser keine veralteten Karten anzeigt. Damit wird der Cache beim Nutzer überlistet.
