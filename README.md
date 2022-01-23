@@ -203,6 +203,8 @@ Bitte "P0291" den gewünschten Stationscode ersetzen.
   </div>
 ```
 
+Beispiel für eine Wettervorhersage:
+
 <img src="MOSMIX-Vorhersage.png" width="700px"/>
 
 ## Wetterkarte im HTML-Template
