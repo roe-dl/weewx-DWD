@@ -19,6 +19,12 @@ from __future__ import with_statement
     GNU General Public License for more details.
 """
 
+"""
+   station list see:
+   https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg?view=nasPublication&nn=16102
+   
+"""
+
 import json
 import time
 import datetime
@@ -350,7 +356,7 @@ class DwdMosmix(object):
             'TTTmax':('<i class="wi wi-thermometer">','Tmax','&deg;C'),
             'TTTavg':('<i class="wi wi-thermometer">','Tavg','&deg;C'),
             'FFavg':('<i class="wi wi-strong-wind"></i>','Wind','km/h'),
-            'DDavg':('<i class="wi wi-strong-wind"></i>','Richtung','&deg;'),
+            'DDavg':('<i class="wi wi-strong-wind"></i>','Windrichtung','&deg;'),
             'PPPPavg':('<i class="wi wi-barometer"></i>','Luftdruck','mbar'),
             'Navg':('<i class="wi wi-cloud"></i>','Bew&ouml;lkung','%'),
             'Neffavg':('<i class="wi wi-cloud"></i>','Bew&ouml;lkung','%'),
@@ -410,13 +416,14 @@ class DwdMosmix(object):
             if symbols: s += '<td></td>'
             if desc: s += '<td></td>'
             for day in days:
-                s += '<td><strong>%s</strong><br />%s</td>' % (WEEKDAY[days[day]['weekday']],day)
+                htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
+                s += '<td%s><strong>%s</strong><br />%s</td>' % (htmlclass,WEEKDAY[days[day]['weekday']],day)
             s += '</tr>\n'
             obs = obstypes if obstypes else ['ww','TTTmax','TTTmin','FFavg','DDavg','RR1c','Rd10','PPPPavg','Neffavg','RSunD']
             for ii in obs:
                 if ii=='ww':
                     s += '<tr class="icons">'
-                elif ii in ['FFavg','PPPPavg','RR1c']:
+                elif ii in ['FFavg','PPPPavg','RR1c','Neffavg']:
                     s += '<tr class="topdist">'
                 else:
                     s += '<tr>'
@@ -434,20 +441,23 @@ class DwdMosmix(object):
                 s += '<td'+color+'>'+OBS_LABEL.get(ii,('',ii,''))[2]+'</td>'
                 dp = 1 if ii in ['TTTmin','TTTmax','TTTavg','SunD1'] else 0
                 for day in days:
+                    htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
                     try:
                         if ii=='ww':
                             #wwcode = get_ww(days[day]['ww'],days[day]['Neffavg'],False)
-                            s += '<td title="%s"><img src="%s" width="50px"/></td>' % (days[day]['icontitle'].replace('ö','&ouml;').replace('ü','&uuml;'),days[day]['icon'])
+                            s += '<td%s title="%s"><img src="%s" width="50px"/></td>' % (htmlclass,days[day]['icontitle'].replace('ö','&ouml;').replace('ü','&uuml;'),days[day]['icon'])
+                        elif ii in ('DD','DDavg'):
+                            s += '<td%s><i class="fa fa-arrow-down" style="transform:rotate(%sdeg)"></i></td>' % (htmlclass,days[day][ii])
                         else:
                             color = ''
                             if ii[0:3]=='TTT': color = ' style="color:%s"' % DwdMosmix._temp_color(days[day][ii])
                             if prec_color: color = ' style="color:%s"' % prec_color
-                            s += '<td%s>%.*f</td>' % (color,dp,days[day].get(ii,float("NaN")))
+                            s += ('<td%s%s>%.*f</td>' % (htmlclass,color,dp,days[day].get(ii,float("NaN")))).replace('.',',')
                     except (ValueError,TypeError):
                         s += '<td>%s</td>' % days[day].get(ii,'')
                 s += '</tr>\n'
             s += '</table>\n' 
-            s += '<p>herausgegeben vom <a href="https://www.dwd.de" target="_blank">DWD</a> am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M',time.localtime(mos['IssueTime']/1000.0))
+            s += '<p style="font-size:85%%">herausgegeben vom <a href="https://www.dwd.de" target="_blank">DWD</a> am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M',time.localtime(mos['IssueTime']/1000.0))
             fn = placemark['name']
             if dryrun:
                 print(s)
@@ -460,7 +470,10 @@ class DwdMosmix(object):
 if __name__ == "__main__":
 
     usage = None
-    epilog = None
+
+    epilog = """Station list:
+https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg?view=nasPublication&nn=16102
+"""
     
     # Create a command line parser:
     parser = optparse.OptionParser(usage=usage, epilog=epilog)
@@ -477,7 +490,7 @@ if __name__ == "__main__":
     group.add_option("--dry-run", action="store_true",
                       help="Print what would happen but do not do it. Default is False.")
     group.add_option("--log-tags", action="store_true",
-                      help="Log tags while parsing the XML file.")
+                      help="Log tags while parsing the KML file.")
     group.add_option("-v","--verbose", action="store_true",
                       help="Verbose output")
     parser.add_option_group(group)
@@ -501,8 +514,14 @@ if __name__ == "__main__":
                 'forecast':{
                     'icons':'./weewx/belchertown/images'}}}
     
+    if len(args)>0:
+        location = args[0]
+        if not location: location = None
+    else:
+        location = 'Döbeln'
+        
     dwd = DwdMosmix(config,options.verbose)
-    zz = dwd.download_kml('Döbeln','l')
+    zz = dwd.download_kml(location,'l')
     mos = dwd.process_kml(zz,options.log_tags)
     #dwd.write_html(mos,['TTT','PPPP','DD','FF'],True)
     dwd.write_html_daily(mos,None,options.dry_run)

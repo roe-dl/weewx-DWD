@@ -65,6 +65,39 @@ Options:
                         Requires zip file name and CAP file name as arguments
 ```
 
+## dwd-mosmix
+
+Dieses Python-Script erzeugt eine Wettervorhersage in Tabellenform und
+eine JSON-Datei mit den Inhalten der Wettervorhersage.
+
+Zur Darstellung sind folgende Ressourcen nötig:
+* Pfeile von [Font Awesome](https://fontawesome.com/v5.15/icons?d=gallery&p=2&c=arrows)
+* Wetter-Icons der [Belchertown Skin](https://obrienlabs.net/belchertownweather-com-website-theme-for-weewx/)
+
+`dwd-mosmix` kennt die folgenden Optionen:
+```
+Usage: dwd-mosmix [options] [station]
+
+Options:
+  -h, --help            show this help message and exit
+  --config=CONFIG_FILE  Use configuration file CONFIG_FILE.
+  --weewx               Read config from weewx.conf.
+
+  Output and logging options:
+    --dry-run           Print what would happen but do not do it. Default is
+                        False.
+    --log-tags          Log tags while parsing the KML file.
+    -v, --verbose       Verbose output
+```
+
+Der DWD bietet eine Liste der 
+[Stationscodes](https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg?view=nasPublication&nn=16102)
+zum Herunterladen an.
+Nur für die dort aufgeführten Orte sind Vorhersagen beim DWD
+verfügbar. Als Code ist der Wert aus der Spalte "id" zu
+verwenden. 
+
+
 ## /etc/cron.hourly/dwd
 
 Dieses Script sorgt dafür, daß die beiden Scripte `wget-dwd` und `dwd-warnings` regelmäßig aufgerufen werden.
@@ -103,6 +136,8 @@ Beispiel:
               'Leipzig-Mitte'='L'
               'Stadt Jena'='J'
               'Dresden-Altstadt'='DD'
+    [[forecast]]
+        icons='../images'
 ```
 
 Die Pfade, Bundesländer und Landkreise sind den Erfordernissen bzw.
