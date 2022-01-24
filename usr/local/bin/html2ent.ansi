@@ -1,6 +1,8 @@
 #!/bin/bash
 
-#!/bin/bash
+# Important note: This file has to be edited and saved in
+# ISO8859-1 code set. Otherwise it will not work any more.
+
 # replace german umlauts and predefined character sequences
 # with html-entities in a file given as parameter
 # place it into /usr/local/bin, make it executable
@@ -9,7 +11,8 @@
 # http://dr-luthardt.de/
 
 sed -e 's/\Ä/\&Auml;/g' \
-    -e 's/\ÿ/\&sup2;/g' \
+    -e 's/\²/\&sup2;/g' \
+    -e 's/\³/\&sup3;/g' \
     -e 's/\ä/\&auml;/g' \
     -e 's/\Ö/\&Ouml;/g' \
     -e 's/\ö/\&ouml;/g' \
