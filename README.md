@@ -103,6 +103,23 @@ verwenden.
 
 Dieses Script sorgt dafür, daß die beiden Scripte `wget-dwd` und `dwd-warnings` regelmäßig aufgerufen werden.
 
+Der Aufruf von `dwd-warnings` kann auch durch 
+```
+/usr/local/bin/dwd-cap-warnings --weewx --resolution=city
+``` 
+bzw.
+```
+/usr/local/bin/dwd-cap-warnings --weewx --resolution=county
+```
+ersetzt werden.
+
+Soll `dwd-mosmix` benutzt werden, muß dafür in der Datei die Zeile
+```
+/usr/local/bin/dwd-mosmix --weewx Station
+```
+hinzugefügt werden. Wenn die Vorhersage für mehrere Stationen benötigt wird, ist für jede Station ein Aufruf einzutragen.
+
+
 # Warnregionen
 
 Die Warnungen in der JSONP-Datei `warnings.json` ist nach Landkreisen gegliedert. Manche Landkreise sind dann noch weiter nach Landschaftsmerkmalen wie etwa Bergland und Tiefland unterteilt. Andere Dateien sind nach Bundesländern gegliedert. Im Wiki sind die vom Deutschen Wetterdienst verwendeten Bezeichnungen und Abkürzungen beschrieben:
