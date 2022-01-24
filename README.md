@@ -1,7 +1,7 @@
 # weewx-DWD
 Daten vom Deutschen Wetterdienst (DWD) herunterladen und für WeeWX aufbereiten
 
-<img src="Wettervorhersage-Warnungen-Fichtelberg.png" width="800px" style="align:center" />
+<img src="Wettervorhersage-Warnungen-Fichtelberg.png" width="600px" align="middle" />
 
 # Installation
 
