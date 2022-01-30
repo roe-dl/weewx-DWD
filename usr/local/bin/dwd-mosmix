@@ -86,42 +86,42 @@ def get_mos_url(location, mosmix):
     return DEFAULT_LOCAL_FORECAST_URL+'/'+"mos"+"/"+MOSMIX_DICT.get(mosmix.lower(),mosmix)+"/"+location
 
 WW_LIST = [
-    (95,'leichtes oder mäßiges Gewitter mit Regen oder Schnee','slight or moderate thunderstorm with rain or snow',1,'thunderstorm.png'),
-    (57,'mäßiger oder starker gefrierender Sprühregen','Drizzle, freezing, moderate or heavy (dence)',2,'sleet.png'),
-    (56,'leichter gefrierender Sprühregen','Drizzle, freezing, slight',3,'sleet.png'),
-    (67,'mäßiger bis starker gefrierender Regen','Rain, freezing, moderate or heavy (dence)',4,'sleet.png'),
-    (66,'leichter gefrierender Regen','Rain, freezing, slight',5,'sleet.png'),
-    (86,'mäßiger bis starker Schneeschauer','Snow shower(s), moderate or heavy',6,'snow.png'),
-    (85,'leichter Schneeschauer','Snow shower(s), slight',7,'snow.png'),
-    (84,'mäßiger oder starker Schneeregenschauer','Shower(s) of rain and snow mixed, moderate or heavy',8,'sleet.png'),
-    (83,'leichter Schneeregenschauer','Shower(s) of rain and snow mixed, slight',9,'sleet.png'),
-    (82,'äußerst heftiger Regenschauer','extremely heavy rain shower',10,'rain.png'),
-    (81,'mäßiger oder starker Regenschauer','moderate or heavy rain showers',11,'rain.png'),
-    (80,'leichter Regenschauer','slight rain shower',12,'rain.png'),
-    (75,'durchgehend starker Schneefall','heavy snowfall, continuous',13,'snow.png'),
-    (73,'durchgehend mäßiger Schneefall','moderate snowfall, continuous',14,'snow.png'),
-    (71,'durchgehend leichter Schneefall','slight snowfall, continuous',15,'snow.png'),
-    (69,'mäßger oder starker Schneeregen','moderate or heavy rain and snow',16,'sleet.png'),
-    (68,'leichter Schneeregen','slight rain and snow',17,'sleet.png'),
-    (55,'durchgehend starker Sprühregen','heavy drizzle, not freezing, continuous',18,'drizzle.png'),
-    (53,'durchgehend mäßiger Sprühregen','moderate drizzle, not freezing, continuous',19,'drizzle.png'),
-    (51,'durchgehend leichter Sprühregen','slight drizzle, not freezing, continuous',20,'drizzle.png'),
-    (65,'durchgehend starker Regen','heavy rain, not freezing, continuous',21,'rain.png'),
-    (63,'durchgehend mäßiger Regen','moderate rain, not freezing, continuous',22,'rain.png'),
-    (61,'durchgehend leichter Regen','slight rain, not freezing, continuous',23,'rain.png'),
-    (49,'Nebel mit Reifansatz, Himmel nicht erkennbar, unverändert','Ice Fog, sky not recognizable',24,'fog.png'),
-    (45,'Nebel, Himmel nicht erkennbar','Fog, sky not recognizable',25,'fog.png'),
-    (3,'Bewölkung zunehmend','Clouds generally forming or developing',26,None),
-    (2,'Bewölkung unverändert','State of sky on the whole unchanged',27,None),
-    (1,'Bewölkung abnehmend','Clouds generally dissolving or becoming less developed',28,None),
-    (0,'keine Bewölkungsentwicklung','no cloud cover development',29,None)]
+    (95,'leichtes oder mäßiges Gewitter mit Regen oder Schnee','slight or moderate thunderstorm with rain or snow',1,'thunderstorm.png','27.png'),
+    (57,'mäßiger oder starker gefrierender Sprühregen','Drizzle, freezing, moderate or heavy (dence)',2,'sleet.png','67.png'),
+    (56,'leichter gefrierender Sprühregen','Drizzle, freezing, slight',3,'sleet.png','66.png'),
+    (67,'mäßiger bis starker gefrierender Regen','Rain, freezing, moderate or heavy (dence)',4,'sleet.png','67.png'),
+    (66,'leichter gefrierender Regen','Rain, freezing, slight',5,'sleet.png','66.png'),
+    (86,'mäßiger bis starker Schneeschauer','Snow shower(s), moderate or heavy',6,'snow.png','86.png'),
+    (85,'leichter Schneeschauer','Snow shower(s), slight',7,'snow.png','85.png'),
+    (84,'mäßiger oder starker Schneeregenschauer','Shower(s) of rain and snow mixed, moderate or heavy',8,'sleet.png','13.png'),
+    (83,'leichter Schneeregenschauer','Shower(s) of rain and snow mixed, slight',9,'sleet.png','12.png'),
+    (82,'äußerst heftiger Regenschauer','extremely heavy rain shower',10,'rain.png','82.png'),
+    (81,'mäßiger oder starker Regenschauer','moderate or heavy rain showers',11,'rain.png','82.png'),
+    (80,'leichter Regenschauer','slight rain shower',12,'rain.png','80.png'),
+    (75,'durchgehend starker Schneefall','heavy snowfall, continuous',13,'snow.png','16.png'),
+    (73,'durchgehend mäßiger Schneefall','moderate snowfall, continuous',14,'snow.png','15.png'),
+    (71,'durchgehend leichter Schneefall','slight snowfall, continuous',15,'snow.png','14.png'),
+    (69,'mäßger oder starker Schneeregen','moderate or heavy rain and snow',16,'sleet.png','13.png'),
+    (68,'leichter Schneeregen','slight rain and snow',17,'sleet.png','12.png'),
+    (55,'durchgehend starker Sprühregen','heavy drizzle, not freezing, continuous',18,'drizzle.png','9.png'),
+    (53,'durchgehend mäßiger Sprühregen','moderate drizzle, not freezing, continuous',19,'drizzle.png','8.png'),
+    (51,'durchgehend leichter Sprühregen','slight drizzle, not freezing, continuous',20,'drizzle.png','7.png'),
+    (65,'durchgehend starker Regen','heavy rain, not freezing, continuous',21,'rain.png','9.png'),
+    (63,'durchgehend mäßiger Regen','moderate rain, not freezing, continuous',22,'rain.png','8.png'),
+    (61,'durchgehend leichter Regen','slight rain, not freezing, continuous',23,'rain.png','7.png'),
+    (49,'Nebel mit Reifansatz, Himmel nicht erkennbar, unverändert','Ice Fog, sky not recognizable',24,'fog.png','48.png'),
+    (45,'Nebel, Himmel nicht erkennbar','Fog, sky not recognizable',25,'fog.png','40.png'),
+    (3,'Bewölkung zunehmend','Clouds generally forming or developing',26,None,None),
+    (2,'Bewölkung unverändert','State of sky on the whole unchanged',27,None,None),
+    (1,'Bewölkung abnehmend','Clouds generally dissolving or becoming less developed',28,None,None),
+    (0,'keine Bewölkungsentwicklung','no cloud cover development',29,None,None)]
 
 N_ICON_LIST = [
-    ('clear-day.png','clear-night.png'),
-    ('mostly-clear-day.png','mostly-clear-night.png'),
-    ('partly-cloudy-day.png','partly-cloudy-night.png'),
-    ('mostly-cloudy-day.png','mostly-cloudy-night.png'),
-    ('cloudy.png','cloudy.png')]
+    ('clear-day.png','clear-night.png','0-8.png'),
+    ('mostly-clear-day.png','mostly-clear-night.png','2-8.png'),
+    ('partly-cloudy-day.png','partly-cloudy-night.png','5-8.png'),
+    ('mostly-cloudy-day.png','mostly-cloudy-night.png','5-8.png'),
+    ('cloudy.png','cloudy.png','8-8.png')]
     
 def get_ww(ww,n,night):
     """ get icon and description for the current weather """
@@ -149,7 +149,15 @@ def get_ww(ww,n,night):
             icon = N_ICON_LIST[3][night]
         else:
             icon = N_ICON_LIST[4][0]
-        wwcode = (wwcode[0],wwcode[1]+' '+str(n),wwcode[2]+' '+str(n),wwcode[3],icon)
+        if n<12.5:
+            dwd = N_ICON_LIST[0][2]
+        elif n<50:
+            dwd = N_ICON_LIST[1][2]
+        elif n<87.5:
+            dwd = N_ICON_LIST[2][2]
+        else:
+            dwd = N_ICON_LIST[4][2]
+        wwcode = (wwcode[0],wwcode[1]+' '+str(n),wwcode[2]+' '+str(n),wwcode[3],icon,dwd)
     return wwcode
 
 ##############################################################################
@@ -308,6 +316,9 @@ class DwdMosmix(object):
             # both tables are included, so we need to set visibility
             self.horizontal_div_classes = ((self.horizontal_div_classes+' ') if self.horizontal_div_classes else '')+class_hidden
             self.vertical_div_classes = ((self.vertical_div_classes+' ') if self.vertical_div_classes else '')+class_visible
+        # iconset
+        self.iconset = 4
+        if forecast_dict.get('icon_set','').lower()=='dwd': self.iconset = 5
         # logging
         self.verbose = verbose
         self.log_success = forecast_dict.get('log_success',config_dict['DeutscherWetterdienst'].get('log_success',config_dict.get('log_success',False)))
@@ -323,6 +334,7 @@ class DwdMosmix(object):
             print('target path:  ',self.target_path)
             print('horiz. tab:   ',self.horizontal_table)
             print('vertical tab: ',self.vertical_table)
+            print('icon set:     ',self.iconset)
             print('--------------------------------------------------------')
 
     def download_kml(self, location, mosmix):
@@ -510,7 +522,7 @@ class DwdMosmix(object):
                         pass
                 # weather symbol
                 wwcode = get_ww(days[day]['ww'],days[day]['Neffavg'],False)
-                days[day]['icon'] = self.icon_pth+'/'+wwcode[4]
+                days[day]['icon'] = self.icon_pth+'/'+wwcode[self.iconset]
                 days[day]['icontitle'] = wwcode[2] if lang=='en' else wwcode[1]
             # HTML 
             s = ""
@@ -680,6 +692,8 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
                       help="Read config from weewx.conf.")
     parser.add_option("--orientation", type=str, metavar="H,V",
                       help="HTML table orientation horizontal, vertial, or both")
+    parser.add_option("--icon-set", dest="iconset", type=str, metavar="SET",
+                      help="icon set to use, default is 'belchertown', possible values are 'dwd' and 'belchertown'")
     parser.add_option("--lang", dest="lang", type=str,
                       metavar="ISO639",
                       default='de',
@@ -721,6 +735,8 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
         
     if options.orientation:
         config['DeutscherWetterdienst']['forecast']['orientation'] = options.orientation
+    if options.iconset:
+        config['DeutscherWetterdienst']['forecast']['icon_set'] = options.iconset
         
     dwd = DwdMosmix(config,options.verbose)
     zz = dwd.download_kml(location,'l')

@@ -7,7 +7,9 @@ Daten vom Deutschen Wetterdienst (DWD) herunterladen und für WeeWX aufbereiten
 
 Alle Dateien müssen in die jeweiligen Verzeichnisse kopiert und mit `chmod +x Dateiname` ausführbar gemacht werden.
 
-Die Icons (Symbole) können beim DWD unter [Warnicons](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/icons/warnicons_nach_stufen_50x50_zip.zip?__blob=publicationFile&v=2) heruntergeladen werden.
+Die Icons (Symbole) können beim DWD heruntergeladen werden:
+* [Warnicons](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/icons/warnicons_nach_stufen_50x50_zip.zip?__blob=publicationFile&v=2) 
+* [Wettericons](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/icons/wettericons_zip.zip?__blob=publicationFile&v=3)
 
 # Programme
 
@@ -84,6 +86,8 @@ Options:
   --config=CONFIG_FILE  Use configuration file CONFIG_FILE.
   --weewx               Read config from weewx.conf.
   --orientation=H,V     HTML table orientation horizontal, vertial, or both
+  --icon-set=SET        icon set to use, default is 'belchertown', possible
+                        values are 'dwd' and 'belchertown'
   --lang=ISO639         Forecast language. Default 'de'
 
   Output and logging options:
@@ -107,6 +111,10 @@ senkrechter Ausrichtung für Telefone. Durch die HTML-Klassenzuordnung
 Mit der Option `--orientation` kann aber auch eine von beiden fest
 ausgewählt werden. Die möglichen Werte sind `h` oder `v` (kann auch
 ausgeschrieben werden).
+
+Die Option `--icon-set` gibt an, für welchen Wettersymbolsatz die
+Dateien erzeugt werden sollen, den der Belchertown-Skin oder den
+des Deutschen Wetterdienstes.
 
 Die Spracheinstellung betrifft nur die Wochentage, bei Englisch auch
 die Tooltips der Wettersymbole. Verfügbar ist `de`, `en`, `fr`, `it`
@@ -142,7 +150,24 @@ Die Warnungen in der JSONP-Datei `warnings.json` ist nach Landkreisen gegliedert
 
 # Konfiguration
 
-Im Verzeichnis der Visualisierung (skin), wo die Meldungen des DWD angezeigt werden sollen, muß ein Unterverzeichnis (Ordner) `dwd` angelegt werden. (Es sind auch andere Namen möglich.) In das Skript `wget-dwd` sowie die Konfigurationsdatei `weewx.conf` (siehe unten) muß der komplette Pfad dieses Verzeichnisses eingetragen werden.
+## Verzeichnis anlegen
+
+Im Verzeichnis der Visualisierung (skin), wo die Meldungen des DWD 
+angezeigt werden sollen, muß ein Unterverzeichnis (Ordner) `dwd` angelegt 
+werden. (Es sind auch andere Namen möglich.) In das Skript `wget-dwd` 
+sowie die Konfigurationsdatei `weewx.conf` (siehe unten) muß der 
+komplette Pfad dieses Verzeichnisses eingetragen werden.
+
+Beispiel:
+```
+cd /etc/weewx/skins/Belchertown
+mkdir dwd
+```
+
+`Belchertown` im Beispiel ist durch den zutreffenden Namen zu ersetzen.
+
+In dieses Verzeichnis speichern die Scripte die erzeugten Warn- und
+Vorhersage-Dateien.
 
 ## Konfiguration in weewx.conf
 
@@ -172,6 +197,9 @@ Beispiel:
         orientation=h,v
 ```
 
+Der Eintrag `path` muß auf das im ersten Schritt angelegte Verzeichnis
+zeigen.
+
 Die Pfade, Bundesländer und Landkreise sind den Erfordernissen bzw.
 tatsächlichen Verhältnissen entsprechend einzutragen. Die Bezeichnungen
 sind der Datei warncellids.csv zu entnehmen, die beim DWD heruntergeladen
@@ -191,6 +219,25 @@ Ob die Warnungen auf Landkreis- oder Gemeindebasis angezeigt werden,
 wird mit der Option `--resolution` beim Aufruf von `dwd-cap-warnings`
 eingestellt. Alternativ kann die Option auch in die Konfigurationsdatei
 eingetragen werden.
+
+## Wo können die nachfolgenden Beispiele eingefügt werden?
+
+### Belchertown-Skin
+
+Hier ist schon vorgesehen, daß zusätzliche Abschnitte eingefügt werden.
+Dazu muß einfach eine Datei unter einem der folgenden Namen erstellt
+werden. Sie wird automatisch eingebunden, wenn sie exisitiert:
+* `index_hook_after_station_info.inc`
+* `index_hook_after_forecast.inc`
+* `index_hook_after_snapshot.inc`
+* `index_hook_after_charts.inc`
+Der Name bezeichnet schon die Einfügestelle auf der Startseite.
+
+### andere Skins
+
+Wenn es keine solchen vorbereiteten Einfügestellen gibt, müssen die
+Beispiele in eine der Dateien mit der Endung `.html.tmpl`
+eingefügt werden.
 
 ## Text-Vorhersage im HTML-Template
 
