@@ -83,6 +83,8 @@ Options:
   -h, --help            show this help message and exit
   --config=CONFIG_FILE  Use configuration file CONFIG_FILE.
   --weewx               Read config from weewx.conf.
+  --orientation=H,V     HTML table orientation horizontal, vertial, or both
+  --lang=ISO639         Forecast language. Default 'de'
 
   Output and logging options:
     --dry-run           Print what would happen but do not do it. Default is
@@ -98,6 +100,17 @@ Nur für die dort aufgeführten Orte sind Vorhersagen beim DWD
 verfügbar. Als Code ist der Wert aus der Spalte "id" zu
 verwenden. 
 
+Die HTML-Datei enthält, wenn nicht anders konfiguriert, zwei Tabellen,
+eine mit waagerechter Ausrichtung für PC-Bildschirme und eine in 
+senkrechter Ausrichtung für Telefone. Durch die HTML-Klassenzuordnung
+`hidden-xs` und `visible-xs-block` ist immer nur eine davon sichtbar.
+Mit der Option `--orientation` kann aber auch eine von beiden fest
+ausgewählt werden. Die möglichen Werte sind `h` oder `v` (kann auch
+ausgeschrieben werden).
+
+Die Spracheinstellung betrifft nur die Wochentage, bei Englisch auch
+die Tooltips der Wettersymbole. Verfügbar ist `de`, `en`, `fr`, `it`
+und `cz`.
 
 ## /etc/cron.hourly/dwd
 
@@ -156,6 +169,7 @@ Beispiel:
               'Dresden-Altstadt'='DD'
     [[forecast]]
         icons='../images'
+        orientation=h,v
 ```
 
 Die Pfade, Bundesländer und Landkreise sind den Erfordernissen bzw.

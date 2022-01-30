@@ -64,15 +64,18 @@ MOSMIX_DICT = {
   's':'MOSMIX_S'}
 
 OBS_DICT = {
-  'FF': lambda x: x*3.6,
-  'PPPP':lambda x: x*0.01,
-  'T5cm':lambda x: x-273.15,
-  'Td':lambda x: x-273.15,
-  'TG':lambda x: x-273.15,
-  'TM':lambda x: x-273.15,
-  'TN':lambda x: x-273.15,
-  'TTT':lambda x: x-273.15,
-  'TX':lambda x: x-273.15}
+  'FF': lambda x: x*3.6,     # m/s --> km/h  wind speed
+  'FX1': lambda x: x*3.6,    # m/s --> km/h  wind gust within last hour
+  'FX3': lambda x: x*3.6,    # m/s --> km/h  wind gust within last 3 hours
+  'FXh': lambda x: x*3.6,    # m/s --> km/h  wind gust within last 12 hours
+  'PPPP':lambda x: x*0.01,   # Pa  --> hPa   surface pressure, reduced
+  'T5cm':lambda x: x-273.15, # K   --> °C    temperature 5cm above surface
+  'Td':lambda x: x-273.15,   # K   --> °C    dewpoint 2m above surface
+  'TG':lambda x: x-273.15,   # K   --> °C    min surface temp 5cm 12 hours
+  'TM':lambda x: x-273.15,   # K   --> °C    mean temp last 24 hours
+  'TN':lambda x: x-273.15,   # K   --> °C    min temp last 12 hours
+  'TTT':lambda x: x-273.15,  # K   --> °C    temperature 2m above surface
+  'TX':lambda x: x-273.15}   # K   --> °C    max temp last 12 hours
   
 def get_mos_url(location, mosmix):
     if location:
@@ -121,26 +124,37 @@ N_ICON_LIST = [
     ('cloudy.png','cloudy.png')]
     
 def get_ww(ww,n,night):
+    """ get icon and description for the current weather """
+    # If weather code ww is within the list of WW_LIST (which means
+    # it is important over cloud coverage), get the data from that
+    # list.
     for ii in WW_LIST:
         if ii[0] in ww:
             wwcode = ii
             break
     else:
         wwcode = (0,'','',30)
+    # Otherwise use cloud coverage
+    # see aerisweather for percentage values
+    # https://www.aerisweather.com/support/docs/api/reference/weather-codes/
     if wwcode[0]<=3:
         night = 1 if night else 0
-        if n<6.25:
+        if n<7:
             icon = N_ICON_LIST[0][night]
-        elif n<31.25:
+        elif n<32:
             icon = N_ICON_LIST[1][night]
-        elif n<68.75:
+        elif n<70:
             icon = N_ICON_LIST[2][night]
-        elif n<93.75:
+        elif n<95:
             icon = N_ICON_LIST[3][night]
         else:
             icon = N_ICON_LIST[4][0]
         wwcode = (wwcode[0],wwcode[1]+' '+str(n),wwcode[2]+' '+str(n),wwcode[3],icon)
     return wwcode
+
+##############################################################################
+#    Parser for the DWD KML weather forecast file                            #
+##############################################################################
     
 class KmlParser(html.parser.HTMLParser):
 
@@ -180,6 +194,7 @@ class KmlParser(html.parser.HTMLParser):
                     self.mos['ReferenceModel']['name'] = ii[1]
                 elif ii[0]=='dwd:referencetime':
                     self.mos['ReferenceModel']['ReferenceTime'] = KmlParser._mktime(ii[1])
+                    self.mos['ReferenceModel']['ReferenceTimeISO'] = ii[1]
         if tag=='kml:placemark':
             if 'Placemark' not in self.mos:
                 self.mos['Placemark'] = []
@@ -209,7 +224,7 @@ class KmlParser(html.parser.HTMLParser):
             if self.placemark is not None:
                 # inside a kml:Placemark section
                 if tag=='kml:name':
-                    self.placemark['name'] = data
+                    self.placemark['id'] = data
                 elif tag=='kml:description':
                     self.placemark['description'] = data
                 elif tag=='kml:coordinates':
@@ -244,14 +259,22 @@ class KmlParser(html.parser.HTMLParser):
                 self.mos['GeneratingProcess'] = data
             elif tag=='dwd:issuetime':
                 self.mos['IssueTime'] = KmlParser._mktime(data)
+                self.mos['IssueTimeISO'] = data
             elif tag=='dwd:defaultundefsign':
                 self.mos['DefaultUndefSign'] = data
             elif tag=='dwd:timestep' and self.tags[-2]=='dwd:forecasttimesteps':
                 if 'ForecastTimeSteps' not in self.mos:
                     self.mos['ForecastTimeSteps'] = []
                 self.mos['ForecastTimeSteps'].append(KmlParser._mktime(data))
+                if 'ForecastTimeStepsISO' not in self.mos:
+                    self.mos['ForecastTimeStepsISO'] = []
+                self.mos['ForecastTimeStepsISO'].append(data)
         if self.log_tags:
             print(self.lvl,self.tags,'data',data)
+
+###############################################################################
+#    process MOSMIX data                                                      #
+###############################################################################
         
 class DwdMosmix(object):
 
@@ -262,6 +285,29 @@ class DwdMosmix(object):
         forecast_dict = config_dict['DeutscherWetterdienst']['forecast']
         # weather icons
         self.icon_pth = forecast_dict['icons']
+        # HTML config
+        self.show_obs_symbols = forecast_dict.get('show_obs_symbols',True)
+        self.show_obs_description = forecast_dict.get('show_obs_description',False)
+        # orientation of the HTML table
+        orientation = forecast_dict.get('orientation','h,v')
+        if not isinstance(orientation,list):
+            if orientation.lower()=='both': orientation = 'h,v'
+            orientation = orientation.split(',')
+        orientation = [ii[0].lower() for ii in orientation]
+        self.horizontal_table = 'h' in orientation
+        self.vertical_table = 'v' in orientation
+        # classes to include in <table> and surroundng <div> tag
+        self.horizontal_table_classes = 'dwdforecasttable'
+        self.horizontal_div_classes = None
+        self.vertical_table_classes = 'dwdforecasttable'
+        self.vertical_div_classes = None
+        # visibility according to viewport size
+        class_hidden = 'hidden-xs'
+        class_visible = 'visible-xs-block'
+        if self.horizontal_table and self.vertical_table:
+            # both tables are included, so we need to set visibility
+            self.horizontal_div_classes = ((self.horizontal_div_classes+' ') if self.horizontal_div_classes else '')+class_hidden
+            self.vertical_div_classes = ((self.vertical_div_classes+' ') if self.vertical_div_classes else '')+class_visible
         # logging
         self.verbose = verbose
         self.log_success = forecast_dict.get('log_success',config_dict['DeutscherWetterdienst'].get('log_success',config_dict.get('log_success',False)))
@@ -275,14 +321,22 @@ class DwdMosmix(object):
             print('log success:  ',self.log_success)
             print('log failure:  ',self.log_failure)
             print('target path:  ',self.target_path)
+            print('horiz. tab:   ',self.horizontal_table)
+            print('vertical tab: ',self.vertical_table)
             print('--------------------------------------------------------')
 
     def download_kml(self, location, mosmix):
+        """ download MOSMIX KML file from DWD server """
 
         url = get_mos_url(location,mosmix)
         
         headers={'User-Agent':'weewx-DWD'}
-        reply = requests.get(url,headers=headers)
+        try:
+            reply = requests.get(url,headers=headers)
+        except ConnectionError as e:
+            if self.log_failure:
+                logerr(e)
+            return None
         
         if reply.status_code==200:
             if self.log_success or self.verbose:
@@ -299,6 +353,7 @@ class DwdMosmix(object):
             return None
             
     def process_kml(self, text, log_tags=False):
+        """ convert KML file to dict """
         if self.verbose:
             loginf('processing KML file')
         parser = KmlParser(log_tags)
@@ -332,6 +387,7 @@ class DwdMosmix(object):
         return "rgba(218,113,113,1)"
     
     def write_html(self, mos, obstypes, dryrun):
+        """ create HTML """
         s = ""
         s += '<table>'
         s += '<tr><td></td>'
@@ -349,25 +405,36 @@ class DwdMosmix(object):
         s += '</table>' 
         print(s)
         
-    def write_html_daily(self, mos, obstypes, dryrun):
+    def write_html_daily(self, mos, obstypes, dryrun, lang='de'):
+        """ make daily values out of hourly ones and create HTML and JSON """
         OBS_LABEL = {
             'ww':('','',''),
-            'TTTmin':('<i class="wi wi-thermometer">','Tmin','&deg;C'),
-            'TTTmax':('<i class="wi wi-thermometer">','Tmax','&deg;C'),
-            'TTTavg':('<i class="wi wi-thermometer">','Tavg','&deg;C'),
+            'TTTmin':('<i class="wi wi-thermometer">','Maximaltemperatur','&deg;C'),
+            'TTTmax':('<i class="wi wi-thermometer">','Minimaltemperatur','&deg;C'),
+            'TTTavg':('<i class="wi wi-thermometer">','Durchschnittstemperatur','&deg;C'),
             'FFavg':('<i class="wi wi-strong-wind"></i>','Wind','km/h'),
             'DDavg':('<i class="wi wi-strong-wind"></i>','Windrichtung','&deg;'),
+            'FX1max':('<i class="wi wi-strong-wind"></i>','max. Windb&ouml;en','km/h'),
             'PPPPavg':('<i class="wi wi-barometer"></i>','Luftdruck','mbar'),
             'Navg':('<i class="wi wi-cloud"></i>','Bew&ouml;lkung','%'),
             'Neffavg':('<i class="wi wi-cloud"></i>','Bew&ouml;lkung','%'),
-            'SunD1':('','SunD1','h'),
+            'SunD1':('<i class="wi wi-day-sunny"></i>','SunD1','h'),
             'RSunD':('<i class="wi wi-day-sunny"></i>','Sonnenscheindauer','%'),
             'RR1c':('<i class="wi wi-umbrella"></i>','Niederschlag','mm'),
-            'Rd10':('<i class="wi wi-umbrella"></i>','Wahrscheinlichkeit','%')}
-        WEEKDAY = ['Mo','Di','Mi','Do','Fr','Sa','So']
-        AVGS = ['TTT','FF','DD','PPPP','N','Neff']
-        symbols = True
-        desc = False
+            'Rd10':('<i class="wi wi-umbrella"></i>','Wahrscheinlichkeit','%'),
+            'VV':('VV','Sichtweite','m')}
+        # week day names
+        WEEKDAY = {
+            'de':['Mo','Di','Mi','Do','Fr','Sa','So'],
+            'en':['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+            'fr':['lu','ma','me','je','ve','sa','di'],
+            'it':['lun.','mar.','mer.','gio.','ven.','sab.','dom.'],
+            'cz':['Po','Út','St','Čt','Pá','So','Ne']}
+        # observation types to calculate average for
+        AVGS = ['TTT','Td','FF','DD','PPPP','N','Neff','VV']
+        # config
+        symbols = self.show_obs_symbols
+        desc = self.show_obs_description
         # create HTML and JSON file for each placemark in KML file
         for placemark in mos.get('Placemark'):
             days = dict()
@@ -377,7 +444,7 @@ class DwdMosmix(object):
                 vals = {ii:placemark['Forecast'][ii][idx] for ii in placemark['Forecast']}
                 # check if first timestamp of a new day
                 if day not in days: 
-                    days[day] = { 'TTTmin':1000.0,'TTTmax':-273.15,'TTTsum':0.0,'count':0,'FFsum':0.0,'DDsum':0.0,'PPPPsum':0.0,'Nsum':0.0,'Neffsum':0.0,'SunD1':0.0,'RR1c':0.0,'ww':[] }
+                    days[day] = { 'TTTmin':1000.0,'TTTmax':-273.15,'count':0,'SunD1':0.0,'RR1c':0.0,'ww':[],'FX1max':0.0,'VVmin':100000000000.0 }
                     for ii in AVGS:
                         days[day][ii+'sum'] = 0.0
                         days[day][ii+'ct'] = 0
@@ -385,8 +452,21 @@ class DwdMosmix(object):
                 days[day]['count'] += 1
                 # min and max temperature
                 ttt = vals['TTT']
-                if ttt>days[day]['TTTmax']: days[day]['TTTmax'] = ttt
-                if ttt<days[day]['TTTmin']: days[day]['TTTmin'] = ttt
+                if ttt and ttt>days[day]['TTTmax']: days[day]['TTTmax'] = ttt
+                if ttt and ttt<days[day]['TTTmin']: days[day]['TTTmin'] = ttt
+                # max wind gust
+                try:
+                    fx1 = vals['FX1']
+                    if fx1 and fx1>days[day]['FX1max']: 
+                        days[day]['FX1max'] = fx1
+                except (TypeError,LookupError):
+                    pass
+                # minimum visibility
+                try:
+                    vv = vals['VV']
+                    if vv and vv<days[day]['VVmin']: days[day]['VVmin'] = vv
+                except (TypeError,LookupError):
+                    pass
                 # sum values to get the average
                 for ii in AVGS:
                     try:
@@ -423,70 +503,162 @@ class DwdMosmix(object):
                         days[day][ii+'avg'] = days[day][ii+'sum']/days[day][ii+'ct']
                     except (TypeError,ArithmeticError,LookupError,ValueError):
                         days[day][ii+'avg'] = None
+                    try:
+                        del days[day][ii+'sum']
+                        del days[day][ii+'ct']
+                    except (LookupError,NameError):
+                        pass
                 # weather symbol
                 wwcode = get_ww(days[day]['ww'],days[day]['Neffavg'],False)
                 days[day]['icon'] = self.icon_pth+'/'+wwcode[4]
-                days[day]['icontitle'] = wwcode[1]
+                days[day]['icontitle'] = wwcode[2] if lang=='en' else wwcode[1]
             # HTML 
             s = ""
-            s += '<p><strong>%s</strong></p>\n' % placemark['description']
-            s += '<table class="dwdforecasttable">'
-            s += '<tr><td></td>'
-            if symbols: s += '<td></td>'
-            if desc: s += '<td></td>'
-            for day in days:
-                htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
-                s += '<td%s><strong>%s</strong><br />%s</td>' % (htmlclass,WEEKDAY[days[day]['weekday']],day)
-            s += '</tr>\n'
-            obs = obstypes if obstypes else ['ww','TTTmax','TTTmin','FFavg','DDavg','RR1c','Rd10','PPPPavg','Neffavg','RSunD']
-            for ii in obs:
-                if ii=='ww':
-                    s += '<tr class="icons">'
-                elif ii in ['FFavg','PPPPavg','RR1c','Neffavg']:
-                    s += '<tr class="topdist">'
-                else:
-                    s += '<tr>'
-                color = ''
-                prec_color = '#7cb5ec' if ii in ['RR1c','Rd00','Rd01','Rd05','Rd10'] else None
-                if prec_color: color = ';color:%s' % prec_color
-                if symbols:
-                    s += '<td style="text-align:left%s" title="%s">%s' % (color,OBS_LABEL.get(ii,('',ii,''))[1],OBS_LABEL.get(ii,('',ii,''))[0])
-                    if not desc and ii=='TTTmax': s+=' max'
-                    if not desc and ii=='TTTmin': s+=' min'
-                    s += '</td>'
-                if desc:
-                    s += '<td style="text-align:left%s">%s</td>' % (color,vOBS_LABEL.get(ii,('',ii,''))[1])
-                if prec_color: color = ' style="color:%s"' % prec_color
-                s += '<td'+color+'>'+OBS_LABEL.get(ii,('',ii,''))[2]+'</td>'
-                dp = 1 if ii in ['TTTmin','TTTmax','TTTavg','SunD1'] else 0
+            #s += '<p><strong>%s</strong></p>\n' % placemark['description']
+            s += '<p itemscope itemtype="https://schema.org/Place"><strong itemprop="name">%s</strong></p>\n' % placemark['description']
+            # HTML for PCs
+            if self.horizontal_table:
+                if self.horizontal_div_classes:
+                    s += '<div class="%s">\n' % self.horizontal_div_classes
+                s += '<table class="%s">' % self.horizontal_table_classes
+                s += '<tr><td></td>'
+                if symbols: s += '<td></td>'
+                if desc: s += '<td></td>'
                 for day in days:
                     htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
-                    try:
-                        if ii=='ww':
-                            #wwcode = get_ww(days[day]['ww'],days[day]['Neffavg'],False)
-                            icontitle = days[day]['icontitle'].replace('ö','&ouml;').replace('ü','&uuml;')
-                            s += '<td%s title="%s"><img src="%s" width="50px" alt="%s" /></td>' % (htmlclass,icontitle,days[day]['icon'],icontitle)
-                        elif ii in ('DD','DDavg'):
-                            #s += '<td%s><i class="fa fa-arrow-down" style="transform:rotate(%sdeg)"></i></td>' % (htmlclass,days[day][ii])
-                            s += '<td%s><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%"></i></td>' % (htmlclass,days[day][ii])
-                        else:
-                            color = ''
-                            if ii[0:3]=='TTT': color = ' style="color:%s"' % DwdMosmix._temp_color(days[day][ii])
-                            if prec_color: color = ' style="color:%s"' % prec_color
-                            s += ('<td%s%s>%.*f</td>' % (htmlclass,color,dp,days[day].get(ii,float("NaN")))).replace('.',',')
-                    except (ValueError,TypeError):
-                        s += '<td>%s</td>' % days[day].get(ii,'')
+                    s += '<td%s><strong>%s</strong><br />%s</td>' % (htmlclass,WEEKDAY[lang][days[day]['weekday']],day)
                 s += '</tr>\n'
-            s += '</table>\n' 
-            s += '<p style="font-size:85%%">herausgegeben vom <a href="https://www.dwd.de" target="_blank">DWD</a> am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M',time.localtime(mos['IssueTime']/1000.0))
-            fn = placemark['name']
+                obs = obstypes if obstypes else ['ww','TTTmax','TTTmin','FFavg','DDavg','RR1c','Rd10','PPPPavg','Neffavg','RSunD']
+                for ii in obs:
+                    if ii=='ww':
+                        s += '<tr class="icons">'
+                    elif ii in ['FFavg','PPPPavg','RR1c','Neffavg']:
+                        s += '<tr class="topdist">'
+                    else:
+                        s += '<tr>'
+                    color = ''
+                    prec_color = '#7cb5ec' if ii in ['RR1c','Rd00','Rd01','Rd05','Rd10'] else None
+                    if prec_color: color = ';color:%s' % prec_color
+                    if symbols:
+                        s += '<td style="text-align:left%s" title="%s">%s' % (color,OBS_LABEL.get(ii,('',ii,''))[1],OBS_LABEL.get(ii,('',ii,''))[0])
+                        if not desc and ii=='TTTmax': s+=' max'
+                        if not desc and ii=='TTTmin': s+=' min'
+                        s += '</td>'
+                    if desc:
+                        s += '<td style="text-align:left%s">%s</td>' % (color,vOBS_LABEL.get(ii,('',ii,''))[1])
+                    if prec_color: color = ' style="color:%s"' % prec_color
+                    s += '<td'+color+'>'+OBS_LABEL.get(ii,('',ii,''))[2]+'</td>'
+                    dp = 1 if ii in ['TTTmin','TTTmax','TTTavg','SunD1'] else 0
+                    for day in days:
+                        htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
+                        try:
+                            if ii=='ww':
+                                icontitle = days[day]['icontitle'].replace('ö','&ouml;').replace('ü','&uuml;')
+                                s += '<td%s title="%s"><img src="%s" width="50px" alt="%s" /></td>' % (htmlclass,icontitle,days[day]['icon'],icontitle)
+                            elif ii in ('DD','DDavg'):
+                                #s += '<td%s><i class="fa fa-arrow-down" style="transform:rotate(%sdeg)"></i></td>' % (htmlclass,days[day][ii])
+                                s += '<td%s><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%"></i></td>' % (htmlclass,days[day][ii])
+                            else:
+                                color = ''
+                                if ii[0:3]=='TTT': color = ' style="color:%s"' % DwdMosmix._temp_color(days[day][ii])
+                                if prec_color: color = ' style="color:%s"' % prec_color
+                                s += ('<td%s%s>%.*f</td>' % (htmlclass,color,dp,days[day].get(ii,float("NaN")))).replace('.',',')
+                        except (ValueError,TypeError):
+                            s += '<td>%s</td>' % days[day].get(ii,'')
+                    s += '</tr>\n'
+                s += '</table>\n'
+                if self.horizontal_div_classes:
+                    s += '</div>\n'
+            # HTML for phones
+            if self.vertical_table:
+                if self.vertical_div_classes:
+                    s += '<div class="%s">\n' % self.vertical_div_classes
+                s += '<table class="%s">' % self.vertical_table_classes
+                # header line
+                s += '<tr>'
+                s += '<th></th><th>ww</th>'
+                for ii in ['TTTmin','FFavg','RR1c','PPPPavg']:
+                    color = ' style="color:#7cb5ec"' if ii=='RR1c' else ''
+                    s += '<th%s>%s</th>' % (color,OBS_LABEL[ii][0])
+                s += '</tr>\n'
+                for day in days:
+                    htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
+                    s += '<tr>'
+                    # weekday and date
+                    s += '<td%s rowspan="2"><strong>%s</strong><br />%s</td>' % (htmlclass,WEEKDAY[lang][days[day]['weekday']],day)
+                    try:
+                        # weather icon
+                        icontitle = days[day]['icontitle'].replace('ö','&ouml;').replace('ü','&uuml;')
+                        s += '<td%s title="%s" rowspan="2"><img src="%s" width="50px" alt="%s" /></td>' % (htmlclass,icontitle,days[day]['icon'],icontitle)
+                    except (ValueError,TypeError):
+                        s += '<td>%s</td>' % days[day].get('','')
+                    try:
+                        # max temp
+                        color = ' style="color:%s"' % DwdMosmix._temp_color(days[day]['TTTmax'])
+                        s += ('<td%s%s>%.*f<span style="font-size:50%%"> °C</span></td>' % (htmlclass,color,1,days[day].get('TTTmax',float("NaN")))).replace('.',',')
+                    except (ValueError,TypeError):
+                        s += '<td>%s</td>' % days[day].get('TTTmax','')
+                    try:
+                        # wind
+                        color = ''
+                        s += ('<td%s%s>%.*f<span style="font-size:50%%"> km/h</span></td>' % (htmlclass,color,0,days[day].get('FFavg',float("NaN")))).replace('.',',')
+                    except (ValueError,TypeError):
+                        s += '<td>%s</td>' % days[day].get('FFavg','')
+                    try:
+                        # precipitation
+                        color = ' style="color:#7cb5ec"' 
+                        s += ('<td%s%s>%.*f<span style="font-size:50%%"> mm</span></td>' % (htmlclass,color,0,days[day].get('RR1c',float("NaN")))).replace('.',',')
+                    except (ValueError,TypeError):
+                        s += '<td>%s</td>' % days[day].get('RR1c','')
+                    try:
+                        # pressure
+                        color = ''
+                        s += ('<td%s%s rowspan="2">%.*f<span style="font-size:50%%"> mbar</span></td>' % (htmlclass,color,0,days[day].get('PPPPavg',float("NaN")))).replace('.',',')
+                    except (ValueError,TypeError):
+                        s += '<td>%s</td>' % days[day].get('PPPPavg','')
+                    # next line
+                    s += '</tr>\n<tr>'
+                    try:
+                        # min temp
+                        color = ' style="color:%s"' % DwdMosmix._temp_color(days[day]['TTTmin'])
+                        s += ('<td%s%s>%.*f<span style="font-size:50%%"> °C</span></td>' % (htmlclass,color,1,days[day].get('TTTmin',float("NaN")))).replace('.',',')
+                    except (ValueError,TypeError):
+                        s += '<td>%s</td>' % days[day].get('TTTmin','')
+                    try:
+                        # wind direction
+                        s += '<td%s><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%"></i></td>' % (htmlclass,days[day]['DDavg'])
+                    except (ValueError,TypeError):
+                        s += '<td>%s</td>' % days[day].get('DDavg','')
+                    try:
+                        # rain propability
+                        color = ' style="color:#7cb5ec"' 
+                        s += ('<td%s%s>%.*f<span style="font-size:50%%"> %%</span></td>' % (htmlclass,color,0,days[day].get('Rd10',float("NaN")))).replace('.',',')
+                    except (ValueError,TypeError):
+                        s += '<td>%s</td>' % days[day].get('Rd10','')
+                    s += '</tr>\n'
+                s += '</table>\n'
+                if self.vertical_div_classes:
+                    s += '</div>\n'
+            # Copyright notice
+            s += '<p style="font-size:80%%">herausgegeben vom <a href="https://www.dwd.de" target="_blank">DWD</a> am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M',time.localtime(mos['IssueTime']/1000.0))
+            fn = placemark['id']
             if dryrun:
                 print(s)
             else:
                 with open("%s/forecast-%s.inc" % (self.target_path,fn),"w") as file:
                     file.write(s)
                 with open("%s/forecast-%s.json" % (self.target_path,fn),"w") as file:
-                    json.dump(days,file,indent=4)
+                    x = {
+                        'Issuer':mos.get('Issuer'),
+                        'ProductID':mos.get('ProductID'),
+                        'GeneratingProcess':mos.get('GeneratingProcess'),
+                        'IssueTime':mos.get('IssueTime'),
+                        'IssueTimeISO':mos.get('IssueTimeISO'),
+                        'ReferenceModel':mos.get('ReferenceModel'),
+                        'id':placemark.get('id'),
+                        'name':placemark.get('description'),
+                        'Forecast':days}
+                    json.dump(x,file,indent=4)
 
 if __name__ == "__main__":
 
@@ -506,6 +678,12 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
                       help="Use configuration file CONFIG_FILE.")
     parser.add_option("--weewx", action="store_true",
                       help="Read config from weewx.conf.")
+    parser.add_option("--orientation", type=str, metavar="H,V",
+                      help="HTML table orientation horizontal, vertial, or both")
+    parser.add_option("--lang", dest="lang", type=str,
+                      metavar="ISO639",
+                      default='de',
+                      help="Forecast language. Default 'de'")
 
     group = optparse.OptionGroup(parser,"Output and logging options")
     group.add_option("--dry-run", action="store_true",
@@ -541,10 +719,12 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
     else:
         location = 'Döbeln'
         
+    if options.orientation:
+        config['DeutscherWetterdienst']['forecast']['orientation'] = options.orientation
+        
     dwd = DwdMosmix(config,options.verbose)
     zz = dwd.download_kml(location,'l')
     mos = dwd.process_kml(zz,options.log_tags)
+    #print(json.dumps(mos,indent=4,ensure_ascii=False))
     #dwd.write_html(mos,['TTT','PPPP','DD','FF'],True)
-    dwd.write_html_daily(mos,None,options.dry_run)
-    
-     
+    dwd.write_html_daily(mos,None,options.dry_run,lang=options.lang)
