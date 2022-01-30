@@ -74,6 +74,7 @@ eine JSON-Datei mit den Inhalten der Wettervorhersage.
 
 Zur Darstellung sind folgende Ressourcen nötig:
 * Wetter-Icons der [Belchertown Skin](https://obrienlabs.net/belchertownweather-com-website-theme-for-weewx/)
+  oder des [DWD](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/piktogramm_node.html)
 * Wetter-Icons von [Erik Flowers](https://erikflowers.github.io/weather-icons/)
 * zusätzliche CSS-Eintragungen
 
@@ -226,11 +227,12 @@ eingetragen werden.
 
 Hier ist schon vorgesehen, daß zusätzliche Abschnitte eingefügt werden.
 Dazu muß einfach eine Datei unter einem der folgenden Namen erstellt
-werden. Sie wird automatisch eingebunden, wenn sie exisitiert:
+werden. Sie wird automatisch eingebunden, wenn sie existiert:
 * `index_hook_after_station_info.inc`
 * `index_hook_after_forecast.inc`
 * `index_hook_after_snapshot.inc`
 * `index_hook_after_charts.inc`
+
 Der Name bezeichnet schon die Einfügestelle auf der Startseite.
 
 ### andere Skins
