@@ -289,7 +289,6 @@ wäre das `custom.css`:
 ```
 .dwdforecasttable {
     line-height: 1.0;
-    width: auto;
 }
 .dwdforecasttable td {
     text-align: center;

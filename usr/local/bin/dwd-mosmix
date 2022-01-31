@@ -85,6 +85,7 @@ def get_mos_url(location, mosmix):
         location = "all_stations/kml/MOSMIX_L_LATEST.kmz"
     return DEFAULT_LOCAL_FORECAST_URL+'/'+"mos"+"/"+MOSMIX_DICT.get(mosmix.lower(),mosmix)+"/"+location
 
+# https://www.dwd.de/DE/leistungen/opendata/help/schluessel_datenformate/kml/mosmix_element_weather_xls.xlsx?__blob=publicationFile&v=6
 WW_LIST = [
     (95,'leichtes oder mäßiges Gewitter mit Regen oder Schnee','slight or moderate thunderstorm with rain or snow',1,'thunderstorm.png','27.png'),
     (57,'mäßiger oder starker gefrierender Sprühregen','Drizzle, freezing, moderate or heavy (dence)',2,'sleet.png','67.png'),
@@ -93,8 +94,8 @@ WW_LIST = [
     (66,'leichter gefrierender Regen','Rain, freezing, slight',5,'sleet.png','66.png'),
     (86,'mäßiger bis starker Schneeschauer','Snow shower(s), moderate or heavy',6,'snow.png','86.png'),
     (85,'leichter Schneeschauer','Snow shower(s), slight',7,'snow.png','85.png'),
-    (84,'mäßiger oder starker Schneeregenschauer','Shower(s) of rain and snow mixed, moderate or heavy',8,'sleet.png','13.png'),
-    (83,'leichter Schneeregenschauer','Shower(s) of rain and snow mixed, slight',9,'sleet.png','12.png'),
+    (84,'mäßiger oder starker Schneeregenschauer','Shower(s) of rain and snow mixed, moderate or heavy',8,'sleet.png','84.png'),
+    (83,'leichter Schneeregenschauer','Shower(s) of rain and snow mixed, slight',9,'sleet.png','83.png'),
     (82,'äußerst heftiger Regenschauer','extremely heavy rain shower',10,'rain.png','82.png'),
     (81,'mäßiger oder starker Regenschauer','moderate or heavy rain showers',11,'rain.png','82.png'),
     (80,'leichter Regenschauer','slight rain shower',12,'rain.png','80.png'),
@@ -133,11 +134,12 @@ def get_ww(ww,n,night):
             wwcode = ii
             break
     else:
-        wwcode = (0,'','',30)
+        wwcode = (0,'','',30,None,None)
     # Otherwise use cloud coverage
     # see aerisweather for percentage values
     # https://www.aerisweather.com/support/docs/api/reference/weather-codes/
     if wwcode[0]<=3:
+        # Belchertown icons
         night = 1 if night else 0
         if n<7:
             icon = N_ICON_LIST[0][night]
@@ -149,6 +151,7 @@ def get_ww(ww,n,night):
             icon = N_ICON_LIST[3][night]
         else:
             icon = N_ICON_LIST[4][0]
+        # DWD icons
         if n<12.5:
             dwd = N_ICON_LIST[0][2]
         elif n<50:
@@ -159,6 +162,14 @@ def get_ww(ww,n,night):
             dwd = N_ICON_LIST[4][2]
         wwcode = (wwcode[0],wwcode[1]+' '+str(n),wwcode[2]+' '+str(n),wwcode[3],icon,dwd)
     return wwcode
+
+# week day names
+WEEKDAY = {
+    'de':['Mo','Di','Mi','Do','Fr','Sa','So'],
+    'en':['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    'fr':['lu','ma','me','je','ve','sa','di'],
+    'it':['lun.','mar.','mer.','gio.','ven.','sab.','dom.'],
+    'cz':['Po','Út','St','Čt','Pá','So','Ne']}
 
 ##############################################################################
 #    Parser for the DWD KML weather forecast file                            #
@@ -398,24 +409,36 @@ class DwdMosmix(object):
         if temp<=43.3:   return "rgba(255,104,104,1)"
         return "rgba(218,113,113,1)"
     
-    def write_html(self, mos, obstypes, dryrun):
+    def write_html(self, mos, obstypes, dryrun, lang='de'):
         """ create HTML """
         s = ""
         s += '<table>'
         s += '<tr><td></td>'
         for ii in mos['ForecastTimeSteps']:
+            try:
+                wd = WEEKDAY[lang][time.localtime(ii*0.001).tm_wday]
+            except Exception:
+                wd = ''
             ti = time.strftime('%d.%m.<br />%H:%M',time.localtime(ii*0.001))
-            s += '<td>%s</td>' % ti
+            s += '<td><strong>%s</strong><br />%s</td>' % (wd,ti)
         s += '</tr>\n'
         for placemark in mos.get('Placemark'):
             obs = obstypes if obstypes else placemark['Forecast']
             for ii in obs:
                 s += '<tr><td>%s</td>' % ii
                 for jj in placemark['Forecast'][ii]:
-                    s += '<td>%.1f</td>' % jj
+                    try:
+                        s += '<td>%.1f</td>' % jj
+                    except Exception:
+                        s += '<td>%s</td>' % jj
                 s += '</tr>\n'
-        s += '</table>' 
-        print(s)
+            fn = placemark['id']
+        s += '</table>\n'
+        if dryrun:
+            print(s)
+        else:
+            with open("%s/forecast-%s-all.inc" % (self.target_path,fn),"w") as file:
+                file.write(s)
         
     def write_html_daily(self, mos, obstypes, dryrun, lang='de'):
         """ make daily values out of hourly ones and create HTML and JSON """
@@ -435,13 +458,6 @@ class DwdMosmix(object):
             'RR1c':('<i class="wi wi-umbrella"></i>','Niederschlag','mm'),
             'Rd10':('<i class="wi wi-umbrella"></i>','Wahrscheinlichkeit','%'),
             'VV':('VV','Sichtweite','m')}
-        # week day names
-        WEEKDAY = {
-            'de':['Mo','Di','Mi','Do','Fr','Sa','So'],
-            'en':['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
-            'fr':['lu','ma','me','je','ve','sa','di'],
-            'it':['lun.','mar.','mer.','gio.','ven.','sab.','dom.'],
-            'cz':['Po','Út','St','Čt','Pá','So','Ne']}
         # observation types to calculate average for
         AVGS = ['TTT','Td','FF','DD','PPPP','N','Neff','VV']
         # config
@@ -672,6 +688,29 @@ class DwdMosmix(object):
                         'Forecast':days}
                     json.dump(x,file,indent=4)
 
+    @staticmethod
+    def print_icons_ww(iconset='dwd'):
+        if not iconset or iconset.lower()=='belchertown':
+            icons = dict()
+            for ii in WW_LIST:
+                if ii[4] not in icons: icons[ii[4]] = []
+                icons[ii[4]].append(ii[0])
+            print('Belchertown icons')
+            print('=================')
+            for ii in icons:
+                print('%-16s: %s' % (ii,icons[ii]))
+            if not iconset:
+                print('')
+        if not iconset or iconset.lower()=='dwd':
+            icons = dict()
+            for ii in WW_LIST:
+                if ii[5] not in icons: icons[ii[5]] = []
+                icons[ii[5]].append(ii[0])
+            print('DWD icons')
+            print('=================')
+            for ii in icons:
+                print('%-16s: %s' % (ii,icons[ii]))
+
 if __name__ == "__main__":
 
     usage = None
@@ -708,8 +747,20 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
                       help="Verbose output")
     parser.add_option_group(group)
 
+    # commands
+    group = optparse.OptionGroup(parser,"Commands")
+    group.add_option("--print-icons-ww", action="store_true", dest="iconsww",
+                     help="Print which icons are connected to which ww weather code")
+    group.add_option("--all", action="store_true",
+                     help="output all details in HTML")
+    parser.add_option_group(group)
+
     (options, args) = parser.parse_args()
 
+    if options.iconsww:
+        DwdMosmix.print_icons_ww(options.iconset)
+        sys.exit(0)
+        
     if options.weewx:
         config_path = "/etc/weewx/weewx.conf"
     else:
@@ -737,10 +788,15 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
         config['DeutscherWetterdienst']['forecast']['orientation'] = options.orientation
     if options.iconset:
         config['DeutscherWetterdienst']['forecast']['icon_set'] = options.iconset
-        
+
     dwd = DwdMosmix(config,options.verbose)
     zz = dwd.download_kml(location,'l')
     mos = dwd.process_kml(zz,options.log_tags)
     #print(json.dumps(mos,indent=4,ensure_ascii=False))
-    #dwd.write_html(mos,['TTT','PPPP','DD','FF'],True)
-    dwd.write_html_daily(mos,None,options.dry_run,lang=options.lang)
+    if options.all:
+        dwd.write_html(mos,None,options.dry_run,options.lang)
+    elif False:
+        dwd.write_html(mos,['TTT','PPPP','DD','FF'],options.dry_run,options.lang)
+    else:
+        dwd.write_html_daily(mos,None,options.dry_run,lang=options.lang)
+    
