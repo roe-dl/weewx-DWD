@@ -16,6 +16,6 @@
 
 # Fuer Wettervorhersagen XXXXX durch den Stationscode
 # ersetzen und das Kommentarzeichen entfernen.
-#/usr/local/bin/dwd-mosmix --weewx XXXXX 2>/dev/null >/dev/null
+#/usr/local/bin/dwd-mosmix --weewx --daily --hourly XXXXX 2>/dev/null >/dev/null
 
 exit 0

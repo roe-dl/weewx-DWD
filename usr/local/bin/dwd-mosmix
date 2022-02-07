@@ -38,6 +38,12 @@ from email.utils import formatdate
 import html.parser
 import zipfile
 
+try:
+    import ephem
+    has_pyephem = True
+except ImportError:
+    has_pyephem = False
+
 if __name__ == "__main__":
     import optparse
     import sys
@@ -57,6 +63,7 @@ LOCATION_DICT = {
   'Oschatz':'10480',
   'Dresden':'10487',
   'Chemnitz':'10577',
+  'Görlitz':'10499',
   'Fichtelberg':'10578'}
 
 MOSMIX_DICT = {
@@ -190,6 +197,7 @@ class KmlParser(html.parser.HTMLParser):
     @staticmethod
     def _mktime(timestring):
         """ convert CAP timestamp string to epoch time """
+        #xxx = timestring
         if timestring[-1]=='Z':
             timestring = timestring.replace('Z','+0000')
         idx = timestring.find('.')
@@ -198,7 +206,7 @@ class KmlParser(html.parser.HTMLParser):
             if idx2==-1: idx2 = timestring.find('-')
             timestring = timestring[:idx]+timestring[idx2:]
         ti = datetime.datetime.strptime(timestring,'%Y-%m-%dT%H:%M:%S%z')
-        #print(ti)
+        #print('_mktime',xxx,ti,ti.timestamp(),time.strftime('%H:%M',time.localtime(ti.timestamp())))
         return int(ti.timestamp()*1000)
 
     def handle_starttag(self, tag, attrs):
@@ -338,6 +346,24 @@ class DwdMosmix(object):
             self.log_success = True
             self.log_failure = True
             self.verbose = True
+        # almanac
+        stn = config_dict.get('Station',dict())
+        self.latitude = float(stn.get('latitude'))
+        self.longitude = float(stn.get('longitude'))
+        alt = stn.get('altitude',(None,None))
+        if alt[1] and alt[1]=='meter':
+            alt = float(alt[0])
+        elif alt[1] and alt[1]=='foot':
+            alt = float(alt[0])*0.3048
+        else:
+            alt = None
+        self.altitude = alt
+        if has_pyephem:
+            self.thislocation = ephem.Observer()
+            self.thislocation.lon = self.longitude
+            self.thislocation.lat = self.latitude
+            self.thislocation.elevation = self.altitude
+            self.sun = ephem.Sun()
         if __name__ == "__main__" and verbose:
             print('-- configuration data ----------------------------------')
             print('log success:  ',self.log_success)
@@ -346,6 +372,7 @@ class DwdMosmix(object):
             print('horiz. tab:   ',self.horizontal_table)
             print('vertical tab: ',self.vertical_table)
             print('icon set:     ',self.iconset)
+            print('coordinates:  ','lat',self.latitude,'lon',self.longitude,'alt',self.altitude)
             print('--------------------------------------------------------')
 
     def download_kml(self, location, mosmix):
@@ -389,6 +416,13 @@ class DwdMosmix(object):
         return parser.mos
 
     @staticmethod
+    def timestamp_to_djd(time_ts):
+        """ convert unix timestamp to dublin julian day 
+            Copyright (C) Tom Keffer
+        """
+        return 25567.5 + time_ts/86400.0
+        
+    @staticmethod
     def _temp_color(temp):
         """ temperature colors 
             Copyright (C) Tom O'Brien
@@ -409,55 +443,154 @@ class DwdMosmix(object):
         if temp<=43.3:   return "rgba(255,104,104,1)"
         return "rgba(218,113,113,1)"
     
-    def write_html(self, mos, obstypes, dryrun, lang='de'):
+    OBS_LABEL = {
+        'ww':('','',''),
+        'TTT':('<i class="wi wi-thermometer">','Temperatur 2m','&deg;C'),
+        'TTTmin':('<i class="wi wi-thermometer">','Maximaltemperatur','&deg;C'),
+        'TTTmax':('<i class="wi wi-thermometer">','Minimaltemperatur','&deg;C'),
+        'TTTavg':('<i class="wi wi-thermometer">','Durchschnittstemperatur','&deg;C'),
+        'T5cm':('<i class="wi wi-thermometer">','Temperatur 5cm','&deg;C'),
+        'Td':('<i class="wi wi-thermometer">','Taupunkt 2m','&deg;C'),
+        'TG':('<i class="wi wi-thermometer">','Minimaltemperatur 5cm','&deg;C'),
+        'TM':('<i class="wi wi-thermometer">','Durchschnittstemperatur','&deg;C'),
+        'TN':('<i class="wi wi-thermometer">','Minimaltemperatur','&deg;C'),
+        'TX':('<i class="wi wi-thermometer">','Maximaltemperatur','&deg;C'),
+        'FF':('<i class="wi wi-strong-wind"></i>','Wind','km/h'),
+        'DD':('<i class="wi wi-strong-wind"></i>','Windrichtung','&deg;'),
+        'FFavg':('<i class="wi wi-strong-wind"></i>','Wind','km/h'),
+        'DDavg':('<i class="wi wi-strong-wind"></i>','Windrichtung','&deg;'),
+        'FX1max':('<i class="wi wi-strong-wind"></i>','max. Windb&ouml;en','km/h'),
+        'PPPP':('<i class="wi wi-barometer"></i>','Luftdruck','mbar'),
+        'PPPPavg':('<i class="wi wi-barometer"></i>','Luftdruck','mbar'),
+        'Navg':('<i class="wi wi-cloud"></i>','Bew&ouml;lkung','%'),
+        'Neffavg':('<i class="wi wi-cloud"></i>','Bew&ouml;lkung','%'),
+        'SunD1':('<i class="wi wi-day-sunny"></i>','SunD1','h'),
+        'RSunD':('<i class="wi wi-day-sunny"></i>','Sonnenscheindauer','%'),
+        'RR1c':('<i class="wi wi-umbrella"></i>','Niederschlag','mm'),
+        'Rd10':('<i class="wi wi-umbrella"></i>','Wahrscheinlichkeit','%'),
+        'R101':('<i class="wi wi-umbrella"></i>','Wahrscheinlichkeit','%'),
+        'VV':('VV','Sichtweite','m')}
+
+    def write_html(self, mos, obstypes, dryrun, range=None, lang='de'):
         """ create HTML """
-        s = ""
-        s += '<table>'
-        s += '<tr><td></td>'
-        for ii in mos['ForecastTimeSteps']:
-            try:
-                wd = WEEKDAY[lang][time.localtime(ii*0.001).tm_wday]
-            except Exception:
-                wd = ''
-            ti = time.strftime('%d.%m.<br />%H:%M',time.localtime(ii*0.001))
-            s += '<td><strong>%s</strong><br />%s</td>' % (wd,ti)
-        s += '</tr>\n'
+        try:
+            start_day = range[0]
+            end_day = range[1]
+            count = 9999
+        except TypeError:
+            start_day = 0
+            end_day = 9999
+            count = range if range else 9999
+        now = time.time()*1000
+        # config
+        symbols = self.show_obs_symbols and obstypes
+        desc = self.show_obs_description or not obstypes
         for placemark in mos.get('Placemark'):
+            s = ""
+            s += '<table class="%s">' % self.horizontal_table_classes
+            start_ct = 0
+            old_wd = None
+            # timestamp
+            s += '<tr><td></td>'
+            if symbols: s += '<td></td>'
+            if desc: s += '<td></td>'
+            old_day_ct = -1
+            for idx,ii in enumerate(mos['ForecastTimeSteps']):
+                # day of week
+                try:
+                    wd = WEEKDAY[lang][time.localtime(ii*0.001).tm_wday]
+                except Exception:
+                    wd = ''
+                # count days
+                if old_wd:
+                    if old_wd!=wd: day_ct += 1
+                else:
+                    day_ct = 0
+                old_wd = wd
+                #
+                if ii<now or day_ct<start_day:
+                    start_ct += 1 
+                    continue
+                if idx>=count+start_ct: break
+                if day_ct>=end_day: 
+                    count = idx-start_ct
+                    break
+                #
+                ti = time.localtime(ii*0.001)
+                s += '<td>'
+                if old_day_ct!=day_ct:
+                    s += '<strong>%s</strong><br />%s' % (wd,time.strftime('%d.%m.',ti))
+                else:
+                    s += '<br />'
+                s += '<br />%s' % time.strftime('%H:%M',ti)
+                s += '</td>'
+                old_day_ct = day_ct
+            s += '</tr>\n'
+            # weather icon
+            s += '<tr class="icons"><td></td>'
+            if symbols: s += '<td></td>'
+            if desc: s += '<td></td>'
+            for idx,ii in enumerate(mos['ForecastTimeSteps']):
+                if idx<start_ct: continue
+                if idx>=count+start_ct: break
+                if has_pyephem:
+                    djd = DwdMosmix.timestamp_to_djd(ii*0.001)
+                    self.thislocation.date = djd
+                    self.thislocation.epoch = djd
+                    rising = self.thislocation.next_rising(self.sun)
+                    setting = self.thislocation.next_setting(self.sun)
+                    night = setting>rising
+                else:
+                    night = not (6 <= time.localtime(ii*0.001).tm_hour < 18)
+                wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],night)
+                if lang=='en':
+                    icontitle = wwcode[2]
+                else:
+                    icontitle = wwcode[1].replace('ö','&ouml;').replace('ü','&uuml;')
+                s += '<td title="%s"><img src="%s/%s" width="50px" alt="%s" /></td>' % (icontitle,self.icon_pth,wwcode[self.iconset],icontitle)
+            s += '</tr>\n'
+            # other obeservation types
             obs = obstypes if obstypes else placemark['Forecast']
             for ii in obs:
-                s += '<tr><td>%s</td>' % ii
-                for jj in placemark['Forecast'][ii]:
+                if obstypes and ii in ['FF','RR1c','PPPP','Neff']:
+                    s += '<tr class="topdist">'
+                else:
+                    s += '<tr>'
+                if symbols:
+                    s += '<td>%s</td>' % self.OBS_LABEL.get(ii,(ii,'',''))[0]
+                if desc:
+                    if obstypes:
+                        s += '<td>%s</td>' % self.OBS_LABEL.get(ii,('',ii,''))[1]
+                    else:
+                        s += '<td>%s</td>' % ii
+                s += '<td>%s</td>' % self.OBS_LABEL.get(ii,(ii,'',''))[2]
+                for idx,jj in enumerate(placemark['Forecast'][ii]):
+                    if idx<start_ct: continue
+                    if idx>=count+start_ct: break
                     try:
-                        s += '<td>%.1f</td>' % jj
+                        color = ''
+                        if ii=='TTT': color = ' style="color:%s"' % DwdMosmix._temp_color(jj)
+                        if ii in ['RR1c','RRL1c','RRS1c','R101']: color = ' style="color:#7cb5ec"'
+                        dp = 1 if ii[0]=='T' or ii in ['RR1c','RRL1c','RRS1c','RR3c','RR6c'] else 0
+                        if ii=='DD':
+                            s += '<td><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%"></i></td>' % jj
+                        else:
+                            s += '<td%s>%.*f</td>' % (color,dp,jj)
                     except Exception:
                         s += '<td>%s</td>' % jj
                 s += '</tr>\n'
             fn = placemark['id']
-        s += '</table>\n'
-        if dryrun:
-            print(s)
-        else:
-            with open("%s/forecast-%s-all.inc" % (self.target_path,fn),"w") as file:
-                file.write(s)
+            s += '</table>\n'
+            if dryrun:
+                print(s)
+            else:
+                suffix = 'hourly' if obstypes else 'all'
+                if end_day<30: suffix += '-'+str(start_day)
+                with open("%s/forecast-%s-%s.inc" % (self.target_path,fn,suffix),"w") as file:
+                    file.write(s)
         
     def write_html_daily(self, mos, obstypes, dryrun, lang='de'):
         """ make daily values out of hourly ones and create HTML and JSON """
-        OBS_LABEL = {
-            'ww':('','',''),
-            'TTTmin':('<i class="wi wi-thermometer">','Maximaltemperatur','&deg;C'),
-            'TTTmax':('<i class="wi wi-thermometer">','Minimaltemperatur','&deg;C'),
-            'TTTavg':('<i class="wi wi-thermometer">','Durchschnittstemperatur','&deg;C'),
-            'FFavg':('<i class="wi wi-strong-wind"></i>','Wind','km/h'),
-            'DDavg':('<i class="wi wi-strong-wind"></i>','Windrichtung','&deg;'),
-            'FX1max':('<i class="wi wi-strong-wind"></i>','max. Windb&ouml;en','km/h'),
-            'PPPPavg':('<i class="wi wi-barometer"></i>','Luftdruck','mbar'),
-            'Navg':('<i class="wi wi-cloud"></i>','Bew&ouml;lkung','%'),
-            'Neffavg':('<i class="wi wi-cloud"></i>','Bew&ouml;lkung','%'),
-            'SunD1':('<i class="wi wi-day-sunny"></i>','SunD1','h'),
-            'RSunD':('<i class="wi wi-day-sunny"></i>','Sonnenscheindauer','%'),
-            'RR1c':('<i class="wi wi-umbrella"></i>','Niederschlag','mm'),
-            'Rd10':('<i class="wi wi-umbrella"></i>','Wahrscheinlichkeit','%'),
-            'VV':('VV','Sichtweite','m')}
         # observation types to calculate average for
         AVGS = ['TTT','Td','FF','DD','PPPP','N','Neff','VV']
         # config
@@ -568,14 +701,14 @@ class DwdMosmix(object):
                     prec_color = '#7cb5ec' if ii in ['RR1c','Rd00','Rd01','Rd05','Rd10'] else None
                     if prec_color: color = ';color:%s' % prec_color
                     if symbols:
-                        s += '<td style="text-align:left%s" title="%s">%s' % (color,OBS_LABEL.get(ii,('',ii,''))[1],OBS_LABEL.get(ii,('',ii,''))[0])
+                        s += '<td style="text-align:left%s" title="%s">%s' % (color,self.OBS_LABEL.get(ii,('',ii,''))[1],self.OBS_LABEL.get(ii,('',ii,''))[0])
                         if not desc and ii=='TTTmax': s+=' max'
                         if not desc and ii=='TTTmin': s+=' min'
                         s += '</td>'
                     if desc:
-                        s += '<td style="text-align:left%s">%s</td>' % (color,vOBS_LABEL.get(ii,('',ii,''))[1])
+                        s += '<td style="text-align:left%s">%s</td>' % (color,self.OBS_LABEL.get(ii,('',ii,''))[1])
                     if prec_color: color = ' style="color:%s"' % prec_color
-                    s += '<td'+color+'>'+OBS_LABEL.get(ii,('',ii,''))[2]+'</td>'
+                    s += '<td'+color+'>'+self.OBS_LABEL.get(ii,('',ii,''))[2]+'</td>'
                     dp = 1 if ii in ['TTTmin','TTTmax','TTTavg','SunD1'] else 0
                     for day in days:
                         htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
@@ -607,7 +740,7 @@ class DwdMosmix(object):
                 s += '<th></th><th>ww</th>'
                 for ii in ['TTTmin','FFavg','RR1c','PPPPavg']:
                     color = ' style="color:#7cb5ec"' if ii=='RR1c' else ''
-                    s += '<th%s>%s</th>' % (color,OBS_LABEL[ii][0])
+                    s += '<th%s>%s</th>' % (color,self.OBS_LABEL[ii][0])
                 s += '</tr>\n'
                 for day in days:
                     htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
@@ -752,7 +885,11 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
     group.add_option("--print-icons-ww", action="store_true", dest="iconsww",
                      help="Print which icons are connected to which ww weather code")
     group.add_option("--all", action="store_true",
-                     help="output all details in HTML")
+                     help="Output all details in HTML")
+    group.add_option("--hourly", action="store_true",
+                     help="output hourly forecast")
+    group.add_option("--daily", action="store_true",
+                     help="output daily forecast (the default)")
     parser.add_option_group(group)
 
     (options, args) = parser.parse_args()
@@ -793,10 +930,16 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
     zz = dwd.download_kml(location,'l')
     mos = dwd.process_kml(zz,options.log_tags)
     #print(json.dumps(mos,indent=4,ensure_ascii=False))
-    if options.all:
-        dwd.write_html(mos,None,options.dry_run,options.lang)
-    elif False:
-        dwd.write_html(mos,['TTT','PPPP','DD','FF'],options.dry_run,options.lang)
-    else:
-        dwd.write_html_daily(mos,None,options.dry_run,lang=options.lang)
     
+    nothing = True
+
+    if options.all:
+        dwd.write_html(mos,None,options.dry_run,lang=options.lang)
+        nothing = False
+    
+    if options.hourly:
+        dwd.write_html(mos,['TTT','FF','DD','RR1c','R101','PPPP'],options.dry_run,range=11,lang=options.lang)
+        nothing = False
+
+    if options.daily or nothing:
+        dwd.write_html_daily(mos,None,options.dry_run,lang=options.lang)

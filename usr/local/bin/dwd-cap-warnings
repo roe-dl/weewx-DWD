@@ -76,7 +76,7 @@ AGS_STATES = {
   '04':('HB','Freie Hansestadt Bremen'),
   '05':('NRW','Nordrhein-Westfalen'),
   '06':('HE','Hessen'),
-  '07':('RP','Rheinland-Pflaz'),
+  '07':('RP','Rheinland-Pfalz'),
   '08':('BW','Baden-Württemberg'),
   '09':('BY','Freistaat Bayern'),
   '10':('SL','Saarland'),
