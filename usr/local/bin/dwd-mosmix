@@ -82,7 +82,8 @@ OBS_DICT = {
   'TM':lambda x: x-273.15,   # K   --> °C    mean temp last 24 hours
   'TN':lambda x: x-273.15,   # K   --> °C    min temp last 12 hours
   'TTT':lambda x: x-273.15,  # K   --> °C    temperature 2m above surface
-  'TX':lambda x: x-273.15}   # K   --> °C    max temp last 12 hours
+  'TX':lambda x: x-273.15,   # K   --> °C    max temp last 12 hours
+  'Rad1h':lambda x: x/3.6}   # kJ  --> Wh    Global Irradiance
   
 def get_mos_url(location, mosmix):
     if location:
@@ -466,13 +467,15 @@ class DwdMosmix(object):
         'Neffavg':('<i class="wi wi-cloud"></i>','Bew&ouml;lkung','%'),
         'SunD1':('<i class="wi wi-day-sunny"></i>','SunD1','h'),
         'RSunD':('<i class="wi wi-day-sunny"></i>','Sonnenscheindauer','%'),
+        'Rad1h':('<i class="wi wi-hot"></i>','Globalstrahlung','Wh/m&sup2;'),
+        'Rad1hsum':('<i class="wi wi-hot"></i>','Globalstrahlung','kWh/m&sup2;'),
         'RR1c':('<i class="wi wi-umbrella"></i>','Niederschlag','mm'),
         'Rd10':('<i class="wi wi-umbrella"></i>','Wahrscheinlichkeit','%'),
         'R101':('<i class="wi wi-umbrella"></i>','Wahrscheinlichkeit','%'),
         'VV':('VV','Sichtweite','m')}
 
     def write_html(self, mos, obstypes, dryrun, range=None, lang='de'):
-        """ create HTML """
+        """ create HTML hourly """
         try:
             start_day = range[0]
             end_day = range[1]
@@ -549,31 +552,40 @@ class DwdMosmix(object):
                     icontitle = wwcode[1].replace('ö','&ouml;').replace('ü','&uuml;')
                 s += '<td title="%s"><img src="%s/%s" width="50px" alt="%s" /></td>' % (icontitle,self.icon_pth,wwcode[self.iconset],icontitle)
             s += '</tr>\n'
-            # other obeservation types
+            # other observation types
             obs = obstypes if obstypes else placemark['Forecast']
             for ii in obs:
+                prec_color = ' #7cb5ec' if ii in ['RR1c','RRL1c','RRS1c','R101'] else None
+                if ii in ['Rad1h']: prec_color = '#ffc83f'
+                color = ';color:%s' % prec_color if prec_color else ''
+                # new table row
                 if obstypes and ii in ['FF','RR1c','PPPP','Neff']:
                     s += '<tr class="topdist">'
                 else:
                     s += '<tr>'
+                # observation type symbol column
                 if symbols:
-                    s += '<td>%s</td>' % self.OBS_LABEL.get(ii,(ii,'',''))[0]
+                    s += '<td style="text-align:left%s" title="%s">%s</td>' % (color,self.OBS_LABEL.get(ii,('',ii,''))[1],self.OBS_LABEL.get(ii,(ii,'',''))[0])
+                # observation type description column
                 if desc:
                     if obstypes:
                         s += '<td>%s</td>' % self.OBS_LABEL.get(ii,('',ii,''))[1]
                     else:
                         s += '<td>%s</td>' % ii
-                s += '<td>%s</td>' % self.OBS_LABEL.get(ii,(ii,'',''))[2]
+                # measuring unit column
+                color = ' style="color:%s"' % prec_color if prec_color else ''
+                s += '<td%s>%s</td>' % (color,self.OBS_LABEL.get(ii,(ii,'',''))[2])
+                # values columns
                 for idx,jj in enumerate(placemark['Forecast'][ii]):
                     if idx<start_ct: continue
                     if idx>=count+start_ct: break
                     try:
-                        color = ''
+                        color = ' style="color:%s"' % prec_color if prec_color else ''
                         if ii=='TTT': color = ' style="color:%s"' % DwdMosmix._temp_color(jj)
-                        if ii in ['RR1c','RRL1c','RRS1c','R101']: color = ' style="color:#7cb5ec"'
                         dp = 1 if ii[0]=='T' or ii in ['RR1c','RRL1c','RRS1c','RR3c','RR6c'] else 0
                         if ii=='DD':
                             s += '<td><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%"></i></td>' % jj
+                            #s += '<td><i class="wi wi-wind-direction" style="transform:rotate(%sdeg);font-size:150%%"></i></td>' % ((jj+180)%360)
                         else:
                             s += '<td%s>%.*f</td>' % (color,dp,jj)
                     except Exception:
@@ -605,7 +617,7 @@ class DwdMosmix(object):
                 vals = {ii:placemark['Forecast'][ii][idx] for ii in placemark['Forecast']}
                 # check if first timestamp of a new day
                 if day not in days: 
-                    days[day] = { 'TTTmin':1000.0,'TTTmax':-273.15,'count':0,'SunD1':0.0,'RR1c':0.0,'ww':[],'FX1max':0.0,'VVmin':100000000000.0 }
+                    days[day] = { 'TTTmin':1000.0,'TTTmax':-273.15,'count':0,'SunD1':0.0,'RR1c':0.0,'ww':[],'FX1max':0.0,'VVmin':100000000000.0,'Rad1hsum':0.0 }
                     for ii in AVGS:
                         days[day][ii+'sum'] = 0.0
                         days[day][ii+'ct'] = 0
@@ -637,7 +649,8 @@ class DwdMosmix(object):
                         logerr("%s: %s" % (ii,e))
                 # sunshine duration
                 days[day]['SunD1'] += vals['SunD1']/3600
-                if vals['RSunD']: days[day]['RSunD'] = vals['RSunD']
+                if vals.get('RSunD') is not None: days[day]['RSunD'] = vals['RSunD']
+                if vals.get('Rad1h'): days[day]['Rad1hsum'] += vals['Rad1h']/1000.0
                 #try:
                 #    rsun = placemark['Forecast']['RSunD'][idx+1]
                 #    if rsun: days[day]['RSunD'] = rsun
@@ -689,7 +702,7 @@ class DwdMosmix(object):
                     htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
                     s += '<td%s><strong>%s</strong><br />%s</td>' % (htmlclass,WEEKDAY[lang][days[day]['weekday']],day)
                 s += '</tr>\n'
-                obs = obstypes if obstypes else ['ww','TTTmax','TTTmin','FFavg','DDavg','RR1c','Rd10','PPPPavg','Neffavg','RSunD']
+                obs = obstypes if obstypes else ['ww','TTTmax','TTTmin','FFavg','DDavg','RR1c','Rd10','PPPPavg','Neffavg','RSunD','Rad1hsum']
                 for ii in obs:
                     if ii=='ww':
                         s += '<tr class="icons">'
@@ -699,6 +712,7 @@ class DwdMosmix(object):
                         s += '<tr>'
                     color = ''
                     prec_color = '#7cb5ec' if ii in ['RR1c','Rd00','Rd01','Rd05','Rd10'] else None
+                    if ii in ['Rad1hsum','SunD1','RSunD']: prec_color = '#ffc83f'
                     if prec_color: color = ';color:%s' % prec_color
                     if symbols:
                         s += '<td style="text-align:left%s" title="%s">%s' % (color,self.OBS_LABEL.get(ii,('',ii,''))[1],self.OBS_LABEL.get(ii,('',ii,''))[0])
@@ -709,7 +723,7 @@ class DwdMosmix(object):
                         s += '<td style="text-align:left%s">%s</td>' % (color,self.OBS_LABEL.get(ii,('',ii,''))[1])
                     if prec_color: color = ' style="color:%s"' % prec_color
                     s += '<td'+color+'>'+self.OBS_LABEL.get(ii,('',ii,''))[2]+'</td>'
-                    dp = 1 if ii in ['TTTmin','TTTmax','TTTavg','SunD1'] else 0
+                    dp = 1 if ii in ['TTTmin','TTTmax','TTTavg','SunD1','Rad1hsum'] else 0
                     for day in days:
                         htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
                         try:
@@ -723,7 +737,8 @@ class DwdMosmix(object):
                                 color = ''
                                 if ii[0:3]=='TTT': color = ' style="color:%s"' % DwdMosmix._temp_color(days[day][ii])
                                 if prec_color: color = ' style="color:%s"' % prec_color
-                                s += ('<td%s%s>%.*f</td>' % (htmlclass,color,dp,days[day].get(ii,float("NaN")))).replace('.',',')
+                                val = ('%.*f' % (dp,days[day].get(ii,float("NaN")))).replace('.',',')
+                                s += '<td%s%s>%s</td>' % (htmlclass,color,val)
                         except (ValueError,TypeError):
                             s += '<td>%s</td>' % days[day].get(ii,'')
                     s += '</tr>\n'
@@ -938,7 +953,7 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
         nothing = False
     
     if options.hourly:
-        dwd.write_html(mos,['TTT','FF','DD','RR1c','R101','PPPP'],options.dry_run,range=11,lang=options.lang)
+        dwd.write_html(mos,['TTT','FF','DD','RR1c','R101','PPPP','Rad1h'],options.dry_run,range=11,lang=options.lang)
         nothing = False
 
     if options.daily or nothing:

@@ -111,7 +111,7 @@ dwd_warning_type=(
   'uv')                # 9 uv warning
   
 def dwd_warn_icon_file(type,level):
-    if not type: return None
+    if type is None: return None
     if type==8 or type==9:
         return "warn_icons_%s.png" % dwd_warning_type[type]
     if level<2 or level>5: return None

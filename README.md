@@ -96,7 +96,17 @@ Options:
                         False.
     --log-tags          Log tags while parsing the KML file.
     -v, --verbose       Verbose output
+
+  Commands:
+    --print-icons-ww    Print which icons are connected to which ww weather
+                        code
+    --all               Output all details in HTML
+    --hourly            output hourly forecast
+    --daily             output daily forecast (the default)
 ```
+
+Es können mehrere der unter "Commands" aufgeführten Optionen gleichzeitig
+benutzt werden. 
 
 Der DWD bietet eine Liste der 
 [Stationscodes](https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg?view=nasPublication&nn=16102)
