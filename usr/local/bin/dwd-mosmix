@@ -367,14 +367,13 @@ class DwdMosmix(object):
             self.sun = ephem.Sun()
         if __name__ == "__main__" and verbose:
             print('-- configuration data ----------------------------------')
-            print('log success:   ',self.log_success)
-            print('log failure:   ',self.log_failure)
-            print('target path:   ',self.target_path)
-            print('horiz. tab:    ',self.horizontal_table)
-            print('vertical tab:  ',self.vertical_table)
-            print('icon set:      ',self.iconset)
-            print('coordinates:   ','lat',self.latitude,'lon',self.longitude,'alt',self.altitude)
-            print('ephem.Observer:',self.thislocation)
+            print('log success:      ',self.log_success)
+            print('log failure:      ',self.log_failure)
+            print('target path:      ',self.target_path)
+            print('horiz. tab:       ',self.horizontal_table)
+            print('vertical tab:     ',self.vertical_table)
+            print('icon set:         ',self.iconset)
+            print('station location: ','lat',self.latitude,'lon',self.longitude,'alt',self.altitude)
             print('--------------------------------------------------------')
 
     def download_kml(self, location, mosmix):
@@ -540,10 +539,19 @@ class DwdMosmix(object):
                 if has_pyephem:
                     try:
                         djd = DwdMosmix.timestamp_to_djd(ii*0.001)
-                        self.thislocation.date = djd
-                        self.thislocation.epoch = djd
-                        rising = self.thislocation.next_rising(self.sun)
-                        setting = self.thislocation.next_setting(self.sun)
+                        if 'coordinates' in placemark:
+                            location = ephem.Observer()
+                            geo = placemark['coordinates']
+                            location.lat = geo[1]*0.017453292519943
+                            location.lon = geo[0]*0.017453292519943
+                            location.elevation = geo[2]
+                        else:
+                            location = self.thislocation
+                        location.date = djd
+                        location.epoch = djd
+                        if self.verbose: loginf(location)
+                        rising = location.next_rising(self.sun)
+                        setting = location.next_setting(self.sun)
                         night = setting>rising
                     except Exception as e:
                         logerr('error calculation sunrise, sunset: %s' % e)
@@ -551,6 +559,7 @@ class DwdMosmix(object):
                 else:
                     night = not (6 <= time.localtime(ii*0.001).tm_hour < 18)
                 wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],night)
+                if self.verbose: loginf('night=%s ww=%s' % (night,wwcode))
                 if lang=='en':
                     icontitle = wwcode[2]
                 else:
@@ -934,7 +943,7 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
                 'latitude':53.6059563,
                 'longitude':11.341407,
                 'altitude':[53.6,'meter']},
-                'DeutscherWetterdienst': {
+            'DeutscherWetterdienst': {
                 'path':'/etc/weewx/skins/Belchertown1_3/dwd',
                 'forecast':{
                     'icons':'./weewx/belchertown/images'}}}
