@@ -446,16 +446,16 @@ class DwdMosmix(object):
     
     OBS_LABEL = {
         'ww':('','',''),
-        'TTT':('<i class="wi wi-thermometer">','Temperatur 2m','&deg;C'),
-        'TTTmin':('<i class="wi wi-thermometer">','Maximaltemperatur','&deg;C'),
-        'TTTmax':('<i class="wi wi-thermometer">','Minimaltemperatur','&deg;C'),
-        'TTTavg':('<i class="wi wi-thermometer">','Durchschnittstemperatur','&deg;C'),
-        'T5cm':('<i class="wi wi-thermometer">','Temperatur 5cm','&deg;C'),
-        'Td':('<i class="wi wi-thermometer">','Taupunkt 2m','&deg;C'),
-        'TG':('<i class="wi wi-thermometer">','Minimaltemperatur 5cm','&deg;C'),
-        'TM':('<i class="wi wi-thermometer">','Durchschnittstemperatur','&deg;C'),
-        'TN':('<i class="wi wi-thermometer">','Minimaltemperatur','&deg;C'),
-        'TX':('<i class="wi wi-thermometer">','Maximaltemperatur','&deg;C'),
+        'TTT':('<i class="wi wi-thermometer"></i>','Temperatur 2m','&deg;C'),
+        'TTTmin':('<i class="wi wi-thermometer"></i>','Maximaltemperatur','&deg;C'),
+        'TTTmax':('<i class="wi wi-thermometer"></i>','Minimaltemperatur','&deg;C'),
+        'TTTavg':('<i class="wi wi-thermometer"></i>','Durchschnittstemperatur','&deg;C'),
+        'T5cm':('<i class="wi wi-thermometer"></i>','Temperatur 5cm','&deg;C'),
+        'Td':('<i class="wi wi-thermometer"></i>','Taupunkt 2m','&deg;C'),
+        'TG':('<i class="wi wi-thermometer"></i>','Minimaltemperatur 5cm','&deg;C'),
+        'TM':('<i class="wi wi-thermometer"></i>','Durchschnittstemperatur','&deg;C'),
+        'TN':('<i class="wi wi-thermometer"></i>','Minimaltemperatur','&deg;C'),
+        'TX':('<i class="wi wi-thermometer"></i>','Maximaltemperatur','&deg;C'),
         'FF':('<i class="wi wi-strong-wind"></i>','Wind','km/h'),
         'DD':('<i class="wi wi-strong-wind"></i>','Windrichtung','&deg;'),
         'FFavg':('<i class="wi wi-strong-wind"></i>','Wind','km/h'),
@@ -537,12 +537,16 @@ class DwdMosmix(object):
                 if idx<start_ct: continue
                 if idx>=count+start_ct: break
                 if has_pyephem:
-                    djd = DwdMosmix.timestamp_to_djd(ii*0.001)
-                    self.thislocation.date = djd
-                    self.thislocation.epoch = djd
-                    rising = self.thislocation.next_rising(self.sun)
-                    setting = self.thislocation.next_setting(self.sun)
-                    night = setting>rising
+                    try:
+                        djd = DwdMosmix.timestamp_to_djd(ii*0.001)
+                        self.thislocation.date = djd
+                        self.thislocation.epoch = djd
+                        rising = self.thislocation.next_rising(self.sun)
+                        setting = self.thislocation.next_setting(self.sun)
+                        night = setting>rising
+                    except Exception as e:
+                        logerr('error calculation sunrise, sunset: %s' % e)
+                        night = not (6 <= time.localtime(ii*0.001).tm_hour < 18)
                 else:
                     night = not (6 <= time.localtime(ii*0.001).tm_hour < 18)
                 wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],night)
