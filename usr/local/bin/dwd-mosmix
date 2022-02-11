@@ -361,19 +361,20 @@ class DwdMosmix(object):
         self.altitude = alt
         if has_pyephem:
             self.thislocation = ephem.Observer()
-            self.thislocation.lon = self.longitude
-            self.thislocation.lat = self.latitude
+            self.thislocation.lon = self.longitude*0.017453292519943
+            self.thislocation.lat = self.latitude*0.017453292519943
             self.thislocation.elevation = self.altitude
             self.sun = ephem.Sun()
         if __name__ == "__main__" and verbose:
             print('-- configuration data ----------------------------------')
-            print('log success:  ',self.log_success)
-            print('log failure:  ',self.log_failure)
-            print('target path:  ',self.target_path)
-            print('horiz. tab:   ',self.horizontal_table)
-            print('vertical tab: ',self.vertical_table)
-            print('icon set:     ',self.iconset)
-            print('coordinates:  ','lat',self.latitude,'lon',self.longitude,'alt',self.altitude)
+            print('log success:   ',self.log_success)
+            print('log failure:   ',self.log_failure)
+            print('target path:   ',self.target_path)
+            print('horiz. tab:    ',self.horizontal_table)
+            print('vertical tab:  ',self.vertical_table)
+            print('icon set:      ',self.iconset)
+            print('coordinates:   ','lat',self.latitude,'lon',self.longitude,'alt',self.altitude)
+            print('ephem.Observer:',self.thislocation)
             print('--------------------------------------------------------')
 
     def download_kml(self, location, mosmix):
@@ -929,7 +930,11 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
         # test only
         print("Using test configuration")
         config = {
-            'DeutscherWetterdienst': {
+            'Station': {
+                'latitude':53.6059563,
+                'longitude':11.341407,
+                'altitude':[53.6,'meter']},
+                'DeutscherWetterdienst': {
                 'path':'/etc/weewx/skins/Belchertown1_3/dwd',
                 'forecast':{
                     'icons':'./weewx/belchertown/images'}}}
