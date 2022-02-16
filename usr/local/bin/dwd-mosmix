@@ -25,6 +25,11 @@ from __future__ import with_statement
    
 """
 
+"""
+   Fuer die Reihenfolge bei den Tagesvorsagen ist mindestens Python 3.6
+   erforderlich. 
+"""
+
 import json
 import time
 import datetime
@@ -168,7 +173,11 @@ def get_ww(ww,n,night):
             dwd = N_ICON_LIST[2][2]
         else:
             dwd = N_ICON_LIST[4][2]
-        wwcode = (wwcode[0],wwcode[1]+' '+str(n),wwcode[2]+' '+str(n),wwcode[3],icon,dwd)
+        try:
+            n_str = '%.0f%%' % float(n)
+        except Exception:
+            n_str = str(n)
+        wwcode = (wwcode[0],wwcode[1]+' '+n_str,wwcode[2]+' '+str(n),wwcode[3],icon,dwd)
     return wwcode
 
 # week day names
@@ -360,10 +369,6 @@ class DwdMosmix(object):
             alt = None
         self.altitude = alt
         if has_pyephem:
-            self.thislocation = ephem.Observer()
-            self.thislocation.lon = self.longitude*0.017453292519943
-            self.thislocation.lat = self.latitude*0.017453292519943
-            self.thislocation.elevation = self.altitude
             self.sun = ephem.Sun()
         if __name__ == "__main__" and verbose:
             print('-- configuration data ----------------------------------')
@@ -538,25 +543,35 @@ class DwdMosmix(object):
                 if idx>=count+start_ct: break
                 if has_pyephem:
                     try:
+                        location = ephem.Observer()
+                        # location of the forecast
+                        geo = placemark['coordinates']
+                        location.lat = geo[1]*0.017453292519943
+                        location.lon = geo[0]*0.017453292519943
+                        location.elevation = geo[2]
+                        # time of the forecast
                         djd = DwdMosmix.timestamp_to_djd(ii*0.001)
-                        if 'coordinates' in placemark:
-                            location = ephem.Observer()
-                            geo = placemark['coordinates']
-                            location.lat = geo[1]*0.017453292519943
-                            location.lon = geo[0]*0.017453292519943
-                            location.elevation = geo[2]
-                        else:
-                            location = self.thislocation
                         location.date = djd
                         location.epoch = djd
                         if self.verbose: loginf(location)
+                        # calculate next rising and setting of the sun
                         rising = location.next_rising(self.sun)
                         setting = location.next_setting(self.sun)
+                        # If the next setting is after the next rising
+                        # in respect to the given timestamp, it is
+                        # actually night time. Otherwise it's day time.
                         night = setting>rising
                     except Exception as e:
                         logerr('error calculation sunrise, sunset: %s' % e)
+                        # If there is an error in calculation we consider
+                        # the time before 06:00 and after 18:00 to be
+                        # night time.
                         night = not (6 <= time.localtime(ii*0.001).tm_hour < 18)
                 else:
+                    # If pyephem is not installed we cannot calculate the
+                    # real sunrise and sunset. So we consider to be the
+                    # time betwenn 06:00 and 18:00 to be day time,
+                    # otherwise night time.
                     night = not (6 <= time.localtime(ii*0.001).tm_hour < 18)
                 wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],night)
                 if self.verbose: loginf('night=%s ww=%s' % (night,wwcode))
@@ -631,11 +646,24 @@ class DwdMosmix(object):
                 vals = {ii:placemark['Forecast'][ii][idx] for ii in placemark['Forecast']}
                 # check if first timestamp of a new day
                 if day not in days: 
-                    days[day] = { 'TTTmin':1000.0,'TTTmax':-273.15,'count':0,'SunD1':0.0,'RR1c':0.0,'ww':[],'FX1max':0.0,'VVmin':100000000000.0,'Rad1hsum':0.0 }
+                    _wday = time.localtime(val*0.001).tm_wday
+                    days[day] = { 
+                        'day':day,
+                        'weekday':_wday,
+                        'weekdayshortname':WEEKDAY[lang][_wday],
+                        'TTTmin':1000.0,
+                        'TTTmax':-273.15,
+                        'count':0,
+                        'SunD1':0.0,
+                        'RR1c':0.0,
+                        'ww':[],
+                        'FX1max':0.0,
+                        'VVmin':100000000000.0,
+                        'Rad1hsum':0.0 }
                     for ii in AVGS:
                         days[day][ii+'sum'] = 0.0
                         days[day][ii+'ct'] = 0
-                days[day]['weekday'] = time.localtime(val*0.001).tm_wday
+                #days[day]['weekday'] = time.localtime(val*0.001).tm_wday
                 days[day]['count'] += 1
                 # min and max temperature
                 ttt = vals['TTT']
@@ -847,7 +875,7 @@ class DwdMosmix(object):
                         'ReferenceModel':mos.get('ReferenceModel'),
                         'id':placemark.get('id'),
                         'name':placemark.get('description'),
-                        'Forecast':days}
+                        'Forecast':[days[day] for day in days]}
                     json.dump(x,file,indent=4)
 
     @staticmethod
@@ -967,12 +995,15 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
     nothing = True
 
     if options.all:
+        if options.verbose: loginf('output all data')
         dwd.write_html(mos,None,options.dry_run,lang=options.lang)
         nothing = False
     
     if options.hourly:
+        if options.verbose: loginf('output hourly forecast')
         dwd.write_html(mos,['TTT','FF','DD','RR1c','R101','PPPP','Rad1h'],options.dry_run,range=11,lang=options.lang)
         nothing = False
 
     if options.daily or nothing:
+        if options.verbose: loginf('output daily forecast')
         dwd.write_html_daily(mos,None,options.dry_run,lang=options.lang)

@@ -114,6 +114,8 @@ def dwd_warn_icon_file(type,level):
     if type is None: return None
     if type==8 or type==9:
         return "warn_icons_%s.png" % dwd_warning_type[type]
+    if level==1:
+        return "warn_icons_%s_pre.png" % dwd_warning_type[type]
     if level<2 or level>5: return None
     return "warn_icons_%s_%s.png" % (dwd_warning_type[type],level-1)
 
@@ -642,6 +644,7 @@ class DwdWarnings(object):
                 # the variable areas contains the the area references. 
                 # Otherwise it is an empty array.
                 if areas and lvl1_dict.get('status','')!='Test':
+                    areas.sort(key=lambda x:x[0])
                     alert = {
                         'identifier':lvl1_dict.get('identifier'),
                         'sender':lvl1_dict.get('sender'),
