@@ -322,6 +322,8 @@ class DwdMosmix(object):
         forecast_dict = config_dict['DeutscherWetterdienst']['forecast']
         # weather icons
         self.icon_pth = forecast_dict['icons']
+        # station-specific configuration
+        self.stations_dict = forecast_dict.get('stations',{})
         # HTML config
         self.show_obs_symbols = forecast_dict.get('show_obs_symbols',True)
         self.show_obs_description = forecast_dict.get('show_obs_description',False)
@@ -428,6 +430,36 @@ class DwdMosmix(object):
         """
         return 25567.5 + time_ts/86400.0
         
+    def is_night(self, location, ts):
+        """ check if timestamp ts is nighttime for location location """
+        if has_pyephem:
+            try:
+                # time of the forecast
+                djd = DwdMosmix.timestamp_to_djd(ts)
+                location.date = djd
+                location.epoch = djd
+                if self.verbose: loginf(location)
+                # calculate next rising and setting of the sun
+                rising = location.next_rising(self.sun)
+                setting = location.next_setting(self.sun)
+                # If the next setting is after the next rising
+                # in respect to the given timestamp, it is
+                # actually night time. Otherwise it's day time.
+                night = setting>rising
+            except Exception as e:
+                logerr('error calculation sunrise, sunset: %s' % e)
+                # If there is an error in calculation we consider
+                # the time before 06:00 and after 18:00 to be
+                # night time.
+                night = not (6 <= time.localtime(ts).tm_hour < 18)
+        else:
+            # If pyephem is not installed we cannot calculate the
+            # real sunrise and sunset. So we consider to be the
+            # time betwenn 06:00 and 18:00 to be day time,
+            # otherwise night time.
+            night = not (6 <= time.localtime(ts).tm_hour < 18)
+        return night
+        
     @staticmethod
     def _temp_color(temp):
         """ temperature colors 
@@ -494,134 +526,208 @@ class DwdMosmix(object):
         symbols = self.show_obs_symbols and obstypes
         desc = self.show_obs_description or not obstypes
         for placemark in mos.get('Placemark'):
-            s = ""
-            s += '<table class="%s">' % self.horizontal_table_classes
-            start_ct = 0
-            old_wd = None
-            # timestamp
-            s += '<tr><td></td>'
-            if symbols: s += '<td></td>'
-            if desc: s += '<td></td>'
-            old_day_ct = -1
-            for idx,ii in enumerate(mos['ForecastTimeSteps']):
-                # day of week
+            if has_pyephem:
                 try:
-                    wd = WEEKDAY[lang][time.localtime(ii*0.001).tm_wday]
-                except Exception:
-                    wd = ''
-                # count days
-                if old_wd:
-                    if old_wd!=wd: day_ct += 1
-                else:
-                    day_ct = 0
-                old_wd = wd
-                #
-                if ii<now or day_ct<start_day:
-                    start_ct += 1 
-                    continue
-                if idx>=count+start_ct: break
-                if day_ct>=end_day: 
-                    count = idx-start_ct
-                    break
-                #
-                ti = time.localtime(ii*0.001)
-                s += '<td>'
-                if old_day_ct!=day_ct:
-                    s += '<strong>%s</strong><br />%s' % (wd,time.strftime('%d.%m.',ti))
-                else:
-                    s += '<br />'
-                s += '<br />%s' % time.strftime('%H:%M',ti)
-                s += '</td>'
-                old_day_ct = day_ct
-            s += '</tr>\n'
-            # weather icon
-            s += '<tr class="icons"><td></td>'
-            if symbols: s += '<td></td>'
-            if desc: s += '<td></td>'
-            for idx,ii in enumerate(mos['ForecastTimeSteps']):
-                if idx<start_ct: continue
-                if idx>=count+start_ct: break
-                if has_pyephem:
+                    location = ephem.Observer()
+                    # location of the forecast
+                    geo = placemark['coordinates']
+                    location.lat = geo[1]*0.017453292519943
+                    location.lon = geo[0]*0.017453292519943
+                    location.elevation = geo[2]
+                except Exception as e:
+                    logerr('Observer: %s' % e)
+            s = ""
+            if self.horizontal_table:
+                if self.horizontal_div_classes:
+                    s += '<div class="%s">\n' % self.horizontal_div_classes
+                s += '<table class="%s">' % self.horizontal_table_classes
+                start_ct = 0
+                old_wd = None
+                # timestamp
+                s += '<tr><td></td>'
+                if symbols: s += '<td></td>'
+                if desc: s += '<td></td>'
+                old_day_ct = -1
+                for idx,ii in enumerate(mos['ForecastTimeSteps']):
+                    # day of week
                     try:
-                        location = ephem.Observer()
-                        # location of the forecast
-                        geo = placemark['coordinates']
-                        location.lat = geo[1]*0.017453292519943
-                        location.lon = geo[0]*0.017453292519943
-                        location.elevation = geo[2]
-                        # time of the forecast
-                        djd = DwdMosmix.timestamp_to_djd(ii*0.001)
-                        location.date = djd
-                        location.epoch = djd
-                        if self.verbose: loginf(location)
-                        # calculate next rising and setting of the sun
-                        rising = location.next_rising(self.sun)
-                        setting = location.next_setting(self.sun)
-                        # If the next setting is after the next rising
-                        # in respect to the given timestamp, it is
-                        # actually night time. Otherwise it's day time.
-                        night = setting>rising
-                    except Exception as e:
-                        logerr('error calculation sunrise, sunset: %s' % e)
-                        # If there is an error in calculation we consider
-                        # the time before 06:00 and after 18:00 to be
-                        # night time.
-                        night = not (6 <= time.localtime(ii*0.001).tm_hour < 18)
-                else:
-                    # If pyephem is not installed we cannot calculate the
-                    # real sunrise and sunset. So we consider to be the
-                    # time betwenn 06:00 and 18:00 to be day time,
-                    # otherwise night time.
-                    night = not (6 <= time.localtime(ii*0.001).tm_hour < 18)
-                wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],night)
-                if self.verbose: loginf('night=%s ww=%s' % (night,wwcode))
-                if lang=='en':
-                    icontitle = wwcode[2]
-                else:
-                    icontitle = wwcode[1].replace('ö','&ouml;').replace('ü','&uuml;')
-                s += '<td title="%s"><img src="%s/%s" width="50px" alt="%s" /></td>' % (icontitle,self.icon_pth,wwcode[self.iconset],icontitle)
-            s += '</tr>\n'
-            # other observation types
-            obs = obstypes if obstypes else placemark['Forecast']
-            for ii in obs:
-                prec_color = ' #7cb5ec' if ii in ['RR1c','RRL1c','RRS1c','R101'] else None
-                if ii in ['Rad1h']: prec_color = '#ffc83f'
-                color = ';color:%s' % prec_color if prec_color else ''
-                # new table row
-                if obstypes and ii in ['FF','RR1c','PPPP','Neff']:
-                    s += '<tr class="topdist">'
-                else:
-                    s += '<tr>'
-                # observation type symbol column
-                if symbols:
-                    s += '<td style="text-align:left%s" title="%s">%s</td>' % (color,self.OBS_LABEL.get(ii,('',ii,''))[1],self.OBS_LABEL.get(ii,(ii,'',''))[0])
-                # observation type description column
-                if desc:
-                    if obstypes:
-                        s += '<td>%s</td>' % self.OBS_LABEL.get(ii,('',ii,''))[1]
+                        wd = WEEKDAY[lang][time.localtime(ii*0.001).tm_wday]
+                    except Exception:
+                        wd = ''
+                    # count days
+                    if old_wd:
+                        if old_wd!=wd: day_ct += 1
                     else:
-                        s += '<td>%s</td>' % ii
-                # measuring unit column
-                color = ' style="color:%s"' % prec_color if prec_color else ''
-                s += '<td%s>%s</td>' % (color,self.OBS_LABEL.get(ii,(ii,'',''))[2])
-                # values columns
-                for idx,jj in enumerate(placemark['Forecast'][ii]):
+                        day_ct = 0
+                    old_wd = wd
+                    #
+                    if ii<now or day_ct<start_day:
+                        start_ct += 1 
+                        continue
+                    if idx>=count+start_ct: break
+                    if day_ct>=end_day: 
+                        count = idx-start_ct
+                        break
+                    #
+                    ti = time.localtime(ii*0.001)
+                    s += '<td>'
+                    if old_day_ct!=day_ct:
+                        s += '<strong>%s</strong><br />%s' % (wd,time.strftime('%d.%m.',ti))
+                    else:
+                        s += '<br />'
+                    s += '<br />%s' % time.strftime('%H:%M',ti)
+                    s += '</td>'
+                    old_day_ct = day_ct
+                s += '</tr>\n'
+                # weather icon
+                s += '<tr class="icons"><td></td>'
+                if symbols: s += '<td></td>'
+                if desc: s += '<td></td>'
+                for idx,ii in enumerate(mos['ForecastTimeSteps']):
                     if idx<start_ct: continue
                     if idx>=count+start_ct: break
-                    try:
-                        color = ' style="color:%s"' % prec_color if prec_color else ''
-                        if ii=='TTT': color = ' style="color:%s"' % DwdMosmix._temp_color(jj)
-                        dp = 1 if ii[0]=='T' or ii in ['RR1c','RRL1c','RRS1c','RR3c','RR6c'] else 0
-                        if ii=='DD':
-                            s += '<td><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%"></i></td>' % jj
-                            #s += '<td><i class="wi wi-wind-direction" style="transform:rotate(%sdeg);font-size:150%%"></i></td>' % ((jj+180)%360)
-                        else:
-                            s += '<td%s>%.*f</td>' % (color,dp,jj)
-                    except Exception:
-                        s += '<td>%s</td>' % jj
+                    night = self.is_night(location,ii*0.001)
+                    wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],night)
+                    if self.verbose: loginf('night=%s ww=%s' % (night,wwcode))
+                    if lang=='en':
+                        icontitle = wwcode[2]
+                    else:
+                        icontitle = wwcode[1].replace('ö','&ouml;').replace('ü','&uuml;')
+                    s += '<td title="%s"><img src="%s/%s" width="50px" alt="%s" /></td>' % (icontitle,self.icon_pth,wwcode[self.iconset],icontitle)
                 s += '</tr>\n'
-            fn = placemark['id']
-            s += '</table>\n'
+                # other observation types
+                obs = obstypes if obstypes else placemark['Forecast']
+                for ii in obs:
+                    prec_color = ' #7cb5ec' if ii in ['RR1c','RRL1c','RRS1c','R101'] else None
+                    if ii in ['Rad1h']: prec_color = '#ffc83f'
+                    color = ';color:%s' % prec_color if prec_color else ''
+                    # new table row
+                    if obstypes and ii in ['FF','RR1c','PPPP','Neff']:
+                        s += '<tr class="topdist">'
+                    else:
+                        s += '<tr>'
+                    # observation type symbol column
+                    if symbols:
+                        s += '<td style="text-align:left%s" title="%s">%s</td>' % (color,self.OBS_LABEL.get(ii,('',ii,''))[1],self.OBS_LABEL.get(ii,(ii,'',''))[0])
+                    # observation type description column
+                    if desc:
+                        if obstypes:
+                            s += '<td>%s</td>' % self.OBS_LABEL.get(ii,('',ii,''))[1]
+                        else:
+                            s += '<td>%s</td>' % ii
+                    # measuring unit column
+                    color = ' style="color:%s"' % prec_color if prec_color else ''
+                    s += '<td%s>%s</td>' % (color,self.OBS_LABEL.get(ii,(ii,'',''))[2])
+                    # values columns
+                    for idx,jj in enumerate(placemark['Forecast'][ii]):
+                        if idx<start_ct: continue
+                        if idx>=count+start_ct: break
+                        try:
+                            color = ' style="color:%s"' % prec_color if prec_color else ''
+                            if ii=='TTT': color = ' style="color:%s"' % DwdMosmix._temp_color(jj)
+                            dp = 1 if ii[0]=='T' or ii in ['RR1c','RRL1c','RRS1c','RR3c','RR6c'] else 0
+                            if ii=='DD':
+                                s += '<td><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%"></i></td>' % jj
+                                #s += '<td><i class="wi wi-wind-direction" style="transform:rotate(%sdeg);font-size:150%%"></i></td>' % ((jj+180)%360)
+                            else:
+                                s += '<td%s>%.*f</td>' % (color,dp,jj)
+                        except Exception:
+                            s += '<td>%s</td>' % jj
+                    s += '</tr>\n'
+                fn = placemark['id']
+                s += '</table>\n'
+                if self.horizontal_div_classes:
+                    s += '</div>\n'
+            # HTML for phones
+            if self.vertical_table:
+                if self.vertical_div_classes:
+                    s += '<div class="%s">\n' % self.vertical_div_classes
+                s += '<table class="%s">' % self.vertical_table_classes
+                s += '<tr><th></th><th>ww</th>'
+                for ii in ['TTT','FF','RR1c','PPPP']:
+                    color = ' style="color:#7cb5ec"' if ii=='RR1c' else ''
+                    s += '<th%s>%s</th>' % (color,self.OBS_LABEL[ii][0])
+                s += '</tr>'
+                old_day_ct = -1
+                for idx,ii in enumerate(mos['ForecastTimeSteps']):
+                    # day of week
+                    try:
+                        wd = WEEKDAY[lang][time.localtime(ii*0.001).tm_wday]
+                    except Exception:
+                        wd = ''
+                    # count days
+                    if old_wd:
+                        if old_wd!=wd: day_ct += 1
+                    else:
+                        day_ct = 0
+                    old_wd = wd
+                    #
+                    if ii<now or day_ct<start_day:
+                        start_ct += 1 
+                        continue
+                    if idx>=count+start_ct: break
+                    if day_ct>=end_day: 
+                        count = idx-start_ct
+                        break
+                    # time stamp column
+                    night = self.is_night(location,ii*0.001)
+                    ti = time.localtime(ii*0.001)
+                    if old_day_ct!=day_ct:
+                        s += '<tr><td colspan="6" style="text-align:left"><strong>%s</strong> %s</td></tr>\n' % (wd,time.strftime('%d.%m.',ti))
+                    s += '<tr>'
+                    s += '<td rowspan="2">%s</td>' % time.strftime('%H:%M',ti)
+                    old_day_ct = day_ct
+                    # weather icon column
+                    wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],night)
+                    if lang=='en':
+                        icontitle = wwcode[2]
+                    else:
+                        icontitle = wwcode[1].replace('ö','&ouml;').replace('ü','&uuml;')
+                    s += '<td rowspan="2" title="%s"><img src="%s/%s" width="50px" alt="%s" /></td>' % (icontitle,self.icon_pth,wwcode[self.iconset],icontitle)
+                    try:
+                        # temperature column
+                        temp = placemark['Forecast']['TTT'][idx]
+                        temp_s = ('%.1f' % temp).replace('.',',')
+                        s += '<td style="color:%s">%s<span style="font-size:50%%"> °C</span></td>' % (DwdMosmix._temp_color(temp),temp_s)
+                    except (ValueError,TypeError,LookupError):
+                        s += '<td>?</td>'
+                    try:
+                        # wind column
+                        wind_s = ('%.0f' % placemark['Forecast']['FF'][idx]).replace('.',',')
+                        s += '<td>%s<span style="font-size:50%%"> km/h</span></td>' % wind_s
+                    except (ValueError,TypeError,LookupError):
+                        s += '<td>?</td>'
+                    try:
+                        # rain
+                        rain = ('%.1f' % placemark['Forecast']['RR1c'][idx]).replace('.',',')
+                        s += '<td style="color:#7cb5ec">%s<span style="font-size:50%%"> mm</span></td>' % rain
+                    except (ValueError,TypeError,LookupError):
+                        s += '<td>?</td>'
+                    try:
+                        # barometer
+                        s += '<td rowspan="2">%.0f<span style="font-size:50%%"> mbar</span></td>' % placemark['Forecast']['PPPP'][idx]
+                    except (ValueError,TypeError,LookupError):
+                        s += '<td rowspan="2">?</td>'
+                    # end of row
+                    s += '</tr>\n'
+                    # 2nd row
+                    s += '<tr>'
+                    # temp
+                    s += '<td></td>'
+                    try:
+                        # wind direction
+                        s += '<td%s><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%"></i></td>' % ('',placemark['Forecast']['DD'][idx])
+                    except (ValueError,TypeError,LookupError):
+                        s += '<td>%s</td>' % placemark['Forecast'].get('DD',[])[idx]
+                    try:
+                        # rain propability
+                        s += '<td style="color:#7cb5ec">%.0f<span style="font-size:50%%"> %%</span></td>' % placemark['Forecast']['R101'][idx]
+                    except (ValueError,TypeError,LookupError):
+                        s += '<td>?</td>'
+                    s += '</tr>\n'
+                s += '</table>\n'
+                if self.vertical_div_classes:
+                    s += '</div>\n'
             if dryrun:
                 print(s)
             else:
@@ -639,6 +745,10 @@ class DwdMosmix(object):
         desc = self.show_obs_description
         # create HTML and JSON file for each placemark in KML file
         for placemark in mos.get('Placemark'):
+            try:
+                station_dict = self.stations_dict[placemark['id']]
+            except Exception:
+                 station_dict = {}
             days = dict()
             # loop over all timestamps
             for idx,val in enumerate(mos['ForecastTimeSteps']):
@@ -744,7 +854,12 @@ class DwdMosmix(object):
                     htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
                     s += '<td%s><strong>%s</strong><br />%s</td>' % (htmlclass,WEEKDAY[lang][days[day]['weekday']],day)
                 s += '</tr>\n'
-                obs = obstypes if obstypes else ['ww','TTTmax','TTTmin','FFavg','DDavg','RR1c','Rd10','PPPPavg','Neffavg','RSunD','Rad1hsum']
+                if obstypes:
+                    obs = obstypes 
+                elif 'observations_daily' in station_dict:
+                    obs = station_dict['observations_daily']
+                else:
+                    obs = ['ww','TTTmax','TTTmin','FFavg','DDavg','RR1c','Rd10','PPPPavg','Neffavg','RSunD','Rad1hsum']
                 for ii in obs:
                     if ii=='ww':
                         s += '<tr class="icons">'
@@ -784,6 +899,28 @@ class DwdMosmix(object):
                         except (ValueError,TypeError):
                             s += '<td>%s</td>' % days[day].get(ii,'')
                     s += '</tr>\n'
+                # PV energy if configured
+                if 'pv_factor' in station_dict:
+                    pv_factor = float(station_dict['pv_factor'])
+                    s += '<tr>\n'
+                    if symbols: s += '<td style="text-align:left">PV</td>'
+                    if desc: s += '<td>PV-Anlage</td>'
+                    s += '<td>kWh</td>'
+                    first = True
+                    for day in days:
+                        htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
+                        try:
+                            if first:
+                                # for today no real value
+                                ertrag = ''
+                            else:
+                                # from tomorrow on
+                                ertrag = ('%.1f' % (days[day]['Rad1hsum']*pv_factor)).replace('.',',')
+                            s += '<td%s>%s</td>' % (htmlclass,ertrag)
+                        except (ValueError,TypeError):
+                            s += '<td%s>NaN</td>' % htmlclass
+                        first = False
+                    s += '</tr>\n'
                 s += '</table>\n'
                 if self.horizontal_div_classes:
                     s += '</div>\n'
@@ -813,7 +950,8 @@ class DwdMosmix(object):
                     try:
                         # max temp
                         color = ' style="color:%s"' % DwdMosmix._temp_color(days[day]['TTTmax'])
-                        s += ('<td%s%s>%.*f<span style="font-size:50%%"> °C</span></td>' % (htmlclass,color,1,days[day].get('TTTmax',float("NaN")))).replace('.',',')
+                        temp_s = ('%.1f' % days[day].get('TTTmax',float("NaN"))).replace('.',',')
+                        s += '<td%s%s>%s<span style="font-size:50%%"> °C</span></td>' % (htmlclass,color,temp_s)
                     except (ValueError,TypeError):
                         s += '<td>%s</td>' % days[day].get('TTTmax','')
                     try:
@@ -839,7 +977,8 @@ class DwdMosmix(object):
                     try:
                         # min temp
                         color = ' style="color:%s"' % DwdMosmix._temp_color(days[day]['TTTmin'])
-                        s += ('<td%s%s>%.*f<span style="font-size:50%%"> °C</span></td>' % (htmlclass,color,1,days[day].get('TTTmin',float("NaN")))).replace('.',',')
+                        temp_s = ('%.1f' % days[day].get('TTTmin',float("NaN"))).replace('.',',')
+                        s += '<td%s%s>%s<span style="font-size:50%%"> °C</span></td>' % (htmlclass,color,temp_s)
                     except (ValueError,TypeError):
                         s += '<td>%s</td>' % days[day].get('TTTmin','')
                     try:
