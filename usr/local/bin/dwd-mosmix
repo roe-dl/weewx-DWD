@@ -511,8 +511,9 @@ class DwdMosmix(object):
         'R101':('<i class="wi wi-umbrella"></i>','Wahrscheinlichkeit','%'),
         'VV':('VV','Sichtweite','m')}
 
-    def write_html(self, mos, obstypes, dryrun, range=None, lang='de'):
+    def write_html(self, placemark, timesteps, obstypes, dryrun, range=None, lang='de'):
         """ create HTML hourly """
+        #timesteps = mos['ForecastTimeSteps']
         try:
             start_day = range[0]
             end_day = range[1]
@@ -525,7 +526,8 @@ class DwdMosmix(object):
         # config
         symbols = self.show_obs_symbols and obstypes
         desc = self.show_obs_description or not obstypes
-        for placemark in mos.get('Placemark'):
+        #for placemark in mos.get('Placemark'):
+        if True:
             if has_pyephem:
                 try:
                     location = ephem.Observer()
@@ -548,7 +550,7 @@ class DwdMosmix(object):
                 if symbols: s += '<td></td>'
                 if desc: s += '<td></td>'
                 old_day_ct = -1
-                for idx,ii in enumerate(mos['ForecastTimeSteps']):
+                for idx,ii in enumerate(timesteps):
                     # day of week
                     try:
                         wd = WEEKDAY[lang][time.localtime(ii*0.001).tm_wday]
@@ -583,7 +585,7 @@ class DwdMosmix(object):
                 s += '<tr class="icons"><td></td>'
                 if symbols: s += '<td></td>'
                 if desc: s += '<td></td>'
-                for idx,ii in enumerate(mos['ForecastTimeSteps']):
+                for idx,ii in enumerate(timesteps):
                     if idx<start_ct: continue
                     if idx>=count+start_ct: break
                     night = self.is_night(location,ii*0.001)
@@ -649,7 +651,7 @@ class DwdMosmix(object):
                     s += '<th%s>%s</th>' % (color,self.OBS_LABEL[ii][0])
                 s += '</tr>'
                 old_day_ct = -1
-                for idx,ii in enumerate(mos['ForecastTimeSteps']):
+                for idx,ii in enumerate(timesteps):
                     # day of week
                     try:
                         wd = WEEKDAY[lang][time.localtime(ii*0.001).tm_wday]
@@ -736,108 +738,18 @@ class DwdMosmix(object):
                 with open("%s/forecast-%s-%s.inc" % (self.target_path,fn,suffix),"w") as file:
                     file.write(s)
         
-    def write_html_daily(self, mos, obstypes, dryrun, lang='de'):
+    def write_html_daily(self, placemark, days, timesteps, issue, obstypes, dryrun, lang='de'):
         """ make daily values out of hourly ones and create HTML and JSON """
-        # observation types to calculate average for
-        AVGS = ['TTT','Td','FF','DD','PPPP','N','Neff','VV']
         # config
         symbols = self.show_obs_symbols
         desc = self.show_obs_description
         # create HTML and JSON file for each placemark in KML file
-        for placemark in mos.get('Placemark'):
+        #for placemark in mos.get('Placemark'):
+        if True:
             try:
                 station_dict = self.stations_dict[placemark['id']]
             except Exception:
                  station_dict = {}
-            days = dict()
-            # loop over all timestamps
-            for idx,val in enumerate(mos['ForecastTimeSteps']):
-                day = time.strftime('%d.%m.',time.localtime(val*0.001))
-                vals = {ii:placemark['Forecast'][ii][idx] for ii in placemark['Forecast']}
-                # check if first timestamp of a new day
-                if day not in days: 
-                    _wday = time.localtime(val*0.001).tm_wday
-                    days[day] = { 
-                        'day':day,
-                        'weekday':_wday,
-                        'weekdayshortname':WEEKDAY[lang][_wday],
-                        'TTTmin':1000.0,
-                        'TTTmax':-273.15,
-                        'count':0,
-                        'SunD1':0.0,
-                        'RR1c':0.0,
-                        'ww':[],
-                        'FX1max':0.0,
-                        'VVmin':100000000000.0,
-                        'Rad1hsum':0.0 }
-                    for ii in AVGS:
-                        days[day][ii+'sum'] = 0.0
-                        days[day][ii+'ct'] = 0
-                #days[day]['weekday'] = time.localtime(val*0.001).tm_wday
-                days[day]['count'] += 1
-                # min and max temperature
-                ttt = vals['TTT']
-                if ttt and ttt>days[day]['TTTmax']: days[day]['TTTmax'] = ttt
-                if ttt and ttt<days[day]['TTTmin']: days[day]['TTTmin'] = ttt
-                # max wind gust
-                try:
-                    fx1 = vals['FX1']
-                    if fx1 and fx1>days[day]['FX1max']: 
-                        days[day]['FX1max'] = fx1
-                except (TypeError,LookupError):
-                    pass
-                # minimum visibility
-                try:
-                    vv = vals['VV']
-                    if vv and vv<days[day]['VVmin']: days[day]['VVmin'] = vv
-                except (TypeError,LookupError):
-                    pass
-                # sum values to get the average
-                for ii in AVGS:
-                    try:
-                        days[day][ii+'sum'] += vals[ii]
-                        days[day][ii+'ct'] += 1
-                    except TypeError as e:
-                        logerr("%s: %s" % (ii,e))
-                # sunshine duration
-                days[day]['SunD1'] += vals['SunD1']/3600
-                if vals.get('RSunD') is not None: days[day]['RSunD'] = vals['RSunD']
-                if vals.get('Rad1h'): days[day]['Rad1hsum'] += vals['Rad1h']/1000.0
-                #try:
-                #    rsun = placemark['Forecast']['RSunD'][idx+1]
-                #    if rsun: days[day]['RSunD'] = rsun
-                #    #print(idx,vals['RSunD'])
-                #except (ValueError,IndexError):
-                #    pass
-                # rain
-                for ii in ['Rd00','Rd02','Rd10','Rd50']:
-                    if vals[ii]: days[day][ii] = vals[ii]
-                    #try:
-                    #    xx = placemark['Forecast'][ii][idx+1]
-                    #    if xx: days[day][ii] = xx
-                    #    #if xx: print(idx,ii,xx)
-                    #except (ValueError,IndexError):
-                    #    pass
-                if vals['RR1c']: days[day]['RR1c'] += vals['RR1c']
-                # collect weather codes of the day
-                if vals['ww'] and vals['ww'] not in days[day]['ww']: days[day]['ww'].append(vals['ww'])
-            # calculate averages and weather symbol for the days
-            for day in days:
-                # calculate averages
-                for ii in AVGS:
-                    try:
-                        days[day][ii+'avg'] = days[day][ii+'sum']/days[day][ii+'ct']
-                    except (TypeError,ArithmeticError,LookupError,ValueError):
-                        days[day][ii+'avg'] = None
-                    try:
-                        del days[day][ii+'sum']
-                        del days[day][ii+'ct']
-                    except (LookupError,NameError):
-                        pass
-                # weather symbol
-                wwcode = get_ww(days[day]['ww'],days[day]['Neffavg'],False)
-                days[day]['icon'] = self.icon_pth+'/'+wwcode[self.iconset]
-                days[day]['icontitle'] = wwcode[2] if lang=='en' else wwcode[1]
             # HTML 
             s = ""
             #s += '<p><strong>%s</strong></p>\n' % placemark['description']
@@ -997,26 +909,176 @@ class DwdMosmix(object):
                 if self.vertical_div_classes:
                     s += '</div>\n'
             # Copyright notice
-            s += '<p style="font-size:80%%">herausgegeben vom <a href="https://www.dwd.de" target="_blank">DWD</a> am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M',time.localtime(mos['IssueTime']/1000.0))
+            s += '<p style="font-size:80%%">herausgegeben vom <a href="https://www.dwd.de" target="_blank">DWD</a> am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M',time.localtime(issue['IssueTime']/1000.0))
             fn = placemark['id']
             if dryrun:
                 print(s)
             else:
                 with open("%s/forecast-%s.inc" % (self.target_path,fn),"w") as file:
                     file.write(s)
-                with open("%s/forecast-%s.json" % (self.target_path,fn),"w") as file:
-                    x = {
-                        'Issuer':mos.get('Issuer'),
-                        'ProductID':mos.get('ProductID'),
-                        'GeneratingProcess':mos.get('GeneratingProcess'),
-                        'IssueTime':mos.get('IssueTime'),
-                        'IssueTimeISO':mos.get('IssueTimeISO'),
-                        'ReferenceModel':mos.get('ReferenceModel'),
-                        'id':placemark.get('id'),
-                        'name':placemark.get('description'),
-                        'Forecast':[days[day] for day in days]}
-                    json.dump(x,file,indent=4)
+    
+    def dump(self, placemark, days, timesteps, issue):
+        fn = placemark['id']
+        with open("%s/forecast-%s.json" % (self.target_path,fn),"w") as file:
+            hours = []
+            for idx,val in enumerate(timesteps):
+                hour = {'timestamp':val}
+                for ii in placemark['Forecast']:
+                    hour[ii] = placemark['Forecast'][ii][idx]
+                hours.append(hour)
+            x = {
+                'Issuer':issue.get('Issuer'),
+                'ProductID':issue.get('ProductID'),
+                'GeneratingProcess':issue.get('GeneratingProcess'),
+                'IssueTime':issue.get('IssueTime'),
+                'IssueTimeISO':issue.get('IssueTimeISO'),
+                'ReferenceModel':issue.get('ReferenceModel'),
+                'id':placemark.get('id'),
+                'name':placemark.get('description'),
+                'ForecastDaily':[days[day] for day in days],
+                'ForecastHourly':hours}
+            json.dump(x,file,indent=4,ensure_ascii=False)
+    
+    def calculate_daily_forecast(self, placemark, timesteps, lang='de'):
+        # observation types to calculate average for
+        AVGS = ['TTT','Td','FF','DD','PPPP','N','Neff','VV']
+        days = dict()
+        # loop over all timestamps
+        for idx,val in enumerate(timesteps):
+            day = time.strftime('%d.%m.',time.localtime(val*0.001))
+            vals = {ii:placemark['Forecast'][ii][idx] for ii in placemark['Forecast']}
+            # check if first timestamp of a new day
+            if day not in days: 
+                _wday = time.localtime(val*0.001).tm_wday
+                days[day] = { 
+                    'day':day,
+                    'weekday':_wday,
+                    'weekdayshortname':WEEKDAY[lang][_wday],
+                    'TTTmin':1000.0,
+                    'TTTmax':-273.15,
+                    'count':0,
+                    'SunD1':0.0,
+                    'RR1c':0.0,
+                    'ww':[],
+                    'FX1max':0.0,
+                    'VVmin':100000000000.0,
+                    'Rad1hsum':0.0 }
+                for ii in AVGS:
+                    days[day][ii+'sum'] = 0.0
+                    days[day][ii+'ct'] = 0
+            days[day]['count'] += 1
+            # min and max temperature
+            ttt = vals['TTT']
+            if ttt and ttt>days[day]['TTTmax']: days[day]['TTTmax'] = ttt
+            if ttt and ttt<days[day]['TTTmin']: days[day]['TTTmin'] = ttt
+            # max wind gust
+            try:
+                    fx1 = vals['FX1']
+                    if fx1 and fx1>days[day]['FX1max']: 
+                        days[day]['FX1max'] = fx1
+            except (TypeError,LookupError):
+                    pass
+            # minimum visibility
+            try:
+                vv = vals['VV']
+                if vv and vv<days[day]['VVmin']: days[day]['VVmin'] = vv
+            except (TypeError,LookupError):
+                pass
+            # sum values to get the average
+            for ii in AVGS:
+                try:
+                    days[day][ii+'sum'] += vals[ii]
+                    days[day][ii+'ct'] += 1
+                except TypeError as e:
+                    logerr("%s: %s" % (ii,e))
+            # sunshine duration
+            days[day]['SunD1'] += vals['SunD1']/3600
+            if vals.get('RSunD') is not None: days[day]['RSunD'] = vals['RSunD']
+            if vals.get('Rad1h'): days[day]['Rad1hsum'] += vals['Rad1h']/1000.0
+            # rain
+            for ii in ['Rd00','Rd02','Rd10','Rd50']:
+                if vals[ii]: days[day][ii] = vals[ii]
+                #try:
+                #    xx = placemark['Forecast'][ii][idx+1]
+                #    if xx: days[day][ii] = xx
+                #    #if xx: print(idx,ii,xx)
+                #except (ValueError,IndexError):
+                #    pass
+            if vals['RR1c']: days[day]['RR1c'] += vals['RR1c']
+            # collect weather codes of the day
+            if vals['ww'] and vals['ww'] not in days[day]['ww']: days[day]['ww'].append(vals['ww'])
+        # calculate averages and weather symbol for the days
+        for day in days:
+            # calculate averages
+            for ii in AVGS:
+                try:
+                    days[day][ii+'avg'] = days[day][ii+'sum']/days[day][ii+'ct']
+                except (TypeError,ArithmeticError,LookupError,ValueError):
+                    days[day][ii+'avg'] = None
+                try:
+                    del days[day][ii+'sum']
+                    del days[day][ii+'ct']
+                except (LookupError,NameError):
+                    pass
+            # weather symbol
+            wwcode = get_ww(days[day]['ww'],days[day]['Neffavg'],False)
+            days[day]['icon'] = self.icon_pth+'/'+wwcode[self.iconset]
+            days[day]['icontitle'] = wwcode[2] if lang=='en' else wwcode[1]
+        return days
+        
+    def forecast_placemark(self, placemark, timesteps, issue, output, dryrun, lang='de'):
+        """ create forecast for placemark placemark """
+        if self.verbose:
+            loginf('process placemark id "%s" name "%s"' % (placemark.get('id'),placemark.get('description')))
 
+        if 'daily' in output:
+            if self.verbose:
+                loginf('calculate daily forecast')
+            days = self.calculate_daily_forecast(placemark,timesteps,lang=lang)
+        
+        if 'html' in output:
+        
+            if 'all' in output:
+                if self.verbose:
+                    loginf('output all data')
+                self.write_html(placemark,timesteps,None,dryrun,lang=lang)
+
+            if 'daily' in output:
+                if self.verbose:
+                    loginf('output daily forecast')
+                self.write_html_daily(placemark,days,timesteps,issue,None,dryrun,lang=lang)
+
+            if 'hourly' in output:
+                if self.verbose:
+                    loginf('output hourly forecast')
+                self.write_html(placemark,timesteps,['TTT','FF','DD','RR1c','R101','PPPP','Rad1h'],dryrun,range=11,lang=lang)
+        
+        if 'json' in output:
+            if self.verbose:
+                loginf('json')
+            self.dump(placemark,days,timesteps,issue)
+            
+        if self.verbose:
+            loginf('placemark id "%s" processed' % placemark.get('id'))
+
+
+    def forecast_all(self, mos, output, dryrun, lang='de'):
+        """ create forecast for all placemarks found """
+        if self.verbose:
+            loginf('what to output: %s' % output)
+            loginf('start loop over placemarks')
+        issue = {
+            'Issuer':mos.get('Issuer'),
+            'ProductID':mos.get('ProductID'),
+            'GeneratingProcess':mos.get('GeneratingProcess'),
+            'IssueTime':mos.get('IssueTime'),
+            'IssueTimeISO':mos.get('IssueTimeISO'),
+            'ReferenceModel':mos.get('ReferenceModel')}
+        for placemark in mos.get('Placemark'):
+            self.forecast_placemark(placemark, mos['ForecastTimeSteps'], issue, output, dryrun, lang)
+        if self.verbose:
+            loginf('end loop over placemarks')
+    
     @staticmethod
     def print_icons_ww(iconset='dwd'):
         if not iconset or iconset.lower()=='belchertown':
@@ -1128,21 +1190,17 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
 
     dwd = DwdMosmix(config,options.verbose)
     zz = dwd.download_kml(location,'l')
-    mos = dwd.process_kml(zz,options.log_tags)
+    mmos = dwd.process_kml(zz,options.log_tags)
     #print(json.dumps(mos,indent=4,ensure_ascii=False))
     
-    nothing = True
-
-    if options.all:
-        if options.verbose: loginf('output all data')
-        dwd.write_html(mos,None,options.dry_run,lang=options.lang)
-        nothing = False
+    output = []
+    if options.all: output.append('all')
+    if options.hourly: output.append('hourly')
+    if options.daily or len(output)==0: output.append('daily')
     
-    if options.hourly:
-        if options.verbose: loginf('output hourly forecast')
-        dwd.write_html(mos,['TTT','FF','DD','RR1c','R101','PPPP','Rad1h'],options.dry_run,range=11,lang=options.lang)
-        nothing = False
-
-    if options.daily or nothing:
-        if options.verbose: loginf('output daily forecast')
-        dwd.write_html_daily(mos,None,options.dry_run,lang=options.lang)
+    output.append('html')
+    output.append('json')
+    
+    dwd.forecast_all(mmos,output,options.dry_run,lang=options.lang)
+    
+    
