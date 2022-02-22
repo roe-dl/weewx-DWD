@@ -100,42 +100,42 @@ def get_mos_url(location, mosmix):
 
 # https://www.dwd.de/DE/leistungen/opendata/help/schluessel_datenformate/kml/mosmix_element_weather_xls.xlsx?__blob=publicationFile&v=6
 WW_LIST = [
-    (95,'leichtes oder mäßiges Gewitter mit Regen oder Schnee','slight or moderate thunderstorm with rain or snow',1,'thunderstorm.png','27.png'),
-    (57,'mäßiger oder starker gefrierender Sprühregen','Drizzle, freezing, moderate or heavy (dence)',2,'sleet.png','67.png'),
-    (56,'leichter gefrierender Sprühregen','Drizzle, freezing, slight',3,'sleet.png','66.png'),
-    (67,'mäßiger bis starker gefrierender Regen','Rain, freezing, moderate or heavy (dence)',4,'sleet.png','67.png'),
-    (66,'leichter gefrierender Regen','Rain, freezing, slight',5,'sleet.png','66.png'),
-    (86,'mäßiger bis starker Schneeschauer','Snow shower(s), moderate or heavy',6,'snow.png','86.png'),
-    (85,'leichter Schneeschauer','Snow shower(s), slight',7,'snow.png','85.png'),
-    (84,'mäßiger oder starker Schneeregenschauer','Shower(s) of rain and snow mixed, moderate or heavy',8,'sleet.png','84.png'),
-    (83,'leichter Schneeregenschauer','Shower(s) of rain and snow mixed, slight',9,'sleet.png','83.png'),
-    (82,'äußerst heftiger Regenschauer','extremely heavy rain shower',10,'rain.png','82.png'),
-    (81,'mäßiger oder starker Regenschauer','moderate or heavy rain showers',11,'rain.png','82.png'),
-    (80,'leichter Regenschauer','slight rain shower',12,'rain.png','80.png'),
-    (75,'durchgehend starker Schneefall','heavy snowfall, continuous',13,'snow.png','16.png'),
-    (73,'durchgehend mäßiger Schneefall','moderate snowfall, continuous',14,'snow.png','15.png'),
-    (71,'durchgehend leichter Schneefall','slight snowfall, continuous',15,'snow.png','14.png'),
-    (69,'mäßger oder starker Schneeregen','moderate or heavy rain and snow',16,'sleet.png','13.png'),
-    (68,'leichter Schneeregen','slight rain and snow',17,'sleet.png','12.png'),
-    (55,'durchgehend starker Sprühregen','heavy drizzle, not freezing, continuous',18,'drizzle.png','9.png'),
-    (53,'durchgehend mäßiger Sprühregen','moderate drizzle, not freezing, continuous',19,'drizzle.png','8.png'),
-    (51,'durchgehend leichter Sprühregen','slight drizzle, not freezing, continuous',20,'drizzle.png','7.png'),
-    (65,'durchgehend starker Regen','heavy rain, not freezing, continuous',21,'rain.png','9.png'),
-    (63,'durchgehend mäßiger Regen','moderate rain, not freezing, continuous',22,'rain.png','8.png'),
-    (61,'durchgehend leichter Regen','slight rain, not freezing, continuous',23,'rain.png','7.png'),
-    (49,'Nebel mit Reifansatz, Himmel nicht erkennbar, unverändert','Ice Fog, sky not recognizable',24,'fog.png','48.png'),
-    (45,'Nebel, Himmel nicht erkennbar','Fog, sky not recognizable',25,'fog.png','40.png'),
-    (3,'Bewölkung zunehmend','Clouds generally forming or developing',26,None,None),
-    (2,'Bewölkung unverändert','State of sky on the whole unchanged',27,None,None),
-    (1,'Bewölkung abnehmend','Clouds generally dissolving or becoming less developed',28,None,None),
-    (0,'keine Bewölkungsentwicklung','no cloud cover development',29,None,None)]
+    (95,'leichtes oder mäßiges Gewitter mit Regen oder Schnee','slight or moderate thunderstorm with rain or snow',1,'thunderstorm.png','27.png','tstorm','::T'),
+    (57,'mäßiger oder starker gefrierender Sprühregen','Drizzle, freezing, moderate or heavy (dence)',2,'sleet.png','67.png','freezingrain',':H:ZL'),
+    (56,'leichter gefrierender Sprühregen','Drizzle, freezing, slight',3,'sleet.png','66.png','freezingrain',':L:ZL'),
+    (67,'mäßiger bis starker gefrierender Regen','Rain, freezing, moderate or heavy (dence)',4,'sleet.png','67.png','freezingrain',':H:ZR'),
+    (66,'leichter gefrierender Regen','Rain, freezing, slight',5,'sleet.png','66.png','freezingrain',':L:ZR'),
+    (86,'mäßiger bis starker Schneeschauer','Snow shower(s), moderate or heavy',6,'snow.png','86.png','snowshowers',':H:SW'),
+    (85,'leichter Schneeschauer','Snow shower(s), slight',7,'snow.png','85.png','snowshowers',':L:SW'),
+    (84,'mäßiger oder starker Schneeregenschauer','Shower(s) of rain and snow mixed, moderate or heavy',8,'sleet.png','84.png','wintrymix',':H:RS'),
+    (83,'leichter Schneeregenschauer','Shower(s) of rain and snow mixed, slight',9,'sleet.png','83.png','wintrymix',':L:RS'),
+    (82,'äußerst heftiger Regenschauer','extremely heavy rain shower',10,'rain.png','82.png','showers',':VH:RW'),
+    (81,'mäßiger oder starker Regenschauer','moderate or heavy rain showers',11,'rain.png','82.png','showers',':H:RW'),
+    (80,'leichter Regenschauer','slight rain shower',12,'rain.png','80.png','showers',':L:RW'),
+    (75,'durchgehend starker Schneefall','heavy snowfall, continuous',13,'snow.png','16.png','snow',':H:S'),
+    (73,'durchgehend mäßiger Schneefall','moderate snowfall, continuous',14,'snow.png','15.png','snow','::S'),
+    (71,'durchgehend leichter Schneefall','slight snowfall, continuous',15,'snow.png','14.png','snow',':L:S'),
+    (69,'mäßger oder starker Schneeregen','moderate or heavy rain and snow',16,'sleet.png','13.png','sleet',':H:RS'),
+    (68,'leichter Schneeregen','slight rain and snow',17,'sleet.png','12.png','sleet',':L:RS'),
+    (55,'durchgehend starker Sprühregen','heavy drizzle, not freezing, continuous',18,'drizzle.png','9.png','drizzle',':H:L'),
+    (53,'durchgehend mäßiger Sprühregen','moderate drizzle, not freezing, continuous',19,'drizzle.png','8.png','drizzle','::L'),
+    (51,'durchgehend leichter Sprühregen','slight drizzle, not freezing, continuous',20,'drizzle.png','7.png','drizzle',':L:L'),
+    (65,'durchgehend starker Regen','heavy rain, not freezing, continuous',21,'rain.png','9.png','rain',':H:R'),
+    (63,'durchgehend mäßiger Regen','moderate rain, not freezing, continuous',22,'rain.png','8.png','rain','::R'),
+    (61,'durchgehend leichter Regen','slight rain, not freezing, continuous',23,'rain.png','7.png','rain',':L:R'),
+    (49,'Nebel mit Reifansatz, Himmel nicht erkennbar, unverändert','Ice Fog, sky not recognizable',24,'fog.png','48.png','fog','::IF'),
+    (45,'Nebel, Himmel nicht erkennbar','Fog, sky not recognizable',25,'fog.png','40.png','fog','::F'),
+    (3,'Bewölkung zunehmend','Clouds generally forming or developing',26,None,None,None,None),
+    (2,'Bewölkung unverändert','State of sky on the whole unchanged',27,None,None,None,None),
+    (1,'Bewölkung abnehmend','Clouds generally dissolving or becoming less developed',28,None,None,None,None),
+    (0,'keine Bewölkungsentwicklung','no cloud cover development',29,None,None,None,None)]
 
 N_ICON_LIST = [
-    ('clear-day.png','clear-night.png','0-8.png'),
-    ('mostly-clear-day.png','mostly-clear-night.png','2-8.png'),
-    ('partly-cloudy-day.png','partly-cloudy-night.png','5-8.png'),
-    ('mostly-cloudy-day.png','mostly-cloudy-night.png','5-8.png'),
-    ('cloudy.png','cloudy.png','8-8.png')]
+    ('clear-day.png','clear-night.png','0-8.png','CL','clear'),
+    ('mostly-clear-day.png','mostly-clear-night.png','2-8.png','FW','fair'),
+    ('partly-cloudy-day.png','partly-cloudy-night.png','5-8.png','SC','pcloudy'),
+    ('mostly-cloudy-day.png','mostly-cloudy-night.png','5-8.png','BK','mcloudy'),
+    ('cloudy.png','cloudy.png','8-8.png','OV','cloudy')]
     
 def get_ww(ww,n,night):
     """ get icon and description for the current weather """
@@ -152,18 +152,13 @@ def get_ww(ww,n,night):
     # see aerisweather for percentage values
     # https://www.aerisweather.com/support/docs/api/reference/weather-codes/
     if wwcode[0]<=3:
-        # Belchertown icons
         night = 1 if night else 0
-        if n<7:
-            icon = N_ICON_LIST[0][night]
-        elif n<32:
-            icon = N_ICON_LIST[1][night]
-        elif n<70:
-            icon = N_ICON_LIST[2][night]
-        elif n<95:
-            icon = N_ICON_LIST[3][night]
-        else:
-            icon = N_ICON_LIST[4][0]
+        cover = get_cloudcover(n)
+        # Belchertown icons
+        icon = cover[night]
+        # Aeris icons
+        aeicon = cover[4]
+        aecode = '::'+cover[3]
         # DWD icons
         if n<12.5:
             dwd = N_ICON_LIST[0][2]
@@ -177,8 +172,21 @@ def get_ww(ww,n,night):
             n_str = '%.0f%%' % float(n)
         except Exception:
             n_str = str(n)
-        wwcode = (wwcode[0],wwcode[1]+' '+n_str,wwcode[2]+' '+str(n),wwcode[3],icon,dwd)
+        wwcode = (wwcode[0],wwcode[1]+' '+n_str,wwcode[2]+' '+str(n),wwcode[3],icon,dwd,aeicon,aecode)
     return wwcode
+
+def get_cloudcover(n):
+    if n<7:
+        icon = N_ICON_LIST[0]
+    elif n<32:
+        icon = N_ICON_LIST[1]
+    elif n<70:
+        icon = N_ICON_LIST[2]
+    elif n<95:
+        icon = N_ICON_LIST[3]
+    else:
+        icon = N_ICON_LIST[4]
+    return icon
 
 # week day names
 WEEKDAY = {
@@ -350,6 +358,7 @@ class DwdMosmix(object):
         # iconset
         self.iconset = 4
         if forecast_dict.get('icon_set','').lower()=='dwd': self.iconset = 5
+        if forecast_dict.get('icon_set','').lower()=='aeris': self.iconset = 6
         # logging
         self.verbose = verbose
         self.log_success = forecast_dict.get('log_success',config_dict['DeutscherWetterdienst'].get('log_success',config_dict.get('log_success',False)))
@@ -372,6 +381,25 @@ class DwdMosmix(object):
         self.altitude = alt
         if has_pyephem:
             self.sun = ephem.Sun()
+        # Belchertown
+        try:
+            belchertown_dict = config_dict['DeutscherWetterdienst'].get('Belchertown',{})
+            belchertown_section = config_dict['StdReport'][belchertown_dict['section']]
+            if 'HTML_ROOT' in belchertown_section:
+                self.belchertown_html_root = os.path.join(
+                    config_dict['WEEWX_ROOT'],
+                    belchertown_section['HTML_ROOT'])
+            else:
+                self.belchertown_html_root = os.path.join(
+                    config_dict['WEEWX_ROOT'],
+                    config_dict['StdReport']['HTML_ROOT'])
+            self.belchertown_forecast = belchertown_dict['forecast']
+            self.belchertown_warning = belchertown_dict['warnings']
+        except LookupError:
+            belchertown_section = {}
+            self.belchertown_html_root = None
+            self.belchertown_warning = None
+            self.belchertown_forecast = None
         if __name__ == "__main__" and verbose:
             print('-- configuration data ----------------------------------')
             print('log success:      ',self.log_success)
@@ -383,6 +411,23 @@ class DwdMosmix(object):
             print('station location: ','lat',self.latitude,'lon',self.longitude,'alt',self.altitude)
             print('--------------------------------------------------------')
 
+    @staticmethod
+    def isoformat(ts, tzoffset=None, geo=None):
+        """ convert time to string in ISO format """
+        try:
+            if tzoffset is not None:
+                ti = time.gmtime(ts+tzoffset)
+            elif geo is not None:
+                # TODO
+                ti = time.localtime(ts)
+            else:
+                ti = time.localtime(ts)
+            tzstr = time.strftime('%z',ti)
+            return time.strftime('%Y-%m-%dT%H:%M:%S',ti)+tzstr[0:3]+':'+tzstr[3:]
+        except Exception:
+            return '----------T--:--:--+--:--'
+        
+        
     def download_kml(self, location, mosmix):
         """ download MOSMIX KML file from DWD server """
 
@@ -595,7 +640,9 @@ class DwdMosmix(object):
                         icontitle = wwcode[2]
                     else:
                         icontitle = wwcode[1].replace('ö','&ouml;').replace('ü','&uuml;')
-                    s += '<td title="%s"><img src="%s/%s" width="50px" alt="%s" /></td>' % (icontitle,self.icon_pth,wwcode[self.iconset],icontitle)
+                    icon = wwcode[self.iconset]
+                    if self.iconset==6: icon += ('n' if night else '')+'.png'
+                    s += '<td title="%s"><img src="%s/%s" width="50px" alt="%s" /></td>' % (icontitle,self.icon_pth,icon,icontitle)
                 s += '</tr>\n'
                 # other observation types
                 obs = obstypes if obstypes else placemark['Forecast']
@@ -627,7 +674,7 @@ class DwdMosmix(object):
                         try:
                             color = ' style="color:%s"' % prec_color if prec_color else ''
                             if ii=='TTT': color = ' style="color:%s"' % DwdMosmix._temp_color(jj)
-                            dp = 1 if ii[0]=='T' or ii in ['RR1c','RRL1c','RRS1c','RR3c','RR6c'] else 0
+                            dp = 1 if ii[0]=='T' or (ii in ['RR1c','RRL1c','RRS1c','RR3c','RR6c']) else 0
                             if ii=='DD':
                                 s += '<td><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%"></i></td>' % jj
                                 #s += '<td><i class="wi wi-wind-direction" style="transform:rotate(%sdeg);font-size:150%%"></i></td>' % ((jj+180)%360)
@@ -685,7 +732,9 @@ class DwdMosmix(object):
                         icontitle = wwcode[2]
                     else:
                         icontitle = wwcode[1].replace('ö','&ouml;').replace('ü','&uuml;')
-                    s += '<td rowspan="2" title="%s"><img src="%s/%s" width="50px" alt="%s" /></td>' % (icontitle,self.icon_pth,wwcode[self.iconset],icontitle)
+                    icon = wwcode[self.iconset]
+                    if self.iconset==6: icon += ('n' if night else '')+'.png'
+                    s += '<td rowspan="2" title="%s"><img src="%s/%s" width="50px" alt="%s" /></td>' % (icontitle,self.icon_pth,icon,icontitle)
                     try:
                         # temperature column
                         temp = placemark['Forecast']['TTT'][idx]
@@ -910,19 +959,19 @@ class DwdMosmix(object):
                     s += '</div>\n'
             # Copyright notice
             s += '<p style="font-size:80%%">herausgegeben vom <a href="https://www.dwd.de" target="_blank">DWD</a> am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M',time.localtime(issue['IssueTime']/1000.0))
-            fn = placemark['id']
+            fn = os.path.join(self.target_path,'forecast-'+placemark['id']+'.inc')
             if dryrun:
                 print(s)
             else:
-                with open("%s/forecast-%s.inc" % (self.target_path,fn),"w") as file:
+                with open(fn,"w") as file:
                     file.write(s)
     
-    def dump(self, placemark, days, timesteps, issue):
-        fn = placemark['id']
-        with open("%s/forecast-%s.json" % (self.target_path,fn),"w") as file:
+    def dump(self, placemark, days, recs3hr, timesteps, issue, dryrun):
+        fn = os.path.join(self.target_path,'forecast-'+placemark['id']+'.json')
+        with open(fn,"w") as file:
             hours = []
             for idx,val in enumerate(timesteps):
-                hour = {'timestamp':val}
+                hour = {'timestamp':int(val*0.001)}
                 for ii in placemark['Forecast']:
                     hour[ii] = placemark['Forecast'][ii][idx]
                 hours.append(hour)
@@ -936,9 +985,361 @@ class DwdMosmix(object):
                 'id':placemark.get('id'),
                 'name':placemark.get('description'),
                 'ForecastDaily':[days[day] for day in days],
+                'Forecast3hr':recs3hr,
                 'ForecastHourly':hours}
             json.dump(x,file,indent=4,ensure_ascii=False)
+            
+    def belchertown(self, placemark, days, recs3h, timesteps, issue, dryrun):
+        geo = placemark['coordinates']
+        if has_pyephem:
+            try:
+                location = ephem.Observer()
+                location.lat = geo[1]*0.017453292519943
+                location.lon = geo[0]*0.017453292519943
+                location.elevation = geo[2]
+            except Exception as e:
+                logerr('Observer: %s' % e)
+        else:
+            location = None
+        now = time.time()
+        # creation time
+        forecast = {'timestamp':int(now)}
+        for idx,ii in enumerate(timesteps):
+            if now<=ii*0.001:
+                if self.verbose:
+                    loginf("now %s timestep %s" % (time.strftime('%H:%M:%S',time.localtime(now)),time.strftime('%H:%M:%S',time.localtime(timesteps[idx]*0.001))))
+                break
+        night = self.is_night(location,timesteps[idx]*0.001)
+        wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],night)
+        forecast['current'] = [{
+            'success':True,
+            'error':None,
+            'response':{
+                'id':placemark['id'],
+                'dataSource':issue['ReferenceModel']['name'],
+                'loc':{
+                    'long':geo[0],
+                    'lat':geo[1]},
+                'place':{
+                    'name':placemark['description'],
+                    'city':placemark['description'],
+                    'state':'',
+                    'country':''},
+                'profile':{
+                    'tz':'Europe/Berlin',
+                    'tzname':'CET',
+                    'tzoffset':3600,
+                    'isDST':False,
+                    'elevM':geo[2]},
+                'obTimestamp':int(issue['IssueTime']*0.001),
+                'obDateTime':issue['IssueTimeISO'],
+                'ob':{
+                    'timestamp':int(timesteps[idx]*0.001),
+                    'dateTimeISO':DwdMosmix.isoformat(timesteps[idx]*0.001),
+                    'tempC':placemark['Forecast']['TTT'][idx],
+                    'dewpointC':placemark['Forecast']['Td'][idx],
+                    'pressureMB':placemark['Forecast']['PPPP'][idx],
+                    'windKPH':placemark['Forecast']['FF'][idx],
+                    'windSpeedKPH':placemark['Forecast']['FF'][idx],
+                    'windDirDEG':placemark['Forecast']['DD'][idx],
+                    'visibilityKM':placemark['Forecast']['VV'][idx]*0.001,
+                    'weather':wwcode[1],
+                    'weatherCoded':wwcode[7],
+                    'weatherPrimary':wwcode[1],
+                    'weatherPrimaryCoded':wwcode[7],
+                    'cloudsCoded':get_cloudcover(placemark['Forecast']['N'][idx])[3],
+                    'icon':wwcode[6]+('n' if night else '')+'.png',
+                    'solradWM2':placemark['Forecast']['Rad1h'][idx],
+                    'isDay':not night,
+                    'sky':int(placemark['Forecast']['N'][idx])
+                },
+                'raw':'',
+                'relativeTo':{}
+            }}]
+        belchertown_days = []
+        for day in days:
+            wwcode = get_ww(days[day]['ww'],days[day]['Neffavg'],False)
+            belchertown_days.append({
+                'timestamp':days[day]['timestamp'],
+                'validTime':DwdMosmix.isoformat(days[day]['timestamp']),
+                'dateTimeISO':DwdMosmix.isoformat(days[day]['timestamp']),
+                'maxTempC':days[day]['TTTmax'],
+                'minTempC':days[day]['TTTmin'],
+                'avgTempC':days[day]['TTTavg'],
+                'tempC':None,
+                'maxDewpointC':days[day]['Tdmax'],
+                'minDewpointC':days[day]['Tdmin'],
+                'avgDewpointC':days[day]['Tdavg'],
+                'dewpointC':None,
+                'pop':days[day].get('Rd10'),
+                'precipMM':days[day].get('RR1c'),
+                'pressureMB':int(days[day]['PPPPavg']),
+                'windDirDEG':int(days[day]['DDavg']),
+                'windSpeedKPH':int(days[day]['FFavg']),
+                'windGustKPH':int(days[day]['FX1max']),
+                'sky':int(days[day]['Neffavg']),
+                'cloudsCoded':get_cloudcover(days[day]['Neffavg'])[3],
+                'weather':wwcode[1],
+                'weatherCoded':wwcode[7],
+                'weatherPrimary':wwcode[1],
+                'weatherPrimaryCoded':wwcode[7],
+                'icon':wwcode[6]+'.png',
+                'isDay':True})
+            if len(belchertown_days)>=7: break
+        forecast['forecast_24hr'] = [{
+            'success':True,
+            'error':None,
+            'response':[{
+                'loc':{
+                    'long':geo[0],
+                    'lat':geo[1]},
+                'interval':'day',
+                'periods':belchertown_days,
+                'profile':{
+                    'tz':'Europe/Berlin',
+                    'elevM':geo[2]}}]}]
+        belchertown_hours = []
+        for rec in recs3h:
+            if rec['timestamp']>now:
+                wwcode = get_ww([rec['ww3']],rec['Neffavg'],rec['night'])
+                hour = {
+                    'timestamp':rec['timestamp'],
+                    'validTime':DwdMosmix.isoformat(rec['timestamp']),
+                    'dateTimeISO':DwdMosmix.isoformat(rec['timestamp']),
+                    'maxTempC':rec['TTTmax'],
+                    'minTempC':rec['TTTmin'],
+                    'avgTempC':rec['TTTavg'],
+                    'tempC':rec['TTT'],
+                    'maxDewpointC':rec['Tdmax'],
+                    'minDewpointC':rec['Tdmin'],
+                    'avgDewpointC':rec['Tdavg'],
+                    'dewpointC':rec['Td'],
+                    'pressureMB':rec['PPPPavg'],
+                    'windDirDEG':rec['DDavg'],
+                    'windSpeedKPH':rec['FFavg'],
+                    'windSpeedMaxKPH':rec['FFmax'],
+                    'windSpeedMinKPH':rec['FFmin'],
+                    'sky':int(rec['Neffavg']),
+                    'cloudsCoded':get_cloudcover(rec['Neffavg'])[3],
+                    'weather':wwcode[1],
+                    'weatherCoded':[],
+                    'weatherPrimary':wwcode[1],
+                    'weatherPrimaryCoded':wwcode[7],
+                    'icon':wwcode[6]+('n' if night else '')+'.png',
+                    'visibilityKM':rec['VVmin']/1000.0 if rec['VVmin'] is not None else None,
+                    'isDay':not rec['night'],
+                    'maxCoverage':''
+                    }
+                belchertown_hours.append(hour)
+            if len(belchertown_hours)>=8: break
+        forecast['forecast_3hr'] = [{
+            'success':len(belchertown_hours)>0,
+            'error':'',
+            'response':[{
+                'loc':{
+                    'long':geo[0],
+                    'lat':geo[1]},
+                'interval':'3hr',
+                'periods':belchertown_hours,
+                'profile':{
+                    'tz':'Europe/Berlin',
+                    'elevM':geo[2]}}]}]
+        belchertown_hours = []
+        for idx,ii in enumerate(timesteps):
+            night = self.is_night(location,ii*0.001)
+            wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],night)
+            hour = {
+                'timestamp':int(ii*0.001),
+                'validTime':DwdMosmix.isoformat(ii*0.001),
+                'dateTimeISO':DwdMosmix.isoformat(ii*0.001),
+                'maxTempC':placemark['Forecast']['TTT'][idx],
+                'minTempC':placemark['Forecast']['TTT'][idx],
+                'avgTempC':placemark['Forecast']['TTT'][idx],
+                'tempC':placemark['Forecast']['TTT'][idx],
+                'maxDewpointC':placemark['Forecast']['Td'][idx],
+                'minDewpointC':placemark['Forecast']['Td'][idx],
+                'avgDewpointC':placemark['Forecast']['Td'][idx],
+                'dewpointC':placemark['Forecast']['Td'][idx],
+                'pop':placemark['Forecast']['R101'][idx],
+                'precipMM':placemark['Forecast']['RR1c'][idx],
+                'pressureMB':placemark['Forecast']['PPPP'][idx],
+                'windDirDEG':placemark['Forecast']['DD'][idx],
+                'windSpeedKPH':placemark['Forecast']['FF'][idx],
+                'windGustKPH':placemark['Forecast']['FX1'][idx],
+                'sky':int(placemark['Forecast']['Neff'][idx]),
+                'cloudsCoded':get_cloudcover(placemark['Forecast']['Neff'][idx])[3],
+                'weather':wwcode[1],
+                'weatherCoded':wwcode[7],
+                'weatherPrimary':wwcode[1],
+                'weatherPrimaryCoded':wwcode[7],
+                'icon':wwcode[6]+('n' if night else '')+'.png',
+                'visibilityKM':placemark['Forecast']['VV'][idx]*0.001,
+                'solradWM2':placemark['Forecast']['Rad1h'][idx],
+                'solradMinWM2':placemark['Forecast']['Rad1h'][idx],
+                'solradMaxWM2':placemark['Forecast']['Rad1h'][idx],
+                'isDay':not night
+                }
+            belchertown_hours.append(hour)
+            if idx>=16: break
+        forecast['forecast_1hr'] = [{
+            'success':True,
+            'error':None,
+            'response':[{
+                'loc':{
+                    'long':geo[0],
+                    'lat':geo[1]},
+                'interval':'1hr',
+                'periods':belchertown_hours,
+                'profile':{
+                    'tz':'Europe/Berlin',
+                    'elevM':geo[2]}}]}]
+        belchertown_alerts = []
+        try:
+            with open(os.path.join(self.target_path,'warn-'+self.belchertown_warning+'.json'),'r') as file:
+                alerts = json.load(file)
+            for alert in alerts:
+                al = {
+                    'id':alert.get('identifier'),
+                    'loc':{},
+                    'dataSource':alert.get('source'),
+                    'details':{
+                        'type':'AW.'+
+                               ['TS','WI','RA','SI','FG','LT','SI','SI','HT','HT',''][alert.get('type',10)]+
+                               '.'+
+                               ['','','MN','MD','SV','EX'][alert.get('level',0)],
+                        'name':alert.get('event'),
+                        'loc':'',
+                        'emergency':None,
+                        'priority':None,
+                        'color':None,
+                        'cat':alert.get('eventCode-GROUP'),
+                        'body':alert.get('description'),
+                        'bodyFull':alert.get('description','')+alert.get('instruction','')
+                    },
+                    'timestamps':{
+                        'issued':int(alert.get('sent',0.0)*0.001),
+                        'begins':int(alert.get('start',0.0)*0.001),
+                        'expires':int(alert.get('end',0.0)*0.001),
+                        'updated':int(alert.get('sent',0.0)*0.001),
+                        'added':int(alert.get('released',0.0)*0.001),
+                        'created':int(alert.get('released',0.0)*0.001)
+                    },
+                    'poly':"",
+                    'geoPoly':None,
+                    'includes':{},
+                    'place':{},
+                    'profile':{},
+                    'active':alert.get('status','')=='Actual'
+                }
+                if al['timestamps']['begins']<now:
+                    belchertown_alerts.append(al)
+            success = True
+            err = ''
+        except Exception as e:
+            success = False
+            err = str(e)
+            alerts = []
+        forecast['alerts'] = [{
+            'success':success,
+            'error':str(err),
+            'response':belchertown_alerts }]
+        forecast['aqi'] = [{
+            'success':False,
+            'error':'not available',
+            'response':[] }]
+        if self.belchertown_html_root and self.belchertown_forecast and self.belchertown_forecast==placemark['id']:
+            fn = os.path.join(self.belchertown_html_root,'json','forecast.json')
+        else:
+            fn = os.path.join(self.target_path,'forecast-%s-belchertown.json' % placemark['id'])
+        if dryrun:
+            s = json.dumps(forecast,indent=4,ensure_ascii=False)
+            print(s)
+        else:
+            if self.verbose:
+                loginf("write Belchertown JSON file to %s" % fn)
+            with open(fn,"w") as file:
+                json.dump(forecast,file,indent=4,ensure_ascii=False)
+
     
+    def calculate_3hr_forecast(self, placemark, timesteps, lang='de'):
+        """ """
+        if has_pyephem:
+            try:
+                location = ephem.Observer()
+                # location of the forecast
+                geo = placemark['coordinates']
+                location.lat = geo[1]*0.017453292519943
+                location.lon = geo[0]*0.017453292519943
+                location.elevation = geo[2]
+            except Exception as e:
+                logerr('Observer: %s' % e)
+        recs = []
+        for idx,val in enumerate(timesteps):
+            if placemark['Forecast']['ww3'][idx] is not None:
+                vals = {ii:placemark['Forecast'][ii][idx] for ii in placemark['Forecast'] if placemark['Forecast'][ii][idx] is not None}
+                vals['timestamp'] = int(val*0.001)
+                try:
+                    ww = []
+                    if idx>=2: ww.append(int(placemark['Forecast']['ww'][idx-2]))
+                    if idx>=1: ww.append(int(placemark['Forecast']['ww'][idx-1]))
+                    ww.append(int(placemark['Forecast']['ww'][idx]))
+                    vals['ww'] = ww
+                except Exception:
+                    pass
+                try:
+                    vals['ww3'] = int(placemark['Forecast']['ww3'][idx])
+                except Exception:
+                    pass
+                # calculate min, max, and avg for hourly observerations
+                for ii in ['PPPP','TTT','Td','T5cm','DD','FF','N','Neff','VV']:
+                    try:
+                        # collect the last 3 observations
+                        p = []
+                        if idx>=2: 
+                            val = placemark['Forecast'][ii][idx-2]
+                            if val is not None: p.append(val)
+                        if idx>=1: 
+                            val = placemark['Forecast'][ii][idx-1]
+                            if val is not None: p.append(val)
+                        val = placemark['Forecast'][ii][idx]
+                        if val is not None: p.append(val)
+                        # min value
+                        try:
+                            vals[ii+'min'] = min(p)
+                        except Exception:
+                            vals[ii+'min'] = None
+                        # max value
+                        try:
+                            vals[ii+'max'] = max(p)
+                        except Exception:
+                            vals[ii+'max'] = None
+                        # avg value
+                        try:
+                            vals[ii+'avg'] = sum(p)/len(p)
+                        except Exception:
+                            vals[ii+'avg'] = None
+                    except Exception as e:
+                        logerr(e)
+                # Is the timestamp night or day?
+                try:
+                    night = self.is_night(location,val*0.001)
+                except Exception:
+                    night = None
+                # weather symbol
+                try:
+                    wwcode = get_ww([vals['ww3']],vals['Neffavg'],night)
+                    icon = self.icon_pth+'/'+wwcode[self.iconset]
+                    if self.iconset==6: icon += ('n' if night else '')+'.png'
+                    vals['night'] = night
+                    vals['icon'] = icon
+                    vals['icontitle'] = wwcode[2] if lang=='en' else wwcode[1]
+                except Exception as e:
+                    logerr(e)
+                # append new record to the list
+                recs.append(vals)
+        return recs
+                
+            
     def calculate_daily_forecast(self, placemark, timesteps, lang='de'):
         # observation types to calculate average for
         AVGS = ['TTT','Td','FF','DD','PPPP','N','Neff','VV']
@@ -951,11 +1352,14 @@ class DwdMosmix(object):
             if day not in days: 
                 _wday = time.localtime(val*0.001).tm_wday
                 days[day] = { 
+                    'timestamp':int(val*0.001),
                     'day':day,
                     'weekday':_wday,
                     'weekdayshortname':WEEKDAY[lang][_wday],
                     'TTTmin':1000.0,
                     'TTTmax':-273.15,
+                    'Tdmin':1000.0,
+                    'Tdmax':-273.15,
                     'count':0,
                     'SunD1':0.0,
                     'RR1c':0.0,
@@ -971,6 +1375,10 @@ class DwdMosmix(object):
             ttt = vals['TTT']
             if ttt and ttt>days[day]['TTTmax']: days[day]['TTTmax'] = ttt
             if ttt and ttt<days[day]['TTTmin']: days[day]['TTTmin'] = ttt
+            # min and max dewpoint
+            td = vals['Td']
+            if td and td>days[day]['Tdmax']: days[day]['Tdmax'] = td
+            if td and td<days[day]['Tdmin']: days[day]['Tdmin'] = td
             # max wind gust
             try:
                     fx1 = vals['FX1']
@@ -990,7 +1398,8 @@ class DwdMosmix(object):
                     days[day][ii+'sum'] += vals[ii]
                     days[day][ii+'ct'] += 1
                 except TypeError as e:
-                    logerr("%s: %s" % (ii,e))
+                    if vals[ii] is not None:
+                        logerr("%s: %s" % (ii,e))
             # sunshine duration
             days[day]['SunD1'] += vals['SunD1']/3600
             if vals.get('RSunD') is not None: days[day]['RSunD'] = vals['RSunD']
@@ -1022,19 +1431,25 @@ class DwdMosmix(object):
                     pass
             # weather symbol
             wwcode = get_ww(days[day]['ww'],days[day]['Neffavg'],False)
-            days[day]['icon'] = self.icon_pth+'/'+wwcode[self.iconset]
+            days[day]['icon'] = self.icon_pth+'/'+wwcode[self.iconset]+('.png' if self.iconset==6 else '')
             days[day]['icontitle'] = wwcode[2] if lang=='en' else wwcode[1]
         return days
+
         
     def forecast_placemark(self, placemark, timesteps, issue, output, dryrun, lang='de'):
         """ create forecast for placemark placemark """
         if self.verbose:
             loginf('process placemark id "%s" name "%s"' % (placemark.get('id'),placemark.get('description')))
 
-        if 'daily' in output:
+        if ('daily' in output) or ('json' in output) or ('belchertown' in output):
             if self.verbose:
                 loginf('calculate daily forecast')
             days = self.calculate_daily_forecast(placemark,timesteps,lang=lang)
+            
+        if ('json' in output) or ('belchertown' in output):
+            if self.verbose:
+                loginf('calculate 3hr forecast')
+            recs3hr = self.calculate_3hr_forecast(placemark,timesteps,lang=lang)
         
         if 'html' in output:
         
@@ -1056,7 +1471,12 @@ class DwdMosmix(object):
         if 'json' in output:
             if self.verbose:
                 loginf('json')
-            self.dump(placemark,days,timesteps,issue)
+            self.dump(placemark,days,recs3hr,timesteps,issue,dryrun)
+            
+        if 'belchertown' in output:
+            if self.verbose:
+                loginf('belchertown')
+            self.belchertown(placemark,days,recs3hr,timesteps,issue,dryrun)
             
         if self.verbose:
             loginf('placemark id "%s" processed' % placemark.get('id'))
@@ -1123,7 +1543,7 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
     parser.add_option("--orientation", type=str, metavar="H,V",
                       help="HTML table orientation horizontal, vertial, or both")
     parser.add_option("--icon-set", dest="iconset", type=str, metavar="SET",
-                      help="icon set to use, default is 'belchertown', possible values are 'dwd' and 'belchertown'")
+                      help="icon set to use, default is 'belchertown', possible values are 'dwd', 'belchertown', and 'aeris'")
     parser.add_option("--lang", dest="lang", type=str,
                       metavar="ISO639",
                       default='de',
@@ -1142,6 +1562,15 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
     group = optparse.OptionGroup(parser,"Commands")
     group.add_option("--print-icons-ww", action="store_true", dest="iconsww",
                      help="Print which icons are connected to which ww weather code")
+    group.add_option("--html", action="store_true", dest="html",
+                     help="Write HTML .inc file")
+    group.add_option("--json", action="store_true", dest="json",
+                     help="Write JSON file")
+    group.add_option("--belchertown", action="store_true",
+                     help="Write Belchertown style forecast file")
+    parser.add_option_group(group)
+    
+    group = optparse.OptionGroup(parser,"Intervals")
     group.add_option("--all", action="store_true",
                      help="Output all details in HTML")
     group.add_option("--hourly", action="store_true",
@@ -1196,10 +1625,15 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
     output = []
     if options.all: output.append('all')
     if options.hourly: output.append('hourly')
+    if options.belchertown: output.append('belchertown')
     if options.daily or len(output)==0: output.append('daily')
     
-    output.append('html')
-    output.append('json')
+    if options.html: output.append('html')
+    if options.json: output.append('json')
+    if not options.html and not options.json and not options.belchertown:
+        output.append('html')
+        if options.daily:
+            output.append('json')
     
     dwd.forecast_all(mmos,output,options.dry_run,lang=options.lang)
     

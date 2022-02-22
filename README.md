@@ -3,6 +3,34 @@ Daten vom Deutschen Wetterdienst (DWD) herunterladen und für WeeWX aufbereiten
 
 <p align="center"><img src="Wettervorhersage-Warnungen-Fichtelberg.png" width="600px" /></p>
 
+Diese Daten können mit den Programmen vom DWD bezogen werden:
+* vorberechnete Wettervorhersagen auf Stunden-, 3-Stunden- und
+  Tagesbasis
+  für die nächsten 10 Tage für
+  fast 6000 Orte überall auf der Welt (`dwd-mosmix`)
+* Warnmeldungen für Landkreise und Orte in Deutschland
+  (`dwd-warnings` und `dwd-cap-warnings`)
+* Wetterkarten (`wget-dwd`)
+
+Die Daten werden aufbereitet als:
+* HTML-Dateien (`*.inc`) zum Einbinden in Skins mittels `#include`
+* JSON-Dateien (`*.json`) zur maschinellen Weiterverarbeitung,
+  z.B. mittels JavaScript im Browser
+* `forecast.json` zur direkten Verwendung mit der Belchertown-Skin
+
+
+# Melden von Fehlern
+
+Wenn Sie Fehler melden wollen oder Hilfe benötigen, 
+geben Sie bitte immer folgende Informationen mit an:
+* die komplette Zeile, mit der Sie das Programm aufgerufen haben
+* alles, was das Programm ausgegeben hat
+* den Abschnitt `[DeutscherWetterdienst]` aus `weewx.conf`, wenn
+  es den gibt
+* Rufen Sie das Programm noch einmal auf und geben Sie dabei zusätzlich
+  den Parameter `--verbose` an. (Nicht bei `wget-dwd`)
+
+
 # Installation
 
 Alle Dateien müssen in die jeweiligen Verzeichnisse kopiert und mit `chmod +x Dateiname` ausführbar gemacht werden.

@@ -63,7 +63,7 @@ dwd_copy={
   'HB':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/niedersachsen_bremen/warnlage_nds_node.html',
   'HE':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/hessen/warnlage_hes_node.html',
   'NRW':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/nordrhein_westfalen/warnlage_nrw_node.html',
-  'BY':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/nordrhein_westfalen/warnlage_nrw_node.html',
+  'BY':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/bayern/warnlage_bay_node.html',
   'SH':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/schleswig_holstein_hamburg/warnlage_shh_node.html',
   'HH':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/schleswig_holstein_hamburg/warnlage_shh_node.html',
   'RP':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/rheinland-pfalz_saarland/warnlage_rps_node.html',
@@ -418,7 +418,7 @@ class DwdWarnings(object):
         # bereitgestellt werden sollen, aus weewx.conf lesen
         self.resolution = warn_dict.get('resolution','city')
         self.states = warn_dict.get('states',[])
-        if not isinstance(self.states,list): self.states=[states]
+        if not isinstance(self.states,list): self.states=[self.states]
         _area = DWD_CAP_URL_RES.get(self.resolution,'COMMUNEUNION' if 'cities' in warn_dict else 'DISTRICT')
         if _area=='DISTRICT':
             self.filter_area = warn_dict.get('counties',dict())
