@@ -43,11 +43,21 @@ from email.utils import formatdate
 import html.parser
 import zipfile
 
+# pyephem is used to determine night and day time for choosing the
+# appropriate weather icon
 try:
     import ephem
     has_pyephem = True
 except ImportError:
     has_pyephem = False
+
+# geopy is used to get state and country from latitude/longitude
+try:
+    from geopy.geocoders import Nominatim
+    from geopy import distance
+    has_geopy = True
+except ImportError:
+    has_geopy = False
 
 if __name__ == "__main__":
     import optparse
@@ -196,6 +206,10 @@ WEEKDAY = {
     'it':['lun.','mar.','mer.','gio.','ven.','sab.','dom.'],
     'cz':['Po','Út','St','Čt','Pá','So','Ne']}
 
+def nround(x,n=None):
+    if x is None: return None
+    return round(x,n)
+    
 ##############################################################################
 #    Parser for the DWD KML weather forecast file                            #
 ##############################################################################
@@ -410,6 +424,37 @@ class DwdMosmix(object):
             print('icon set:         ',self.iconset)
             print('station location: ','lat',self.latitude,'lon',self.longitude,'alt',self.altitude)
             print('--------------------------------------------------------')
+
+    @staticmethod
+    def geo(latitude, longitude):
+        """ determine state and country from latitude/longitude """
+        if has_geopy:
+            try:
+                locator = Nominatim(user_agent="dwd-mosmix")
+                location = locator.reverse('%s, %s' % (latitude,longitude))
+                if location is not None:
+                    addr_dict = location.raw.get('address',dict())
+                    town = addr_dict.get('town')
+                    county = addr_dict.get('county')
+                    state = addr_dict.get('state')
+                    country = addr_dict.get('contry')
+                    iso = addr_dict.get('country_code')
+                    data = {
+                        'addr':location.address,
+                        'lat':location.latitude,
+                        'lon':location.longitude,
+                        'alt':location.altitude,
+                        'raw':location.raw,
+                        'town':town,
+                        'county':county,
+                        'state':state,
+                        'country':country,
+                        'country_code':iso
+                    }
+                    return data
+            except Exception as e:
+                logerr('getting geo data failed: %s' % e)
+        return None
 
     @staticmethod
     def isoformat(ts, tzoffset=None, geo=None):
@@ -1002,6 +1047,32 @@ class DwdMosmix(object):
                 logerr('Observer: %s' % e)
         else:
             location = None
+        fn = os.path.join(self.target_path,'geo-%s.json' % placemark['id'])
+        try:
+            with open(fn,"r") as file:
+                geodata = json.load(file)
+            if self.verbose:
+                loginf("geo file '%s' succuessfully loaded" % fn)
+        except Exception:
+            geodata = None
+        if has_geopy and not geodata:
+            geodata = DwdMosmix.geo(geo[1],geo[0])
+            if self.verbose:
+                loginf("%s  geo data" % ("successfully retrieved" if geodata else "failed to retrieve"))
+            if geodata and not dryrun:
+                try:
+                    with open(fn,"w") as file:
+                        json.dump(geodata,file,indent=4,ensure_ascii=False)
+                except Exception as e:
+                    logerr('error writing %s: %s' % (fn,e))
+        #print(geodata)
+        if has_geopy and geodata:
+            try:
+                rel_dist = distance.distance((geodata['lat'],geodata['lon']),(self.latitude,self.longitude))
+            except Exception:
+                rel_dist = None
+        else:
+            rel_dist = None
         now = time.time()
         # creation time
         forecast = {'timestamp':int(now)}
@@ -1024,8 +1095,8 @@ class DwdMosmix(object):
                 'place':{
                     'name':placemark['description'],
                     'city':placemark['description'],
-                    'state':'',
-                    'country':''},
+                    'state':geodata['state'] if geodata else '',
+                    'country':geodata['country_code'] if geodata else ''},
                 'profile':{
                     'tz':'Europe/Berlin',
                     'tzname':'CET',
@@ -1037,12 +1108,12 @@ class DwdMosmix(object):
                 'ob':{
                     'timestamp':int(timesteps[idx]*0.001),
                     'dateTimeISO':DwdMosmix.isoformat(timesteps[idx]*0.001),
-                    'tempC':placemark['Forecast']['TTT'][idx],
-                    'dewpointC':placemark['Forecast']['Td'][idx],
-                    'pressureMB':placemark['Forecast']['PPPP'][idx],
-                    'windKPH':placemark['Forecast']['FF'][idx],
-                    'windSpeedKPH':placemark['Forecast']['FF'][idx],
-                    'windDirDEG':placemark['Forecast']['DD'][idx],
+                    'tempC':nround(placemark['Forecast']['TTT'][idx],1),
+                    'dewpointC':nround(placemark['Forecast']['Td'][idx],1),
+                    'pressureMB':nround(placemark['Forecast']['PPPP'][idx]),
+                    'windKPH':nround(placemark['Forecast']['FF'][idx]),
+                    'windSpeedKPH':nround(placemark['Forecast']['FF'][idx]),
+                    'windDirDEG':nround(placemark['Forecast']['DD'][idx]),
                     'visibilityKM':placemark['Forecast']['VV'][idx]*0.001,
                     'weather':wwcode[1],
                     'weatherCoded':wwcode[7],
@@ -1055,7 +1126,12 @@ class DwdMosmix(object):
                     'sky':int(placemark['Forecast']['N'][idx])
                 },
                 'raw':'',
-                'relativeTo':{}
+                'relativeTo':{
+                    'lat':self.latitude,
+                    'long':self.longitude,
+                    'distanceKM':nround(rel_dist.km,1),
+                    'distanceMI':nround(rel_dist.miles,1)
+                }
             }}]
         belchertown_days = []
         for day in days:
@@ -1064,21 +1140,21 @@ class DwdMosmix(object):
                 'timestamp':days[day]['timestamp'],
                 'validTime':DwdMosmix.isoformat(days[day]['timestamp']),
                 'dateTimeISO':DwdMosmix.isoformat(days[day]['timestamp']),
-                'maxTempC':days[day]['TTTmax'],
-                'minTempC':days[day]['TTTmin'],
-                'avgTempC':days[day]['TTTavg'],
+                'maxTempC':nround(days[day]['TTTmax'],1),
+                'minTempC':nround(days[day]['TTTmin'],1),
+                'avgTempC':nround(days[day]['TTTavg'],1),
                 'tempC':None,
-                'maxDewpointC':days[day]['Tdmax'],
-                'minDewpointC':days[day]['Tdmin'],
-                'avgDewpointC':days[day]['Tdavg'],
+                'maxDewpointC':nround(days[day]['Tdmax'],1),
+                'minDewpointC':nround(days[day]['Tdmin'],1),
+                'avgDewpointC':nround(days[day]['Tdavg'],1),
                 'dewpointC':None,
                 'pop':days[day].get('Rd10'),
-                'precipMM':days[day].get('RR1c'),
-                'pressureMB':int(days[day]['PPPPavg']),
-                'windDirDEG':int(days[day]['DDavg']),
-                'windSpeedKPH':int(days[day]['FFavg']),
-                'windGustKPH':int(days[day]['FX1max']),
-                'sky':int(days[day]['Neffavg']),
+                'precipMM':nround(days[day].get('RR1c'),1),
+                'pressureMB':nround(days[day]['PPPPavg']),
+                'windDirDEG':nround(days[day]['DDavg']),
+                'windSpeedKPH':nround(days[day]['FFavg']),
+                'windGustKPH':nround(days[day]['FX1max']),
+                'sky':nround(days[day]['Neffavg']),
                 'cloudsCoded':get_cloudcover(days[day]['Neffavg'])[3],
                 'weather':wwcode[1],
                 'weatherCoded':wwcode[7],
@@ -1148,6 +1224,7 @@ class DwdMosmix(object):
                     'elevM':geo[2]}}]}]
         belchertown_hours = []
         for idx,ii in enumerate(timesteps):
+            if (ii*0.001)<now: continue
             night = self.is_night(location,ii*0.001)
             wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],night)
             hour = {
@@ -1182,7 +1259,7 @@ class DwdMosmix(object):
                 'isDay':not night
                 }
             belchertown_hours.append(hour)
-            if idx>=15: break
+            if len(belchertown_hours)>=16: break
         forecast['forecast_1hr'] = [{
             'success':True,
             'error':None,
