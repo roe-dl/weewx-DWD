@@ -984,6 +984,7 @@ class DwdMosmix(object):
                 'ReferenceModel':issue.get('ReferenceModel'),
                 'id':placemark.get('id'),
                 'name':placemark.get('description'),
+                'coordinates':placemark.get('coordinates'),
                 'ForecastDaily':[days[day] for day in days],
                 'Forecast3hr':recs3hr,
                 'ForecastHourly':hours}
@@ -1119,6 +1120,7 @@ class DwdMosmix(object):
                     'windSpeedKPH':rec['FFavg'],
                     'windSpeedMaxKPH':rec['FFmax'],
                     'windSpeedMinKPH':rec['FFmin'],
+                    'windGustKPH':rec.get('FX3'),
                     'sky':int(rec['Neffavg']),
                     'cloudsCoded':get_cloudcover(rec['Neffavg'])[3],
                     'weather':wwcode[1],

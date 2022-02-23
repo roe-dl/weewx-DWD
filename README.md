@@ -116,7 +116,7 @@ Options:
   --weewx               Read config from weewx.conf.
   --orientation=H,V     HTML table orientation horizontal, vertial, or both
   --icon-set=SET        icon set to use, default is 'belchertown', possible
-                        values are 'dwd' and 'belchertown'
+                        values are 'dwd', 'belchertown', and 'aeris'
   --lang=ISO639         Forecast language. Default 'de'
 
   Output and logging options:
@@ -128,6 +128,11 @@ Options:
   Commands:
     --print-icons-ww    Print which icons are connected to which ww weather
                         code
+    --html              Write HTML .inc file
+    --json              Write JSON file
+    --belchertown       Write Belchertown style forecast file
+
+  Intervals:
     --all               Output all details in HTML
     --hourly            output hourly forecast
     --daily             output daily forecast (the default)
