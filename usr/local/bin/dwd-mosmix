@@ -1180,7 +1180,7 @@ class DwdMosmix(object):
                 'isDay':not night
                 }
             belchertown_hours.append(hour)
-            if idx>=16: break
+            if idx>=15: break
         forecast['forecast_1hr'] = [{
             'success':True,
             'error':None,
@@ -1257,8 +1257,11 @@ class DwdMosmix(object):
         else:
             if self.verbose:
                 loginf("write Belchertown JSON file to %s" % fn)
-            with open(fn,"w") as file:
-                json.dump(forecast,file,indent=4,ensure_ascii=False)
+            try:
+                with open(fn,"w") as file:
+                    json.dump(forecast,file,indent=4,ensure_ascii=False)
+            except Exception as e:
+                logerr("error writing to '%s': %s" % (fn,e))
 
     
     def calculate_3hr_forecast(self, placemark, timesteps, lang='de'):
