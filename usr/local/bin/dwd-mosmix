@@ -1069,10 +1069,16 @@ class DwdMosmix(object):
         if has_geopy and geodata:
             try:
                 rel_dist = distance.distance((geodata['lat'],geodata['lon']),(self.latitude,self.longitude))
+                rel_dist_km = rel_dist.km
+                rel_dist_mi = rel_dist.miles
             except Exception:
                 rel_dist = None
+                rel_dist_km = None
+                rel_dist_mi = None
         else:
             rel_dist = None
+            rel_dist_km = None
+            rel_dist_mi = None
         now = time.time()
         # creation time
         forecast = {'timestamp':int(now)}
@@ -1129,8 +1135,8 @@ class DwdMosmix(object):
                 'relativeTo':{
                     'lat':self.latitude,
                     'long':self.longitude,
-                    'distanceKM':nround(rel_dist.km,1),
-                    'distanceMI':nround(rel_dist.miles,1)
+                    'distanceKM':nround(rel_dist_km,1),
+                    'distanceMI':nround(rel_dist_mi,1)
                 }
             }}]
         belchertown_days = []
