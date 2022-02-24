@@ -1197,6 +1197,7 @@ class DwdMosmix(object):
                     'minDewpointC':rec['Tdmin'],
                     'avgDewpointC':rec['Tdavg'],
                     'dewpointC':rec['Td'],
+                    'pop':rec['R101max'],
                     'pressureMB':rec['PPPPavg'],
                     'windDirDEG':rec['DDavg'],
                     'windSpeedKPH':rec['FFavg'],
@@ -1379,7 +1380,7 @@ class DwdMosmix(object):
                 except Exception:
                     pass
                 # calculate min, max, and avg for hourly observerations
-                for ii in ['PPPP','TTT','Td','T5cm','DD','FF','N','Neff','VV']:
+                for ii in ['PPPP','TTT','Td','T5cm','DD','FF','N','Neff','VV','R101']:
                     try:
                         # collect the last 3 observations
                         p = []
