@@ -358,6 +358,57 @@ Beispiel für eine Wettervorhersage:
 
 <img src="MOSMIX-Vorhersage.png" width="700px"/>
 
+## DWD-Wettervorhersage in der Belchertown-Skin
+
+Mit der speziellen Option `--belchertown` erzeugt `dwd-mosmix` die
+`forecast.json`-Datei für die Belchertown-Skin. Damit kann die
+Wettervorhersage des DWD in die Belchertown-Skin integriert werden,
+ohne daß Eingriffe in den Code nötig sind. Nur eine Konfigurationsoption
+muß geändert werden, entweder in `skin.conf` oder im Abschnitt der
+Skin in `weewx.conf`:
+
+```
+forecast_stale = 86400
+```
+
+Außerdem muß der Abschnitt des Deutschen Wetterdienstes in `weewx.conf`
+ergänzt werden:
+
+```
+[DeutscherWetterdienst]
+    ...
+    [[Belchertown]]
+        section = "Belchertown"
+        warnings = DL
+        forecast = P0291
+        #include_advance_warnings = 0 # optional
+```
+
+Der Schlüssel `section` muß den Namen des Abschnittes der Belchertown-Skin 
+unter `[StdReport]` angeben. Der Schlüssel `warnings` gibt das Kürzel der 
+zu verwendenden Warn-Datei aus dem Abschnitt `[[warning]]` an. 
+Der Schlüssel `forecast` gibt das Kürzel der Station an, deren Vorhersage 
+verwendet werden soll. 
+Mit optionale Schlüssel `include_advance_warnings` kann man eine Zeitspanne
+in Sekunden vorgeben. Es werden dann neben den aktiven Warnungen auch
+Warnungen angezeigt, die bis zu der angegebenen Zahl Sekunden in der
+Zukunft aktiv werden.
+
+Beim Aufruf der Programme muß `dwd-cap-warnings` ungedingt vor `dwd-mosmix`
+aufgerufen werden, sonst werden unter Umständen veraltete Warnungen 
+verarbeitet.
+
+In `/etc/cron.hourly/dwd` ist dann die folgende Zeile hinzufügen:
+```
+/usr/local/bin/dwd-mosmix --weewx --belchertown Stationsname
+```
+
+Soll das Programm zu Testzwecken von der Kommandozeile aufgerufen werden,
+ist `sudo` nötig:
+```
+sudo /usr/local/bin/dwd-mosmix --weewx --belchertown Stationsname
+```
+
 ## Wetterkarte im HTML-Template
 
 Der Pfad, hier `dwd`, ist entsprechend der eigenen Konfiguration anzupassen. Das Anhängsel mit `getmtime` ist notwendig, damit der Browser keine veralteten Karten anzeigt. Damit wird der Cache beim Nutzer überlistet.

@@ -409,6 +409,7 @@ class DwdMosmix(object):
                     config_dict['StdReport']['HTML_ROOT'])
             self.belchertown_forecast = belchertown_dict['forecast']
             self.belchertown_warning = belchertown_dict['warnings']
+            self.belchertown_include_advance_warning = int(belchertown_dict.get('include_advance_warnings',0))
         except LookupError:
             belchertown_section = {}
             self.belchertown_html_root = None
@@ -1317,7 +1318,7 @@ class DwdMosmix(object):
                     'profile':{},
                     'active':alert.get('status','')=='Actual'
                 }
-                if al['timestamps']['begins']<now:
+                if al['timestamps']['begins']<(now+self.belchertown_include_advance_warning):
                     belchertown_alerts.append(al)
             success = True
             err = ''
