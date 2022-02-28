@@ -757,7 +757,7 @@ class DwdWarnings(object):
                 # alert message 
                 s+='<table style="vertical-align:middle"><tr style="vertical-align:middle">\n'
                 if val.get('icon'):
-                    s+='<td style="width:60px"><img src="%s" /></td>\n' % val['icon']
+                    s+='<td style="width:60px"><img src="%s" alt="%s"/></td>\n' % (val['icon'],val['event'])
                 __size=110 if int(val['level'])>2 else 100
                 s+='<td><p style="font-size:%i%%;margin-bottom:0">%s</p>\n' % (__size,val['headline'])
                 s='%s<p style="font-size:80%%">gültig vom %s bis %s</p></td>\n' % (s,time.strftime("%d.%m. %H:%M",time.localtime(val['start']/1000)),time.strftime("%d.%m. %H:%M",time.localtime(val['end']/1000)))
