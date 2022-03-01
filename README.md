@@ -389,7 +389,7 @@ unter `[StdReport]` angeben. Der Schlüssel `warnings` gibt das Kürzel der
 zu verwendenden Warn-Datei aus dem Abschnitt `[[warning]]` an. 
 Der Schlüssel `forecast` gibt das Kürzel der Station an, deren Vorhersage 
 verwendet werden soll. 
-Mit optionale Schlüssel `include_advance_warnings` kann man eine Zeitspanne
+Mit dem optionalen Schlüssel `include_advance_warnings` kann man eine Zeitspanne
 in Sekunden vorgeben. Es werden dann neben den aktiven Warnungen auch
 Warnungen angezeigt, die bis zu der angegebenen Zahl Sekunden in der
 Zukunft aktiv werden.
