@@ -43,7 +43,7 @@ Die Icons (Symbole) können beim DWD heruntergeladen werden:
 
 ## wget-dwd
 
-Dieses Script lädt die nötigen Dateien vom Webserver des DWD herunter und speichert sie. Dabei wird eine Log-Datei unter /var/log/ abgelegt, aus der man ersehen kann, ob es geklappt hat.
+Dieses Script lädt die Wetterkarten sowie die nötigen Dateien für `dwd-warnings` vom Webserver des DWD herunter und speichert sie. Dabei wird eine Log-Datei unter /var/log/ abgelegt, aus der man ersehen kann, ob es geklappt hat.
 
 ## dwd-warnings
 
