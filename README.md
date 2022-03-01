@@ -431,6 +431,10 @@ Damit die Wetterkarte auch mit auf den Server hochgeladen wird, muß sie in `ski
     copy_always = ...,dwd/bwk_bodendruck_na_ana.png
 ```
 
+Anstelle von `bwk_bodendruck_na_ana.png` (Europa-Nordatlantik) kann in den obigen Beispielen 
+auch `bwk_bodendruck_weu_ana.png` (West-Mittel-Europa) verwendet werden. Beide Karten werden
+von `wget-dwd` heruntergeladen.
+
 # Verweise
 
 * [WeeWX Homepage](http://weewx.com) - [WeeWX Wiki](https://github.com/weewx/weewx/wiki)
