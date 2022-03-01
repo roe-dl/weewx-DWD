@@ -209,6 +209,9 @@ WEEKDAY = {
 COMPASS = {
     'de':['N','NNO','NO','ONO','O','OSO','SO','SSO','S','SSW','SW','WSW','W','WNW','NW','NNW'],
     'en':['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'],
+    'fr':['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'],
+    # Italian abbrevations are unkown to me, so I return the English ones.
+    'it':['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'],
     'cz':['S','SSV','SV','VSV','V','VJV','JV','JJV','J','JJZ','JZ','ZJZ','Z','ZSZ','SZ','SSZ']}
     
 def compass(x, lang='de'):
@@ -736,7 +739,7 @@ class DwdMosmix(object):
                             if ii=='TTT': color = ' style="color:%s"' % DwdMosmix._temp_color(jj)
                             dp = 1 if ii[0]=='T' or (ii in ['RR1c','RRL1c','RRS1c','RR3c','RR6c']) else 0
                             if ii=='DD':
-                                s += '<td><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%" title="%s"></i></td>' % (jj,compass(jj))
+                                s += '<td><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%" title="%s"></i></td>' % (jj,compass(jj,lang))
                                 #s += '<td><i class="wi wi-wind-direction" style="transform:rotate(%sdeg);font-size:150%%"></i></td>' % ((jj+180)%360)
                             else:
                                 s += '<td%s>%.*f</td>' % (color,dp,jj)
@@ -827,7 +830,7 @@ class DwdMosmix(object):
                     s += '<td></td>'
                     try:
                         # wind direction
-                        s += '<td%s><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%" title="%s"></i></td>' % ('',placemark['Forecast']['DD'][idx],compass(placemark['Forecast']['DD'][idx]))
+                        s += '<td%s><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%" title="%s"></i></td>' % ('',placemark['Forecast']['DD'][idx],compass(placemark['Forecast']['DD'][idx],lang))
                     except (ValueError,TypeError,LookupError):
                         s += '<td>%s</td>' % placemark['Forecast'].get('DD',[])[idx]
                     try:
@@ -910,7 +913,7 @@ class DwdMosmix(object):
                                 s += '<td%s title="%s"><img src="%s" width="50px" alt="%s" /></td>' % (htmlclass,icontitle,days[day]['icon'],icontitle)
                             elif ii in ('DD','DDavg'):
                                 #s += '<td%s><i class="fa fa-arrow-down" style="transform:rotate(%sdeg)"></i></td>' % (htmlclass,days[day][ii])
-                                s += '<td%s><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%" title="%s"></i></td>' % (htmlclass,days[day][ii],compass(days[day][ii]))
+                                s += '<td%s><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%" title="%s"></i></td>' % (htmlclass,days[day][ii],compass(days[day][ii],lang))
                             else:
                                 color = ''
                                 if ii[0:3]=='TTT': color = ' style="color:%s"' % DwdMosmix._temp_color(days[day][ii])
@@ -1004,7 +1007,7 @@ class DwdMosmix(object):
                         s += '<td>%s</td>' % days[day].get('TTTmin','')
                     try:
                         # wind direction
-                        s += '<td%s><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%" title="%s"></i></td>' % (htmlclass,days[day]['DDavg'],compass(days[day]['DDavg']))
+                        s += '<td%s><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%" title="%s"></i></td>' % (htmlclass,days[day]['DDavg'],compass(days[day]['DDavg'],lang))
                     except (ValueError,TypeError):
                         s += '<td>%s</td>' % days[day].get('DDavg','')
                     try:
