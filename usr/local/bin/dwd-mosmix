@@ -532,7 +532,7 @@ class DwdMosmix(object):
                 return zz.read(ii).decode(encoding='utf-8')
             return None
         else:
-            if self.log_failure or selg.verbose:
+            if self.log_failure or self.verbose:
                 logerr('error downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
             return None
             
@@ -1415,7 +1415,7 @@ class DwdMosmix(object):
                 loginf('successfully downloaded %s' % reply.url)
             return [json.loads(reply.content)]
         else:
-            if self.log_failure or selg.verbose:
+            if self.log_failure or self.verbose:
                 logerr('error downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
             return [{
                 'success':False,
