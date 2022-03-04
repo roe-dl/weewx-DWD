@@ -439,8 +439,8 @@ class DwdMosmix(object):
                     extras_section = skin_dict['Extras']
                 else:
                     extras_section = dict()
-            self.forecast_api_id = extras_section['forecast_api_id']
-            self.forecast_api_secret = extras_section['forecast_api_secret']
+            self.forecast_api_id = extras_section.get('forecast_api_id')
+            self.forecast_api_secret = extras_section.get('forecast_api_secret')
         except LookupError:
             belchertown_section = {}
             self.belchertown_html_root = None
