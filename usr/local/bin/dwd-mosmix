@@ -1345,11 +1345,11 @@ class DwdMosmix(object):
             alerts = []
         forecast['alerts'] = [{
             'success':success,
-            'error':str(err),
+            'error':{'code':str(err),'description':str(err)},
             'response':belchertown_alerts }]
         forecast['aqi'] = [{
             'success':False,
-            'error':'not available',
+            'error':{'code':'not available','description':'not available'},
             'response':[] }]
         if self.belchertown_html_root and self.belchertown_forecast and self.belchertown_forecast==placemark['id']:
             fn = os.path.join(self.belchertown_html_root,'json','forecast.json')
