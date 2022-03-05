@@ -427,11 +427,29 @@ class DwdMosmix(object):
             self.belchertown_forecast = belchertown_dict['forecast']
             self.belchertown_warning = belchertown_dict['warnings']
             self.belchertown_include_advance_warning = int(belchertown_dict.get('include_advance_warnings',0))
+            self.belchertown_aqi_source = str(belchertown_dict.get('aqi_source',None)).lower()
+            try:
+                ew = belchertown_section['Extras']
+            except (LookupError,TypeError):
+                ew = dict()
+            try:
+                skin_dict = configobj.ConfigObj(
+                            os.path.join(config_dict['WEEWX_ROOT'],
+                                         config_dict['StdReport']['SKIN_ROOT'],
+                                         belchertown_section['skin'],
+                                         'skin.conf'))
+                es = skin_dict['Extras']
+            except Exception:
+                es = dict()
+            self.forecast_api_id = ew.get('forecast_api_id',es.get('forecast_api_id'))
+            self.forecast_api_secret = ew.get('forecast_api_secret',es.get('forecast_api_secret'))
         except LookupError:
             belchertown_section = {}
             self.belchertown_html_root = None
             self.belchertown_warning = None
             self.belchertown_forecast = None
+            self.forecast_api_id = None
+            self.forecast_api_secret = None
         if __name__ == "__main__" and verbose:
             print('-- configuration data ----------------------------------')
             print('log success:      ',self.log_success)
@@ -441,6 +459,8 @@ class DwdMosmix(object):
             print('vertical tab:     ',self.vertical_table)
             print('icon set:         ',self.iconset)
             print('station location: ','lat',self.latitude,'lon',self.longitude,'alt',self.altitude)
+            print('aeris api id:     ',self.forecast_api_id)
+            print('aeris api secret: ',self.forecast_api_secret)
             print('--------------------------------------------------------')
 
     @staticmethod
@@ -514,7 +534,7 @@ class DwdMosmix(object):
                 return zz.read(ii).decode(encoding='utf-8')
             return None
         else:
-            if self.log_failure or selg.verbose:
+            if self.log_failure or self.verbose:
                 logerr('error downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
             return None
             
@@ -1021,7 +1041,8 @@ class DwdMosmix(object):
                 if self.vertical_div_classes:
                     s += '</div>\n'
             # Copyright notice
-            s += '<p style="font-size:80%%">herausgegeben vom <a href="https://www.dwd.de" target="_blank">DWD</a> am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M',time.localtime(issue['IssueTime']/1000.0))
+            s += '<p style="font-size:65%%;display:inline">herausgegeben vom <a href="https://www.dwd.de" target="_blank">DWD</a> am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M',time.localtime(issue['IssueTime']/1000.0))
+            s += '<p style="font-size:65%%;display:inline">| Vorhersage erstellt am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M')
             fn = os.path.join(self.target_path,'forecast-'+placemark['id']+'.inc')
             if dryrun:
                 print(s)
@@ -1297,6 +1318,7 @@ class DwdMosmix(object):
                 'profile':{
                     'tz':'Europe/Berlin',
                     'elevM':geo[2]}}]}]
+        # weather alerts
         belchertown_alerts = []
         try:
             with open(os.path.join(self.target_path,'warn-'+self.belchertown_warning+'.json'),'r') as file:
@@ -1345,12 +1367,28 @@ class DwdMosmix(object):
             alerts = []
         forecast['alerts'] = [{
             'success':success,
-            'error':str(err),
+            'error':None if success else {'code':str(err),'description':str(err)},
             'response':belchertown_alerts }]
-        forecast['aqi'] = [{
-            'success':False,
-            'error':'not available',
-            'response':[] }]
+        # AQI
+        if self.belchertown_aqi_source=='aeris':
+            try:
+                if self.forecast_api_id and self.forecast_api_secret:
+                    forecast['aqi'] = self.download_aeris('aqi')
+                else:
+                    raise Exception
+            except Exception as e:
+                print(e)
+                forecast['aqi'] = [{
+                    'success':False,
+                    'error':{'code':e.__name__,
+                             'description':str(e)},
+                    'response':[] }]
+        else:
+            forecast['aqi'] = [{
+                'success':False,
+                'error':{'code':'not_configured',
+                         'description':'no AQI source configured'},
+                'response':[] }]
         if self.belchertown_html_root and self.belchertown_forecast and self.belchertown_forecast==placemark['id']:
             fn = os.path.join(self.belchertown_html_root,'json','forecast.json')
         else:
@@ -1366,6 +1404,36 @@ class DwdMosmix(object):
                     json.dump(forecast,file,indent=4,ensure_ascii=False)
             except Exception as e:
                 logerr("error writing to '%s': %s" % (fn,e))
+
+    
+    def download_aeris(self, what):
+        if what=='aqi':
+            url = (
+                "https://api.aerisapi.com/airquality/closest?p=%s,%s&format=json&radius=50mi&limit=1&client_id=%s&client_secret=%s"
+                % (self.latitude, self.longitude, self.forecast_api_id, self.forecast_api_secret)
+                )
+        else:
+            return []
+
+        headers={'User-Agent':'weewx-DWD'}
+        try:
+            reply = requests.get(url,headers=headers)
+        except ConnectionError as e:
+            if self.log_failure:
+                logerr(e)
+            return []
+        
+        if reply.status_code==200:
+            if self.log_success or self.verbose:
+                loginf('successfully downloaded %s' % reply.url)
+            return [json.loads(reply.content)]
+        else:
+            if self.log_failure or self.verbose:
+                logerr('error downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
+            return [{
+                'success':False,
+                'error':{'code':reply.status_code,'description':reply.reason},
+                'response':[] }]
 
     
     def calculate_3hr_forecast(self, placemark, timesteps, lang='de'):
@@ -1655,6 +1723,9 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
                       metavar="ISO639",
                       default='de',
                       help="Forecast language. Default 'de'")
+    parser.add_option("--aqi-source", dest="aqisource", type=str, metavar="PROVIDER",
+                      default=None,
+                      help="Provider for Belchertown AQI section")
 
     group = optparse.OptionGroup(parser,"Output and logging options")
     group.add_option("--dry-run", action="store_true",
@@ -1723,6 +1794,10 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
         config['DeutscherWetterdienst']['forecast']['orientation'] = options.orientation
     if options.iconset:
         config['DeutscherWetterdienst']['forecast']['icon_set'] = options.iconset
+    if options.aqisource:
+        if 'Belchertown' not in config['DeutscherWetterdienst']:
+            config['DeutscherWetterdienst']['Belchertown'] = dict()
+        config['DeutscherWetterdienst']['Belchertown']['aqi_source'] = options.aqisource
 
     dwd = DwdMosmix(config,options.verbose)
     zz = dwd.download_kml(location,'l')

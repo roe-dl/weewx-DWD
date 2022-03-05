@@ -118,6 +118,7 @@ Options:
   --icon-set=SET        icon set to use, default is 'belchertown', possible
                         values are 'dwd', 'belchertown', and 'aeris'
   --lang=ISO639         Forecast language. Default 'de'
+  --aqi-source=PROVIDER Provider for Belchertown AQI section
 
   Output and logging options:
     --dry-run           Print what would happen but do not do it. Default is
@@ -382,6 +383,7 @@ ergänzt werden:
         warnings = DL
         forecast = P0291
         #include_advance_warnings = 0 # optional
+        #aqi_source = None # optional
 ```
 
 Der Schlüssel `section` muß den Namen des Abschnittes der Belchertown-Skin 
