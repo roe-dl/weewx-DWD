@@ -1039,7 +1039,8 @@ class DwdMosmix(object):
                 if self.vertical_div_classes:
                     s += '</div>\n'
             # Copyright notice
-            s += '<p style="font-size:80%%">herausgegeben vom <a href="https://www.dwd.de" target="_blank">DWD</a> am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M',time.localtime(issue['IssueTime']/1000.0))
+            s += '<p style="font-size:65%%;display:inline">herausgegeben vom <a href="https://www.dwd.de" target="_blank">DWD</a> am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M',time.localtime(issue['IssueTime']/1000.0))
+            s += '<p style="font-size:65%%;display:inline">| Vorhersage erstellt am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M')
             fn = os.path.join(self.target_path,'forecast-'+placemark['id']+'.inc')
             if dryrun:
                 print(s)
