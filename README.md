@@ -384,6 +384,7 @@ ergänzt werden:
         forecast = P0291
         #include_advance_warnings = 0 # optional
         #aqi_source = None # optional
+        #compass_lang = 'en' # optional, alternative 'de','fr','cz'
 ```
 
 Der Schlüssel `section` muß den Namen des Abschnittes der Belchertown-Skin 
@@ -395,6 +396,11 @@ Mit dem optionalen Schlüssel `include_advance_warnings` kann man eine Zeitspann
 in Sekunden vorgeben. Es werden dann neben den aktiven Warnungen auch
 Warnungen angezeigt, die bis zu der angegebenen Zahl Sekunden in der
 Zukunft aktiv werden.
+
+Mit `aqi_source` kann man einen Provider angeben, von dem AQI-Daten
+bezogen werden sollen. Momentan einzige Möglichkeit ist `aeris`.
+
+*Beachte*: Bei Aeris ist die Anzahl der Anfragen pro Tag limitiert.
 
 Beim Aufruf der Programme muß `dwd-cap-warnings` ungedingt vor `dwd-mosmix`
 aufgerufen werden, sonst werden unter Umständen veraltete Warnungen 

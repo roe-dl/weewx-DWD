@@ -214,11 +214,11 @@ COMPASS = {
     'it':['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'],
     'cz':['S','SSV','SV','VSV','V','VJV','JV','JJV','J','JJZ','JZ','ZJZ','Z','ZSZ','SZ','SSZ']}
     
-def compass(x, lang='de'):
+def compass(x, lang='de', withDEG=True):
     try:
         y = (x+11.25)//22.5
         if y>=16: y -= 16
-        return COMPASS[lang][int(y)]+(' %.0f°' % x)
+        return COMPASS[lang][int(y)]+((' %.0f°' % x) if withDEG else '')
     except Exception:
         return ''
         
@@ -428,6 +428,7 @@ class DwdMosmix(object):
             self.belchertown_warning = belchertown_dict['warnings']
             self.belchertown_include_advance_warning = int(belchertown_dict.get('include_advance_warnings',0))
             self.belchertown_aqi_source = str(belchertown_dict.get('aqi_source',None)).lower()
+            self.belchertown_compasslang = str(belchertown_dict.get('compass_lang','en')).lower()
             try:
                 ew = belchertown_section['Extras']
             except (LookupError,TypeError):
@@ -1158,6 +1159,7 @@ class DwdMosmix(object):
                     'pressureMB':nround(placemark['Forecast']['PPPP'][idx]),
                     'windKPH':nround(placemark['Forecast']['FF'][idx]),
                     'windSpeedKPH':nround(placemark['Forecast']['FF'][idx]),
+                    'windDir':compass(nround(placemark['Forecast']['DD'][idx]),self.belchertown_compasslang,False),
                     'windDirDEG':nround(placemark['Forecast']['DD'][idx]),
                     'visibilityKM':placemark['Forecast']['VV'][idx]*0.001,
                     'weather':wwcode[1],
@@ -1238,6 +1240,7 @@ class DwdMosmix(object):
                     'dewpointC':rec['Td'],
                     'pop':rec['R101max'],
                     'pressureMB':rec['PPPPavg'],
+                    'windDir':compass(rec['DDavg'],self.belchertown_compasslang,False),
                     'windDirDEG':rec['DDavg'],
                     'windSpeedKPH':rec['FFavg'],
                     'windSpeedMaxKPH':rec['FFmax'],
@@ -1288,6 +1291,7 @@ class DwdMosmix(object):
                 'pop':placemark['Forecast']['R101'][idx],
                 'precipMM':placemark['Forecast']['RR1c'][idx],
                 'pressureMB':placemark['Forecast']['PPPP'][idx],
+                'windDir':compass(placemark['Forecast']['DD'][idx],self.belchertown_compasslang,False),
                 'windDirDEG':placemark['Forecast']['DD'][idx],
                 'windSpeedKPH':placemark['Forecast']['FF'][idx],
                 'windGustKPH':placemark['Forecast']['FX1'][idx],
