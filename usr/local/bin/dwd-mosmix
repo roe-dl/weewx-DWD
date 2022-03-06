@@ -214,11 +214,11 @@ COMPASS = {
     'it':['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'],
     'cz':['S','SSV','SV','VSV','V','VJV','JV','JJV','J','JJZ','JZ','ZJZ','Z','ZSZ','SZ','SSZ']}
     
-def compass(x, lang='de'):
+def compass(x, lang='de', withDEG=True):
     try:
         y = (x+11.25)//22.5
         if y>=16: y -= 16
-        return COMPASS[lang][int(y)]+(' %.0f°' % x)
+        return COMPASS[lang][int(y)]+((' %.0f°' % x) if withDEG else '')
     except Exception:
         return ''
         
@@ -1074,7 +1074,7 @@ class DwdMosmix(object):
                 'ForecastHourly':hours}
             json.dump(x,file,indent=4,ensure_ascii=False)
             
-    def belchertown(self, placemark, days, recs3h, timesteps, issue, dryrun):
+    def belchertown(self, placemark, days, recs3h, timesteps, issue, dryrun, lang='de'):
         geo = placemark['coordinates']
         if has_pyephem:
             try:
@@ -1159,6 +1159,7 @@ class DwdMosmix(object):
                     'windKPH':nround(placemark['Forecast']['FF'][idx]),
                     'windSpeedKPH':nround(placemark['Forecast']['FF'][idx]),
                     'windDirDEG':nround(placemark['Forecast']['DD'][idx]),
+                    'windDir':compass(nround(placemark['Forecast']['DD'][idx]),lang,False),
                     'visibilityKM':placemark['Forecast']['VV'][idx]*0.001,
                     'weather':wwcode[1],
                     'weatherCoded':wwcode[7],
@@ -1197,6 +1198,7 @@ class DwdMosmix(object):
                 'precipMM':nround(days[day].get('RR1c'),1),
                 'pressureMB':nround(days[day]['PPPPavg']),
                 'windDirDEG':nround(days[day]['DDavg']),
+                'windDir':compass(nround(days[day]['DDavg']),lang,False),
                 'windSpeedKPH':nround(days[day]['FFavg']),
                 'windGustKPH':nround(days[day]['FX1max']),
                 'sky':nround(days[day]['Neffavg']),
@@ -1239,6 +1241,7 @@ class DwdMosmix(object):
                     'pop':rec['R101max'],
                     'pressureMB':rec['PPPPavg'],
                     'windDirDEG':rec['DDavg'],
+                    'windDir':compass(rec['DDavg'],lang,False),
                     'windSpeedKPH':rec['FFavg'],
                     'windSpeedMaxKPH':rec['FFmax'],
                     'windSpeedMinKPH':rec['FFmin'],
@@ -1289,6 +1292,7 @@ class DwdMosmix(object):
                 'precipMM':placemark['Forecast']['RR1c'][idx],
                 'pressureMB':placemark['Forecast']['PPPP'][idx],
                 'windDirDEG':placemark['Forecast']['DD'][idx],
+                'windDir':compass(placemark['Forecast']['DD'][idx],lang,False),
                 'windSpeedKPH':placemark['Forecast']['FF'][idx],
                 'windGustKPH':placemark['Forecast']['FX1'][idx],
                 'sky':int(placemark['Forecast']['Neff'][idx]),
@@ -1357,7 +1361,7 @@ class DwdMosmix(object):
                     'profile':{},
                     'active':alert.get('status','')=='Actual'
                 }
-                if al['timestamps']['begins']<(now+self.belchertown_include_advance_warning):
+                if al['timestamps']['begins']<(now+self.belchertown_include_advance_warning) and al['timestamps']['expires']>now:
                     belchertown_alerts.append(al)
             success = True
             err = ''
@@ -1651,7 +1655,7 @@ class DwdMosmix(object):
         if 'belchertown' in output:
             if self.verbose:
                 loginf('belchertown')
-            self.belchertown(placemark,days,recs3hr,timesteps,issue,dryrun)
+            self.belchertown(placemark,days,recs3hr,timesteps,issue,dryrun,lang=lang)
             
         if self.verbose:
             loginf('placemark id "%s" processed' % placemark.get('id'))
