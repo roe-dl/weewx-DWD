@@ -119,6 +119,7 @@ Options:
                         values are 'dwd', 'belchertown', and 'aeris'
   --lang=ISO639         Forecast language. Default 'de'
   --aqi-source=PROVIDER Provider for Belchertown AQI section
+  --hide-placemark      No placemark caption over forecast table
 
   Output and logging options:
     --dry-run           Print what would happen but do not do it. Default is
@@ -240,6 +241,9 @@ Beispiel:
     [[forecast]]
         icons='../images'
         orientation=h,v
+        #show_obs_symbols = True # optional
+        #show_obs_description = False # optional
+        #show_placemark = True # optional
 ```
 
 Der Eintrag `path` muß auf das im ersten Schritt angelegte Verzeichnis
