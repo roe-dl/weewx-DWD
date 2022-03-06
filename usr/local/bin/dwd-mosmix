@@ -1432,7 +1432,155 @@ class DwdMosmix(object):
         if reply.status_code==200:
             if self.log_success or self.verbose:
                 loginf('successfully downloaded %s' % reply.url)
-            return [json.loads(reply.content)]
+            try:
+                return [json.loads(reply.content)]
+            except Exception as e:
+                return [{'success':False,'error':{'code':e.__name__,'description':str(e)},'response':[]}]
+        else:
+            if self.log_failure or self.verbose:
+                logerr('error downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
+            return [{
+                'success':False,
+                'error':{'code':reply.status_code,'description':reply.reason},
+                'response':[] }]
+
+    def download_uba(self, what, station, lang='de'):
+        ts0 = time.time()-86400
+        ti0 = time.localtime(ts0)
+        dt0 = time.strftime('%Y-%m-%d',ti0)
+        ts = time.time()
+        ti = time.localtime(ts)
+        dt = time.strftime('%Y-%m-%d',ti)
+        try:
+            what,use = what.split(',')
+        except ValueError:
+            use = 'airquality'
+        if what in ['aqi','airquality']:
+            url = 'airquality/json?date_from=%s&date_to=%s&lang=%s' % (dt0,dt,lang)
+            if station: url += '&station=%s' % station
+            fn = os.path.join(self.target_path,'uba_components.json')
+            try:
+                with open(fn,'r') as file:
+                    components = json.load(file)
+            except Exception:
+                components = self.download_uba('components',None,lang)
+                with open(fn,'w') as file:
+                    json.dump(components,file,indent=4,ensure_ascii=False)
+        elif what in ['components','networks','scopes']:
+            url = '%s/json?lang=%s&index=id' % (what,lang)
+        elif what in ['stationsettings','stationtypes','transgessiontypes']:
+            url = '%s/json?lang=%s' % (what,lang)
+        elif what=='meta':
+            url = 'meta/json?use=%s&date_from=%s&date_to=%s&lang=%s' % (use,dt0,dt,lang)
+        else:
+            return []
+        url = 'https://www.umweltbundesamt.de/api/air_data/v2/' + url
+
+        headers={'User-Agent':'weewx-DWD'}
+        try:
+            reply = requests.get(url,headers=headers)
+        except ConnectionError as e:
+            if self.log_failure:
+                logerr(e)
+            return []
+        
+        if reply.status_code==200:
+            if self.log_success or self.verbose:
+                loginf('successfully downloaded %s' % reply.url)
+            try:
+                rtn = json.loads(reply.content)
+            except Exception as e:
+                return [{'success':False,'error':{'code':e.__name__,'description':str(e)},'response':[]}]
+            if what in ['aqi','airquality']:
+                res = dict()
+                comp = dict()
+                for ii in rtn:
+                    if ii=='data':
+                        res[ii] = dict()
+                        for jj in rtn[ii]:
+                            res[ii][jj] = []
+                            for kk in rtn[ii][jj]:
+                                point = dict()
+                                point['date start'] = kk
+                                for ix,vv in enumerate(rtn[ii][jj][kk]):
+                                    if ix==0:
+                                        point['date end'] = vv
+                                    elif ix==1:
+                                        point['total index'] = vv
+                                    elif ix==2:
+                                        point['data incomplete'] = vv
+                                    else:
+                                        point[vv[0]] = {
+                                            'component id':vv[0],
+                                            'value':vv[1],
+                                            'index':vv[2],
+                                            'y-value':vv[3],
+                                        }
+                                        comp[vv[0]] = components[str(vv[0])]
+                                res[ii][jj].append(point)
+                    else:
+                        res[ii] = rtn[ii]
+                res['components'] = comp
+                if what=='aqi':
+                    aqi = {
+                        'success':True,
+                        'error':None,
+                        'response':[]
+                    }
+                    for ii in res['data']:
+                        vals = res['data'][ii][-1]
+                        pols = [{'type':comp[vals[x]['component id']]['component code'],
+                                 'name':comp[vals[x]['component id']]['component name'],
+                                 'valuePPB':None,
+                                 'valueUGM3':vals[x]['y-value'],
+                                 'aqi':vals[x]['value'],
+                                 'category':None,
+                                 'color':None,
+                                 'unit':comp[vals[x]['component id']]['component unit'],
+                                'x':vals[x]} for x in vals if isinstance(vals[x],dict)]
+                        aqi['response'].append({
+                            'id':ii,
+                            'loc':{'long':None,'lat':None},
+                            'place':{'name':None,'state':None,'country':None},
+                            'periods':[{
+                                'dateTimeISO':vals['date end'],
+                                'timestamp':None,
+                                'aqi':max([vals[x]['value'] for x in vals if isinstance(vals[x],dict)]),
+                                'category':None,
+                                'color':None,
+                                'method':None,
+                                'dominant':None,
+                                'pollutants':pols
+                            }],
+                            'profile':{'tz':None,'sources':[],'stations':[]},
+                            'relativeTo':{
+                                'lat': self.latitude,
+                                'long': self.longitude,
+                                'bearing':None,
+                                'bearingENG':None,
+                                'distanceKM':None,
+                                'distanceMI':None,
+                            }
+                        })
+                    res = aqi
+                else:
+                    res['components'] = comp
+            elif 'indices' in rtn:
+                res = dict()
+                for ii in rtn:
+                    if ii not in ['indices','count','request']:
+                        res[ii] = dict()
+                        for idx,val in enumerate(rtn[ii]):
+                            try:
+                                res[ii][rtn['indices'][idx]] = val
+                            except LookupError:
+                                pass
+            else:
+                res = rtn
+            if what=='aqi':
+                return [res]
+            else:
+                return res
         else:
             if self.log_failure or self.verbose:
                 logerr('error downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
@@ -1756,6 +1904,10 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
                      help="Write JSON file")
     group.add_option("--belchertown", action="store_true",
                      help="Write Belchertown style forecast file")
+    group.add_option("--print-uba", dest="uba", type=str,
+                     metavar="CMD",
+                     default=None,
+                     help="download data from UBA")
     parser.add_option_group(group)
     
     # intervals
@@ -1813,6 +1965,12 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
         config['DeutscherWetterdienst']['forecast']['show_placemark'] = not options.hideplacemark
 
     dwd = DwdMosmix(config,options.verbose)
+
+    if options.uba:
+        zz = dwd.download_uba(options.uba,location,lang=options.lang)
+        print(json.dumps(zz,indent=4,ensure_ascii=False))
+        exit()
+
     zz = dwd.download_kml(location,'l')
     mmos = dwd.process_kml(zz,options.log_tags)
     #print(json.dumps(mos,indent=4,ensure_ascii=False))
