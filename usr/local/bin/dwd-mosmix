@@ -1199,6 +1199,7 @@ class DwdMosmix(object):
                 'pop':days[day].get('Rd10'),
                 'precipMM':nround(days[day].get('RR1c'),1),
                 'pressureMB':nround(days[day]['PPPPavg']),
+                'windDir':compass(days[day]['DDavg'],self.belchertown_compasslang,False),
                 'windDirDEG':nround(days[day]['DDavg']),
                 'windSpeedKPH':nround(days[day]['FFavg']),
                 'windGustKPH':nround(days[day]['FX1max']),
