@@ -221,7 +221,18 @@ def compass(x, lang='de', withDEG=True):
         return COMPASS[lang][int(y)]+((' %.0f°' % x) if withDEG else '')
     except Exception:
         return ''
-        
+
+UBA = {
+    'de':['sehr gut','gut','mäßig','schlecht','sehr schlecht'],
+    'en':['good','moderate','poor','unhealthy','hazardous'],
+    'color':['00E400','FFFF00','FF7E00','FF0000','99004C']}
+
+def uba_category(index,lang='de'):
+    try:
+        return UBA[lang][index]
+    except LookupError:
+        return ''
+
 
 def nround(x,n=None):
     if x is None: return None
@@ -1389,6 +1400,17 @@ class DwdMosmix(object):
                     'error':{'code':e.__name__,
                              'description':str(e)},
                     'response':[] }]
+        elif self.belchertown_aqi_source=='uba':
+            try:
+                forecast['aqi'] = self.download_uba('aqi')
+            except Exception as e:
+                print(e)
+                forecast['aqi'] = [{
+                    'success':False,
+                    'error':{'code':e.__name__,
+                             'description':str(e)},
+                    'response':[] }]
+        
         else:
             forecast['aqi'] = [{
                 'success':False,
@@ -1445,16 +1467,21 @@ class DwdMosmix(object):
                 'response':[] }]
 
     def download_uba(self, what, station, lang='de'):
+        """ Download air quality data from Umweltbundesamt """
+        # get data from yesterday
         ts0 = time.time()-86400
         ti0 = time.localtime(ts0)
         dt0 = time.strftime('%Y-%m-%d',ti0)
+        # to today
         ts = time.time()
         ti = time.localtime(ts)
         dt = time.strftime('%Y-%m-%d',ti)
+        # 'meta' has a second parameter
         try:
             what,use = what.split(',')
         except ValueError:
             use = 'airquality'
+        # compose url
         if what in ['aqi','airquality']:
             url = 'airquality/json?date_from=%s&date_to=%s&lang=%s' % (dt0,dt,lang)
             if station: url += '&station=%s' % station
@@ -1476,6 +1503,7 @@ class DwdMosmix(object):
             return []
         url = 'https://www.umweltbundesamt.de/api/air_data/v2/' + url
 
+        # download data
         headers={'User-Agent':'weewx-DWD'}
         try:
             reply = requests.get(url,headers=headers)
@@ -1521,6 +1549,7 @@ class DwdMosmix(object):
                     else:
                         res[ii] = rtn[ii]
                 res['components'] = comp
+                # command 'aqi' converts to Belchertown format
                 if what=='aqi':
                     aqi = {
                         'success':True,
@@ -1532,12 +1561,13 @@ class DwdMosmix(object):
                         pols = [{'type':comp[vals[x]['component id']]['component code'],
                                  'name':comp[vals[x]['component id']]['component name'],
                                  'valuePPB':None,
-                                 'valueUGM3':vals[x]['y-value'],
-                                 'aqi':vals[x]['value'],
-                                 'category':None,
-                                 'color':None,
-                                 'unit':comp[vals[x]['component id']]['component unit'],
-                                'x':vals[x]} for x in vals if isinstance(vals[x],dict)]
+                                 'valueUGM3':vals[x]['value'],
+                                 'aqi':vals[x]['index'],
+                                 'category':uba_category(vals[x]['index'],lang),
+                                 'color':uba_category(vals[x]['index'],'color'),
+                                 'unit':comp[vals[x]['component id']]['component unit']
+                                 } for x in vals if isinstance(vals[x],dict)]
+                        aidx = max([vals[x]['index'] for x in vals if isinstance(vals[x],dict)])
                         aqi['response'].append({
                             'id':ii,
                             'loc':{'long':None,'lat':None},
@@ -1545,10 +1575,10 @@ class DwdMosmix(object):
                             'periods':[{
                                 'dateTimeISO':vals['date end'],
                                 'timestamp':None,
-                                'aqi':max([vals[x]['value'] for x in vals if isinstance(vals[x],dict)]),
-                                'category':None,
-                                'color':None,
-                                'method':None,
+                                'aqi':aidx,
+                                'category':uba_category(aidx,lang),
+                                'color':uba_category(aidx,'color'),
+                                'method':'UBA',
                                 'dominant':None,
                                 'pollutants':pols
                             }],
