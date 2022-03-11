@@ -402,9 +402,18 @@ Warnungen angezeigt, die bis zu der angegebenen Zahl Sekunden in der
 Zukunft aktiv werden.
 
 Mit `aqi_source` kann man einen Provider angeben, von dem AQI-Daten
-bezogen werden sollen. Momentan einzige Möglichkeit ist `aeris`.
+bezogen werden sollen. Momentan mögliche Werte sind `aeris` und `ubaXXXX`,
+wobei XXXX durch die Nummer der Station zu ersetzen ist, deren
+Werte abgerufen werden sollen.
 
 *Beachte*: Bei Aeris ist die Anzahl der Anfragen pro Tag limitiert.
+Es ist darüber hinaus ein Account nötig.
+
+Eine Liste der Luftqualitätsmeßstationen des Umweltbundesamtes (UBA) 
+erhält man mit
+```
+usr/local/bin/dwd-mosmix --print-uba=meta,measure
+```
 
 Beim Aufruf der Programme muß `dwd-cap-warnings` ungedingt vor `dwd-mosmix`
 aufgerufen werden, sonst werden unter Umständen veraltete Warnungen 

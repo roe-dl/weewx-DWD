@@ -224,7 +224,7 @@ def compass(x, lang='de', withDEG=True):
 
 UBA = {
     'de':['sehr gut','gut','mäßig','schlecht','sehr schlecht'],
-    'en':['good','moderate','poor','unhealthy','hazardous'],
+    'en':['good','fair','moderate','poor','very poor'],
     'color':['00E400','FFFF00','FF7E00','FF0000','99004C']}
 
 def uba_category(index,lang='de'):
@@ -233,6 +233,25 @@ def uba_category(index,lang='de'):
     except LookupError:
         return ''
 
+EPAAQI = {
+    'AQI':[50,100,150,200,300,400,500],
+    'PM10':[54,154,254,354,424,504,604],
+    'PM2':[12,35.4,55.4,150.4,250.4,350.4,500.4],
+    'O3':[108,140,170,210,400],
+    'NO2':[101.35,191.23,688.428,1241.08,2388.46,3153.38,3918.3]}
+
+def epaaqi(pollutant, value):
+    try:
+        c0 = 0
+        for idx,c1 in enumerate(EPAAQI[pollutant.upper()]):
+            if value<=c1:
+                i1 = EPAAQI['AQI'][idx]
+                i0 = EPAAQI['AQI'][idx-1] if idx>0 else 0
+                return nround((i1-i0)/(c1-c0)*(value-c0)+i0)
+            c0 = c1
+        return 500
+    except Exception:
+        return None
 
 def nround(x,n=None):
     if x is None: return None
@@ -1400,9 +1419,9 @@ class DwdMosmix(object):
                     'error':{'code':e.__name__,
                              'description':str(e)},
                     'response':[] }]
-        elif self.belchertown_aqi_source=='uba':
+        elif self.belchertown_aqi_source[0:3]=='uba':
             try:
-                forecast['aqi'] = self.download_uba('aqi')
+                forecast['aqi'] = self.download_uba('aqi',self.belchertown_aqi_source[3:])
             except Exception as e:
                 print(e)
                 forecast['aqi'] = [{
@@ -1562,12 +1581,15 @@ class DwdMosmix(object):
                                  'name':comp[vals[x]['component id']]['component name'],
                                  'valuePPB':None,
                                  'valueUGM3':vals[x]['value'],
-                                 'aqi':vals[x]['index'],
+                                 'uba_index':vals[x]['index'],
+                                 'aqi':epaaqi(comp[vals[x]['component id']]['component code'],vals[x]['value']),
                                  'category':uba_category(vals[x]['index'],lang),
                                  'color':uba_category(vals[x]['index'],'color'),
                                  'unit':comp[vals[x]['component id']]['component unit']
                                  } for x in vals if isinstance(vals[x],dict)]
-                        aidx = max([vals[x]['index'] for x in vals if isinstance(vals[x],dict)])
+                        #aidx = max([vals[x]['index'] for x in vals if isinstance(vals[x],dict)])
+                        uidx = max([x['uba_index'] for x in pols])
+                        aidx = max([x['aqi'] for x in pols])
                         aqi['response'].append({
                             'id':ii,
                             'loc':{'long':None,'lat':None},
@@ -1575,10 +1597,11 @@ class DwdMosmix(object):
                             'periods':[{
                                 'dateTimeISO':vals['date end'],
                                 'timestamp':None,
+                                'uba_index':uidx,
                                 'aqi':aidx,
-                                'category':uba_category(aidx,lang),
-                                'color':uba_category(aidx,'color'),
-                                'method':'UBA',
+                                'category':uba_category(uidx,lang),
+                                'color':uba_category(uidx,'color'),
+                                'method':'airnow',
                                 'dominant':None,
                                 'pollutants':pols
                             }],
