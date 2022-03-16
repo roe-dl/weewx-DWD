@@ -425,7 +425,7 @@ class DwdMosmix(object):
         self.verbose = verbose
         self.log_success = bool(forecast_dict.get('log_success',config_dict['DeutscherWetterdienst'].get('log_success',config_dict.get('log_success',False))))
         self.log_failure = bool(forecast_dict.get('log_failure',config_dict['DeutscherWetterdienst'].get('log_failure',config_dict.get('log_failure',False))))
-        if int(config_dict.get('debug',0))>0 or verbose:
+        if (int(config_dict.get('debug',0))>0) or verbose:
             self.log_success = True
             self.log_failure = True
             self.verbose = True
