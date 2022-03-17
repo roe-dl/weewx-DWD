@@ -1621,7 +1621,6 @@ class DwdMosmix(object):
                         aidx = max([x['aqi'] for x in pols])
                         tse = DwdMosmix.timestamp(vals['date end'])
                         te = DwdMosmix.isoformat(tse) if tse is not None else vals['date end']
-                        print("tse",tse)
                         aqi['response'].append({
                             'id':ii,
                             'loc':{'long':None,'lat':None},
