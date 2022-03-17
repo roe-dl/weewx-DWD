@@ -559,6 +559,18 @@ class DwdMosmix(object):
         except Exception:
             return '----------T--:--:--+--:--'
         
+    @staticmethod
+    def timestamp(datum):
+        """ convert string to timestamp """
+        try:
+            #print("datum",datum)
+            ti = time.strptime(datum,"%Y-%m-%d %H:%M:%S")
+            #print("ti",ti)
+            ts = time.mktime(ti)
+            #print("ti",ts,time.strftime("%d.%m.%Y %H:%M:%S %z",time.localtime(ts)))
+            return int(ts)
+        except Exception:
+            return None
         
     def download_kml(self, location, mosmix):
         """ download MOSMIX KML file from DWD server """
@@ -1607,13 +1619,16 @@ class DwdMosmix(object):
                         #aidx = max([vals[x]['index'] for x in vals if isinstance(vals[x],dict)])
                         uidx = max([x['uba_index'] for x in pols])
                         aidx = max([x['aqi'] for x in pols])
+                        tse = DwdMosmix.timestamp(vals['date end'])
+                        te = DwdMosmix.isoformat(tse) if tse is not None else vals['date end']
+                        print("tse",tse)
                         aqi['response'].append({
                             'id':ii,
                             'loc':{'long':None,'lat':None},
                             'place':{'name':None,'state':None,'country':None},
                             'periods':[{
-                                'dateTimeISO':vals['date end'],
-                                'timestamp':None,
+                                'dateTimeISO':te,
+                                'timestamp':tse,
                                 'uba_index':uidx,
                                 'aqi':aidx,
                                 'category':uba_category(uidx,lang),
