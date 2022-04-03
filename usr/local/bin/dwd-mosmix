@@ -59,6 +59,14 @@ try:
 except ImportError:
     has_geopy = False
 
+# sqlite3
+try:
+    import sqlite3
+    has_sqlite = True
+except ImportError:
+    has_sqlite = False
+
+    
 if __name__ == "__main__":
     import optparse
     import sys
@@ -252,6 +260,42 @@ def epaaqi(pollutant, value):
         return 500
     except Exception:
         return None
+
+# Database
+
+schema = [('dateTime','INTEGER NOT NULL PRIMARY KEY'),
+          ('usUnits','INTEGER NOT NULL'),
+          ('interval','INTEGER NOT NULL'),
+          ('hour','INTEGER'),
+          ('outTemp','REAL'),
+          ('dewpoint','REAL'),
+          ('windDir','REAL'),
+          ('windSpeed','REAL'),
+          ('windGust','REAL'),
+          ('pop','REAL'),
+          ('cloudcover','REAL'),
+          ('barometer','REAL'),
+          ('rain','REAL'),
+          ('rainDur','REAL'),
+          ('sunshineDur','REAL'),
+          ('visibility','REAL'),
+          ('ww','INTEGER')]
+
+dwd_schema_dict = {
+    'DD':'windDir',
+    'FF':'windSpeed',
+    'FX1':'windGust',
+    'N':None,
+    'Neff':'cloudcover',
+    'PPPP':'barometer',
+    'Td':'dewpoint',
+    'TTT':'outTemp',
+    'R101':'pop',
+    'RR1c':'rain',
+    'DRR1':'rainDur',
+    'SunD1':'sunshineDur',
+    'VV':'visibility',
+    'ww':'ww'}
 
 def nround(x,n=None):
     if x is None: return None
@@ -499,6 +543,13 @@ class DwdMosmix(object):
             self.belchertown_forecast = None
             self.forecast_api_id = None
             self.forecast_api_secret = None
+        # Database
+        try:
+            self.SQLITE_ROOT = config_dict['DatabaseTypes']['SQLite']['SQLITE_ROOT']
+        except LookupError:
+            self.SQLITE_ROOT = None
+        self.connection = None
+        # Log config
         if __name__ == "__main__" and verbose:
             print('-- configuration data ----------------------------------')
             print('log success:      ',self.log_success)
@@ -510,6 +561,7 @@ class DwdMosmix(object):
             print('station location: ','lat',self.latitude,'lon',self.longitude,'alt',self.altitude)
             print('aeris api id:     ',self.forecast_api_id)
             print('aeris api secret: ',self.forecast_api_secret)
+            print('SQLITE_ROOT:      ',self.SQLITE_ROOT)
             print('--------------------------------------------------------')
 
     @staticmethod
@@ -1848,7 +1900,30 @@ class DwdMosmix(object):
             days[day]['icontitle'] = wwcode[2] if lang=='en' else wwcode[1]
         return days
 
-        
+
+    def write_database(self, placemark, timesteps):
+        if has_sqlite and self.SQLITE_ROOT:
+            self.dbm_open(placemark['id'])
+            cursor = self.dbm_cursor()
+            self.dbm_truncate(cursor)
+            for idx,ii in enumerate(timesteps):
+                values = {'dateTime':int(ii*0.001),
+                          'usUnits':0x10,  # METRIC
+                          'interval':60,
+                          'hour':time.localtime(ii*0.001).tm_hour} # min.
+                for jj in placemark['Forecast']:
+                    key = dwd_schema_dict.get(jj)
+                    if key:
+                        values[key] = placemark['Forecast'][jj][idx]
+                        if key=='rain': values[key] *= 0.1
+                try:
+                    self.dbm_insert(cursor,values)
+                except sqlite3.Error as e:
+                    logerr('dbm_insert: %s' % e)
+            self.dbm_commit()
+            self.dbm_close()
+
+
     def forecast_placemark(self, placemark, timesteps, issue, output, dryrun, lang='de'):
         """ create forecast for placemark placemark """
         if self.verbose:
@@ -1890,6 +1965,11 @@ class DwdMosmix(object):
             if self.verbose:
                 loginf('belchertown')
             self.belchertown(placemark,days,recs3hr,timesteps,issue,dryrun)
+            
+        if 'database' in output:
+            if self.verbose:
+                loginf('database')
+            self.write_database(placemark,timesteps)
             
         if self.verbose:
             loginf('placemark id "%s" processed' % placemark.get('id'))
@@ -1934,6 +2014,50 @@ class DwdMosmix(object):
             print('=================')
             for ii in icons:
                 print('%-16s: %s' % (ii,icons[ii]))
+                
+    def dbm_open(self, id):
+        if has_sqlite and self.SQLITE_ROOT:
+            fn = os.path.join(self.SQLITE_ROOT,'dwd-forecast-%s.sdb' % id)
+            new = not os.path.exists(fn)
+            self.connection = sqlite3.connect(fn)
+            if new:
+                s = ','.join([x[0]+' '+x[1] for x in schema])
+                s = 'CREATE TABLE forecast ('+s+')'
+                cur = self.dbm_cursor()
+                if cur:
+                    cur.execute(s)
+                    self.dbm_commit()
+            self.columns = [x[0] for x in schema]
+            return True
+        return False
+        
+    def dbm_close(self):
+        if has_sqlite and self.SQLITE_ROOT:
+            if self.connection:
+                self.connection.close()
+                self.connection = None
+    
+    def dbm_cursor(self):
+        if self.connection:
+            return self.connection.cursor()
+        return None
+        
+    def dbm_commit(self):
+        if self.connection:
+            self.connection.commit()
+        
+    def dbm_truncate(self, cursor):
+        if has_sqlite and self.SQLITE_ROOT:
+            cursor.execute("DELETE from forecast")
+            
+    def dbm_insert(self, cursor, values):
+        cols = []
+        vals = []
+        for ii in values:
+            if ii in self.columns and values[ii] is not None:
+                cols.append('`'+ii+'`')
+                vals.append(str(values[ii]))
+        cursor.execute('INSERT INTO forecast (%s) VALUES (%s)' % (','.join(cols),','.join(vals)))
 
 if __name__ == "__main__":
 
@@ -1988,6 +2112,8 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
                      help="Write JSON file")
     group.add_option("--belchertown", action="store_true",
                      help="Write Belchertown style forecast file")
+    group.add_option("--database", action="store_true",
+                     help="Write database file")
     group.add_option("--print-uba", dest="uba", type=str,
                      metavar="CMD",
                      default=None,
@@ -2067,6 +2193,7 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
     
     if options.html: output.append('html')
     if options.json: output.append('json')
+    if options.database: output.append('database')
     if not options.html and not options.json and not options.belchertown:
         output.append('html')
         if options.daily:

@@ -133,6 +133,8 @@ Options:
     --html              Write HTML .inc file
     --json              Write JSON file
     --belchertown       Write Belchertown style forecast file
+    --database          Write database file
+    --print-uba=CMD     download data from UBA
 
   Intervals:
     --all               Output all details in HTML
@@ -409,7 +411,7 @@ Werte abgerufen werden sollen.
 *Beachte*: Bei Aeris ist die Anzahl der Anfragen pro Tag limitiert.
 Es ist darüber hinaus ein Account nötig.
 
-Eine Liste der Luftqualitätsmeßstationen des Umweltbundesamtes (UBA) 
+Eine Liste der Luftqualitätsmeßstationen des deutschen Umweltbundesamtes (UBA) 
 erhält man mit
 ```
 usr/local/bin/dwd-mosmix --print-uba=meta,measure
@@ -428,6 +430,75 @@ Soll das Programm zu Testzwecken von der Kommandozeile aufgerufen werden,
 ist `sudo` nötig:
 ```
 sudo /usr/local/bin/dwd-mosmix --weewx --belchertown Stationsname
+```
+
+## Wettervorhersage als Diagramm
+
+Mit der Option `--database` wird eine SQLITE-Datenbankdatei erzeugt,
+die von WeeWX zur Anzeige von Diagrammen genutzt werden kann. Die
+Datei wird in das durch `SQLITE_ROOT` definierte Verzeichnis 
+geschrieben und erhält den Namen `dwd-forecast-Stationscode.sdb`.
+
+Die Werte sind grundsätzlich stündlich.
+
+Um damit Diagramme darstellen zu können, muß die Datenbank in 
+`weewx.conf` hinzugefügt werden:
+
+```
+[DataBindings]
+    ...
+    [dwd_binding]
+        database = dwd_sqlite
+        table_name = forecast
+        manager = weewx.manager.Manager
+        schema = schemas.dwd.schema
+[Databases]
+    ...
+    [dwd_sqlite]
+        database_name = dwd-forecast-Stationscode.sdb
+        database_type = SQLite
+```
+
+In das Verzeichnis `schemas` muß eine Datei `dwd.py` geschrieben
+werden, die folgenden Inhalt hat:
+```
+schema = [('dateTime','INTEGER NOT NULL PRIMARY KEY'),
+          ('usUnits','INTEGER NOT NULL'),
+          ('interval','INTEGER NOT NULL')]
+```
+
+In `extension.py` sind ggf. die fehlenden Meßgrößen zu definieren:
+```
+import weewx.units
+weewx.units.obs_group_dict['pop'] = 'group_percent'
+weewx.units.obs_group_dict['cloudcover'] = 'group_percent'
+weewx.units.obs_group_dict['sunshineDur'] = 'group_deltatime'
+weewx.units.obs_group_dict['rainDur'] = 'group_deltatime'
+```
+
+Vorhersagegrößen:
+* `outTemp`: Lufttemperatur 2m
+* `dewpoint`: Taupunkt 2m
+* `windDir`: Windrichtung
+* `windSpeed`: Windgeschwindigkeit
+* `windGust`: Böengeschwindigkeit
+* `pop`: Regenwahrscheinlichkeit
+* `cloudcover`: Wolkenbedeckung
+* `barometer`: Luftdruck
+* `rain`: Regenmenge
+* `rainDur`: Regendauer innerhalb der letzten Stunde
+* `sunshineDur`: Sonnenscheindauer innerhalb der letzten Stunde
+
+Beispiel für Belchertown-Skin:
+```
+    [[forecast]]
+        tooltip_date_format = "dddd LLL"
+        gapsize = 3600 # 1 hour in seconds
+        credits = "&copy; DWD"
+        data_binding = dwd_binding
+        time_length = all
+        [[[outTemp]]]
+        [[[dewpoint]]]
 ```
 
 ## Wetterkarte im HTML-Template
