@@ -1866,7 +1866,10 @@ class DwdMosmix(object):
                     if vals[ii] is not None:
                         logerr("%s: %s" % (ii,e))
             # sunshine duration
-            days[day]['SunD1'] += vals['SunD1']/3600
+            try:
+                days[day]['SunD1'] += vals['SunD1']/3600
+            except (ValueError,TypeError):
+                days[day]['SunD1'] = None
             if vals.get('RSunD') is not None: days[day]['RSunD'] = vals['RSunD']
             if vals.get('Rad1h'): days[day]['Rad1hsum'] += vals['Rad1h']/1000.0
             # rain
