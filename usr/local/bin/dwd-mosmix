@@ -1836,7 +1836,7 @@ class DwdMosmix(object):
         return recs
                 
     
-    def calculate_daily_forecast(self, placemark, timesteps, lang='de'):
+    def calculate_daily_forecast(self, placemark, timesteps, daynights, lang='de'):
         # observation types to calculate average for
         AVGS = ['TTT','Td','FF','DD','PPPP','N','Neff','VV']
         days = dict()
@@ -1900,7 +1900,10 @@ class DwdMosmix(object):
             try:
                 days[day]['SunD1'] += vals['SunD1']/3600
             except (ValueError,TypeError):
-                days[day]['SunD1'] = None
+                # If the error is during night time, it is ignored.
+                # If the error is during day time, SunD1 ist set invalid.
+                if not daynights[idx]:
+                    days[day]['SunD1'] = None
             if vals.get('RSunD') is not None: days[day]['RSunD'] = vals['RSunD']
             if vals.get('Rad1h'): days[day]['Rad1hsum'] += vals['Rad1h']/1000.0
             # rain
@@ -1968,7 +1971,7 @@ class DwdMosmix(object):
         if ('daily' in output) or ('json' in output) or ('belchertown' in output):
             if self.verbose:
                 loginf('calculate daily forecast')
-            days = self.calculate_daily_forecast(placemark,timesteps,lang=lang)
+            days = self.calculate_daily_forecast(placemark,timesteps,daynights,lang=lang)
             
         if ('json' in output) or ('belchertown' in output):
             if self.verbose:
