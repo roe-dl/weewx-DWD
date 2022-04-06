@@ -701,6 +701,26 @@ class DwdMosmix(object):
             night = not (6 <= time.localtime(ts).tm_hour < 18)
         return night
         
+    def calculate_daynight(self, placemark, timesteps):
+        """ calculate array of daylight values """
+        geo = placemark['coordinates']
+        if has_pyephem:
+            try:
+                location = ephem.Observer()
+                location.lat = geo[1]*0.017453292519943
+                location.lon = geo[0]*0.017453292519943
+                location.elevation = geo[2]
+            except Exception as e:
+                logerr('Observer: %s' % e)
+        else:
+            location = None
+        daynights = []
+        for ts in timesteps:
+            daynights.append(self.is_night(location,ts*0.001))
+        if len(daynights)!=len(timesteps):
+            logerr('calculate_daynight: different array sizes')
+        return daynights
+        
     @staticmethod
     def _temp_color(temp):
         """ temperature colors 
@@ -752,7 +772,7 @@ class DwdMosmix(object):
         'R101':('<i class="wi wi-umbrella"></i>','Wahrscheinlichkeit','%'),
         'VV':('VV','Sichtweite','m')}
 
-    def write_html(self, placemark, timesteps, obstypes, dryrun, range=None, lang='de'):
+    def write_html(self, placemark, timesteps, daynights, obstypes, dryrun, range=None, lang='de'):
         """ create HTML hourly """
         #timesteps = mos['ForecastTimeSteps']
         try:
@@ -769,6 +789,7 @@ class DwdMosmix(object):
         desc = self.show_obs_description or not obstypes
         #for placemark in mos.get('Placemark'):
         if True:
+            """
             if has_pyephem:
                 try:
                     location = ephem.Observer()
@@ -779,6 +800,7 @@ class DwdMosmix(object):
                     location.elevation = geo[2]
                 except Exception as e:
                     logerr('Observer: %s' % e)
+            """
             s = ""
             if self.horizontal_table:
                 if self.horizontal_div_classes:
@@ -829,7 +851,8 @@ class DwdMosmix(object):
                 for idx,ii in enumerate(timesteps):
                     if idx<start_ct: continue
                     if idx>=count+start_ct: break
-                    night = self.is_night(location,ii*0.001)
+                    #night = self.is_night(location,ii*0.001)
+                    night = daynights[idx]
                     wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],night)
                     if self.verbose: loginf('night=%s ww=%s' % (night,wwcode))
                     if lang=='en':
@@ -915,7 +938,8 @@ class DwdMosmix(object):
                         count = idx-start_ct
                         break
                     # time stamp column
-                    night = self.is_night(location,ii*0.001)
+                    #night = self.is_night(location,ii*0.001)
+                    night = daynights[idx]
                     ti = time.localtime(ii*0.001)
                     if old_day_ct!=day_ct:
                         s += '<tr><td colspan="6" style="text-align:left"><strong>%s</strong> %s</td></tr>\n' % (wd,time.strftime('%d.%m.',ti))
@@ -1187,8 +1211,9 @@ class DwdMosmix(object):
                 'ForecastHourly':hours}
             json.dump(x,file,indent=4,ensure_ascii=False)
             
-    def belchertown(self, placemark, days, recs3h, timesteps, issue, dryrun):
+    def belchertown(self, placemark, days, recs3h, timesteps, daynights, issue, dryrun):
         geo = placemark['coordinates']
+        """
         if has_pyephem:
             try:
                 location = ephem.Observer()
@@ -1199,6 +1224,7 @@ class DwdMosmix(object):
                 logerr('Observer: %s' % e)
         else:
             location = None
+        """
         fn = os.path.join(self.target_path,'geo-%s.json' % placemark['id'])
         try:
             with open(fn,"r") as file:
@@ -1239,7 +1265,8 @@ class DwdMosmix(object):
                 if self.verbose:
                     loginf("now %s timestep %s" % (time.strftime('%H:%M:%S',time.localtime(now)),time.strftime('%H:%M:%S',time.localtime(timesteps[idx]*0.001))))
                 break
-        night = self.is_night(location,timesteps[idx]*0.001)
+        #night = self.is_night(location,timesteps[idx]*0.001)
+        night = daynights[idx]
         wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],night)
         forecast['current'] = [{
             'success':True,
@@ -1387,7 +1414,8 @@ class DwdMosmix(object):
         belchertown_hours = []
         for idx,ii in enumerate(timesteps):
             if (ii*0.001)<now: continue
-            night = self.is_night(location,ii*0.001)
+            #night = self.is_night(location,ii*0.001)
+            night = daynights[idx]
             wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],night)
             hour = {
                 'timestamp':int(ii*0.001),
@@ -1726,8 +1754,9 @@ class DwdMosmix(object):
                 'response':[] }]
 
     
-    def calculate_3hr_forecast(self, placemark, timesteps, lang='de'):
+    def calculate_3hr_forecast(self, placemark, timesteps, daynights, lang='de'):
         """ """
+        """
         if has_pyephem:
             try:
                 location = ephem.Observer()
@@ -1738,6 +1767,7 @@ class DwdMosmix(object):
                 location.elevation = geo[2]
             except Exception as e:
                 logerr('Observer: %s' % e)
+        """
         recs = []
         for idx,val in enumerate(timesteps):
             if placemark['Forecast']['ww3'][idx] is not None:
@@ -1787,7 +1817,8 @@ class DwdMosmix(object):
                         logerr(e)
                 # Is the timestamp night or day?
                 try:
-                    night = self.is_night(location,val*0.001)
+                    #night = self.is_night(location,val*0.001)
+                    night = daynights[idx]
                 except Exception:
                     night = None
                 # weather symbol
@@ -1804,7 +1835,7 @@ class DwdMosmix(object):
                 recs.append(vals)
         return recs
                 
-            
+    
     def calculate_daily_forecast(self, placemark, timesteps, lang='de'):
         # observation types to calculate average for
         AVGS = ['TTT','Td','FF','DD','PPPP','N','Neff','VV']
@@ -1931,6 +1962,8 @@ class DwdMosmix(object):
         """ create forecast for placemark placemark """
         if self.verbose:
             loginf('process placemark id "%s" name "%s"' % (placemark.get('id'),placemark.get('description')))
+        
+        daynights = self.calculate_daynight(placemark,timesteps)
 
         if ('daily' in output) or ('json' in output) or ('belchertown' in output):
             if self.verbose:
@@ -1940,14 +1973,14 @@ class DwdMosmix(object):
         if ('json' in output) or ('belchertown' in output):
             if self.verbose:
                 loginf('calculate 3hr forecast')
-            recs3hr = self.calculate_3hr_forecast(placemark,timesteps,lang=lang)
+            recs3hr = self.calculate_3hr_forecast(placemark,timesteps,daynights,lang=lang)
         
         if 'html' in output:
         
             if 'all' in output:
                 if self.verbose:
                     loginf('output all data')
-                self.write_html(placemark,timesteps,None,dryrun,lang=lang)
+                self.write_html(placemark,timesteps,daynights,None,dryrun,lang=lang)
 
             if 'daily' in output:
                 if self.verbose:
@@ -1957,22 +1990,22 @@ class DwdMosmix(object):
             if 'hourly' in output:
                 if self.verbose:
                     loginf('output hourly forecast')
-                self.write_html(placemark,timesteps,['TTT','FF','DD','RR1c','R101','PPPP','Rad1h'],dryrun,range=11,lang=lang)
+                self.write_html(placemark,timesteps,daynights,['TTT','FF','DD','RR1c','R101','PPPP','Rad1h'],dryrun,range=11,lang=lang)
         
         if 'json' in output:
             if self.verbose:
                 loginf('json')
-            self.dump(placemark,days,recs3hr,timesteps,issue,dryrun)
+            self.dump(placemark,days,recs3hr,timesteps,daynights,issue,dryrun)
             
         if 'belchertown' in output:
             if self.verbose:
                 loginf('belchertown')
-            self.belchertown(placemark,days,recs3hr,timesteps,issue,dryrun)
+            self.belchertown(placemark,days,recs3hr,timesteps,daynights,issue,dryrun)
             
         if 'database' in output:
             if self.verbose:
                 loginf('database')
-            self.write_database(placemark,timesteps)
+            self.write_database(placemark,timesteps,daynights)
             
         if self.verbose:
             loginf('placemark id "%s" processed' % placemark.get('id'))
