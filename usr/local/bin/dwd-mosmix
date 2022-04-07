@@ -1187,7 +1187,7 @@ class DwdMosmix(object):
                 with open(fn,"w") as file:
                     file.write(s)
     
-    def dump(self, placemark, days, recs3hr, timesteps, issue, dryrun):
+    def dump(self, placemark, days, recs3hr, timesteps, daynights, issue, dryrun):
         fn = os.path.join(self.target_path,'forecast-'+placemark['id']+'.json')
         with open(fn,"w") as file:
             hours = []
