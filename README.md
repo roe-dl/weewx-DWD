@@ -370,12 +370,16 @@ Beispiel für eine Wettervorhersage:
 Mit der speziellen Option `--belchertown` erzeugt `dwd-mosmix` die
 `forecast.json`-Datei für die Belchertown-Skin. Damit kann die
 Wettervorhersage des DWD in die Belchertown-Skin integriert werden,
-ohne daß Eingriffe in den Code nötig sind. Nur eine Konfigurationsoption
+**ohne daß Eingriffe in den Code nötig sind**. Nur die Konfigurationsoption
+`forecast_stale`
 muß geändert werden, entweder in `skin.conf` oder im Abschnitt der
-Skin in `weewx.conf`:
+Skin in `weewx.conf`. Die Vorhersage muß natürlich auch grundsätzlich 
+eingeschaltet sein.
 
 ```
-forecast_stale = 86400
+    forecast_enabled = 1
+    forecast_stale = 86400
+    forecast_alert_enabled = 1
 ```
 
 Außerdem muß der Abschnitt des Deutschen Wetterdienstes in `weewx.conf`
