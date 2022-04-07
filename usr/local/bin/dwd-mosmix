@@ -1192,7 +1192,7 @@ class DwdMosmix(object):
         with open(fn,"w") as file:
             hours = []
             for idx,val in enumerate(timesteps):
-                hour = {'timestamp':int(val*0.001)}
+                hour = {'timestamp':int(val*0.001),'night':daynights[idx]}
                 for ii in placemark['Forecast']:
                     hour[ii] = placemark['Forecast'][ii][idx]
                 hours.append(hour)
@@ -2008,7 +2008,7 @@ class DwdMosmix(object):
         if 'database' in output:
             if self.verbose:
                 loginf('database')
-            self.write_database(placemark,timesteps,daynights)
+            self.write_database(placemark,timesteps)
             
         if self.verbose:
             loginf('placemark id "%s" processed' % placemark.get('id'))
