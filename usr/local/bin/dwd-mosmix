@@ -1054,8 +1054,8 @@ class DwdMosmix(object):
                     if prec_color: color = ';color:%s' % prec_color
                     if symbols:
                         s += '<td style="text-align:left%s" title="%s">%s' % (color,self.OBS_LABEL.get(ii,('',ii,''))[1],self.OBS_LABEL.get(ii,('',ii,''))[0])
-                        if not desc and ii=='TTTmax': s+=' max'
-                        if not desc and ii=='TTTmin': s+=' min'
+                        if not desc and ii=='TTTmax': s+='&nbsp;max'
+                        if not desc and ii=='TTTmin': s+='&nbsp;min'
                         s += '</td>'
                     if desc:
                         s += '<td style="text-align:left%s">%s</td>' % (color,self.OBS_LABEL.get(ii,('',ii,''))[1])
@@ -1842,11 +1842,18 @@ class DwdMosmix(object):
         days = dict()
         # loop over all timestamps
         for idx,val in enumerate(timesteps):
-            day = time.strftime('%d.%m.',time.localtime(val*0.001))
+            # the day of the actual timestep
+            # The timestep marks the end of the interval. That's why
+            # the timestep at the day border belongs to the ending
+            # day (24:00 rather than 00:00). To get that the day is
+            # calculated out of a timestamp 1 second before the actual
+            # timestep.
+            day = time.strftime('%d.%m.',time.localtime(val*0.001-1))
+            # get the values for the actual timestep
             vals = {ii:placemark['Forecast'][ii][idx] for ii in placemark['Forecast']}
             # check if first timestamp of a new day
             if day not in days: 
-                _wday = time.localtime(val*0.001).tm_wday
+                _wday = time.localtime(val*0.001-1).tm_wday
                 days[day] = { 
                     'timestamp':int(val*0.001),
                     'day':day,
