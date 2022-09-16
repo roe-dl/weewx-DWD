@@ -1187,7 +1187,7 @@ class DwdMosmix(object):
                 with open(fn,"w") as file:
                     file.write(s)
     
-    def dump(self, placemark, days, recs3hr, timesteps, daynights, issue, dryrun):
+    def dump(self, placemark, days, recs3hr, timesteps, daynights, issue, dryrun, lang='de'):
         fn = os.path.join(self.target_path,'forecast-'+placemark['id']+'.json')
         with open(fn,"w") as file:
             hours = []
@@ -1195,6 +1195,14 @@ class DwdMosmix(object):
                 hour = {'timestamp':int(val*0.001),'night':daynights[idx]}
                 for ii in placemark['Forecast']:
                     hour[ii] = placemark['Forecast'][ii][idx]
+
+                    wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],daynights[idx])
+                    icon = self.icon_pth + '/' + wwcode[self.iconset]
+                    if self.iconset == 6: icon += ('n' if night else '') + '.png'
+
+                    hour['icon'] = icon
+                    hour['icontitle'] = wwcode[2] if lang == 'en' else wwcode[1]
+
                 hours.append(hour)
             x = {
                 'Issuer':issue.get('Issuer'),
@@ -2005,7 +2013,7 @@ class DwdMosmix(object):
         if 'json' in output:
             if self.verbose:
                 loginf('json')
-            self.dump(placemark,days,recs3hr,timesteps,daynights,issue,dryrun)
+            self.dump(placemark,days,recs3hr,timesteps,daynights,issue,dryrun,lang=lang)
             
         if 'belchertown' in output:
             if self.verbose:
