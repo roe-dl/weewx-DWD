@@ -1196,12 +1196,12 @@ class DwdMosmix(object):
                 for ii in placemark['Forecast']:
                     hour[ii] = placemark['Forecast'][ii][idx]
 
-                    wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],daynights[idx])
-                    icon = self.icon_pth + '/' + wwcode[self.iconset]
-                    if self.iconset == 6: icon += ('n' if night else '') + '.png'
+                wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],daynights[idx])
+                icon = self.icon_pth + '/' + wwcode[self.iconset]
+                if self.iconset == 6: icon += ('n' if night else '') + '.png'
 
-                    hour['icon'] = icon
-                    hour['icontitle'] = wwcode[2] if lang == 'en' else wwcode[1]
+                hour['icon'] = icon
+                hour['icontitle'] = wwcode[2] if lang == 'en' else wwcode[1]
 
                 hours.append(hour)
             x = {
