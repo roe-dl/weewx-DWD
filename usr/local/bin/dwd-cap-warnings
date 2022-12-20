@@ -658,7 +658,7 @@ class DwdWarnings(object):
                         'description':info_dict.get('description',''),
                         'event':info_dict.get('event',''),
                         'headline':info_dict.get('headline',''),
-                        'instruction':info_dict.get('instrutction',''),
+                        'instruction':info_dict.get('instruction',''),
                         'category':info_dict.get('category'),
                         'responseType':info_dict.get('responsetype'),
                         'urgency':info_dict.get('urgency'),

@@ -451,14 +451,14 @@ Um damit Diagramme darstellen zu können, muß die Datenbank in
 ```
 [DataBindings]
     ...
-    [dwd_binding]
+    [[dwd_binding]]
         database = dwd_sqlite
         table_name = forecast
         manager = weewx.manager.Manager
         schema = schemas.dwd.schema
 [Databases]
     ...
-    [dwd_sqlite]
+    [[dwd_sqlite]]
         database_name = dwd-forecast-Stationscode.sdb
         database_type = SQLite
 ```
