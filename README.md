@@ -12,6 +12,10 @@ Diese Daten können mit den Programmen vom DWD bezogen werden:
   (`dwd-warnings` und `dwd-cap-warnings`)
 * Wetterkarten (`wget-dwd`)
 
+Zusätzlich können Meldungen des Bundesamtes für Bevölkerungsschutz
+und Katastrophenhilfe bezogen werden:
+* Warnmeldungen (`bbk-warnings`)
+
 Die Daten werden aufbereitet als:
 * HTML-Dateien (`*.inc`) zum Einbinden in Skins mittels `#include`
 * JSON-Dateien (`*.json`) zur maschinellen Weiterverarbeitung,
@@ -168,6 +172,13 @@ Die Spracheinstellung betrifft nur die Wochentage, bei Englisch auch
 die Tooltips der Wettersymbole. Verfügbar ist `de`, `en`, `fr`, `it`
 und `cz`.
 
+## bbk-warnings
+
+Dieses Python-Script lädt Meldungen vom Bundesamt für Bevölkerungsschutz
+und Katastrophenhilfe herunter. Dabei werden Meldungen ausgelassen,
+die ursprünglich vom DWD stammen, da diese mittels `dwd-cap-warnings` 
+besser verarbeitet werden können.
+
 ## /etc/cron.hourly/dwd
 
 Dieses Script sorgt dafür, daß die beiden Scripte `wget-dwd` und `dwd-warnings` regelmäßig aufgerufen werden.
@@ -246,6 +257,16 @@ Beispiel:
         #show_obs_symbols = True # optional
         #show_obs_description = False # optional
         #show_placemark = True # optional
+    [[BBK]]
+        #icons=...
+        #logos=...
+        [[[counties]]]
+            145220000000 = DL
+            147130000000 = L
+    [[Belchertown]]
+        section = Belchertown
+        warnings = DL
+        forecast = P0291
 ```
 
 Der Eintrag `path` muß auf das im ersten Schritt angelegte Verzeichnis
