@@ -36,13 +36,38 @@ if __name__ == "__main__":
     def logerr(x):
         print(x, file=sys.stderr)
 
-
 CAP_SEVERITY = {
   'Minor':2,
   'Moderate':3,
   'Severe':4,
   'Extreme':5}
 
+bbk_level = (
+  'keine Warnung',     # 0 no warning
+  'Vorinformation',    # 1 preliminary info
+  'leicht',            # 2 minor
+  'mittel',            # 3 moderate
+  'schwer',            # 4 severe
+  'extrem')            # 5 extreme
+dwd_level=(
+  'keine Warnung',     # 0 no warning
+  'Vorinformation',    # 1 preliminary info
+  'Wetterwarnung',     # 2 minor
+  'markantes Wetter',  # 3 moderate
+  'Unwetterwarnung',   # 4 severe
+  'extremes Unwetter') # 5 extreme
+
+def bbk_level_text(level, isdwd=False):
+    try:
+        if isdwd: return dwd_level[level]
+        return bbk_level[level]
+    except IndexError:
+        if level==10: return 'Hitzewarnung'
+    return None
+
+def get_eventtype(evt, ii):
+    return "*"
+    
 
 class BbkWarnings(object):
 
@@ -58,6 +83,7 @@ class BbkWarnings(object):
         self.bbk_url = DEFAULT_BBK_URL
         # warn icons
         self.icon_pth = warn_dict.get('icons',self.bbk_url+'/appdata/gsb/eventCodes')
+        self.logo_pth = warn_dict.get('logos',self.bbk_url+'/appdata/gsb/logos')
         # logging
         self.verbose = verbose
         self.log_success = warn_dict.get('log_success',base_dict.get('log_success',config_dict.get('log_success',False)))
@@ -155,7 +181,7 @@ class BbkWarnings(object):
                     if 'sender' in alert:
                         logo = logos.get(alert['sender'])
                         if logo:
-                            alert['sender_logo'] = logo.get('image')
+                            alert['sender_logo'] = self.logo_pth+'/'+logo.get('image')
                             alert['sender_name'] = logo.get('name')
                     for info_dict in alert.get('info',[]):
                         if info_dict.get('language','')[0:2].lower()==lang:
@@ -181,14 +207,20 @@ class BbkWarnings(object):
                         alert['level'] = 1
                     else:
                         alert['level'] = CAP_SEVERITY.get(info_dict.get('severity'),0)
-                    alert["level_text"] = "" # dwd_level_text(alert['level'])
+                    alert["level_text"] = bbk_level_text(alert['level'],alert.get('sender','')=="opendata@dwd.de")
+                    # event type
+                    alert['type'] = get_eventtype(
+                                      info_dict.get('event'),
+                                      alert.get('eventCode-II'))
                     # warn icon
                     evc = warn.get('payload',dict()).get('data',dict()).get('transKeys',dict()).get('event')
                     if evc:
                         alert['icon'] = self.icon_pth+'/'+evcode.get(evc,'unknown.png')
                     else:
                         alert['icon'] = self.icon_pth+'/'+'bbkicon.png'
-                    if 'Met' not in info_dict['category'] or include_dwd:
+                    # "opendata@dwd.de"
+                    #if 'Met' not in info_dict['category'] 
+                    if alert.get('sender','')!="opendata@dwd.de" or include_dwd:
                         wwarn[self.filter_area[ags]].append(alert)
                 
                     if self.verbose and __name__ == "__main__":
@@ -230,9 +262,13 @@ class BbkWarnings(object):
                         sn = val['sender_name']+' ('+val['sender']+')'
                     else:
                         sn = val['sender']
-                    s+='<p style="font-size:80%%">Quelle: %s</p>' % sn
+                    if val.get('sender_logo',''):
+                        lg = '<img src="%s" style="max-height:16px" alt="%s" /> ' % (val['sender_logo'],val['sender'])
+                    else:
+                        lg = ""
+                    s+='<p style="font-size:80%%">Quelle: %s%s</p>' % (lg,sn)
 
-                s+='<p style="font-size:40%%"> &ndash;  &emsp;&ndash;&emsp;  &ndash;  &emsp;&ndash;&emsp; II= &ndash; </p>'
+                s+='<p style="font-size:40%%">%s &ndash; %s &emsp;&ndash;&emsp;  %s &ndash; %s &emsp;&ndash;&emsp; %s &ndash; </p>' % (val.get('type',''),val.get('event',''),val.get('level',''),val.get('level_text',''),val.get('identifier',''))
                 
             if not s:
                 s='<p>zur Zeit keine Warnungen</p>'
@@ -304,6 +340,7 @@ if __name__ == "__main__":
         print("Using test configuration")
         # vom Benutzer anzupassen
         config = {'DeutscherWetterdienst':{'BBK':{'counties':{'146280000000':'XX'}}}}
+        config = {'DeutscherWetterdienst':{'BBK':{'counties':{'083110000000':'XX'}}}}
 
     bbk = BbkWarnings(config,verbose=options.verbose)
     """
@@ -315,10 +352,10 @@ if __name__ == "__main__":
     """
     if options.list_logos:
         x = bbk.get_logos()
-        print(x)
+        print(json.dumps(x,indent=4,ensure_ascii=False))
     elif options.list_eventcodes:
         x = bbk.get_eventcodes()
-        print(x)
+        print(json.dumps(x,indent=4,ensure_ascii=False))
     else:
         wwarn = bbk.get_warnings(include_dwd=options.include_dwd,lang=options.lang)
         bbk.write_html(wwarn,options.dry_run)
