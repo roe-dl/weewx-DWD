@@ -39,6 +39,36 @@ if __name__ == "__main__":
     def logerr(x):
         print(x, file=sys.stderr)
 
+"""
+# not used here
+# from dwd-cap-warnings
+AGS_STATES = {
+  '01':('SH','Schleswig-Holstein'),
+  '02':('HH','Freie und Hansestadt Hamburg'),
+  '03':('NS','Niedersachsen'),
+  '04':('HB','Freie Hansestadt Bremen'),
+  '05':('NRW','Nordrhein-Westfalen'),
+  '06':('HE','Hessen'),
+  '07':('RP','Rheinland-Pfalz'),
+  '08':('BW','Baden-Württemberg'),
+  '09':('BY','Freistaat Bayern'),
+  '10':('SL','Saarland'),
+  '11':('BB','Berlin'),
+  '12':('BB','Brandenburg'),
+  '13':('MV','Mecklenburg-Vorpommern'),
+  '14':('SN','Freistaat Sachsen'),
+  '15':('SA','Sachsen-Anhalt'),
+  '16':('TH','Thüringen')}
+"""
+
+WARNING_SOURCES = (
+  'katwarn',
+  'biwapp',
+  'mowas',
+  'dwd',
+  'lhp',
+  'police')
+  
 CAP_SEVERITY = {
   'Minor':2,
   'Moderate':3,
@@ -160,9 +190,12 @@ class BbkWarnings(object):
         evcs = self.wget(url)
         return {evc['eventCode']:evc['imageUrl'] for evc in evcs['eventCodes']}
     
-    def get_county(self, ags):
+    def get_list(self, ags):
         """ get list of active warnings for county ags """
-        url = self.bbk_url + '/dashboard/' + ags + '.json'
+        if ags in WARNING_SOURCES:
+            url = self.bbk_url + '/' + ags + '/mapData.json'
+        else:
+            url = self.bbk_url + '/dashboard/' + ags + '.json'
         return self.wget(url)
 
 
@@ -197,7 +230,7 @@ class BbkWarnings(object):
             if self.verbose and __name__ == "__main__":
                     print("++ dashboard data ++++++++++++++++++++++++++++++++++++++")
                 
-            warns = self.get_county(ags)
+            warns = self.get_list(ags)
             
             if self.verbose:
                 loginf("Gemeindeschlüssel AGS %s, %s Einträge" % (ags,len(warns)))
@@ -393,7 +426,7 @@ if __name__ == "__main__":
     
     bbk = BbkWarnings(config,verbose=options.verbose)
     """
-    warns = bbk.get_county('146280000000')
+    warns = bbk.get_list('146280000000')
     for warn in warns:
         print(warn['id'])
         print(bbk.get_warning(warn['id']))
