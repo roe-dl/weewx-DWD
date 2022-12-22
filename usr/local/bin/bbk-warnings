@@ -1,4 +1,7 @@
 #!/usr/bin/python3
+# warnings of public dangers
+# Copyright (C) 2022 Johanna Roedenbeck
+# licensed under the terms of the General Public License (GPL) v3
 
 from __future__ import absolute_import
 from __future__ import print_function
