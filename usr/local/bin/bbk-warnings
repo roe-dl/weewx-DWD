@@ -190,12 +190,12 @@ class BbkWarnings(object):
         evcs = self.wget(url)
         return {evc['eventCode']:evc['imageUrl'] for evc in evcs['eventCodes']}
     
-    def get_list(self, ags):
-        """ get list of active warnings for county ags """
-        if ags in WARNING_SOURCES:
-            url = self.bbk_url + '/' + ags + '/mapData.json'
+    def get_list(self, ars):
+        """ get list of active warnings for county ars """
+        if ars in WARNING_SOURCES:
+            url = self.bbk_url + '/' + ars + '/mapData.json'
         else:
-            url = self.bbk_url + '/dashboard/' + ags + '.json'
+            url = self.bbk_url + '/dashboard/' + ars + '.json'
         return self.wget(url)
 
 
@@ -211,13 +211,13 @@ class BbkWarnings(object):
         if location:
             try:
                 wwarn = {i:[] for i in location}
-                agss = {i:i for i in location}
+                arss = {i:i for i in location}
             except LookupError:
                 wwarn = {location:[]}
-                agss = {location:location}
+                arss = {location:location}
         else:
             wwarn = {self.filter_area[i]:[] for i in self.filter_area}
-            agss = self.filter_area
+            arss = self.filter_area
         
         evcode = self.get_eventcodes()
         logos = self.get_logos()
@@ -225,15 +225,15 @@ class BbkWarnings(object):
         # remember downloaded warnings
         alerts = dict()
         
-        for ags in agss:
+        for ars in arss:
         
             if self.verbose and __name__ == "__main__":
                     print("++ dashboard data ++++++++++++++++++++++++++++++++++++++")
                 
-            warns = self.get_list(ags)
+            warns = self.get_list(ars)
             
             if self.verbose:
-                loginf("Gemeindeschlüssel AGS %s, %s Einträge" % (ags,len(warns)))
+                loginf("Regionalschlüssel ARS %s, %s Einträge" % (ars,len(warns)))
                 
             if warns:
         
@@ -297,7 +297,7 @@ class BbkWarnings(object):
                     # "opendata@dwd.de"
                     #if 'Met' not in info_dict['category'] 
                     if alert.get('sender','')!="opendata@dwd.de" or include_dwd:
-                        wwarn[agss[ags]].append(alert)
+                        wwarn[arss[ars]].append(alert)
                 
                     if self.verbose and __name__ == "__main__":
                         print("--")
@@ -363,9 +363,9 @@ class BbkWarnings(object):
 
 if __name__ == "__main__":
 
-    usage = """Usage: %prog [options] [AGS]
+    usage = """Usage: %prog [options] [ARS]
 
-  If no AGS is specified, AGSs are read from config.
+  If no ARS is specified, ARSs are read from config.
     """
     
     epilog = None

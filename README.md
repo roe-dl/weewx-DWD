@@ -181,14 +181,14 @@ besser verarbeitet werden können.
 
 Die Warnungen werden vom BBK nur auf Landkreisebene, nicht auf 
 Gemeindeebene, herausgegeben. Das bedeutet, daß die letzten sieben
-Stellen des AGS-Schlüssels 0 sein müssen.
+Stellen des ARS 0 sein müssen.
 
-Die AGS-Schlüssel, für die Meldungen abzufragen sind, können in beim
+Die ARS, für die Meldungen abzufragen sind, können in beim
 Programmaufruf auf der Kommanodozeile oder in der Konfiguration im 
 Abschnitt `[[BBK]][[[counties]]]` angegeben werden.
 
 Für eine bundesweite Liste von Warnungen können folgende Kennungen anstelle
-des AGS-Schlüssels auf der Kommandozeile angegeben werden:
+des ARS auf der Kommandozeile angegeben werden:
 * `katwarn`: Katwarn-Meldungen
 * `biwapp`: Biwapp-Meldungen
 * `mowas`: Mowas-Meldungen
