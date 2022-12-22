@@ -181,7 +181,8 @@ class BbkWarnings(object):
                     if 'sender' in alert:
                         logo = logos.get(alert['sender'])
                         if logo:
-                            alert['sender_logo'] = self.logo_pth+'/'+logo.get('image')
+                            if 'image' in logo:
+                                alert['sender_logo'] = self.logo_pth+'/'+logo.get('image')
                             alert['sender_name'] = logo.get('name')
                     for info_dict in alert.get('info',[]):
                         if info_dict.get('language','')[0:2].lower()==lang:
