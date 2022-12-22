@@ -175,9 +175,13 @@ und `cz`.
 ## bbk-warnings
 
 Dieses Python-Script lädt Meldungen vom Bundesamt für Bevölkerungsschutz
-und Katastrophenhilfe herunter. Dabei werden Meldungen ausgelassen,
+und Katastrophenhilfe (BBK) herunter. Dabei werden Meldungen ausgelassen,
 die ursprünglich vom DWD stammen, da diese mittels `dwd-cap-warnings` 
 besser verarbeitet werden können.
+
+Die Warnungen werden vom BBK nur auf Landkreisebene, nicht auf 
+Gemeindeebene, herausgegeben. Das bedeutet, daß die letzten sieben
+Stellen des AGS-Schlüssels 0 sein müssen.
 
 ## /etc/cron.hourly/dwd
 
