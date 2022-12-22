@@ -69,6 +69,23 @@ def get_eventtype(evt, ii):
     return "*"
     
 
+def tobool(x):
+    """ convert text to boolean
+        Copyright (C) Tom Keffer
+    """
+    try:
+        if x.lower() in ['true', 'yes', 'y']:
+            return True
+        elif x.lower() in ['false', 'no', 'n']:
+            return False
+    except AttributeError:
+        pass
+    try:
+        return bool(int(x))
+    except (ValueError, TypeError):
+        pass
+    raise ValueError("Unknown boolean specifier: '%s'." % x)
+
 class BbkWarnings(object):
 
     def __init__(self, config_dict, verbose=False):
@@ -86,8 +103,8 @@ class BbkWarnings(object):
         self.logo_pth = warn_dict.get('logos',self.bbk_url+'/appdata/gsb/logos')
         # logging
         self.verbose = verbose
-        self.log_success = warn_dict.get('log_success',base_dict.get('log_success',config_dict.get('log_success',False)))
-        self.log_failure = warn_dict.get('log_failure',base_dict.get('log_failure',config_dict.get('log_failure',False)))
+        self.log_success = tobool(warn_dict.get('log_success',base_dict.get('log_success',config_dict.get('log_success',False))))
+        self.log_failure = tobool(warn_dict.get('log_failure',base_dict.get('log_failure',config_dict.get('log_failure',False))))
         if int(config_dict.get('debug',0))>0 or verbose:
             self.log_success = True
             self.log_failure = True
@@ -309,8 +326,10 @@ if __name__ == "__main__":
 
     group = optparse.OptionGroup(parser,"Output and logging options")
     group.add_option("--dry-run", action="store_true",
+                      default=False,
                       help="Print what would happen but do not do it. Default is False")
     group.add_option("-v","--verbose", action="store_true",
+                      default=False,
                       help="Verbose output")
     group.add_option("--include-dwd", action="store_true",
                       default=False,
