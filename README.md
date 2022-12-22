@@ -183,6 +183,10 @@ Die Warnungen werden vom BBK nur auf Landkreisebene, nicht auf
 Gemeindeebene, herausgegeben. Das bedeutet, daß die letzten sieben
 Stellen des AGS-Schlüssels 0 sein müssen.
 
+Die AGS-Schlüssel, für die Meldungen abzufragen sind, können in beim
+Programmaufruf auf der Kommanodozeile oder in der Konfiguration im 
+Abschnitt `[[BBK]][[[counties]]]` angegeben werden.
+
 ## /etc/cron.hourly/dwd
 
 Dieses Script sorgt dafür, daß die beiden Scripte `wget-dwd` und `dwd-warnings` regelmäßig aufgerufen werden.

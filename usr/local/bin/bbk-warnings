@@ -89,6 +89,7 @@ def tobool(x):
         pass
     raise ValueError("Unknown boolean specifier: '%s'." % x)
 
+
 class BbkWarnings(object):
 
     def __init__(self, config_dict, verbose=False):
@@ -133,7 +134,7 @@ class BbkWarnings(object):
         
 
     def wget(self, url):
-
+        """ download from BBK """
         headers={'User-Agent':'weewx-DWD'}
         reply = requests.get(url,headers=headers)
 
@@ -160,26 +161,38 @@ class BbkWarnings(object):
         return {evc['eventCode']:evc['imageUrl'] for evc in evcs['eventCodes']}
     
     def get_county(self, ags):
-
+        """ get list of active warnings for county ags """
         url = self.bbk_url + '/dashboard/' + ags + '.json'
         return self.wget(url)
 
 
     def get_warning(self, id):
-    
+        """ get warning data of warning id """    
         url = self.bbk_url + '/warnings/' + id +'.json'
         return self.wget(url)
         
         
-    def get_warnings(self, include_dwd=False, lang='de'):
+    def get_warnings(self, location=None, include_dwd=False, lang='de'):
 
         # initialize dict for all regions to collect warnings for
-        wwarn={self.filter_area[i]:[] for i in self.filter_area}
+        if location:
+            try:
+                wwarn = {i:[] for i in location}
+                agss = {i:i for i in location}
+            except LookupError:
+                wwarn = {location:[]}
+                agss = {location:location}
+        else:
+            wwarn = {self.filter_area[i]:[] for i in self.filter_area}
+            agss = self.filter_area
         
         evcode = self.get_eventcodes()
         logos = self.get_logos()
         
-        for ags in self.filter_area:
+        # remember downloaded warnings
+        alerts = dict()
+        
+        for ags in agss:
         
             if self.verbose and __name__ == "__main__":
                     print("++ dashboard data ++++++++++++++++++++++++++++++++++++++")
@@ -196,8 +209,17 @@ class BbkWarnings(object):
                     if self.verbose:
                         loginf("Warn ID: %s" % warn.get('id'))
                         loginf(warn)
-                        
-                    alert = self.get_warning(warn['id'])
+                    
+                    if warn['id'] in alerts:
+                        # this warning is already downloaded
+                        alert = alerts[warn['id']]
+                        if self.log_success or self.verbose:
+                            loginf('reuse warning %s' % warn['id'])
+                    else:
+                        # download warning
+                        alert = self.get_warning(warn['id'])
+                        alerts[warn['id']] = alert
+                    
                     if 'sender' in alert:
                         logo = logos.get(alert['sender'])
                         if logo:
@@ -242,7 +264,7 @@ class BbkWarnings(object):
                     # "opendata@dwd.de"
                     #if 'Met' not in info_dict['category'] 
                     if alert.get('sender','')!="opendata@dwd.de" or include_dwd:
-                        wwarn[self.filter_area[ags]].append(alert)
+                        wwarn[agss[ags]].append(alert)
                 
                     if self.verbose and __name__ == "__main__":
                         print("--")
@@ -308,7 +330,9 @@ class BbkWarnings(object):
 
 if __name__ == "__main__":
 
-    usage = """Usage: %prog [options]
+    usage = """Usage: %prog [options] [AGS]
+
+  If no AGS is specified, AGSs are read from config.
     """
     
     epilog = None
@@ -365,6 +389,8 @@ if __name__ == "__main__":
         config = {'DeutscherWetterdienst':{'BBK':{'counties':{'146280000000':'XX'}}}}
         config = {'DeutscherWetterdienst':{'BBK':{'counties':{'083110000000':'XX'}}}}
 
+    if len(args)==0: args = None
+    
     bbk = BbkWarnings(config,verbose=options.verbose)
     """
     warns = bbk.get_county('146280000000')
@@ -380,5 +406,5 @@ if __name__ == "__main__":
         x = bbk.get_eventcodes()
         print(json.dumps(x,indent=4,ensure_ascii=False))
     else:
-        wwarn = bbk.get_warnings(include_dwd=options.include_dwd,lang=options.lang)
+        wwarn = bbk.get_warnings(location=args,include_dwd=options.include_dwd,lang=options.lang)
         bbk.write_html(wwarn,options.dry_run)
