@@ -163,6 +163,33 @@ class BbkWarnings(object):
         return int(ti.timestamp()*1000)
         
 
+    @staticmethod
+    def compareARS(ars, pars):
+        """ Is ars in pars? """
+        if not pars: return True
+        # compare string from end to start
+        ars = list(reversed(str(ars)))
+        # pars may be a list of ARS
+        for ii in pars.split(','):
+            # reverse string
+            jj = list(reversed(str(ii.strip())))
+            # every character of ars is considered equal to 0 until the
+            # first non-zero character in jj
+            x = '0'
+            # loop from the last character to the first one
+            for idx,val in enumerate(ars):
+                # 
+                if jj[idx]==x: continue
+                # first non-zero charachter --> change x to unpossilbe value
+                x = 'XX'
+                # compare
+                if val!=jj[idx]: break
+            else:
+                # no character different
+                return True
+        return False
+    
+
     def wget(self, url):
         """ download from BBK """
         headers={'User-Agent':'weewx-DWD'}
@@ -195,7 +222,7 @@ class BbkWarnings(object):
         if ars in WARNING_SOURCES:
             url = self.bbk_url + '/' + ars + '/mapData.json'
         else:
-            url = self.bbk_url + '/dashboard/' + ars + '.json'
+            url = self.bbk_url + '/dashboard/' + str(ars)[0:5] + '0000000.json'
         return self.wget(url)
 
 
@@ -270,7 +297,41 @@ class BbkWarnings(object):
                             alert['severity'] = info_dict['severity']
                             alert['category'] = info_dict['category']
                             alert['certainty'] = info_dict['certainty']
-                            alert['parameter'] = info_dict['parameter']
+                            # <eventCode>
+                            for ii in info_dict.get('eventcode',[]):
+                                vn = None
+                                vl = None
+                                for jj in ii:
+                                    if jj.lower()=='valuename':
+                                        vn = ii[jj]
+                                    elif jj.lower()=='value':
+                                        vl = ii[jj]
+                                if vn and vl is not None:
+                                    alert['eventCode-'+str(vn)] = vl
+                            # <parameter>
+                            alert['parameter'] = dict()
+                            for ii in info_dict.get('parameter',[]):
+                                vn = None
+                                vl = None
+                                for jj in ii:
+                                    if jj.lower()=='valuename':
+                                        vn = ii[jj]
+                                    elif jj.lower()=='value':
+                                        vl = ii[jj]
+                                try:
+                                    alert['parameter'][vn] = vl
+                                except LookupError:
+                                    pass
+                            # severity level
+                            if info_dict.get('event','')[:16]=='VORABINFORMATION':
+                                alert['level'] = 1
+                            else:
+                                alert['level'] = CAP_SEVERITY.get(info_dict.get('severity'),0)
+                            alert["level_text"] = bbk_level_text(alert['level'],alert.get('sender','')=="opendata@dwd.de")
+                            # event type
+                            alert['type'] = get_eventtype(
+                                      info_dict.get('event'),
+                                      alert.get('eventCode-II'))
                             del alert['info']
                     # release time
                     alert['released'] = BbkWarnings._mktime(warn.get('effective',warn.get('sent')))
@@ -278,16 +339,14 @@ class BbkWarnings(object):
                     alert['start'] = BbkWarnings._mktime(warn.get('onset',warn.get('sent')))
                     # end time
                     alert['end'] = BbkWarnings._mktime(warn.get('expires'))
-                    # severity level
-                    if info_dict.get('event','')[:16]=='VORABINFORMATION':
-                        alert['level'] = 1
-                    else:
-                        alert['level'] = CAP_SEVERITY.get(info_dict.get('severity'),0)
-                    alert["level_text"] = bbk_level_text(alert['level'],alert.get('sender','')=="opendata@dwd.de")
-                    # event type
-                    alert['type'] = get_eventtype(
-                                      info_dict.get('event'),
-                                      alert.get('eventCode-II'))
+                    # <code>
+                    for ii in alert.get('code',[]):
+                        if ii=='SILENT_UPDATE':
+                            alert['SILENT_UPDATE'] = True
+                        if ii=='PARTIAL_CLEAR':
+                            alert['PARTIAL_CLEAR'] = True
+                        if ii[:3]=='id:':
+                            alert['msgid'] = ii
                     # warn icon
                     evc = warn.get('payload',dict()).get('data',dict()).get('transKeys',dict()).get('event')
                     if evc:
@@ -295,9 +354,10 @@ class BbkWarnings(object):
                     else:
                         alert['icon'] = self.icon_pth+'/'+'bbkicon.png'
                     # "opendata@dwd.de"
-                    #if 'Met' not in info_dict['category'] 
                     if alert.get('sender','')!="opendata@dwd.de" or include_dwd:
-                        wwarn[arss[ars]].append(alert)
+                        pars = alert.get('parameter',dict()).get('warnVerwaltungsbereiche','')
+                        if BbkWarnings.compareARS(ars,pars):
+                            wwarn[arss[ars]].append(alert)
                 
                     if self.verbose and __name__ == "__main__":
                         print("--")
