@@ -167,25 +167,22 @@ class BbkWarnings(object):
     def compareARS(ars, pars):
         """ Is ars in pars? """
         if not pars: return True
-        # compare string from end to start
-        ars = list(reversed(str(ars)))
+        # remove '0' at the end of the string
+        ars_str = ars.strip().rstrip('0')
+        ars_len = len(ars_str)
+        #print('QQQQQQQQQQ','ARS str',ars_str,'len',ars_len)
+        # '000000000000' means 'whole country'
+        if ars_len==0: return True
         # pars may be a list of ARS
         for ii in pars.split(','):
-            # reverse string
-            jj = list(reversed(str(ii.strip())))
-            # every character of ars is considered equal to 0 until the
-            # first non-zero character in jj
-            x = '0'
-            # loop from the last character to the first one
-            for idx,val in enumerate(ars):
-                # 
-                if jj[idx]==x: continue
-                # first non-zero charachter --> change x to unpossilbe value
-                x = 'XX'
-                # compare
-                if val!=jj[idx]: break
-            else:
-                # no character different
+            # remove '0' at the end of the string
+            vgl_str = ii.strip().rstrip('0')
+            vgl_len = len(vgl_str)
+            #print('QQQQQQQQQQ','ARS',ars_str,ars_len,'VGL',vgl_str,vgl_len,':',ars[0:min(vgl_len,ars_len)],'==',vgl_str[0:min(vgl_len,ars_len)])
+            # 
+            if vgl_len==0: return True
+            #
+            if ars[0:min(vgl_len,ars_len)]==vgl_str[0:min(vgl_len,ars_len)]: 
                 return True
         return False
     
