@@ -19,6 +19,11 @@
 """
 
 """
+    POI
+    ===
+    
+    There are data of 47 DWD weather stations available. 
+    
     Configuration in weewx.conf:
     
     [DeutscherWetterdienst]
@@ -44,6 +49,39 @@
     10453 - Brocken
     10961 - Zugspitze
     
+    current readings:
+    https://www.dwd.de/DE/leistungen/beobachtung/beobachtung.html
+    
+    ----------------
+    
+    CDC
+    ===
+    
+    CDC includes a lot more of stations than POI.
+    
+    https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/
+
+    station data are in subdirectiory "meta_data"
+    
+    Configuration in weewx.conf:
+    
+    [DeutscherWetterdienst]
+        ...
+        [[CDC]]
+            [[[station_id]]]
+                prefix = observation_type_prefix_for_station
+                #log_success = replace_me # True or False, optional
+                #log_failure = replace_me # True or False, optional
+            [[[another_station_id]]]
+                ...
+            ...
+    
+    station list:
+    https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/now/zehn_now_tu_Beschreibung_Stationen.txt
+    
+    example station ids:
+    01358 - Fichtelberg
+    
 """
 
 VERSION = "0.x"
@@ -52,6 +90,8 @@ import threading
 import configobj
 import requests
 import csv
+import io
+import zipfile
 import time
 import datetime
 
@@ -240,17 +280,20 @@ class DWDPOIthread(threading.Thread):
     
 
     def get_data(self):
-        """ get buffered data and empty buffer """
+        """ get buffered data """
         try:
             self.lock.acquire()
+            """
             try:
                 last_ts = self.data[-1]['time']
                 interval = last_ts - self.last_get_ts
                 self.last_get_ts = last_ts
             except (LookupError,TypeError,ValueError,ArithmeticError):
                 interval = None
+            """
+            interval = 1
             data = self.data
-            #self.data = []
+            #print('POI',data)
         finally:
             self.lock.release()
         #loginf("get_data interval %s data %s" % (interval,data))
@@ -302,7 +345,7 @@ class DWDPOIthread(threading.Thread):
                      log_failure=self.log_failure)
             reply = reply.decode('utf-8')
         except Exception as e:
-            logerr("wget %s" % e)
+            logerr("thread '%s': wget %s" % (self.name,e))
             return
         x = []
         ii = 0;
@@ -368,6 +411,194 @@ class DWDPOIthread(threading.Thread):
             loginf("thread '%s' stopped" % self.name)
 
 
+class DWDCDCthread(threading.Thread):
+
+    BASE_URL = 'https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate'
+    
+    OBS = {
+        'STATIONS_ID':('station_id',None,None),
+        'MESS_DATUM_ENDE':('MESS_DATUM_ENDE',None,None),
+        'QN':('quality_level',None,None),
+        # wind
+        'FF_10':('windSpeed','meter_per_second','group_speed'),
+        'DD_10':('windDir','degree_compass','group_direction'),
+        # wind gust
+        'FX_10':('windGust','meter_per_second','group_speed'),
+        'DX_10':('windGustDir','degree_compass','group_direction'),
+        # air temperature
+        'PP_10':('pressure','hPa','group_pressure'),
+        'TT_10':('outTemp','degree_C','group_temperature'),
+        'TM5_10':('extraTemp1','degree_C','group_temperature'),
+        'RF_10':('outHumidity','percent','group_percent'),
+        'TD_10':('dewpoint','degree_C','group_temperature'),
+        # precipitation
+        'RWS_DAU_10':('rainDur','minute','group_deltatime'),
+        'RWS_10':('rain','mm','group_rain'),
+        'RWS_IND_10':('rainIndex','',''),
+        # solar
+        'DS_10':('solarRad','J/cm^2','group_radiation'),
+        'GS_10':('radiation','J/cm^2','group_radiation'),
+        'SD_10':('sunshineDur','hour','group_deltatime'),
+        'LS_10':('LS_10','j/cm^2','group_radiation')}
+        
+    def __init__(self, name, location, prefix, iconset=4, log_success=False, log_failure=True):
+    
+        super(DWDCDCthread,self).__init__(name='DWD-CDC-'+name)
+        self.log_success = log_success
+        self.log_failure = log_failure
+        self.location = location
+        self.iconset = iconset
+        
+        self.lock = threading.Lock()
+        
+        self.data = []
+        self.maxtime = None
+        self.last_get_ts = 0
+        self.running = True
+        
+        weewx.units.obs_group_dict.setdefault(prefix+'DateTime','group_time')
+        for key in DWDCDCthread.OBS:
+            obs = DWDCDCthread.OBS[key]
+            obstype = obs[0]
+            obsgroup = obs[2]
+            if obsgroup:
+                weewx.units.obs_group_dict.setdefault(prefix+obstype[0].upper()+obstype[1:],obsgroup)
+
+    def shutDown(self):
+        """ request thread shutdown """
+        self.running = False
+        loginf("thread '%s': shutdown requested" % self.name)
+    
+
+    def get_data(self):
+        """ get buffered data  """
+        try:
+            self.lock.acquire()
+            """
+            try:
+                last_ts = self.data[-1]['time']
+                interval = last_ts - self.last_get_ts
+                self.last_get_ts = last_ts
+            except (LookupError,TypeError,ValueError,ArithmeticError):
+                interval = None
+            """
+            interval = 10
+            data = self.data
+            maxtime = self.maxtime
+            #print('CDC',data)
+        finally:
+            self.lock.release()
+        #loginf("get_data interval %s data %s" % (interval,data))
+        return data,interval,maxtime
+        
+
+    def decodezip(self, zipdata):
+        zz = zipfile.ZipFile(io.BytesIO(zipdata),'r')
+        for ii in zz.namelist():
+            return zz.read(ii).decode(encoding='utf-8')
+        return None
+
+        
+    def decodecsv(self, csvdata):
+        x = []
+        first = True
+        for ln in csv.reader(csvdata.splitlines(),delimiter=';'):
+            if first:
+                first = False
+                names = ln
+            else:
+                y = dict()
+                for idx,val in enumerate(ln):
+                    nm = names[idx].strip()
+                    if idx==0:
+                        # station id
+                        val = val.strip()
+                    elif idx==1:
+                        # date and time (UTC)
+                        d = datetime.datetime(int(val[0:4]),int(val[4:6]),int(val[6:8]),int(val[8:10]),int(val[10:12]),0,tzinfo=datetime.timezone(datetime.timedelta(),'UTC'))
+                        y['dateTime'] = (int(d.timestamp()),'unix_epoch','group_time')
+                    elif nm=='QN':
+                        val = int(val)
+                    else:
+                        # data columns
+                        try:
+                            val = float(val)
+                            if val==-999.0: val=None
+                        except (ValueError,TypeError,ArithmeticError):
+                            pass
+                    if val!='eor':
+                        col = DWDCDCthread.OBS.get(nm,(nm,None,None))
+                        y[col[0]] = (val,col[1],col[2])
+                    if 'windDir' in y:
+                        y['windDir10'] = y['windDir']
+                    if 'windSpeed' in y:
+                        y['windSpeed10'] = y['windSpeed']
+                x.append(y)
+        return x
+
+    
+    def getRecord(self):
+        url = DWDCDCthread.BASE_URL+'/10_minutes/'
+        urls = (
+            url+'air_temperature/now/10minutenwerte_TU_'+self.location+'_now.zip',
+            url+'wind/now/10minutenwerte_wind_'+self.location+'_now.zip',
+            url+'extreme_wind/now/10minutenwerte_extrema_wind_'+self.location+'_now.zip',
+            url+'precipitation/now/10minutenwerte_nieder_'+self.location+'_now.zip')
+        x = None
+        ti = None
+        maxtime = None
+        for url in urls:
+            try:
+                reply = wget(url,log_success=self.log_success,log_failure=self.log_failure)
+                try:
+                    txt = self.decodezip(reply)
+                    try:
+                        tab = self.decodecsv(txt)
+                        if x:
+                            try:
+                                for ii in tab:
+                                    x[ti[ii['dateTime']]].update(ii)
+                                if tab[-1]['dateTime'][0]<maxtime[0]:
+                                    maxtime = tab[-1]['dateTime']
+                            except Exception as e:
+                                logerr("thread '%s': another table %s" % (self.name,e))
+                        else:
+                            try:
+                                x = tab
+                                ti = {vv['dateTime']:ii for ii,vv in enumerate(tab)}
+                                maxtime = tab[-1]['dateTime']
+                            except Exception as e:
+                                logerr("thread '%s': first table %s" % (self.name,e))
+                    except Exception as e:
+                        logerr("thread '%s': decodecsv %s" % (self.name,e))
+                except Exception as e:
+                    logerr("thread '%s': decodezip %s" % (self.name,e))
+            except Exception as e:
+                logerr("thread '%s': wget %s" % (self.name,e))
+        for idx,_ in enumerate(x):
+            x[idx]['interval'] = (10,'minute','group_interval')
+        #print(x[ti[maxtime]])
+        try:
+            self.lock.acquire()
+            self.data = x
+            self.maxtime = ti[maxtime]
+        finally:
+            self.lock.release()
+
+
+    def run(self):
+        """ thread loop """
+        loginf("thread '%s' starting" % self.name)
+        try:
+            while self.running:
+                self.getRecord()
+                time.sleep(300)
+        except Exception as e:
+            logerr("thread '%s': %s" % (self.name,e))
+        finally:
+            loginf("thread '%s' stopped" % self.name)
+
+
 class DWDservice(StdService):
 
     def __init__(self, engine, config_dict):
@@ -389,11 +620,19 @@ class DWDservice(StdService):
         if iconset=='aeris': self.iconset = 6
         
         poi_dict = config_dict.get('DeutscherWetterdienst',config_dict).get('POI',site_dict)
-        stations = poi_dict.get('stations',dict())
+        stations = poi_dict.get('stations',site_dict)
         for station in stations.sections:
             station_dict = weeutil.config.accumulateLeaves(stations[station])
             station_dict['iconset'] = station_dict.get('icon_set',self.iconset)
             self._create_poi_thread(station, station, station_dict)
+            
+        # https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/
+        cdc_dict = config_dict.get('DeutscherWetterdienst',config_dict).get('CDC',site_dict)
+        stations = cdc_dict.get('stations',site_dict)
+        for station in stations.sections:
+            station_dict = weeutil.config.accumulateLeaves(stations[station])
+            station_dict['iconset'] = station_dict.get('icon_set',self.iconset)
+            self._create_cdc_thread(station, station, station_dict)
         
         if  __name__!='__main__':
             self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
@@ -403,8 +642,23 @@ class DWDservice(StdService):
     def _create_poi_thread(self, thread_name, location, station_dict):
         prefix = station_dict.get('prefix','id'+thread_name)
         self.threads[thread_name] = dict()
+        self.threads[thread_name]['datasource'] = 'POI'
         self.threads[thread_name]['prefix'] = prefix
         self.threads[thread_name]['thread'] = DWDPOIthread(thread_name,
+                    location,
+                    prefix,
+                    iconset=station_dict.get('iconset',4),
+                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',False)) or self.verbose,
+                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',True)) or self.verbose)
+        self.threads[thread_name]['thread'].start()
+    
+    
+    def _create_cdc_thread(self, thread_name, location, station_dict):
+        prefix = station_dict.get('prefix','id'+thread_name)
+        self.threads[thread_name] = dict()
+        self.threads[thread_name]['datasource'] = 'CDC'
+        self.threads[thread_name]['prefix'] = prefix
+        self.threads[thread_name]['thread'] = DWDCDCthread(thread_name,
                     location,
                     prefix,
                     iconset=station_dict.get('iconset',4),
@@ -430,9 +684,16 @@ class DWDservice(StdService):
     def new_archive_record(self, event):
         for thread_name in self.threads:
             # get collected data
-            data,interval = self.threads[thread_name]['thread'].get_data()
+            datasource = self.threads[thread_name]['datasource']
+            if datasource=='POI':
+                data,interval = self.threads[thread_name]['thread'].get_data()
+                if data: data = data[0]
+            elif datasource=='CDC':
+                data,interval,maxtime = self.threads[thread_name]['thread'].get_data()
+                if data: data = data[maxtime]
+            #print(thread_name,data,interval)
             if data:
-                x = self._to_weewx(thread_name,data[0],event.record['usUnits'])
+                x = self._to_weewx(thread_name,data,event.record['usUnits'])
                 event.record.update(x)
 
 
