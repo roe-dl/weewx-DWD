@@ -274,18 +274,34 @@ Folgende Meßgrößen sind definiert, aber nicht immer verfügbar:
   * `extraTemp1`: Lufttemperatur 5cm über dem Boden
   * `outHumidity`: relative Luftfeuchtigkeit
   * `dewpoint`: Taupunkttemperatur
-* Sensorgruppe `wind`: `windSpeed`, `windDir`
-* Sensorgruppe `gust`: `windGust`, `windGustDir`
-* Sensorgruppe `precipitation`: `rainDur`, `rain`, `rainIndex`
-* Sensorgruppe `solar`: `solarRad`, `radiation`, `sunshineDur`, `LS_10`
-* nur bei POI: `cloudcover` (Wolkenbedeckung in Prozent), 
-  `cloudbase` (Höhe der Wolkenunterkante), 
-  `visibility` (Sichtweite), 
-  `presentWeather` (codierter Wetterzustand), 
-  `barometer`, `snowDepth`,
-  `icon` (Symbol des Wetterzustandes), 
-  `icontitle` (Beschreibung dazu)
-* nur bei CDC: `station_id`, `MESS_DATUM_ENDE`, `quality_level`
+* Sensorgruppe `wind`: 
+  * `windSpeed`: Windgeschwindigkeit 
+  * `windDir`: Windrichtung
+* Sensorgruppe `gust`: 
+  * `windGust`: Böengeschwindigkeit 
+  * `windGustDir`: Böenrichtung
+* Sensorgruppe `precipitation`: 
+  * `rainDur`: Niederschlagsdauer im Meßintervall 
+  * `rain`: Niderschlagsmenge im Meßinterval 
+  * `rainIndex`: Niederschlagsart
+* Sensorgruppe `solar`: 
+  * `solarRad` 
+  * `radiation`
+  * `sunshineDur`: Sonnenscheindauer im Meßintervall 
+  * `LS_10`
+* nur bei POI: 
+  * `cloudcover`: Wolkenbedeckung in Prozent
+  * `cloudbase`: Höhe der Wolkenunterkante 
+  * `visibility`: Sichtweite 
+  * `presentWeather`: codierter Wetterzustand 
+  * `barometer`: auf Meeresniveau umgerechneter Luftdruck
+  * `snowDepth`: Schneehöhe
+  * `icon`: Symbol des Wetterzustandes (Dateiname) 
+  * `icontitle`: Beschreibung dazu
+* nur bei CDC: 
+  * `station_id`
+  * `MESS_DATUM_ENDE`
+  * `quality_level`
 
 `icon`, `icontitle`, `station_id` und `MESS_DATUM_ENDE` sind 
 Textfelder, die nur mit `.raw` benutzt werden können.
