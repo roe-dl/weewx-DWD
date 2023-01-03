@@ -401,7 +401,7 @@ class BbkWarnings(object):
                         lg = ""
                     s+='<p style="font-size:80%%">Quelle: %s%s</p>' % (lg,sn)
 
-                s+='<p style="font-size:40%%">%s &ndash; %s &emsp;&ndash;&emsp;  %s &ndash; %s &emsp;&ndash;&emsp; %s &ndash; </p>' % (val.get('type',''),val.get('event',''),val.get('level',''),val.get('level_text',''),val.get('identifier',''))
+                s+='<p style="font-size:40%%">%s &ndash; %s &emsp;&ndash;&emsp;  %s &ndash; %s &emsp;&ndash;&emsp; &ndash; %s</p>' % (val.get('type',''),val.get('event',''),val.get('level',''),val.get('level_text',''),val.get('identifier',''))
                 
             if not s:
                 s='<p>zur Zeit keine Warnungen</p>'

@@ -217,6 +217,66 @@ Soll `dwd-mosmix` benutzt werden, muß dafür in der Datei die Zeile
 ```
 hinzugefügt werden. Wenn die Vorhersage für mehrere Stationen benötigt wird, ist für jede Station ein Aufruf einzutragen.
 
+# WeeWX-Service
+
+Neben den eigenständigen Programmen, die im vorigen Abschnitt beschrieben
+sind, gibt es jetzt noch einen WeeWX-Service, der in der für WeeWX
+üblichen Weise in das System integriert ist. Längerfristig soll er
+die Aufgabe der separaten Programme oder zumindeste deren Aufruf 
+übernehmen. Im Moment liefert er eine zusätzliche Funktion, die in den 
+Programmen nicht enthalten ist, nämlich den Abruf von Istwerten von 
+DWD-Wetterstationen.
+
+## POI
+
+Unter der Überschrift POI bietet der DWD stündlich aktualisierte
+Werte von einer kleinen Anzahl ausgewählter Wetterstationen,
+zusätzlich aufbereitet mit dem aktuellen Wetterzustand.
+
+## CDC
+
+Unter der Überschrift CDC werden die blanken Meßwerte zur Verfügung
+gestellt. Dabei sind verschiedene Aktualisierungsraten und 
+Zusammenfassungen verfügbar. Momentan können hier die
+10-Minuten-Werte abgerufen werden.
+
+## Einbinden in WeeWX
+
+Um den Dienst in WeeWX zu aktivieren, muß er in `weewx.conf` 
+eingetragen werden:
+
+```
+[Engine]
+    [[Services]]
+        ...
+        data_services = ..., user.dwd.DWDservice
+        ...
+```
+
+Zur Konfiguration, von welchen Stationen Daten abgerufen werden
+sollen, siehe Abschnitt "Konfiguration".
+
+## Meßgrößen
+
+Die Namen der Meßgrößen entsprechen den Standardnamen, die WeeWX
+verwendet, jeweils mit dem Präfix laut Konfiguration. Der erste
+Buchstabe des Namens wird in einen Großbuchstaben verwandelt.
+Für die Außentemperatur `outTemp` wäre das bei einem Präfix
+`xyz` demzufolge `xyzOutTemp`.
+
+Folgende Meßgrößen sind definiert, aber nicht immer verfügbar:
+* immer: `dateTime`, `station_id`, `MESS_DATUM_ENDE`, `quality_level`
+* `air`: `pressure`, `outTemp`, `extraTemp1`, `outHumidity`, `dewpoint`
+* `wind`: `windSpeed`, `windDir`
+* `gust`: `windGust`, `windGustDir`
+* `precipitation`: `rainDur`, `rain`, `rainIndex`
+* `solar`: `solarRad`, `radiation`, `sunshineDur`, `LS_10`
+* nur bei POI: `cloudcover`, `cloudbase`, `visibility`, 
+  `presentWeather`, `barometer`, `snowDepth`
+  `icon`, `icontitle`
+
+`icon`, `icontitle`, `station_id` und `MESS_DATUM_ENDE` sind 
+Textfelder, die nur mit `.raw` benutzt werden können.
 
 # Warnregionen
 
@@ -249,7 +309,8 @@ Vorhersage-Dateien.
 ## Konfiguration in weewx.conf
 
 Die Eintragungen in weewx.conf müssen mit der Hand vorgenommen werden. Es
-gibt gegenwärtig kein Installationsprogramm dafür.
+gibt gegenwärtig kein Installationsprogramm dafür. Nur für Funktionen,
+die tatsächlich genutzt werden, müssen die Abschnitte vorhanden sein.
 
 Beispiel:
 ```
@@ -281,7 +342,17 @@ Beispiel:
         [[[counties]]]
             145220000000 = DL
             147130000000 = L
-    [[Belchertown]]
+    [[POI]]
+        [[[stations]]]
+            [[[[station_code]]]]
+                prefix = observation_type_prefix_for_station
+    [[CDC]]
+        [[[stations]]]
+            [[[[station_id]]]]
+                prefix = observation_type_prefix_for_station
+                # equipment of the weather station (optional)
+                observations = air,wind,gust,precipitation,solar
+     [[Belchertown]]
         section = Belchertown
         warnings = DL
         forecast = P0291
@@ -309,6 +380,14 @@ Ob die Warnungen auf Landkreis- oder Gemeindebasis angezeigt werden,
 wird mit der Option `--resolution` beim Aufruf von `dwd-cap-warnings`
 eingestellt. Alternativ kann die Option auch in die Konfigurationsdatei
 eingetragen werden.
+
+Mögliche Werte für `station_code` finden Sie beim DWD unter
+[DWD-Stationsübersicht](https://www.dwd.de/DE/leistungen/klimadatendeutschland/stationsuebersicht.html).
+
+Mögliche Werte für `station_id` finden Sie beim DWD zum Beispiel unter
+[DWD-Beschreibung-Stationen](https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/now/zehn_now_tu_Beschreibung_Stationen.txt)
+Unter `observations` sollten nur die Sensorengruppen aufgeführt werden,
+die an der betreffenden Station tatsächlich verfügbar sind.
 
 ## Wo können die nachfolgenden Beispiele eingefügt werden?
 
