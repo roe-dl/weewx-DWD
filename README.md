@@ -265,10 +265,15 @@ Für die Außentemperatur `outTemp` wäre das bei einem Präfix
 `xyz` demzufolge `xyzOutTemp`.
 
 Folgende Meßgrößen sind definiert, aber nicht immer verfügbar:
-* immer: `dateTime`, `interval`
-* Sensorgruppe `air`: `pressure` (Stationsluftdruck QFE) , `outTemp`, 
-  `extraTemp1` (5cm über dem Boden), 
-  `outHumidity`, `dewpoint`
+* immer: 
+  * `dateTime`: Zeitstempel der Messung 
+  * `interval`: Meßinterval (1h bei POI, 10min. bei CDC)
+* Sensorgruppe `air`: 
+  * `pressure`: Stationsluftdruck QFE
+  * `outTemp`: Lufttemperatur 2m über dem Boden 
+  * `extraTemp1`: Lufttemperatur 5cm über dem Boden
+  * `outHumidity`: relative Luftfeuchtigkeit
+  * `dewpoint`: Taupunkttemperatur
 * Sensorgruppe `wind`: `windSpeed`, `windDir`
 * Sensorgruppe `gust`: `windGust`, `windGustDir`
 * Sensorgruppe `precipitation`: `rainDur`, `rain`, `rainIndex`
