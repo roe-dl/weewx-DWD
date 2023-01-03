@@ -626,14 +626,15 @@ class DWDCDCthread(threading.Thread):
                     maxtime = tab[-1]['dateTime']
             except Exception as e:
                 logerr("thread '%s': %s %s %s" % (self.name,func,e.__class__.__name__,e))
-        for idx,_ in enumerate(x):
-            x[idx]['interval'] = (10,'minute','group_interval')
-            if self.lat is not None:
-                x[idx]['latitude'] = (self.lat,'','')
-            if self.lon is not None:
-                x[idx]['longitude'] = (self.lon,'','')
-            if self.alt:
-                x[idx]['altitude'] = (self.alt,'meter','group_altitude')
+        if x:
+            for idx,_ in enumerate(x):
+                x[idx]['interval'] = (10,'minute','group_interval')
+                if self.lat is not None:
+                    x[idx]['latitude'] = (self.lat,'','')
+                if self.lon is not None:
+                    x[idx]['longitude'] = (self.lon,'','')
+                if self.alt:
+                    x[idx]['altitude'] = (self.alt,'meter','group_altitude')
         #print(x[ti[maxtime]])
         try:
             self.lock.acquire()
