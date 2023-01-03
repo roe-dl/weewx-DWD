@@ -86,6 +86,7 @@
     
     example station ids:
     01358 - Fichtelberg
+    00840 - Carlsfeld
     
 """
 
@@ -150,7 +151,7 @@ from weewx.engine import StdService
 import weeutil.weeutil
 import weewx.accum
 import weewx.units
-
+import weewx.wxformulas
 
 # Cloud cover icons
 
@@ -447,11 +448,11 @@ class DWDCDCthread(threading.Thread):
         'LS_10':('LS_10','j/cm^2','group_radiation')}
         
     DIRS = {
-        'air':('air_temperature/now/10minutenwerte_TU_','_now.zip'),
-        'wind':('wind/now/10minutenwerte_wind_','_now.zip'),
-        'gust':('extreme_wind/now/10minutenwerte_extrema_wind_','_now.zip'),
-        'precipitation':('precipitation/now/10minutenwerte_nieder_','_now.zip'),
-        'solar':('solar/now/10minutenwerte_SOLAR_','_now.zip')}
+        'air':('air_temperature','10minutenwerte_TU_','_now.zip','Meta_Daten_zehn_min_tu_'),
+        'wind':('wind','10minutenwerte_wind_','_now.zip','Meta_Daten_zehn_min_ff_'),
+        'gust':('extreme_wind','10minutenwerte_extrema_wind_','_now.zip','Meta_Daten_zehn_min_fx_'),
+        'precipitation':('precipitation','10minutenwerte_nieder_','_now.zip','Meta_Daten_zehn_min_rr_'),
+        'solar':('solar','10minutenwerte_SOLAR_','_now.zip','Meta_Daten_zehn_min_sd_')}
 
     def __init__(self, name, location, prefix, iconset=4, observations=None, log_success=False, log_failure=True):
     
@@ -460,6 +461,9 @@ class DWDCDCthread(threading.Thread):
         self.log_failure = log_failure
         self.location = location
         self.iconset = iconset
+        self.lat = None
+        self.lon = None
+        self.alt = None
         
         self.lock = threading.Lock()
         
@@ -475,7 +479,8 @@ class DWDCDCthread(threading.Thread):
         for obs in observations:
             jj = DWDCDCthread.DIRS.get(obs)
             if jj:
-                self.urls.append(url+jj[0]+self.location+jj[1])
+                self.urls.append(url+jj[0]+'/now/'+jj[1]+self.location+jj[2])
+                self.get_meta_data(url+jj[0]+'/meta_data/'+jj[3]+self.location+'.zip')
             else:
                 logerr("unknown observation group %s" % obs)
 
@@ -552,13 +557,49 @@ class DWDCDCthread(threading.Thread):
                     if val!='eor':
                         col = DWDCDCthread.OBS.get(nm,(nm,None,None))
                         y[col[0]] = (val,col[1],col[2])
-                    if 'windDir' in y:
-                        y['windDir10'] = y['windDir']
-                    if 'windSpeed' in y:
-                        y['windSpeed10'] = y['windSpeed']
+                if 'windDir' in y:
+                    y['windDir10'] = y['windDir']
+                if 'windSpeed' in y:
+                    y['windSpeed10'] = y['windSpeed']
+                if 'pressure' in y and 'altimeter' not in y and self.alt is not None:
+                    try:
+                        y['altimeter'] = (weewx.wxformulas.altimeter_pressure_Metric(y['pressure'][0],self.alt),'hPa','group_pressure')
+                    except Exception as e:
+                        logerr("thread '%s': altimeter %s" % (self.name,e))
+                if 'pressure' in y and 'outTemp' in y and 'barometer' not in y and self.alt is not None:
+                    try:
+                        y['barometer'] = (weewx.wxformulas.sealevel_pressure_Metric(y['pressure'][0],self.alt,y['outTemp'][0]),'hPa','group_pressure')
+                    except Exception as e:
+                        logerr("thread '%s': barometer %s" % (self.name,e))
                 x.append(y)
         return x
 
+    
+    def get_meta_data(self, url):
+        try:
+            func = 'wget'
+            reply = wget(url,log_success=self.log_success,log_failure=self.log_failure)
+            func = 'decodezip'
+            zz = zipfile.ZipFile(io.BytesIO(reply),'r')
+            func = 'decodecsv'
+            for ii in zz.namelist():
+                if ii[0:20]=='Metadaten_Geographie':
+                    txt = zz.read(ii).decode(encoding='utf-8')
+                    x = []
+                    for ln in csv.reader(txt.splitlines(),delimiter=';'):
+                        x.append(ln)
+                    if x:
+                        self.alt = float(x[-1][1])
+                        self.lat = float(x[-1][2])
+                        self.lon = float(x[-1][3])
+                        loginf("thread '%s': id %s, name '%s', lat %.4f°, lon %.4f°, alt %.1f m" % (
+                                self.name,
+                                x[-1][0],x[-1][6],
+                                self.lat,self.lon,self.alt))
+
+        except Exception as e:
+            logerr("thread '%s': %s %s %s" % (self.name,func,e.__class__.__name__,e))
+    
     
     def getRecord(self):
         x = None
@@ -587,6 +628,12 @@ class DWDCDCthread(threading.Thread):
                 logerr("thread '%s': %s %s %s" % (self.name,func,e.__class__.__name__,e))
         for idx,_ in enumerate(x):
             x[idx]['interval'] = (10,'minute','group_interval')
+            if self.lat is not None:
+                x[idx]['latitude'] = (self.lat,'','')
+            if self.lon is not None:
+                x[idx]['longitude'] = (self.lon,'','')
+            if self.alt:
+                x[idx]['altitude'] = (self.alt,'meter','group_altitude')
         #print(x[ti[maxtime]])
         try:
             self.lock.acquire()

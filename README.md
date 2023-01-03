@@ -270,6 +270,9 @@ Folgende Meßgrößen sind definiert, aber nicht immer verfügbar:
   * `interval`: Meßinterval (1h bei POI, 10min. bei CDC)
 * Sensorgruppe `air`: 
   * `pressure`: Stationsluftdruck QFE
+  * `barometer`: auf Meeresniveau umgerechneter Luftdruck
+    (bei POI im Datensatz enthalten, bei CDC berechnet,
+    wenn `pressure` und `outTemp` verfügbar)
   * `outTemp`: Lufttemperatur 2m über dem Boden 
   * `extraTemp1`: Lufttemperatur 5cm über dem Boden
   * `outHumidity`: relative Luftfeuchtigkeit
@@ -282,7 +285,7 @@ Folgende Meßgrößen sind definiert, aber nicht immer verfügbar:
   * `windGustDir`: Böenrichtung
 * Sensorgruppe `precipitation`: 
   * `rainDur`: Niederschlagsdauer im Meßintervall 
-  * `rain`: Niderschlagsmenge im Meßinterval 
+  * `rain`: Niederschlagsmenge im Meßintervall 
   * `rainIndex`: Niederschlagsart
 * Sensorgruppe `solar`: 
   * `solarRad` 
@@ -294,7 +297,6 @@ Folgende Meßgrößen sind definiert, aber nicht immer verfügbar:
   * `cloudbase`: Höhe der Wolkenunterkante 
   * `visibility`: Sichtweite 
   * `presentWeather`: codierter Wetterzustand 
-  * `barometer`: auf Meeresniveau umgerechneter Luftdruck
   * `snowDepth`: Schneehöhe
   * `icon`: Symbol des Wetterzustandes (Dateiname) 
   * `icontitle`: Beschreibung dazu
