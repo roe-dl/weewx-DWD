@@ -265,15 +265,22 @@ Für die Außentemperatur `outTemp` wäre das bei einem Präfix
 `xyz` demzufolge `xyzOutTemp`.
 
 Folgende Meßgrößen sind definiert, aber nicht immer verfügbar:
-* immer: `dateTime`, `station_id`, `MESS_DATUM_ENDE`, `quality_level`
-* `air`: `pressure`, `outTemp`, `extraTemp1`, `outHumidity`, `dewpoint`
-* `wind`: `windSpeed`, `windDir`
-* `gust`: `windGust`, `windGustDir`
-* `precipitation`: `rainDur`, `rain`, `rainIndex`
-* `solar`: `solarRad`, `radiation`, `sunshineDur`, `LS_10`
-* nur bei POI: `cloudcover`, `cloudbase`, `visibility`, 
-  `presentWeather`, `barometer`, `snowDepth`
-  `icon`, `icontitle`
+* immer: `dateTime`, `interval`
+* Sensorgruppe `air`: `pressure` (Stationsluftdruck QFE) , `outTemp`, 
+  `extraTemp1` (5cm über dem Boden), 
+  `outHumidity`, `dewpoint`
+* Sensorgruppe `wind`: `windSpeed`, `windDir`
+* Sensorgruppe `gust`: `windGust`, `windGustDir`
+* Sensorgruppe `precipitation`: `rainDur`, `rain`, `rainIndex`
+* Sensorgruppe `solar`: `solarRad`, `radiation`, `sunshineDur`, `LS_10`
+* nur bei POI: `cloudcover` (Wolkenbedeckung in Prozent), 
+  `cloudbase` (Höhe der Wolkenunterkante), 
+  `visibility` (Sichtweite), 
+  `presentWeather` (codierter Wetterzustand), 
+  `barometer`, `snowDepth`,
+  `icon` (Symbol des Wetterzustandes), 
+  `icontitle` (Beschreibung dazu)
+* nur bei CDC: `station_id`, `MESS_DATUM_ENDE`, `quality_level`
 
 `icon`, `icontitle`, `station_id` und `MESS_DATUM_ENDE` sind 
 Textfelder, die nur mit `.raw` benutzt werden können.
