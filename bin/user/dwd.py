@@ -607,12 +607,18 @@ class DWDCDCthread(threading.Thread):
         maxtime = None
         for url in self.urls:
             try:
+                # download data in ZIP format from DWD's server
                 func = 'wget'
                 reply = wget(url,log_success=self.log_success,log_failure=self.log_failure)
+                if not reply: raise TypeError('no data')
+                # extract data file out of the downloaded ZIP file
                 func = 'decodezip'
                 txt = self.decodezip(reply)
+                if not txt: raise FileNotFoundError('no file inside ZIP')
+                # convert CSV data to Python array
                 func = 'decodecsv'
                 tab = self.decodecsv(txt)
+                # process data
                 if x:
                     func = 'other table'
                     for ii in tab:
