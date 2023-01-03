@@ -32,13 +32,14 @@
             icon_set = replace_me # 'belchertown', 'dwd' or 'aeris', optional
             ...
         [[POI]]
-            [[[station_code]]]
-                prefix = observation_type_prefix_for_station
-                #icon_set = replace_me # optional, default from section [[forecast]]
-                #log_success = replace_me # True or False, optional
-                #log_failure = replace_me # True or False, optional
-            [[[another_station_code]]]
-                ...
+            [[[stations]]]
+                [[[[station_code]]]]
+                    prefix = observation_type_prefix_for_station
+                    #icon_set = replace_me # optional, default from section [[forecast]]
+                    #log_success = replace_me # True or False, optional
+                    #log_failure = replace_me # True or False, optional
+                [[[[another_station_code]]]]
+                    ...
             ...
     
     station list:
@@ -69,14 +70,15 @@
     [DeutscherWetterdienst]
         ...
         [[CDC]]
-            [[[station_id]]]
-                prefix = observation_type_prefix_for_station
-                # equipment of the weather station (optional)
-                observations = air,wind,gust,precipitation,solar
-                #log_success = replace_me # True or False, optional
-                #log_failure = replace_me # True or False, optional
-            [[[another_station_id]]]
-                ...
+            [[[stations]]]
+                [[[[station_id]]]]
+                    prefix = observation_type_prefix_for_station
+                    # equipment of the weather station (optional)
+                    observations = air,wind,gust,precipitation,solar
+                    #log_success = replace_me # True or False, optional
+                    #log_failure = replace_me # True or False, optional
+                [[[[another_station_id]]]]
+                    ...
             ...
     
     station list:
