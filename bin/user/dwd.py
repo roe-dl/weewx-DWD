@@ -491,6 +491,9 @@ class DWDCDCthread(threading.Thread):
             obsgroup = obs[2]
             if obsgroup:
                 weewx.units.obs_group_dict.setdefault(prefix+obstype[0].upper()+obstype[1:],obsgroup)
+        weewx.units.obs_group_dict.setdefault(prefix+'Barometer','group_pressure')
+        weewx.units.obs_group_dict.setdefault(prefix+'Altimeter','group_pressure')
+
 
     def shutDown(self):
         """ request thread shutdown """
