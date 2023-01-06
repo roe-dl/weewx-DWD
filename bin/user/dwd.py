@@ -261,7 +261,7 @@ class DWDPOIthread(threading.Thread):
         self.log_success = log_success
         self.log_failure = log_failure
         self.location = location
-        self.iconset = iconset
+        self.iconset = weeutil.weeutil.to_int(iconset)
         
         self.lock = threading.Lock()
         
@@ -412,7 +412,7 @@ class DWDPOIthread(threading.Thread):
                 self.getRecord()
                 time.sleep(300)
         except Exception as e:
-            logerr("thread '%s': %s - %s" % (self.name,e.__class__.__name__,e))
+            logerr("thread '%s': main loop %s - %s" % (self.name,e.__class__.__name__,e))
         finally:
             loginf("thread '%s' stopped" % self.name)
 
@@ -460,7 +460,7 @@ class DWDCDCthread(threading.Thread):
         self.log_success = log_success
         self.log_failure = log_failure
         self.location = location
-        self.iconset = iconset
+        self.iconset = weeutil.weeutil.to_int(iconset)
         self.lat = None
         self.lon = None
         self.alt = None
@@ -661,7 +661,7 @@ class DWDCDCthread(threading.Thread):
                 self.getRecord()
                 time.sleep(300)
         except Exception as e:
-            logerr("thread '%s': %s - %s" % (self.name,e.__class__.__name__,e))
+            logerr("thread '%s': main loop %s - %s" % (self.name,e.__class__.__name__,e))
         finally:
             loginf("thread '%s' stopped" % self.name)
 
