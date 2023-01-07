@@ -694,6 +694,7 @@ class DWDservice(StdService):
             iconset = station_dict.get('icon_set')
             if iconset is not None:
                 station_dict['iconset'] = self.iconset
+                if iconset=='belchertown': station_dict['iconset'] = 4
                 if iconset=='dwd': station_dict['iconset'] = 5
                 if iconset=='aeris': station_dict['iconset'] = 6
             self._create_poi_thread(station, station, station_dict)
@@ -707,6 +708,7 @@ class DWDservice(StdService):
             iconset = station_dict.get('icon_set')
             if iconset is not None:
                 station_dict['iconset'] = self.iconset
+                if iconset=='belchertown': station_dict['iconset'] = 4
                 if iconset=='dwd': station_dict['iconset'] = 5
                 if iconset=='aeris': station_dict['iconset'] = 6
             self._create_cdc_thread(station, station, station_dict)
