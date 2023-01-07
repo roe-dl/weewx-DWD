@@ -690,7 +690,12 @@ class DWDservice(StdService):
         stations = poi_dict.get('stations',site_dict)
         for station in stations.sections:
             station_dict = weeutil.config.accumulateLeaves(stations[station])
-            station_dict['iconset'] = station_dict.get('icon_set',self.iconset)
+            station_dict['iconset'] = self.iconset
+            iconset = station_dict.get('icon_set')
+            if iconset is not None:
+                station_dict['iconset'] = self.iconset
+                if iconset=='dwd': station_dict['iconset'] = 5
+                if iconset=='aeris': station_dict['iconset'] = 6
             self._create_poi_thread(station, station, station_dict)
             
         # https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/
@@ -698,7 +703,12 @@ class DWDservice(StdService):
         stations = cdc_dict.get('stations',site_dict)
         for station in stations.sections:
             station_dict = weeutil.config.accumulateLeaves(stations[station])
-            station_dict['iconset'] = station_dict.get('icon_set',self.iconset)
+            station_dict['iconset'] = self.iconset
+            iconset = station_dict.get('icon_set')
+            if iconset is not None:
+                station_dict['iconset'] = self.iconset
+                if iconset=='dwd': station_dict['iconset'] = 5
+                if iconset=='aeris': station_dict['iconset'] = 6
             self._create_cdc_thread(station, station, station_dict)
         
         if  __name__!='__main__':
