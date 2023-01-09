@@ -648,7 +648,7 @@ class DWDCDCthread(threading.Thread):
         try:
             self.lock.acquire()
             self.data = x
-            self.maxtime = ti[maxtime]
+            self.maxtime = ti[maxtime] if ti and maxtime else None
         finally:
             self.lock.release()
 
