@@ -233,12 +233,16 @@ Unter der Überschrift POI bietet der DWD stündlich aktualisierte
 Werte von einer kleinen Anzahl ausgewählter Wetterstationen,
 zusätzlich aufbereitet mit dem aktuellen Wetterzustand.
 
+[Liste der Stationen](https://github.com/roe-dl/weewx-DWD/wiki/POI-Stationen-in-Deutschland)
+
 ## CDC
 
 Unter der Überschrift CDC werden die blanken Meßwerte zur Verfügung
 gestellt. Dabei sind verschiedene Aktualisierungsraten und 
 Zusammenfassungen verfügbar. Momentan können hier die
 10-Minuten-Werte abgerufen werden.
+
+[Liste der Stationen](https://opendata.dwd.de/climate_environment/CDC/help/stations_list_CLIMAT_data.txt)
 
 ## Einbinden in WeeWX
 

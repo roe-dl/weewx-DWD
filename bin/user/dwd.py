@@ -33,22 +33,25 @@
             ...
         [[POI]]
             [[[stations]]]
-                [[[[station_code]]]]
+                [[[[station_id]]]]
                     prefix = observation_type_prefix_for_station
                     #icon_set = replace_me # optional, default from section [[forecast]]
                     #log_success = replace_me # True or False, optional
                     #log_failure = replace_me # True or False, optional
-                [[[[another_station_code]]]]
+                [[[[another_station_id]]]]
                     ...
             ...
     
     station list:
+    https://github.com/roe-dl/weewx-DWD/wiki/POI-Stationen-in-Deutschland
     https://www.dwd.de/DE/leistungen/klimadatendeutschland/stationsuebersicht.html
     
-    example station codes:
+    example station ids:
     10578 - Fichtelberg
     10453 - Brocken
     10961 - Zugspitze
+    
+    Those are all WMO station ids.
     
     current readings:
     https://www.dwd.de/DE/leistungen/beobachtung/beobachtung.html
@@ -71,22 +74,25 @@
         ...
         [[CDC]]
             [[[stations]]]
-                [[[[station_id]]]]
+                [[[[station_nr]]]]
                     prefix = observation_type_prefix_for_station
                     # equipment of the weather station (optional)
                     observations = air,wind,gust,precipitation,solar
                     #log_success = replace_me # True or False, optional
                     #log_failure = replace_me # True or False, optional
-                [[[[another_station_id]]]]
+                [[[[another_station_nr]]]]
                     ...
             ...
     
     station list:
+    https://opendata.dwd.de/climate_environment/CDC/help/stations_list_CLIMAT_data.txt
     https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/now/zehn_now_tu_Beschreibung_Stationen.txt
     
-    example station ids:
+    example station nrs:
     01358 - Fichtelberg
     00840 - Carlsfeld
+    00722 - Brocken
+    05792 - Zugspitze
     
 """
 
