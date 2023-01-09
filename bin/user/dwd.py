@@ -85,7 +85,7 @@
             ...
     
     station list:
-    https://opendata.dwd.de/climate_environment/CDC/help/stations_list_CLIMAT_data.txt
+    https://opendata.dwd.de/climate_environment/CDC/help/wetter_tageswerte_Beschreibung_Stationen.txt
     https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/air_temperature/now/zehn_now_tu_Beschreibung_Stationen.txt
     
     example station nrs:

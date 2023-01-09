@@ -242,7 +242,7 @@ gestellt. Dabei sind verschiedene Aktualisierungsraten und
 Zusammenfassungen verfügbar. Momentan können hier die
 10-Minuten-Werte abgerufen werden.
 
-[Liste der Stationen](https://opendata.dwd.de/climate_environment/CDC/help/stations_list_CLIMAT_data.txt)
+[Liste der Stationen](https://opendata.dwd.de/climate_environment/CDC/help/wetter_tageswerte_Beschreibung_Stationen.txt)
 
 ## Einbinden in WeeWX
 
