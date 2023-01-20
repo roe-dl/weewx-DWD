@@ -21,7 +21,7 @@ from __future__ import with_statement
 
 
 # Source: https://nina.api.bund.dev
-
+# Protocol description: http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.pdf
 
 DEFAULT_BBK_URL = "https://warnung.bund.de/api31"
 
@@ -101,6 +101,41 @@ def bbk_level_text(level, isdwd=False):
 def get_eventtype(evt, ii):
     return "*"
     
+CAP_CATEGORY = {
+    'Geo':{'de':'geophysikalisch','en':'geophysical'},
+    'Met':{'de':'meteorologisch','en':'meteorological'},
+    'Safety':{'de':'allgemeine Gefahren und öffentliche Sicherheit',
+              'en':'general emergency and public safety'},
+    'Security':{'de':'Gesetzesdurchsetzung, militärische, regionale und lokale/private Sicherheit',
+                'en':'law enforcement, miltary, homeland and local/private security'},
+    'Rescue':{'de':'Feuerbekämpfung und Sicherheit',
+              'en':'fire suppression and rescue'},
+    'Health':{'de':'Medizin und öffentliche Gesundheit',
+              'en':'medical and public health'},
+    'Env':{'de':'Umweltverschmutzung und andere Umweltgefahren',
+           'en':'pollution and other environmental'},
+    'Transport':{'de':'öffentlicher und privater Verkehr',
+                 'en':'public and private transportation'},
+    'Infra':{'de':'Infrastruktur', # z.B. Telekommunikation
+             'en':'utility, telecommunication, other non-transport infrastructure'},
+    'CBRNE':{'de':'chemische, biologische, radioaktive, nukleare oder explosive Bedrohung oder Attacke',
+             'en':'chemical, biological, radiological, nuclear or high-yield exlosive threat or attack'},
+    'Other':{'de':'andere Ereignisse','en':'other events'}
+}
+
+def get_category_name(category, lang='de'):
+    try:
+        print(category)
+        return CAP_CATEGORY[category][lang.lower()]
+    except LookupError:
+        pass
+    try:
+        return CAP_CATEGORY[category]['en']
+    except LookupError:
+        pass
+    if lang.lower()=='de': return 'unbekannt'
+    return 'unknown'
+
 
 def tobool(x):
     """ convert text to boolean
@@ -214,6 +249,7 @@ class BbkWarnings(object):
         evcs = self.wget(url)
         return {evc['eventCode']:evc['imageUrl'] for evc in evcs['eventCodes']}
     
+
     def get_list(self, ars):
         """ get list of active warnings for county ars """
         if ars in WARNING_SOURCES:
@@ -293,7 +329,10 @@ class BbkWarnings(object):
                             alert['urgency'] = info_dict['urgency']
                             alert['severity'] = info_dict['severity']
                             alert['category'] = info_dict['category']
+                            alert['categoryName'] = [get_category_name(ii) for ii in info_dict['category']]
                             alert['certainty'] = info_dict['certainty']
+                            if 'responseType' in info_dict:
+                                alert['responseType'] = info_dict['responseType']
                             # <eventCode>
                             for ii in info_dict.get('eventcode',[]):
                                 vn = None
@@ -401,9 +440,11 @@ class BbkWarnings(object):
                         lg = ""
                     s+='<p style="font-size:80%%">Quelle: %s%s</p>' % (lg,sn)
 
-                s+='<p style="font-size:40%%">%s &ndash; %s &emsp;&ndash;&emsp;  %s &ndash; %s &emsp;&ndash;&emsp; &ndash; %s</p>' % (val.get('type',''),val.get('event',''),val.get('level',''),val.get('level_text',''),val.get('identifier',''))
+                s+='<p style="font-size:40%%">%s &ndash; %s &emsp;&ndash;&emsp;  %s &ndash; %s &emsp;&ndash;&emsp; %s &ndash; %s &emsp;&ndash;&emsp; %s</p>' % (val.get('type',''),val.get('event',''),val.get('level',''),val.get('level_text',''),val.get('category',''),val.get('categoryName',''),val.get('identifier',''))
                 
-            if not s:
+            if s:
+                s += '<p style="font-size:65%%">Herausgegeben vom BBK | Abgerufen am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M')
+            else:
                 s='<p>zur Zeit keine Warnungen</p>'
  
             if dryrun:
