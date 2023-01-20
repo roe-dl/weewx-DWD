@@ -268,6 +268,12 @@ Buchstabe des Namens wird in einen Großbuchstaben verwandelt.
 Für die Außentemperatur `outTemp` wäre das bei einem Präfix
 `xyz` demzufolge `xyzOutTemp`.
 
+Wenn die Daten auch per MQTT ausgegeben werden sollen, empfiehlt
+es sich, im Präfix *keine* Unterstreichstriche zu verwenden,
+da diese in den MQTT-Topics zur Trennung von Meßgrößenname und Einheit 
+genutzt werden. Das gilt ganz besonders bei Nutzung der
+Belchertown-Skin.
+
 Folgende Meßgrößen sind definiert, aber nicht immer verfügbar:
 * immer: 
   * `dateTime`: Zeitstempel der Messung 
