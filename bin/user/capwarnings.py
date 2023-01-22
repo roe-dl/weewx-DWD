@@ -1,0 +1,1450 @@
+#!/usr/bin/python3
+# Erzeugen von Warnmeldungen
+# Copyright (C) 2022 Johanna Roedenbeck
+# licensed under the terms of the General Public License (GPL) v3
+
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import with_statement
+
+"""
+    This script is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This script is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+"""
+
+"""
+Ein <alert>-Element DARF ein oder mehrere <info>-Elemente haben. Jedes <info>-
+Element stellt eine Warnung in einer Sprache dar. Sind mehrere <info>-Elemente in
+einem <alert>-Block enthalten, so MUSS jedes <info>-Element die gleiche Warnung
+(die gleiche Information) in einer anderen Sprache darstellen. Jedes <info>-Element
+DARF ein oder mehrere <area>-Elemente haben.
+"""
+
+import json
+import time
+import datetime
+import configobj
+import os.path
+import requests
+import csv
+import io
+import urllib.parse
+from email.utils import formatdate
+import html.parser
+import zipfile
+
+if __name__ == "__main__":
+
+    import optparse
+    import sys
+    sys.path.append('/usr/share/weewx')
+    def loginf(x):
+        print(x, file=sys.stderr)
+    def logerr(x):
+        print(x, file=sys.stderr)
+        
+    def accumulateLeaves(x):
+        return x
+
+else:
+
+    try:
+        # Test for new-style weewx logging by trying to import weeutil.logger
+        import weeutil.logger
+        import logging
+        log = logging.getLogger("user.DWD")
+
+        def logdbg(msg):
+            log.debug(msg)
+
+        def loginf(msg):
+            log.info(msg)
+
+        def logerr(msg):
+            log.error(msg)
+
+    except ImportError:
+        # Old-style weewx logging
+        import syslog
+
+        def logmsg(level, msg):
+            syslog.syslog(level, 'user.DWD: %s' % msg)
+
+        def logdbg(msg):
+            logmsg(syslog.LOG_DEBUG, msg)
+
+        def loginf(msg):
+            logmsg(syslog.LOG_INFO, msg)
+
+        def logerr(msg):
+            logmsg(syslog.LOG_ERR, msg)
+            
+        from weeutil.weeutil import accumulateLeaves
+
+import weewx
+from weewx.engine import StdService
+import weeutil.weeutil
+import weewx.accum
+import weewx.units
+import weewx.wxformulas
+
+
+def tobool(x):
+    """ convert text to boolean
+        Copyright (C) Tom Keffer
+    """
+    try:
+        if x.lower() in ['true', 'yes', 'y']:
+            return True
+        elif x.lower() in ['false', 'no', 'n']:
+            return False
+    except AttributeError:
+        pass
+    try:
+        return bool(int(x))
+    except (ValueError, TypeError):
+        pass
+    raise ValueError("Unknown boolean specifier: '%s'." % x)
+
+
+
+class Germany(object):
+
+    # Amtlicher Gemeindeschluessel
+    AGS_STATES = {
+        '01':('SH','Schleswig-Holstein'),
+        '02':('HH','Freie und Hansestadt Hamburg'),
+        '03':('NS','Niedersachsen'),
+        '04':('HB','Freie Hansestadt Bremen'),
+        '05':('NRW','Nordrhein-Westfalen'),
+        '06':('HE','Hessen'),
+        '07':('RP','Rheinland-Pfalz'),
+        '08':('BW','Baden-Württemberg'),
+        '09':('BY','Freistaat Bayern'),
+        '10':('SL','Saarland'),
+        '11':('BB','Berlin'),
+        '12':('BB','Brandenburg'),
+        '13':('MV','Mecklenburg-Vorpommern'),
+        '14':('SN','Freistaat Sachsen'),
+        '15':('SA','Sachsen-Anhalt'),
+        '16':('TH','Thüringen')
+    }
+
+    @staticmethod
+    def compareARS(ars, pars):
+        """ Is ars in pars? """
+        if not pars: return True
+        # remove '0' at the end of the string
+        ars_str = ars.strip().rstrip('0')
+        ars_len = len(ars_str)
+        #print('QQQQQQQQQQ','ARS str',ars_str,'len',ars_len)
+        # '000000000000' means 'whole country'
+        if ars_len==0: return True
+        # pars may be a list of ARS
+        for ii in pars.split(','):
+            # remove '0' at the end of the string
+            vgl_str = ii.strip().rstrip('0')
+            vgl_len = len(vgl_str)
+            #print('QQQQQQQQQQ','ARS',ars_str,ars_len,'VGL',vgl_str,vgl_len,':',ars[0:min(vgl_len,ars_len)],'==',vgl_str[0:min(vgl_len,ars_len)])
+            # 
+            if vgl_len==0: return True
+            #
+            if ars[0:min(vgl_len,ars_len)]==vgl_str[0:min(vgl_len,ars_len)]: 
+                return True
+        return False
+    
+
+
+class CAP(object):
+
+    # Codes from CAP
+
+    SEVERITY = {
+        'Minor':2,
+        'Moderate':3,
+        'Severe':4,
+        'Extreme':5
+    }
+    
+    def level_text(self, level, isdwd=None):
+        return None
+
+    CATEGORY = {
+        'Geo':{'de':'geophysikalisch','en':'geophysical'},
+        'Met':{'de':'meteorologisch','en':'meteorological'},
+        'Safety':{'de':'allgemeine Gefahren und öffentliche Sicherheit',
+                'en':'general emergency and public safety'},
+        'Security':{'de':'Gesetzesdurchsetzung, militärische, regionale und lokale/private Sicherheit',
+                'en':'law enforcement, miltary, homeland and local/private security'},
+        'Rescue':{'de':'Feuerbekämpfung und Sicherheit',
+              'en':'fire suppression and rescue'},
+        'Health':{'de':'Medizin und öffentliche Gesundheit',
+              'en':'medical and public health'},
+        'Env':{'de':'Umweltverschmutzung und andere Umweltgefahren',
+           'en':'pollution and other environmental'},
+        'Transport':{'de':'öffentlicher und privater Verkehr',
+                 'en':'public and private transportation'},
+        'Infra':{'de':'Infrastruktur', # z.B. Telekommunikation
+             'en':'utility, telecommunication, other non-transport infrastructure'},
+        'CBRNE':{'de':'chemische, biologische, radioaktive, nukleare oder explosive Bedrohung oder Attacke',
+             'en':'chemical, biological, radiological, nuclear or high-yield exlosive threat or attack'},
+        'Other':{'de':'andere Ereignisse','en':'other events'}
+    }
+
+    @staticmethod
+    def get_category_name(category, lang='de'):
+        try:
+            return CATEGORY[category][lang.lower()]
+        except LookupError:
+            pass
+        try:
+            return CATEGORY[category]['en']
+        except LookupError:
+            pass
+        if lang.lower()=='de': return 'unbekannt'
+        return 'unknown'
+
+    @staticmethod
+    def mktime(timestring):
+        """ convert CAP timestamp string to epoch time """
+        if not timestring: return None
+        ti = datetime.datetime.strptime(timestring,'%Y-%m-%dT%H:%M:%S%z')
+        #print(ti)
+        return int(ti.timestamp()*1000)
+        
+    def get_logo(self, sender):
+        return dict()
+        
+    def warn_icon_file(self, typ, level, eventcode):
+        return None
+
+    def __init__(self, warn_dict, log_success=True, log_failure=True, verbose=False):
+        super(CAP,self).__init__()
+        self.log_success = log_success
+        self.log_failure = log_failure
+        self.verbose = verbose
+        self.icon_base_url = None
+        self.logo_base_url = None
+        self.filter_area = None
+        
+
+    def wget(self, url, success_msg='successfully downloaded %s'):
+        """ download from BBK """
+        headers={'User-Agent':'weewx-DWD'}
+        reply = requests.get(url,headers=headers)
+
+        if reply.status_code==200:
+            if self.log_success or self.verbose:
+                loginf(success_msg % reply.url)
+            return reply.content
+        else:
+            if self.log_failure or self.verbose:
+                loginf('error downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
+            return None
+
+    def convert_xml(self, xmltext, log_tags=False):
+        """ convert XML to dict """
+        parser = CAPParser(log_tags)
+        try:
+            parser.feed(xmltext)
+            cap_dict = parser.cap
+        finally:
+            parser.close()
+        return cap_dict
+
+
+    def _area_filter(self, info_dict):
+        return []
+        
+
+    def process_alert(self, alert_dict, lang='de'):
+        """ process alert """
+        # <alert>
+        # search the alert for area references we are interested in
+        areas = []
+        info_dict = dict()
+        if isinstance(alert_dict, dict):
+            #print('1')
+            for lvl2 in alert_dict:
+                #print('2',lvl2)
+                if lvl2=='info':
+                    # <info>
+                    # There may be one or more <info> sections, one for 
+                    # each language
+                    #print('3')
+                    try:
+                        for info in alert_dict[lvl2]:
+                          if info['language'][0:2].lower()==lang:
+                            #print('4',json.dumps(info,indent=4))
+                            info_dict = info
+                            # search <info> section for <area> sections
+                            ar = self._area_filter(info_dict)
+                            if ar: areas.extend(ar)
+                    except Exception:
+                        pass
+                else:
+                    pass
+        else:
+            # items in <alert> that are not dicts
+            pass
+        # If the alert applies to areas we are interested in,
+        # the variable areas contains the the area references. 
+        # Otherwise it is an empty array.
+        if areas and alert_dict.get('status','')!='Test':
+            areas.sort(key=lambda x:x[0])
+            altitude = (areas[0][2],areas[0][3])
+            for ii in areas:
+                if (ii[2],ii[3])!=altitude:
+                    altitude = None
+                    break
+            alert = {
+                        'identifier':alert_dict.get('identifier'),
+                        'sender':alert_dict.get('sender'),
+                        'sent':CAP.mktime(alert_dict.get('sent')),
+                        'status':alert_dict.get('status'),
+                        'msgType':alert_dict.get('msgtype'),
+                        'source':alert_dict.get('source'),
+                        'scope':alert_dict.get('scope'),
+                        'regionName':[ii[0] for ii in areas],
+                        'altitudeRange':altitude,
+                        'areas':areas,
+                        'description':info_dict.get('description',''),
+                        'event':info_dict.get('event',''),
+                        'headline':info_dict.get('headline',''),
+                        'instruction':info_dict.get('instruction',''),
+                        'category':info_dict.get('category'),
+                        'responseType':info_dict.get('responsetype'),
+                        'urgency':info_dict.get('urgency'),
+                        'severity':info_dict.get('severity')
+            }
+            # release time
+            alert['released'] = CAP.mktime(info_dict.get('effective',alert_dict.get('effective',alert_dict.get('sent'))))
+            # start time
+            alert['start'] = CAP.mktime(info_dict.get('onset',alert_dict.get('onset',alert_dict.get('sent'))))
+            # end time
+            alert['end'] = CAP.mktime(info_dict.get('expires',alert_dict.get('expires')))
+            # <eventCode>
+            for ii in info_dict.get('eventcode',[]):
+                try:
+                    alert['eventCode-'+ii['valuename']] = ii['value']
+                except Exception:
+                    pass
+            # <parameter>
+            alert['parameter'] = dict()
+            for ii in info_dict.get('parameter',[]):
+                try:
+                    alert['parameter'][ii['valuename']] = ii['value']
+                except Exception:
+                    pass
+            # <code>
+            for ii in alert_dict.get('code',[]):
+                        if ii=='SILENT_UPDATE':
+                            alert['SILENT_UPDATE'] = True
+                        if ii=='PARTIAL_CLEAR':
+                            alert['PARTIAL_CLEAR'] = True
+                        if ii[:3]=='id:':
+                            alert['msgid'] = ii
+            # severity level
+            if info_dict.get('event','')[:16]=='VORABINFORMATION':
+                alert['level'] = 1
+            else:
+                alert['level'] = CAP.SEVERITY.get(info_dict.get('severity'),0)
+            alert["level_text"] = self.level_text(alert['level'])
+            # event type
+            alert['type'] = DWD.get_eventtype_from_cap(
+                                      info_dict.get('event'),
+                                      alert.get('eventCode-II'))
+            # warn icon
+            try:
+                alert['icon'] = self.icon_base_url+'/'+self.warn_icon_file(alert['type'],alert['level'],alert.get('BBK_eventcode'))
+            except Exception:
+                pass
+            # sender
+            if 'sender' in alert:
+                logo = self.get_logo(alert['sender'])
+                if logo:
+                    if 'image' in logo and self.logo_base_url:
+                        alert['sender_logo'] = self.logo_base_url+'/'+logo['image']
+                    if 'name' in logo:
+                        alert['sender_name'] = logo['name']
+            
+            return alert
+        return None
+
+
+    def warnings(self):
+        pass
+    
+    
+    def get_warnings(self):
+        """  """
+        if self.verbose:
+            print('-- get_warnings -------------------------------')
+        # initialize dict for all regions to collect warnings for
+        wwarn = {self.filter_area[i]:dict() for i in self.filter_area}
+        for cap in self.warnings():
+            alert = self.process_alert(cap)
+            if alert:
+                areas = alert['areas']
+                #print('++++++++++')
+                #print(areas)
+                #print('++++++++++')
+                _areas = dict()
+                for ii in areas: _areas[ii[-1]] = True
+                _region = ', '.join([ii[0] for ii in areas])
+                for ii in _areas:
+                    if _region not in wwarn[ii]:
+                        wwarn[ii][_region] = []
+                    wwarn[ii][_region].append(alert)
+                    #print(json.dumps(alert,indent=4,ensure_ascii=False))
+        # The sub-dictionary for regions was include for the purpose
+        # of sorting, only. Now it is removed to get the the right
+        # data structure.
+        for __ww in wwarn:
+            x = []
+            for ii in wwarn[__ww]: x.extend(wwarn[__ww][ii])
+            wwarn[__ww] = x
+
+        #if self.verbose:
+        #    loginf('file %s processed' % filename)
+        #print(json.dumps(wwarn,indent=4,ensure_ascii=False))
+        return wwarn
+
+    def write_html(self, wwarn, target_path, dryrun):
+        """ prototype function """
+        pass
+
+
+##############################################################################
+#   DWD specific constants and functions                                     #
+##############################################################################
+
+class DWD(CAP):
+
+    DEFAULT_DWD_WARNCELLID_URL = "https://www.dwd.de/DE/leistungen/opendata/help/warnungen/cap_warncellids_csv.csv?__blob=publicationFile&v=3"
+    DEFAULT_DWD_CAP_URL = "https://opendata.dwd.de/weather/alerts/cap"
+
+    # Der DWD verwendet ganz offensichtlich nicht die nach ISO genormten
+    # Abkuerzungen fuer Bundeslaender.
+    DWD_COPY = {
+        'SN':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/sachsen/warnlage_sac_node.html',
+        'TH':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/thueringen/warnlage_thu_node.html',
+        'SA':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/sachen_anhalt/warnlage_saa_node.html',
+        'BB':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/berlin_brandenburg/warnlage_bb_node.html',
+        'MV':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/mecklenburg_vorpommern/warnlage_mv_node.html',
+        'NS':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/niedersachsen_bremen/warnlage_nds_node.html',
+        'HB':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/niedersachsen_bremen/warnlage_nds_node.html',
+        'HE':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/hessen/warnlage_hes_node.html',
+        'NRW':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/nordrhein_westfalen/warnlage_nrw_node.html',
+        'BY':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/bayern/warnlage_bay_node.html',
+        'SH':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/schleswig_holstein_hamburg/warnlage_shh_node.html',
+        'HH':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/schleswig_holstein_hamburg/warnlage_shh_node.html',
+        'RP':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/rheinland-pfalz_saarland/warnlage_rps_node.html',
+        'SL':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/rheinland-pfalz_saarland/warnlage_rps_node.html',
+        'BW':'https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/baden-wuerttemberg/warnlage_baw_node.html'
+    }
+
+    # Codes from warnings.json
+
+    DWD_LEVEL = (
+        'keine Warnung',     # 0 no warning
+        'Vorinformation',    # 1 preliminary info
+        'Wetterwarnung',     # 2 minor
+        'markantes Wetter',  # 3 moderate
+        'Unwetterwarnung',   # 4 severe
+        'extremes Unwetter'  # 5 extreme
+    )
+
+    # Namensbestandteile der Warn-Icons
+    DWD_WARNING_TYPE = (
+        'gewitter',          # 0 thunderstorm
+        'wind',              # 1 wind/storm
+        'regen',             # 2 rain
+        'schnee',            # 3 snow
+        'nebel',             # 4 fog
+        'frost',             # 5 frost
+        'eis',               # 6 ice
+        'tau',               # 7 thawing
+        'hitze',             # 8 heat
+        'uv'                 # 9 uv warning
+    )
+    
+    @staticmethod
+    def dwd_warn_icon_file(type, level):
+        if type is None: return None
+        if type==8 or type==9:
+            return "warn_icons_%s.png" % DWD.DWD_WARNING_TYPE[type]
+        if level==1:
+            return "warn_icons_%s_pre.png" % DWD.DWD_WARNING_TYPE[type]
+        if level<2 or level>5: return None
+        return "warn_icons_%s_%s.png" % (DWD.DWD_WARNING_TYPE[type],level-1)
+
+    def warn_icon_file(self, type, level, eventcode):
+        return DWD.dwd_warn_icon_file(type, level)
+        
+    @staticmethod
+    def dwd_level_text(level):
+        try:
+            return DWD.DWD_LEVEL[level]
+        except IndexError:
+            if level==10: return 'Hitzewarnung'
+        return None
+
+    def level_text(self, level, isdwd=True):
+        return DWD.dwd_level_text(level)
+    
+    def get_logo(self, sender):
+        return {
+            #'image':'...',
+            'name':'DWD'
+        }
+    
+    # Codes from CAP
+
+    CAP_II_CAPTION = (
+        'Warnungen',
+        'Küsten-Warnungen',
+        'Hochsee-Warnungen',
+        'Medizin-Meteorologische Warnungen',
+        'Vorabinformationen Unwetter'
+    )
+    
+    CAP_II = (
+        #II,type,c,name
+        # Küsten-Warnungen
+        (11,1,1,'Böen'),
+        (12,1,1,'Wind'),
+        (13,1,1,'Sturm'),
+        # Hochsee-Warnungen
+        (14,1,2,'Starkwind'),
+        (15,1,2,'Sturm'),
+        (16,1,2,'schwerer Sturm'),
+        # Warnungen
+        (22,5,0,'Frost'),
+        (24,6,0,'Glätte'),
+        (31,0,0,'Gewitter'),
+        (33,0,0,'starkes Gewitter'),
+        (34,0,0,'starkes Gewitter'),
+        (36,0,0,'starkes Gewitter'),
+        (38,0,0,'starkes Gewitter'),
+        (40,0,0,'schweres Gewitter mit Orkanböen'),
+        (41,0,0,'schweres Gewitter mit extremen Orkanböen'),
+        (42,0,0,'schweres Gewitter mit heftigem Starkregen'),
+        (44,0,0,'schweres Gewitter mit Orkanböen und heftigem Starkregen'),
+        (45,0,0,'schweres Gewitter mit extremen Orkanböen und heftigem Starkregen'),
+        (46,0,0,'schweres Gewitter mit heftigem Starkregen und Hagel'),
+        (48,0,0,'schweres Gewitter mit Orkanböen, heftigem Starkregen und Hagel'),
+        (49,0,0,'schweres Gewitter mit extremen Orkanböen, heftigem Starkregen und Hagel'),
+        (51,1,0,'Windböen'),
+        (52,1,0,'Sturmböen'),
+        (53,1,0,'schwere Sturmböen'),
+        (54,1,0,'orkanartige Böen'),
+        (55,1,0,'Orkanböen'),
+        (56,1,0,'extreme Orkanböen'),
+        (57,1,0,'Starkwind'),
+        (58,1,0,'Sturm'),
+        (59,4,0,'Nebel'),
+        (61,2,0,'Starkregen'),
+        (62,2,0,'heftiger Starkregen'),
+        (63,2,0,'Dauerregen'),
+        (64,2,0,'ergiebiger Dauerregen'),
+        (65,2,0,'extrem ergiebiger Dauerregen'),
+        (66,2,0,'extrem heftiger Starkregen'),
+        (70,3,0,'leichter Schneefall'),
+        (71,3,0,'Schneefall'),
+        (72,3,0,'starker Schneefall'),
+        (73,3,0,'extrem starker Schneefall'),
+        (74,3,0,'Schneeverwehung'),
+        (75,3,0,'starke Scheeverwehung'),
+        (76,3,0,'extrem starke Schneeverwehung'),
+        (79,5,0,'Leiterseilschwingungen'),
+        (82,5,0,'strenger Frost'),
+        (84,6,0,'Glätte'),
+        (85,6,0,'Glatteis'),
+        (87,6,0,'Glatteis'),
+        (88,7,0,'Tauwetter'),
+        (89,7,0,'starkes Tauwetter'),
+        (90,0,0,'Gewitter'),
+        (91,0,0,'starkes Gewitter'),
+        (92,0,0,'schweres Gewitter'),
+        (93,0,0,'extremes Gewitter'),
+        (95,0,0,'schweres Gewitter mit extremem, heftigem Starkregen und Hagel'),
+        (96,0,0,'extremes Gewitter mit Orkanböen, extrem heftigem Starkregen und Hagel'),
+        (98,None,0,'Test-Warnung'),
+        (99,None,0,'Test-Unwetterwarnung'),
+        # Medizin-Meteorologische Warnungen
+        (246,9,3,'UV-Index'),
+        (247,8,3,'starke Hitze'),
+        (248,8,3,'extreme Hitze'),
+        # Vorabinformationen Unwetter
+        (40,0,4,'Vorabinformation schweres Gewitter'),
+        (55,1,4,'Vorabinformation Orkanböen'),
+        (65,2,4,'Vorabinformation heftiger/ergiebiger Regen'),
+        (75,3,4,'Vorabinformation starker Schneefall/Schneeverwehung'),
+        (85,6,4,'Vorabinformation Glatteis'),
+        (89,7,4,'Vorabinformation starkes Tauwetter'),
+        (99,None,4,'Test-Vorabinformation Unwetter')
+    )
+
+    CAP_II_TYPE = { ii[0]:ii[1] for ii in CAP_II if ii[2]!=4 and ii[1] is not None }
+
+    CAP_EVENT = {
+        'FROST':(5,22),
+        'GLÄTTE':(6,24),
+        'GLATTEIS':(6,None),
+        'GEWITTER':(0,31),
+        'WINDBÖEN':(1,51),
+        # 'STURM':(1,58),
+        'NEBEL':(4,59),
+        'TEST-WARNUNG':(None,98),
+        'TEST-UNWETTERWARNUNG':(None,99),
+        # Vorabinformation Unwetter
+        'VORABINFORMATION SCHWERES GEWITTER':(0,40),
+        'VORABINFORMATION ORKANBÖEN':(1,55),
+        'VORABINFORMATION HEFTIGER / ERGIEBIGER REGEN':(2,65),
+        'VORABINFORMATION STARKER SCHNEEFALL / SCHNEEVERWEHUNG':(3,75),
+        'VORABINFORMATION GLATTEIS':(6,85),
+        'VORABINFORMATION STARKES TAUWETTER':(7,89),
+        'TEST-VORABINFORMATION UNWETTER':(None,99),
+        # Küsten-Warnungen
+        'BÖEN':(1,11),
+        'WIND':(1,12),
+        'STURM':(1,13),
+        # Medizin-Meteorologische-Warnungen
+        'UV-INDEX':(9,246),
+        'STARKE HITZE':(8,247),
+        'EXTREME HITZE':(8,248)
+    }
+
+    # räumliche Auflösung
+    CAP_URL_RES = {
+        'county': 'DISTRICT',
+        'city': 'COMMUNEUNION',
+        'Landkreis': 'DISTRICT',
+        'Gemeinde': 'COMMUNEUNION'}
+
+    # Aktualisierungsstrategie und Aktualisierungsregeln
+    # update strategy and update rules
+    CAP_URL_UPDATE = {
+        'cell': {
+            'dwd': 'DWD',
+            'neutral': 'CELLS'},
+        'event': {
+            'neutral': 'EVENT',
+            None: 'EVENT'}
+    }
+
+    # Kompletter Warnstatus oder Differenzmeldungen
+    # status or difference messages
+    CAP_URL_STATUS_DIFFERENCE = {
+        False: 'STAT',
+        True: 'DIFF'
+    }
+
+    @staticmethod
+    def get_eventtype_from_cap(capevent,eventtypeii):
+        """ get JSON event type from CAP event and ii """
+        try:
+            if capevent in DWD.CAP_EVENT: return DWD.CAP_EVENT[capevent][0]
+            if 'GEWITTER' in capevent: return 0
+            if 'STURM' in capevent: return 1
+            if 'REGEN' in capevent: return 2
+            if 'SCHNEEFALL' in capevent: return 3
+            if 'FROST' in capevent: return 5
+            if 'TAUWETTER' in capevent: return 7
+            eventtypeii = int(eventtypeii)
+            if eventtypeii in DWD.CAP_II_TYPE: return DWD.CAP_II_TYPE[eventtypeii]
+        except Exception:
+            pass
+        return None
+
+    @staticmethod
+    def get_cap_url(resolution, strategy, rule, diff):
+        """ compose URL for CAP files """
+        try:
+            return DWD.DEFAULT_DWD_CAP_URL+'/'+DWD.CAP_URL_RES[resolution]+'_'+DWD.CAP_URL_UPDATE[strategy][rule]+'_'+DWD.CAP_URL_STATUS_DIFFERENCE[diff]
+        except Exception as e:
+            logerr(e)
+            return None
+
+
+    def __init__(self, warn_dict, log_success=True, log_failure=True, verbose=False):
+        super(DWD,self).__init__(warn_dict, log_success, log_failure, verbose)
+        # warn icons
+        self.icon_base_url = warn_dict['icons']
+        # Bundeslaender und Landkreise, fuer die Warndaten
+        # bereitgestellt werden sollen, aus weewx.conf lesen
+        self.resolution = warn_dict.get('resolution','city')
+        self.states = warn_dict.get('states',[])
+        if not isinstance(self.states,list): self.states=[self.states]
+        _area = DWD.CAP_URL_RES.get(self.resolution,'COMMUNEUNION' if 'cities' in warn_dict else 'DISTRICT')
+        if _area=='DISTRICT':
+            self.filter_area = warn_dict.get('counties',dict())
+        elif _area=='COMMUNEUNION':
+            self.filter_area = warn_dict.get('cities',dict())
+        # source urls
+        self.dwd_status_url = warn_dict.get('dwd_status_url',DWD.get_cap_url(self.resolution,'cell','neutral',False))
+        self.dwd_diff_url = warn_dict.get('dwd_diff_url',DWD.get_cap_url(self.resolution,'cell','neutral',True))
+        self.log_tags = False
+        self.diff = False
+
+
+    def dir(self, diff, lang='de'):
+    
+        if diff:
+            url = self.dwd_diff_url
+        else:
+            url = self.dwd_status_url
+   
+        if self.verbose:
+            loginf('about to download zip file list from %s' % url)
+            
+        reply = self.wget(url,'zip file list from %s successfully downloaded')
+       
+        if reply:
+            reply = reply.decode(encoding='utf-8')
+            parser = CapDirParser(lang)
+            parser.feed(reply)
+            return parser.get_files()
+        else:
+            return None
+            
+
+    def download_zip(self, diff, file_name):
+    
+        if diff:
+            url = self.dwd_diff_url
+        else:
+            url = self.dwd_status_url
+
+        url = url+'/'+file_name
+
+        if self.verbose:
+            loginf('about to download %s' % url)
+            
+        reply = self.wget(url)
+        
+        if reply:
+            return zipfile.ZipFile(io.BytesIO(reply),'r')
+        else:
+            return None
+
+
+    def warnings(self):
+        """ DWD """
+        diff = self.diff
+        log_tags = self.log_tags
+        filename = self.dir(diff,'de')[-1]
+        if self.verbose:
+            loginf('processing file %s' % filename)
+        # initialize dict for all regions to collect warnings for
+        wwarn={self.filter_area[i]:dict() for i in self.filter_area}
+        # download CAP file 
+        zz = self.download_zip(diff,filename)
+        # process alerts included in the CAP file
+        for name in zz.namelist():
+            # read file out of zip file and convert to dict
+            xmltext = zz.read(name).decode(encoding='utf-8')
+            cap_dict = self.convert_xml(xmltext,log_tags)
+            for warn in cap_dict:
+                yield(cap_dict[warn])
+        
+        
+    def _area_filter(self, info_dict):
+        reply = []
+        for tag in info_dict:
+            val = info_dict[tag]
+            try:
+                if tag=='area':
+                  for ii in val:
+                    try:
+                        if ii['areadesc'] in self.filter_area:
+                            wcid = None
+                            for jj in ii.get('geocode',[]):
+                                if jj.get('valuename','')=='WARNCELLID':
+                                    wcid = jj.get('value')
+                            try:
+                                ags = wcid[-8:]
+                                state = Germany.AGS_STATES[ags[:2]]
+                            except Exception:
+                                state = [None,None]
+                            try:
+                                alt = int(float(ii['altitude'])*0.3048)
+                            except Exception:
+                                alt = None
+                            try:
+                                cie = int(float(ii['ceiling'])*0.3048)
+                            except Exception:
+                                cie = None
+                            reply.append((ii['areadesc'],
+                                          wcid,alt,cie,
+                                          state[0],state[1],
+                                          self.filter_area[ii['areadesc']]))
+                    except Exception as e:
+                        if self.verbose:
+                            logerr(e)
+            except Exception as e:
+                if self.verbose:
+                    logerr(e)
+        return reply
+
+
+    def write_html(self, wwarn, target_path, dryrun):
+        for __ww in wwarn:
+            s = ""
+            stateShort = ""
+            r = None
+            for idx,val in enumerate(wwarn[__ww]):
+                
+                # get the state (Bundesland) out of the AGS code
+                try:
+                    _states = list({(i[4],i[5]) for i in val['areas'] if i[-1]==__ww})
+                    if len(_states)!=1: raise Exception
+                    stateShort = _states[0][0]
+                    val['stateShort'] = stateShort
+                    val['state'] = _states[0][1]
+                except Exception:
+                    stateShort = None
+
+                # list of warning regions that alert applies to
+                _region = ', '.join([i[0] for i in val['areas'] if i[-1]==__ww])
+                _region = _region.replace('Stadt ','').replace('Gemeinde ','')
+                val['regionName'] = _region
+                # if a new region starts, set a caption
+                if r is None or r!=_region:
+                    r = _region
+                    s+='<p style="margin-top:5px"><strong>%s</strong></p>\n' % r
+                
+                # alert message 
+                s+='<table style="vertical-align:middle"><tr style="vertical-align:middle">\n'
+                if val.get('icon'):
+                    s+='<td style="width:60px"><img src="%s" alt="%s"/></td>\n' % (val['icon'],val['event'])
+                __size=110 if int(val['level'])>2 else 100
+                s+='<td><p style="font-size:%i%%;margin-bottom:0">%s</p>\n' % (__size,val['headline'])
+                s='%s<p style="font-size:80%%">gültig vom %s bis %s\n' % (s,time.strftime("%d.%m. %H:%M",time.localtime(val['start']/1000)),time.strftime("%d.%m. %H:%M",time.localtime(val['end']/1000)))
+                
+                if val.get('altitudeRange'):
+                    altitude = val['altitudeRange']
+                    if altitude[0]>0 and altitude[1]>=3000:
+                        s += '<br />für Höhen ab %s m\n' % altitude[0]
+                    elif altitude[0]<=0 and altitude[1]<3000:
+                        s += '<br />für Höhen bis %s m\n' % altitude[1]
+                    elif altitude[0]>0 and altitude[1]<3000:
+                        s += '<br />für Höhen von %s m bis %s m\n' % altitude
+
+                s+='</p></td>\n</tr></table>\n'
+
+                if val.get('description'):
+                    s+="<p>%s</p>\n" % val['description']
+                if val.get('instruction'):
+                    s+="<p>%s</p>\n" % val['instruction']
+
+                s+='<p style="font-size:40%%">%s &ndash; %s &emsp;&ndash;&emsp; %s &ndash; %s &emsp;&ndash;&emsp; II=%s &ndash; %s</p>' % (val['type'],val['event'],val['level'],val['level_text'],val.get('eventCode-II',''),val.get('eventCode-GROUP',''))
+
+            if s:
+                s+='<p style="font-size:80%%">Quelle: <a href="%s" target="_blank">DWD</a></p>\n' % DWD.DWD_COPY.get(stateShort,"https://www.wettergefahren.de")
+            else:
+                s='<p>zur Zeit keine Warnungen</p>'
+            
+            if dryrun:
+                print("########################################")
+                print("-- HTML -- warn-%s.inc ------------------------------"%__ww)
+                print(s)
+                print("-- JSON -- warn-%s.json -----------------------------"%__ww)
+                print(json.dumps(wwarn[__ww],indent=4,ensure_ascii=False))
+            else:
+                with open("%s/warn-%s.inc" % (target_path,__ww),"w") as file:
+                    file.write(s)
+                with open("%s/warn-%s.json" % (target_path,__ww),"w") as file:
+                    json.dump(wwarn[__ww],file,indent=4)
+
+
+    def download_warncellids(self, target_path, dryrun=False):
+    
+        # Path to store the file
+        fn = os.path.join(target_path,'warncellids.csv')
+
+        if os.path.exists(fn):
+            mtime = os.path.getmtime(fn)
+            mtime_str = formatdate(mtime,False,True)
+        else:
+            mtime = 0
+            mtime_str = None
+        if self.verbose:
+            loginf('warncellids.csv mtime %s %s' % (mtime,mtime_str))
+        
+        # Without specifying a user agent the server sends the error
+        # message 403
+        headers={'User-Agent':'weewx-DWD'}
+        # If the file is not changed we need not download it again
+        if mtime_str: headers['If-Modified-Since'] = mtime_str
+
+        reply = requests.get(DWD.DEFAULT_DWD_WARNCELLID_URL,headers=headers)
+        if self.verbose:
+            loginf('warncellids URL %s' % reply.url)
+        
+        if reply.status_code==200:
+            if self.log_success or self.verbose:
+                loginf('warncellids successfully downloaded')
+            if dryrun:
+                print(reply.text)
+            else:
+                with open(fn,'w',encoding='utf-8') as f:
+                    f.write(reply.text)
+            
+        elif reply.status_code==304:
+            if self.log_success or self.verbose:
+                loginf('warncellids.csv is already up to date')
+        else:
+            if self.log_failure or self.verbose:
+                logerr('error downloading warncellids: %s %s' % (reply.status_code,reply.reason))
+
+        if not dryrun:
+            with open(fn,'r',encoding='utf-8') as f:
+                f.read(3)
+                wcids = csv.DictReader(f,delimiter=';')
+                print(wcids)
+                #for i in wcids: print(i)
+
+
+##############################################################################
+#   BBK specific constants and functions                                     #
+##############################################################################
+
+# Source: https://nina.api.bund.dev
+# Protocol description: http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.pdf
+
+class BBK(CAP):
+
+    DEFAULT_BBK_URL = "https://warnung.bund.de/api31"
+
+    WARNING_SOURCES = (
+        'katwarn',
+        'biwapp',
+        'mowas',
+        'dwd',
+        'lhp',
+        'police'
+    )
+    
+    BBK_LEVEL = (
+        'keine Warnung',     # 0 no warning
+        'Vorinformation',    # 1 preliminary info
+        'leicht',            # 2 minor
+        'mittel',            # 3 moderate
+        'schwer',            # 4 severe
+        'extrem'             # 5 extreme
+    )
+    
+    def level_text(self, level, isdwd=False):
+        try:
+            if isdwd: return DWD.dwd_level_text(level)
+            return BBK.BBK_LEVEL[level]
+        except IndexError:
+            if level==10: return 'Hitzewarnung'
+        return None
+
+    def get_eventtype(self, evt, ii):
+        return '*'
+        
+    def get_logo(self, sender):
+        return self.logos.get(sender)
+    
+    def warn_icon_file(self, type, level, eventcode):
+        if eventcode:
+            return self.icon_base_url+'/'+self.eventicons.get(eventcode,'unknown.png')
+        else:
+            return self.icon_base_url+'/'+'bbkicon.png'
+    
+    def __init__(self, warn_dict, log_success=True, log_failure=True, verbose=False):
+        super(BBK,self).__init__(warn_dict,log_success,log_failure,verbose)
+        self.bbk_url = BBK.DEFAULT_BBK_URL
+        # warn icons
+        self.icon_base_url = warn_dict.get('icons',self.bbk_url+'/appdata/gsb/eventCodes')
+        self.logo_base_url = warn_dict.get('logos',self.bbk_url+'/appdata/gsb/logos')
+        self.eventicons = self.get_eventcodes()
+        self.logos = self.get_logos()
+        self.filter_area = warn_dict.get('counties',dict())
+        # include DWD warnings (default: no)
+        self.include_dwd = tobool(warn_dict.get('include_dwd',False))
+
+
+    def wget(self, url, success_msg='successfully downloaded %s'):
+        reply = super(BBK,self).wget(url)
+        return json.loads(reply)
+        
+        
+    def get_logos(self):
+        """ get the list of sender logos """
+        url = self.bbk_url + '/appdata/gsb/logos/logos.json'
+        logos = self.wget(url)
+        return {logo['senderId']:logo for logo in logos['logos']}
+    
+    
+    def get_eventcodes(self):
+        """ get the list of event codes """
+        url = self.bbk_url + '/appdata/gsb/eventCodes/eventCodes.json'
+        evcs = self.wget(url)
+        return {evc['eventCode']:evc['imageUrl'] for evc in evcs['eventCodes']}
+    
+
+    def get_list(self, ars):
+        """ get list of active warnings for county ars """
+        if ars in BBK.WARNING_SOURCES:
+            url = self.bbk_url + '/' + ars + '/mapData.json'
+        else:
+            url = self.bbk_url + '/dashboard/' + str(ars)[0:5] + '0000000.json'
+        return self.wget(url)
+
+
+    def get_warning(self, id):
+        """ get warning data of warning id """    
+        url = self.bbk_url + '/warnings/' + id +'.json'
+        return self.wget(url)
+        
+        
+    def warnings(self):
+        """ warnings of BBK """
+        wwarn = {self.filter_area[i]:[] for i in self.filter_area}
+        arss = self.filter_area
+        areas = dict()
+        for ars in arss:
+            if self.verbose and __name__ == "__main__":
+                print("++ dashboard data ++++++++++++++++++++++++++++++++++++++")
+                
+            warns = self.get_list(ars)
+            
+            if self.verbose:
+                loginf("Regionalschlüssel ARS %s, %s Einträge" % (ars,len(warns)))
+                
+            if warns:
+            
+                for warn in warns:
+
+                    if self.verbose:
+                        loginf("Warn ID: %s" % warn.get('id'))
+                        loginf(warn)
+                        
+                    if warn['id'] not in areas:
+                        areas[warn['id']] = []
+                    
+                    warn['BBK_ARS'] = ars
+                    warn['output_region'] = arss[ars]
+                    
+                    areas[warn['id']].append(warn)
+                    
+        for id in areas:
+
+            # download warning
+            alert = self.get_warning(warn['id'])
+            
+            for ii,__ in enumerate(alert['info']):
+                alert['info'][ii]['BBK_areas'] = areas[id]
+                    
+            #alert['BBK_eventcode'] = warn.get('payload',dict()).get('data',dict()).get('transKeys',dict()).get('event')
+                    
+            # "opendata@dwd.de"
+            if alert.get('sender','')!="opendata@dwd.de" or self.include_dwd:
+                yield(alert)
+                    
+                        
+                
+    def _area_filter(self, info_dict):
+        """ BBK """
+        x = []
+        areaDesc = ''
+        for tag in info_dict:
+            val = info_dict[tag]  
+            if tag=='area':
+                for jj in val:
+                    areaDesc = jj.get('areaDesc',areaDesc)
+            if tag=='BBK_areas':
+                for ii in val:
+                  x.append((areaDesc,ii['BBK_ARS'],0,3000,None,None,ii['output_region']))
+        return x
+
+    def write_html(self, wwarn, target_path, dryrun):
+        """ BBK """
+        for __ww in wwarn:
+            s = ""
+            r = None
+            for idx,val in enumerate(wwarn[__ww]):
+                _region = ', '.join([i[0] for i in val['areas'] if i[-1]==__ww])
+                _region = _region.replace('Stadt ','').replace('Gemeinde ','')
+                val['regionName'] = _region
+                if r is None or r!=_region:
+                    r = _region
+                    s+='<p style="margin-top:5px"><strong>%s</strong></p>\n' % r
+                
+                # alert message 
+                s+='<table style="vertical-align:middle"><tr style="vertical-align:middle">\n'
+                if val.get('icon'):
+                    s+='<td style="width:60px"><img src="%s" alt="%s"/></td>\n' % (val['icon'],val['event'])
+                __size=110 if int(val['level'])>2 else 100
+                s+='<td><p style="font-size:%i%%;margin-bottom:0">%s</p>\n' % (__size,val['headline'])
+                if val['start'] and val['end']:
+                    s='%s<p style="font-size:80%%">gültig vom %s bis %s</p></td>\n' % (s,time.strftime("%d.%m. %H:%M",time.localtime(val['start']/1000)),time.strftime("%d.%m. %H:%M",time.localtime(val['end']/1000)))
+                elif val['start']:
+                    s='%s<p style="font-size:80%%">gültig seit %s</p></td>\n' % (s,time.strftime("%d.%m. %H:%M",time.localtime(val['start']/1000)))
+                elif val['end']:
+                    s='%s<p style="font-size:80%%">gültig bis %s</p></td>\n' % (s,time.strftime("%d.%m. %H:%M",time.localtime(val['end']/1000)))
+                s+='</tr></table>\n'
+
+                if val.get('description'):
+                    s+="<p>%s</p>\n" % val['description']
+                if val.get('instruction'):
+                    s+="<p>%s</p>\n" % val['instruction']
+                if val.get('sender'):
+                    if 'sender_name' in val:
+                        sn = val['sender_name']+' ('+val['sender']+')'
+                    else:
+                        sn = val['sender']
+                    if val.get('sender_logo',''):
+                        lg = '<img src="%s" style="max-height:16px" alt="%s" /> ' % (val['sender_logo'],val['sender'])
+                    else:
+                        lg = ""
+                    s+='<p style="font-size:80%%">Quelle: %s%s</p>' % (lg,sn)
+
+                s+='<p style="font-size:40%%">%s &ndash; %s &emsp;&ndash;&emsp;  %s &ndash; %s &emsp;&ndash;&emsp; %s &ndash; %s &emsp;&ndash;&emsp; %s</p>' % (val.get('type',''),val.get('event',''),val.get('level',''),val.get('level_text',''),val.get('category',''),val.get('categoryName',''),val.get('identifier',''))
+                
+            if s:
+                s += '<p style="font-size:65%%">Herausgegeben vom BBK | Abgerufen am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M')
+            else:
+                s='<p>zur Zeit keine Warnungen</p>'
+ 
+            if dryrun:
+                print("########################################")
+                print("-- HTML -- bbk-%s.inc ------------------------------"%__ww)
+                print(s)
+                print("-- JSON -- bbk-%s.json -----------------------------"%__ww)
+                print(json.dumps(wwarn[__ww],indent=4,ensure_ascii=False))
+            else:
+                with open("%s/bbk-%s.inc" % (target_path,__ww),"w") as file:
+                    file.write(s)
+                with open("%s/bbk-%s.json" % (target_path,__ww),"w") as file:
+                    json.dump(wwarn[__ww],file,indent=4)
+
+        
+        
+##############################################################################
+#   extract file names from directory listing                                #
+##############################################################################
+
+class CapDirParser(html.parser.HTMLParser):
+
+    def __init__(self, lang):
+        super(CapDirParser,self).__init__()
+        self.lang = lang
+        self.files = []
+        
+    def handle_starttag(self, tag, attrs):
+        """ process HTML start tags """
+        if tag=='a':
+            for i in attrs:
+                if i[0]=='href':
+                    file_lang = (i[1][-6:-4]).lower()
+                    if file_lang==self.lang and i[1][-4:].lower()=='.zip':
+                        self.files.append(i[1])
+    
+    def get_files(self):
+        """ get the list of file names found and close parser """
+        self.close()
+        return self.files
+
+
+##############################################################################
+#   parse CAP file                                                           #
+##############################################################################
+
+# Note: Strictly speaking CAP files are XML, not HTML. But for our 
+#       purpose a simple HTML parser is sufficient.
+
+# Note: There is one and only one alert per file.
+
+class CAPParser(html.parser.HTMLParser):
+
+    # tags that require special handling
+    TAGTYPE = {
+        # tag       sub      multiple
+        #           section  times
+        'alert':    (True,   False),
+        'info':     (True,   True),
+        'eventcode':(True,   True),
+        'area':     (True,   True),
+        'geocode':  (True,   True),
+        'parameter':(True,   True),
+        'code':     (False,  True)}
+        # default:   False   False
+        
+    def __init__(self, log_tags=False):
+        super(CAPParser,self).__init__()
+        self.log_tags = log_tags
+        self.lvl = 0
+        self.tags = []
+        self.cap = dict()
+        self.ar = [self.cap]
+        
+    def _is_dict(self, tag):
+        """ Is this tag a sub-section? """
+        return self.TAGTYPE.get(tag,(False,False))[0]
+        
+    def _is_array(self, tag):
+        """ Is this tag allowed multiple times? """
+        return self.TAGTYPE.get(tag,(False,False))[1]
+        
+    def handle_starttag(self, tag, attrs):
+        """ handle start tag """
+        if self.log_tags:
+            print(self.lvl,self.tags,'start',tag,attrs)
+        self.tags.append(tag)
+        self.lvl+=1
+        if self._is_array(tag):
+            if tag not in self.ar[-1]:
+                self.ar[-1][tag] = []
+            if self._is_dict(tag):
+                self.ar[-1][tag].append(dict())
+                self.ar.append(self.ar[-1][tag][-1])
+        elif self._is_dict(tag):
+            self.ar[-1][tag] = dict()
+            self.ar.append(self.ar[-1][tag])
+        
+    def handle_endtag(self, tag):
+        """ handle end tag """
+        del self.tags[-1]
+        self.lvl-=1
+        if self._is_dict(tag):
+            del self.ar[-1]
+        if self.log_tags:
+            print(self.lvl,self.tags,'end',tag)
+
+    def handle_data(self, data):
+        """ handle data between tags """
+        if len(self.tags)>0:
+            tag = self.tags[-1]
+            if self._is_array(tag):
+                if self._is_dict(tag):
+                    pass
+                else:
+                    self.ar[-1][tag].append(data)
+                    pass
+            elif self._is_dict(tag):
+                if not data.isspace():
+                    self.ar[-1]['@'] = data
+            else:
+                self.ar[-1][tag] = data
+        if self.log_tags:
+            print(self.lvl,self.tags,'data',data)
+
+
+
+class CAPwarnings(object):
+
+    PROVIDERS = {
+        'DWD':('DeutscherWetterdienst','warning',DWD),
+        'BBK':('DeutscherWetterdienst','BBK',BBK)
+    }
+    
+    def __init__(self, config_dict, provider, verbose=False):
+        
+        super(CAPwarnings,self).__init__()
+        self.provider = provider
+        section = CAPwarnings.PROVIDERS[provider]
+        base_dict = accumulateLeaves(config_dict[section[0]])
+        warn_dict = accumulateLeaves(config_dict[section[0]][section[1]])
+        # target path
+        self.target_path = base_dict['path']
+        # logging
+        self.verbose = verbose
+        self.log_success = tobool(warn_dict.get('log_success',base_dict.get('log_success',config_dict.get('log_success',False))))
+        self.log_failure = tobool(warn_dict.get('log_failure',base_dict.get('log_failure',config_dict.get('log_failure',False))))
+        if int(config_dict.get('debug',0))>0 or verbose:
+            self.log_success = True
+            self.log_failure = True
+            self.verbose = True
+        # 
+        self.cap = section[2](warn_dict,log_success=self.log_success, log_failure=self.log_failure, verbose=self.verbose)
+        
+        if __name__ == "__main__" and verbose:
+            print('-- configuration data ----------------------------------')
+            print('log success:  ',self.cap.log_success)
+            print('log failure:  ',self.cap.log_failure)
+            #print('status url:   ',self.dwd_status_url)
+            #print('diff msgs url:',self.dwd_diff_url)
+            print('filter area:  ',self.cap.filter_area)
+            print('target path:  ',self.target_path)
+            print('icon URL:     ',self.cap.icon_base_url)
+            print('logo URL:     ',self.cap.logo_base_url)
+            print('--------------------------------------------------------')
+
+
+    def get_warnings(self):
+        return self.cap.get_warnings()
+    
+    
+    def write_html(self, wwarn, dryrun):
+        self.cap.write_html(wwarn, self.target_path, dryrun)
+        
+
+if __name__ == "__main__":
+
+    usage = "Usage: %prog [options] [warning_region]"
+    epilog = None    
+
+    # Create a command line parser:
+    parser = optparse.OptionParser(usage=usage, epilog=epilog)
+
+    # options
+    parser.add_option("--config", dest="config_path", type=str,
+                      metavar="CONFIG_FILE",
+                      default=None,
+                      help="Use configuration file CONFIG_FILE.")
+    parser.add_option("--weewx", action="store_true",
+                      help="Read config from weewx.conf.")
+    parser.add_option("--lang", dest="lang", type=str,
+                      metavar="ISO639",
+                      default='de',
+                      help="Alert language. Default 'de'")
+    parser.add_option("--provider", dest="provider", type=str,
+                      metavar="PROVIDER",
+                      help="warnings provider 'DWD' or 'BBK'")
+
+    group = optparse.OptionGroup(parser,"DWD")
+    group.add_option("--diff", action="store_true",
+                      help="Use diff files instead of status files.")
+    group.add_option("--resolution", dest="resolution", type=str,
+                      metavar="VALUE",
+                      default=None,
+                      help="Overwrite configuration setting for resolution. Possible values are 'county' and 'city'.")
+    group.add_option("--get-warncellids", dest="warncellids", action="store_true",
+                      help="Download warn cell ids file.")
+    group.add_option("--list-ii", dest="lsii", action="store_true",
+                     help="List defined II event codes")
+    group.add_option("--list-zip", dest="lszip", action="store_true",
+                     help="Download and display zip file list")
+    parser.add_option_group(group)
+
+    group = optparse.OptionGroup(parser,"BBK")
+    group.add_option("--list-logos", action="store_true",
+                      help="list logos")
+    group.add_option("--list-eventcodes", action="store_true",
+                      help="list event codes")
+    group.add_option("--include-dwd", action="store_true",
+                     help="include messages originating from DWD")
+    parser.add_option_group(group)
+
+    group = optparse.OptionGroup(parser,"Output and logging options")
+    group.add_option("--dry-run", action="store_true",
+                      help="Print what would happen but do not do it. Default is False.")
+    group.add_option("--log-tags", action="store_true",
+                      help="Log tags while parsing the XML file.")
+    group.add_option("-v","--verbose", action="store_true",
+                      help="Verbose output")
+    parser.add_option_group(group)
+    
+    (options, args) = parser.parse_args()
+
+    if options.weewx:
+        config_path = "/etc/weewx/weewx.conf"
+    else:
+        config_path = options.config_path
+
+    if config_path:
+        print("Using configuration file %s" % config_path)
+        config = configobj.ConfigObj(config_path)
+    else:
+        # test only
+        print("Using test configuration")
+        # vom Benutzer anzupassen
+        states=['Sachsen','Thüringen']
+        counties={
+            'Kreis Mittelsachsen - Tiefland':'DL',
+            'Stadt Leipzig':'L',
+            'Stadt Jena':'J',
+            'Stadt Dresden':'DD'}
+        cities={
+            'Stadt Döbeln':'DL',
+            'Stadt Leipzig':'L',
+            'Stadt Jena':'J',
+            'Stadt Dresden':'DD'}
+        ICON_PTH="../dwd/warn_icons_50x50"
+        target_path='.'
+    
+        config = {
+            'log_success':True,
+            'log_failure':True,
+            'DeutscherWetterdienst': {
+                'path':target_path,
+                'warning': {
+                    #'dwd_status_url': get_cap_url('city','cell','neutral',False),
+                    #'dwd_diff_url': get_cap_url('city','cell','neutral',True),
+                    'icons': ICON_PTH,
+                    'states' : states,
+                    'counties': counties,
+                    'cities': cities },
+                'BBK': {
+                    'counties': {
+                         '145220080080':'DL',
+                         #'145220250250':'DL',
+                         '147130000000':'L',
+                         '145210440440':'Oberwiesenthal'}}}}
+
+    if options.resolution:
+        config['DeutscherWetterdienst']['warning']['resolution'] = options.resolution
+    if options.include_dwd is not None:
+        config['DeutscherWetterdienst']['BBK']['include_dwd'] = options.include_dwd
+    
+    # warnings provider
+    provider = options.provider
+    if not provider:
+        if options.warncellids:
+            provider = 'DWD'
+
+    if len(args)>0:
+        arg_dict = {arg:arg for arg in args}
+        if provider=='BBK':
+            config['DeutscherWetterdienst']['BBK']['counties'] = arg_dict
+        elif provider=='DWD':
+            res = config['DeutscherWetterdienst']['warning']['resolution']
+            if res in ('county','counties'):
+                res = 'counties'
+            elif res in ('city','cities'):
+                res = 'cities'
+            config['DeutscherWetterdienst']['warning'][res] = arg_dict
+            
+
+    if options.lsii:
+        c = -1
+        for ii in DWD.CAP_II:
+            if c!=ii[2]:
+                if c>=0: print("")
+                c = ii[2]
+                print(DWD.CAP_II_CAPTION[c])
+                print(" II | type | c | event")
+                print("---:|-----:|--:|--------------------------------------------------------------")
+            print("%3s | %4s | %1s | %s" % (ii[0],ii[1],ii[2],ii[3]))
+    else:
+        cap = CAPwarnings(config,provider,options.verbose)
+
+        if options.warncellids:
+            # DWD warncellids
+            cap.cap.download_warncellids(cap.target_path,options.dry_run)
+        elif options.lszip:
+            ff = cap.cap.dir(options.diff,options.lang)
+            print('\n'.join(ff))
+        elif options.list_logos:
+            print(json.dumps(cap.cap.logos,indent=4,ensure_ascii=False))
+        elif options.list_eventcodes:
+            print(json.dumps(cap.cap.eventicons,indent=4,ensure_ascii=False))
+        else:
+            wwarn = cap.get_warnings()
+            #print(json.dumps(wwarn,indent=4,ensure_ascii=False))
+            #print(wwarn)
+            cap.write_html(wwarn,options.dry_run)
+    
