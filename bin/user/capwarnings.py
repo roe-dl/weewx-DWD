@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-# Erzeugen von Warnmeldungen
-# Copyright (C) 2022 Johanna Roedenbeck
+# Process warnings sent with CAP (Common Alerting Protocol)
+# Copyright (C) 2023 Johanna Roedenbeck
 # licensed under the terms of the General Public License (GPL) v3
 
 from __future__ import absolute_import
@@ -20,11 +20,14 @@ from __future__ import with_statement
 """
 
 """
+# Protocol description: http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.pdf
+
 Ein <alert>-Element DARF ein oder mehrere <info>-Elemente haben. Jedes <info>-
 Element stellt eine Warnung in einer Sprache dar. Sind mehrere <info>-Elemente in
 einem <alert>-Block enthalten, so MUSS jedes <info>-Element die gleiche Warnung
 (die gleiche Information) in einer anderen Sprache darstellen. Jedes <info>-Element
 DARF ein oder mehrere <area>-Elemente haben.
+
 """
 
 import json
@@ -114,6 +117,8 @@ def tobool(x):
     raise ValueError("Unknown boolean specifier: '%s'." % x)
 
 
+# https://www.xrepository.de/details/urn:de:bund:destatis:bevoelkerungsstatistik:schluessel:rs
+# https://www.xrepository.de/api/xrepository/urn:de:bund:destatis:bevoelkerungsstatistik:schluessel:rs_2022-09-30/download/Regionalschl_ssel_2022-09-30.json
 
 class Germany(object):
 
@@ -1060,15 +1065,34 @@ class BBK(CAP):
         """ BBK """
         x = []
         areaDesc = ''
+        warnverwaltungsbereiche = None
         for tag in info_dict:
-            val = info_dict[tag]  
+            val = info_dict[tag]
+            if tag=='parameter':
+                for ii in val:
+                    vn = None
+                    vl = None
+                    for jj in ii:
+                        if jj.lower()=='valuename':
+                            vn = ii[jj]
+                        elif jj.lower()=='value':
+                            vl = ii[jj]
+                    if vn and vn.lower()=='warnverwaltungsbereiche':
+                        warnverwaltungsbereiche = vl
+                        break
             if tag=='area':
                 for jj in val:
                     areaDesc = jj.get('areaDesc',areaDesc)
             if tag=='BBK_areas':
                 for ii in val:
-                  x.append((areaDesc,ii['BBK_ARS'],0,3000,None,None,ii['output_region']))
+                  if Germany.compareARS(ii['BBK_ARS'],warnverwaltungsbereiche):
+                      try:
+                          bundesland = Germany.AGS_STATES[ii['BBK_ARS'][0:2]]
+                      except (LookupError,TypeError):
+                          bundesland = ('','')
+                      x.append((areaDesc,ii['BBK_ARS'],0,3000,bundesland[0],bundesland[1],ii['output_region']))
         return x
+
 
     def write_html(self, wwarn, target_path, dryrun):
         """ BBK """
