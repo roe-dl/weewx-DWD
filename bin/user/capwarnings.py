@@ -365,7 +365,11 @@ class CAP(object):
         
 
     def process_alert(self, alert_dict, lang='de'):
-        """ process alert """
+        """ process alert 
+        
+            This includes converting the dict() to a less deeper one
+            and augmenting it by icons and status texts.
+        """
         lang = lang.lower()
         # <alert>
         # search the alert for area references we are interested in
@@ -464,7 +468,14 @@ class CAP(object):
                                       alert.get('eventCode-II'))
             # warn icon
             try:
-                alert['icon'] = self.icon_base_url+'/'+self.warn_icon_file(alert['type'],alert['level'],alert_dict.get('BBK_eventcode'))
+                alert['icon'] = (
+                    self.icon_base_url+'/'+
+                    self.warn_icon_file(
+                        alert['type'],
+                        alert['level'],
+                        alert_dict.get('BBK_eventcode')
+                    )
+                )
             except Exception:
                 pass
             # sender
@@ -857,6 +868,9 @@ class DWD(CAP):
         
         
     def _area_filter(self, info_dict):
+        """ find out whether the given alert is valid for one of the areas 
+            (cities, counties etc.) we are interested in
+        """
         reply = []
         for tag in info_dict:
             val = info_dict[tag]
@@ -1124,47 +1138,70 @@ class BBK(CAP):
         
         
     def warnings(self, lang='de', log_tags=False):
-        """ warnings of BBK """
-        wwarn = {self.filter_area[i]:[] for i in self.filter_area}
+        """ alerts of BBK """
+        # list of the counties we are interested in
         arss = self.filter_area
+        # dict() of alert IDs with a list of counties that alert is valid for
         areas = dict()
+        # go through all counties (or dashboard regions)
         for ars in arss:
             if self.verbose and __name__ == "__main__":
                 print("++ dashboard data ++++++++++++++++++++++++++++++++++++++")
                 
+            # get the list of actual alerts for the county specified by the
+            # Regionalschlüssel ars
             warns = self.get_list(ars)
             
             if self.verbose:
                 loginf("Regionalschlüssel ARS %s, %s Einträge" % (ars,len(warns)))
                 
             if warns:
-            
+                # if there are actual alerts remember them in areas
                 for warn in warns:
 
                     if self.verbose:
                         loginf("Warn ID: %s" % warn.get('id'))
                         loginf(warn)
                         
-                    if warn['id'] not in areas:
-                        areas[warn['id']] = []
-                    
                     warn['BBK_ARS'] = ars
                     warn['output_region'] = arss[ars]
-                    
+                    warn['BBK_eventcode'] = warn.get('payload',dict()).get('data',dict()).get('transKeys',dict()).get('event')
+                    # structure of warn:
+                    # {
+                    #   'id': message ID
+                    #   'payload': {
+                    #     ...
+                    #     'data': {
+                    #       ...
+                    #       'transKeys': {
+                    #         'event': BBK event code
+                    #       }
+                    #     }
+                    #   }
+                    #   'i18nTitle': {
+                    #     language code: message title
+                    #   }
+                    #   'sent': ISO timestamp
+                    #   'onset': ISO timestamp (optional)
+                    #   'expires': ISO timestamp (optional)
+                    #   'effective': ISO timestamp (optional)
+                    #   'BBK_ARS': Regionalschlüssel
+                    #   'output_region': target file mark
+                    # }
+                    if warn['id'] not in areas:
+                        areas[warn['id']] = []
                     areas[warn['id']].append(warn)
-                    
+        # go through messages
         for id in areas:
-
             # download warning
             alert = self.get_warning(warn['id'])
-            
+            # 'info' is an array of different language versions of the alert
+            # add the list of areas to each of them
             for ii,__ in enumerate(alert['info']):
                 alert['info'][ii]['BBK_areas'] = areas[id]
-            
+            # The eventcode is the same for all elements of areas[id]
             alert['BBK_eventcode'] = areas[id][0].get('payload',dict()).get('data',dict()).get('transKeys',dict()).get('event')
-            #print(alert['BBK_eventcode'])
-            #for i in areas[id]: print('TTTTTTTTTTTTTTTTTTT',i.get('payload',dict()).get('data',dict()).get('transKeys',dict()).get('event'))
-                    
+            
             # "opendata@dwd.de"
             if alert.get('sender','')!="opendata@dwd.de" or self.include_dwd:
                 yield(alert)
@@ -1172,12 +1209,18 @@ class BBK(CAP):
                         
                 
     def _area_filter(self, info_dict):
-        """ BBK """
+        """ find out whether the given alert is valid for one of the areas 
+            (cities, counties etc.) we are interested in
+        
+            BBK 
+        """
         x = []
         areaDesc = ''
         warnverwaltungsbereiche = None
         for tag in info_dict:
             val = info_dict[tag]
+            # The only parameter we are interested in is 
+            # 'warnVerwaltungsbereiche'. Remember the value.
             if tag=='parameter':
                 for ii in val:
                     vn = None
@@ -1190,17 +1233,27 @@ class BBK(CAP):
                     if vn and vn.lower()=='warnverwaltungsbereiche':
                         warnverwaltungsbereiche = vl
                         break
+            # While in DWD warnings 'area' contains detailed information,
+            # this is not the case for BBK alerts. There is a general
+            # description of the region available only, and it is in
+            # human readable form. There is at most one element in 'area' only.
             if tag=='area':
                 for jj in val:
                     areaDesc = jj.get('areaDesc',areaDesc)
+            # 'BBK_areas' is a list of all dashboard regions (counties)
+            # that refer to this alert.
             if tag=='BBK_areas':
                 for ii in val:
-                  if Germany.compareARS(ii['BBK_ARS'],warnverwaltungsbereiche):
+                  # 'ii' is one of the regions with one Regionalschlüssel
+                  ars = ii['BBK_ARS']
+                  if Germany.compareARS(ars,warnverwaltungsbereiche):
                       try:
-                          bundesland = Germany.AGS_STATES[ii['BBK_ARS'][0:2]]
+                          bundesland = Germany.AGS_STATES[ars[0:2]]
                       except (LookupError,TypeError):
                           bundesland = ('','')
-                      x.append((areaDesc,ii['BBK_ARS'],0,3000,bundesland[0],bundesland[1],ii['output_region']))
+                      # There are no altitudes available from BBK, so use
+                      # defaults.
+                      x.append((areaDesc,ars,0,3000,bundesland[0],bundesland[1],ii['output_region']))
         return x
 
 
