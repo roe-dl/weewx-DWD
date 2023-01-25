@@ -20,7 +20,62 @@ from __future__ import with_statement
 """
 
 """
-# Protocol description: http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.pdf
+    API
+    ===
+    
+    CAPwarnings.PROVIDERS
+    
+        dict() of providers, where to find their configuration and
+        which class to use for provider specific functions
+        
+    cap = CAPwarnings(config_dict, provider)
+    
+        config_dict
+        
+            configuration dict(), for example weewx.conf, see README.md
+            for details
+            
+        provider
+        
+            name of the data provider to look up in CAPwarnings.PROVIDERS
+    
+    wwarn = cap.get_warnings()
+    
+        receive CAP warning data from the provider and convert it to
+        a Python dict()
+        
+    cap.write_html(wwarn, dry_run)
+    
+        write HTML and JSON file(s) out of the dict() wwarn
+
+        wwarn
+        
+            warnings dict(), received by get_warnings()
+            
+        dry_run
+        
+            if True, print result to screen instead of saving to files
+            
+    cap.cap.download_warncellids(target_path, dry_run)
+    
+        provider "DWD" only.
+        
+        get list of warncell IDs used by that provider and write it to
+        file
+        
+        target_path
+        
+            where to write the file
+            
+        dry_run
+        
+            do not write to file but output to screen
+            
+            
+    Common Alerting Protocol (CAP)
+    ==============================
+            
+    Protocol description: http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.pdf
 
 Ein <alert>-Element DARF ein oder mehrere <info>-Elemente haben. Jedes <info>-
 Element stellt eine Warnung in einer Sprache dar. Sind mehrere <info>-Elemente in
@@ -1267,6 +1322,7 @@ class CAPParser(html.parser.HTMLParser):
             print(self.lvl,self.tags,'data',data)
 
 
+##############################################################################
 
 class CAPwarnings(object):
 
