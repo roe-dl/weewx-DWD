@@ -28,7 +28,7 @@ from __future__ import with_statement
         dict() of providers, where to find their configuration and
         which class to use for provider specific functions
         
-    cap = CAPwarnings(config_dict, provider)
+    cap = CAPwarnings(config_dict, provider, verbose=False)
     
         config_dict
         
@@ -38,13 +38,27 @@ from __future__ import with_statement
         provider
         
             name of the data provider to look up in CAPwarnings.PROVIDERS
+            
+        verbose
+        
+            extremly verbose logging (includes log_success=True and
+            log_failure=True)
     
-    wwarn = cap.get_warnings()
+    wwarn = cap.get_warnings(lang='de', log_tags=False)
     
         receive CAP warning data from the provider and convert it to
         a Python dict()
         
-    cap.write_html(wwarn, dry_run)
+        lang
+        
+            language code
+            
+        log_tags
+        
+            log tags while processing the XML data (for standalone
+            usage only)
+        
+    cap.write_html(wwarn, dry_run=False)
     
         write HTML and JSON file(s) out of the dict() wwarn
 
@@ -70,7 +84,19 @@ from __future__ import with_statement
         dry_run
         
             do not write to file but output to screen
-            
+    
+    
+    Standalone usage
+    ================
+    
+    You can invoke this script standalone or by a wrapper or link called
+    `cap-warnings`, `dwd-cap-warnings`, or `bbk-warnings`. Use `--help` 
+    to show possible options.
+    
+    Invoking as `dwd-cap-warnings` includes the option `--provider=DWD`.
+    
+    Invoking as `bbk-warnings` includes the option `--provider=BBK`
+    
             
     Common Alerting Protocol (CAP)
     ==============================
@@ -97,11 +123,14 @@ import urllib.parse
 from email.utils import formatdate
 import html.parser
 import zipfile
+import sys
 
-if __name__ == "__main__":
+invoke_fn = os.path.basename(sys.argv[0])
+standalone = ('cap-warnings','dwd-cap-warnings','bbk-warnings')
+
+if __name__ == "__main__" or invoke_fn in standalone:
 
     import optparse
-    import sys
     sys.path.append('/usr/share/weewx')
     def loginf(x):
         print(x, file=sys.stderr)
@@ -233,7 +262,7 @@ class CAP(object):
         'Extreme':5
     }
     
-    def level_text(self, level, isdwd=None):
+    def level_text(self, level, lang='de', isdwd=None):
         return None
 
     CATEGORY = {
@@ -260,12 +289,13 @@ class CAP(object):
 
     @staticmethod
     def get_category_name(category, lang='de'):
+        """ long name of the alert category """
         try:
-            return CATEGORY[category][lang.lower()]
+            return CAP.CATEGORY[category][lang.lower()]
         except LookupError:
             pass
         try:
-            return CATEGORY[category]['en']
+            return CAP.CATEGORY[category]['en']
         except LookupError:
             pass
         if lang.lower()=='de': return 'unbekannt'
@@ -280,23 +310,27 @@ class CAP(object):
         return int(ti.timestamp()*1000)
         
     def get_logo(self, sender):
+        """ file name of the logo picture of the originator of the alert """
         return dict()
         
     def warn_icon_file(self, typ, level, eventcode):
+        """ file name of the alert icon """
         return None
 
     def __init__(self, warn_dict, log_success=True, log_failure=True, verbose=False):
         super(CAP,self).__init__()
+        # logging configuration
         self.log_success = log_success
         self.log_failure = log_failure
         self.verbose = verbose
+        # internal data to be initialized in the provider specific classes
         self.icon_base_url = None
         self.logo_base_url = None
         self.filter_area = None
         
 
     def wget(self, url, success_msg='successfully downloaded %s'):
-        """ download from BBK """
+        """ download from provider """
         headers={'User-Agent':'weewx-DWD'}
         reply = requests.get(url,headers=headers)
 
@@ -321,11 +355,18 @@ class CAP(object):
 
 
     def _area_filter(self, info_dict):
-        return []
+        """ find out whether the given alert is valid for one of the areas 
+            (cities, counties etc.) we are interested in
+            
+            As the providers provide that information in different ways, this
+            function has to be defined in the provider specific classes.
+        """
+        raise NotImplementedError
         
 
     def process_alert(self, alert_dict, lang='de'):
         """ process alert """
+        lang = lang.lower()
         # <alert>
         # search the alert for area references we are interested in
         areas = []
@@ -416,14 +457,14 @@ class CAP(object):
                 alert['level'] = 1
             else:
                 alert['level'] = CAP.SEVERITY.get(info_dict.get('severity'),0)
-            alert["level_text"] = self.level_text(alert['level'])
+            alert["level_text"] = self.level_text(alert['level'],lang=lang)
             # event type
             alert['type'] = DWD.get_eventtype_from_cap(
                                       info_dict.get('event'),
                                       alert.get('eventCode-II'))
             # warn icon
             try:
-                alert['icon'] = self.icon_base_url+'/'+self.warn_icon_file(alert['type'],alert['level'],alert.get('BBK_eventcode'))
+                alert['icon'] = self.icon_base_url+'/'+self.warn_icon_file(alert['type'],alert['level'],alert_dict.get('BBK_eventcode'))
             except Exception:
                 pass
             # sender
@@ -439,18 +480,18 @@ class CAP(object):
         return None
 
 
-    def warnings(self):
-        pass
+    def warnings(self, lang='de', log_tags=False):
+        raise NotImplementedError
     
     
-    def get_warnings(self):
+    def get_warnings(self, lang='de', log_tags=False):
         """  """
         if self.verbose:
             print('-- get_warnings -------------------------------')
         # initialize dict for all regions to collect warnings for
         wwarn = {self.filter_area[i]:dict() for i in self.filter_area}
-        for cap in self.warnings():
-            alert = self.process_alert(cap)
+        for cap in self.warnings(lang,log_tags):
+            alert = self.process_alert(cap,lang)
             if alert:
                 areas = alert['areas']
                 #print('++++++++++')
@@ -479,7 +520,7 @@ class CAP(object):
 
     def write_html(self, wwarn, target_path, dryrun):
         """ prototype function """
-        pass
+        raise NotImplementedError
 
 
 ##############################################################################
@@ -557,7 +598,7 @@ class DWD(CAP):
             if level==10: return 'Hitzewarnung'
         return None
 
-    def level_text(self, level, isdwd=True):
+    def level_text(self, level, lang='de', isdwd=True):
         return DWD.dwd_level_text(level)
     
     def get_logo(self, sender):
@@ -752,7 +793,6 @@ class DWD(CAP):
         # source urls
         self.dwd_status_url = warn_dict.get('dwd_status_url',DWD.get_cap_url(self.resolution,'cell','neutral',False))
         self.dwd_diff_url = warn_dict.get('dwd_diff_url',DWD.get_cap_url(self.resolution,'cell','neutral',True))
-        self.log_tags = False
         self.diff = False
 
 
@@ -797,11 +837,10 @@ class DWD(CAP):
             return None
 
 
-    def warnings(self):
+    def warnings(self, lang='de',log_tags=False):
         """ DWD """
         diff = self.diff
-        log_tags = self.log_tags
-        filename = self.dir(diff,'de')[-1]
+        filename = self.dir(diff,lang)[-1]
         if self.verbose:
             loginf('processing file %s' % filename)
         # initialize dict for all regions to collect warnings for
@@ -994,20 +1033,32 @@ class BBK(CAP):
         'police'
     )
     
-    BBK_LEVEL = (
-        'keine Warnung',     # 0 no warning
-        'Vorinformation',    # 1 preliminary info
-        'leicht',            # 2 minor
-        'mittel',            # 3 moderate
-        'schwer',            # 4 severe
-        'extrem'             # 5 extreme
-    )
+    BBK_LEVEL = {
+        'de': (
+            'keine Warnung',     # 0 no warning
+            'Vorinformation',    # 1 preliminary info
+            'leicht',            # 2 minor
+            'mittel',            # 3 moderate
+            'schwer',            # 4 severe
+            'extrem'             # 5 extreme
+        ),
+        'en': (
+            'no warning',        # 0 no warning
+            'preliminary info',  # 1 preliminary info
+            'minor',             # 2 minor
+            'moderate',          # 3 moderate
+            'severe',            # 4 severe
+            'extreme'            # 5 extreme
+        )
+    }
+
     
-    def level_text(self, level, isdwd=False):
+    def level_text(self, level, lang='de', isdwd=False):
         try:
+            if lang not in BBK.BBK_LEVEL: lang='en'
             if isdwd: return DWD.dwd_level_text(level)
-            return BBK.BBK_LEVEL[level]
-        except IndexError:
+            return BBK.BBK_LEVEL[lang][level]
+        except LookupError:
             if level==10: return 'Hitzewarnung'
         return None
 
@@ -1019,9 +1070,9 @@ class BBK(CAP):
     
     def warn_icon_file(self, type, level, eventcode):
         if eventcode:
-            return self.icon_base_url+'/'+self.eventicons.get(eventcode,'unknown.png')
+            return self.eventicons.get(eventcode,'unknown.png')
         else:
-            return self.icon_base_url+'/'+'bbkicon.png'
+            return 'bbkicon.png'
     
     def __init__(self, warn_dict, log_success=True, log_failure=True, verbose=False):
         super(BBK,self).__init__(warn_dict,log_success,log_failure,verbose)
@@ -1037,7 +1088,9 @@ class BBK(CAP):
 
 
     def wget(self, url, success_msg='successfully downloaded %s'):
+        """ get JSON data from provider and convert to dict() """
         reply = super(BBK,self).wget(url)
+        if reply is None: return None
         return json.loads(reply)
         
         
@@ -1070,7 +1123,7 @@ class BBK(CAP):
         return self.wget(url)
         
         
-    def warnings(self):
+    def warnings(self, lang='de', log_tags=False):
         """ warnings of BBK """
         wwarn = {self.filter_area[i]:[] for i in self.filter_area}
         arss = self.filter_area
@@ -1107,8 +1160,10 @@ class BBK(CAP):
             
             for ii,__ in enumerate(alert['info']):
                 alert['info'][ii]['BBK_areas'] = areas[id]
-                    
-            #alert['BBK_eventcode'] = warn.get('payload',dict()).get('data',dict()).get('transKeys',dict()).get('event')
+            
+            alert['BBK_eventcode'] = areas[id][0].get('payload',dict()).get('data',dict()).get('transKeys',dict()).get('event')
+            #print(alert['BBK_eventcode'])
+            #for i in areas[id]: print('TTTTTTTTTTTTTTTTTTT',i.get('payload',dict()).get('data',dict()).get('transKeys',dict()).get('event'))
                     
             # "opendata@dwd.de"
             if alert.get('sender','')!="opendata@dwd.de" or self.include_dwd:
@@ -1220,7 +1275,10 @@ class CapDirParser(html.parser.HTMLParser):
 
     def __init__(self, lang):
         super(CapDirParser,self).__init__()
-        self.lang = lang
+        if lang in ('de','en','es','fr'):
+            self.lang = lang.lower()
+        else:
+            self.lang = 'ul'
         self.files = []
         
     def handle_starttag(self, tag, attrs):
@@ -1364,15 +1422,15 @@ class CAPwarnings(object):
             print('--------------------------------------------------------')
 
 
-    def get_warnings(self):
-        return self.cap.get_warnings()
+    def get_warnings(self, lang='de', log_tags=False):
+        return self.cap.get_warnings(lang,log_tags)
     
     
     def write_html(self, wwarn, dryrun):
         self.cap.write_html(wwarn, self.target_path, dryrun)
         
 
-if __name__ == "__main__":
+if __name__ == "__main__" or invoke_fn in standalone:
 
     usage = "Usage: %prog [options] [warning_region]"
     epilog = None    
@@ -1407,7 +1465,7 @@ if __name__ == "__main__":
     group.add_option("--list-ii", dest="lsii", action="store_true",
                      help="List defined II event codes")
     group.add_option("--list-zip", dest="lszip", action="store_true",
-                     help="Download and display zip file list")
+                     help="Download and display zip file list (for debugging purposes)")
     parser.add_option_group(group)
 
     group = optparse.OptionGroup(parser,"BBK")
@@ -1416,14 +1474,18 @@ if __name__ == "__main__":
     group.add_option("--list-eventcodes", action="store_true",
                       help="list event codes")
     group.add_option("--include-dwd", action="store_true",
-                     help="include messages originating from DWD")
+                     help="Include messages originating from DWD. Default is to exclude those messages.")
     parser.add_option_group(group)
 
     group = optparse.OptionGroup(parser,"Output and logging options")
+    group.add_option("--target-path", dest="target_path",
+                     metavar="PATH",
+                     default=None,
+                     help="Overwrite configuration setting for target path")
     group.add_option("--dry-run", action="store_true",
                       help="Print what would happen but do not do it. Default is False.")
     group.add_option("--log-tags", action="store_true",
-                      help="Log tags while parsing the XML file.")
+                      help="Log tags while parsing the XML file. Default is not to log the XML tags.")
     group.add_option("-v","--verbose", action="store_true",
                       help="Verbose output")
     parser.add_option_group(group)
@@ -1479,13 +1541,23 @@ if __name__ == "__main__":
         config['DeutscherWetterdienst']['warning']['resolution'] = options.resolution
     if options.include_dwd is not None:
         config['DeutscherWetterdienst']['BBK']['include_dwd'] = options.include_dwd
+    if options.target_path is not None:
+        config['DeutscherWetterdienst']['path'] = options.target_path
     
     # warnings provider
-    provider = options.provider
-    if not provider:
-        if options.warncellids:
-            provider = 'DWD'
+    if invoke_fn=='dwd-cap-warnings':
+        # Deutscher Wetterdienst
+        provider = 'DWD'
+    elif invoke_fn=='bbk-warnings':
+        # Bundesamt für Bevoelkerungsschutz und Katastrophenhilfe
+        provider = 'BBK'
+    else:
+        provider = options.provider
+        if not provider:
+            if options.warncellids:
+                provider = 'DWD'
 
+    # areas (cities, counties) to get alerts for
     if len(args)>0:
         arg_dict = {arg:arg for arg in args}
         if provider=='BBK':
@@ -1500,6 +1572,7 @@ if __name__ == "__main__":
             
 
     if options.lsii:
+        # list II weather codes
         c = -1
         for ii in DWD.CAP_II:
             if c!=ii[2]:
@@ -1516,15 +1589,17 @@ if __name__ == "__main__":
             # DWD warncellids
             cap.cap.download_warncellids(cap.target_path,options.dry_run)
         elif options.lszip:
+            # DWD ZIP files list
             ff = cap.cap.dir(options.diff,options.lang)
             print('\n'.join(ff))
         elif options.list_logos:
+            # alert originator logos list
             print(json.dumps(cap.cap.logos,indent=4,ensure_ascii=False))
         elif options.list_eventcodes:
+            # alert icons list
             print(json.dumps(cap.cap.eventicons,indent=4,ensure_ascii=False))
         else:
-            wwarn = cap.get_warnings()
-            #print(json.dumps(wwarn,indent=4,ensure_ascii=False))
-            #print(wwarn)
+            # output alerts to files in HTML and JSON
+            wwarn = cap.get_warnings(options.lang,options.log_tags)
             cap.write_html(wwarn,options.dry_run)
     
