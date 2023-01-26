@@ -1,21 +1,21 @@
 #!/bin/bash
 # Daten beim Deutschen Wetterdienst herunterladen
-# Copyright (C) 2021 Johanna Roedenbeck
+# Copyright (C) 2021, 2023 Johanna Roedenbeck
 # licensed under the terms of the General Public Licens (GPL) v3
 
 # Diese Datei ist unter /etc/cron.hourly zu speichern. Sie muss
 # ausfuehrbar sein.
 
 /usr/local/bin/wget-dwd 2>/dev/null
-/usr/local/bin/dwd-warnings 2>/dev/null >/dev/null
+/usr/local/bin/dwd-cap-warnings --weewx --resolution=city 2>/dev/null >/dev/null
 
-# Soll statt dwd-warnings dwd-cap-warnings verwendet werden,
+# Soll statt dwd-cap-warnings dwd-warnings verwendet werden,
 # hier das Kommentarzeichen entfernen und dafuer eines vor 
-# die Zeile mit dwd-warnings setzen
-#/usr/local/bin/dwd-cap-warnings --weewx --resolution=city 2>/dev/null >/dev/null
+# die Zeile mit dwd-cap-warnings setzen
+#/usr/local/bin/dwd-warnings 2>/dev/null >/dev/null
 
 # Fuer Wettervorhersagen XXXXX durch den Stationscode
-# ersetzen und das Kommentarzeichen entfernen.
-#/usr/local/bin/dwd-mosmix --weewx --daily --hourly XXXXX 2>/dev/null >/dev/null
+# ersetzen.
+/usr/local/bin/dwd-mosmix --weewx --daily --hourly XXXXX 2>/dev/null >/dev/null
 
 exit 0
