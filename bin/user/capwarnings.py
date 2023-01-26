@@ -175,13 +175,15 @@ else:
             
         from weeutil.weeutil import accumulateLeaves
 
-import weewx
-from weewx.engine import StdService
-import weeutil.weeutil
-import weewx.accum
-import weewx.units
-import weewx.wxformulas
-
+try:
+    import weewx
+    from weewx.engine import StdService
+    import weeutil.weeutil
+    import weewx.accum
+    import weewx.units
+    import weewx.wxformulas
+except ImportError:
+    pass
 
 def tobool(x):
     """ convert text to boolean
