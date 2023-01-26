@@ -385,10 +385,27 @@ class CAP(object):
                     # each language
                     #print('3')
                     try:
+                        info_de = None
+                        info_en = None
+                        info_dict = None
+                        # search the <info> section for the required language
                         for info in alert_dict[lvl2]:
-                          if info['language'][0:2].lower()==lang:
-                            #print('4',json.dumps(info,indent=4))
-                            info_dict = info
+                            info_lang = info['language'][0:2].lower()
+                            if info_lang==lang:
+                                #print('4',json.dumps(info,indent=4))
+                                info_dict = info
+                            elif info_lang=='de':
+                                info_de = info
+                            elif info_lang=='en':
+                                info_en = info
+                        # If the required language is not available, try
+                        # English and then german.
+                        if not info_dict:
+                            if info_en:
+                                info_dict = info_en
+                            elif info_de:
+                                info_dict = info_de
+                        if info_dict:
                             # search <info> section for <area> sections
                             ar = self._area_filter(info_dict)
                             if ar: areas.extend(ar)
@@ -425,6 +442,7 @@ class CAP(object):
                         'headline':info_dict.get('headline',''),
                         'instruction':info_dict.get('instruction',''),
                         'category':info_dict.get('category'),
+                        'categoryName':[CAP.get_category_name(ii,lang) for ii in info_dict.get('category',[])],
                         'responseType':info_dict.get('responsetype'),
                         'urgency':info_dict.get('urgency'),
                         'severity':info_dict.get('severity')
