@@ -1,5 +1,5 @@
 # weewx-DWD
-Daten vom Deutschen Wetterdienst (DWD) herunterladen und für WeeWX aufbereiten
+Wetter- und Warndaten herunterladen und für WeeWX und Web-Darstellung aufbereiten
 
 <p align="center"><img src="Wettervorhersage-Warnungen-Fichtelberg.png" width="600px" /></p>
 
@@ -37,7 +37,26 @@ geben Sie bitte immer folgende Informationen mit an:
 
 # Installation
 
-Alle Dateien müssen in die jeweiligen Verzeichnisse kopiert und mit `chmod +x Dateiname` ausführbar gemacht werden.
+Kopieren Sie `bin/user/dwd.py` und `bin/usr/capwarnings.py` ins 
+Erweiterungsverzeichnis von WeeWX, typischerweise `/usr/share/weewx/user`.
+
+Kopieren Sie `usr/local/bin/dwd-mosmix`, `usr/local/bin/dwd-warnings`,
+`usr/local/bin/html2ent.ansi` und `usr/local/bin/wget-dwd` nach
+`/usr/local/bin` und machen Sie sie mit `chmod +x Dateiname` ausführbar.
+
+Legen Sie folgende Links an:
+```
+sudo ln -s /usr/share/weewx/user/capwarnings.py /usr/local/bin/bbk-warnings
+sudo ln -s /usr/share/weewx/user/capwarnings.py /usr/local/bin/dwd-cap-warnings
+```
+
+Wenn sich `capwarnings.py` nicht unter `/usr/share/weewx/user` befindet,
+müssen Sie den Pfad entsprechend anpassen.
+
+Sollten die Aufrufe von `bbk-warnings` oder `dwd-cap-warnings` zu 
+Fehlermeldungen führen, können Sie auch die älteren Dateien
+`usr/local/bin/bbk-warnings` und `usr/local/bin/dwd-cap-warnings`
+nutzen, indem Sie sie nach `/usr/local/bin` kopieren und ausführbar machen.
 
 Die Icons (Symbole) können beim DWD heruntergeladen werden:
 * [Warnicons](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/icons/warnicons_nach_stufen_50x50_zip.zip?__blob=publicationFile&v=2) 
@@ -53,7 +72,15 @@ Dieses Script lädt die Wetterkarten sowie die nötigen Dateien für `dwd-warnin
 
 Dieses Python-Script bereitet die JSONP-Datei des DWD mit den Wetterwarnungen auf und erzeugt daraus HTML-Texte.
 Dazu müssen die gewünschten Landkreise in der vom DWD benutzten Schreibweise
-in `weewx.conf` eingetragen werden. Um herauszufinden, wie der Landkreis korrekt geschrieben werden muß, öffnet man die Datei `warnings.json`, die von `wget-dwd` heruntergeladen wurde, mit einem Browser, der JSON-Dateien anzeigen kann (z.B. Firefox). Dort kann man dann den gewünschten Landkreis suchen und sehen, wie er geschrieben wurde. Beachte: Wenn der Landkreis keine Warnungen hat, kommt er in der Datei gar nicht vor. Dann muß man warten, bis es wieder Warnungen gibt.
+in `weewx.conf` eingetragen werden. Die korrekte Schreibweise der Landkreise
+kann der Datei 
+[warncellids.csv](https://www.dwd.de/DE/leistungen/opendata/help/warnungen/cap_warncellids_csv.html)
+oder dem
+[Wiki](https://github.com/roe-dl/weewx-DWD/wiki/Namen-der-Landkreise-in-der-Schreibweise-des-Deutschen-Wetterdienstes)
+entnommen werden.
+
+Wir empfehlen die Verwendung von `dwd-cap-warnings` anstelle von
+`dwd-warnings`.
 
 [Namen der Landkreise in der Schreibweise des Deutschen Wetterdienstes](https://github.com/roe-dl/weewx-DWD/wiki/Namen-der-Landkreise-in-der-Schreibweise-des-Deutschen-Wetterdienstes)
 
