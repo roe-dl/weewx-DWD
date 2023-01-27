@@ -393,6 +393,7 @@ class CAP(object):
                         # search the <info> section for the required language
                         for info in alert_dict[lvl2]:
                             info_lang = info['language'][0:2].lower()
+                            #print('info_lang',info_lang,'lang',lang)
                             if info_lang==lang:
                                 #print('4',json.dumps(info,indent=4))
                                 info_dict = info
@@ -411,7 +412,8 @@ class CAP(object):
                             # search <info> section for <area> sections
                             ar = self._area_filter(info_dict)
                             if ar: areas.extend(ar)
-                    except Exception:
+                    except Exception as e:
+                        logerr(e)
                         pass
                 else:
                     pass
@@ -1211,10 +1213,16 @@ class BBK(CAP):
                     if warn['id'] not in areas:
                         areas[warn['id']] = []
                     areas[warn['id']].append(warn)
+        if self.verbose:
+            print('BBK.warnings() areas',[ id for id in areas])
+            for id in areas:
+                print('BBK.warnings() areas[]',id,[ii['id'] for ii in areas[id]])
         # go through messages
         for id in areas:
             # download warning
-            alert = self.get_warning(warn['id'])
+            alert = self.get_warning(id)
+            if self.verbose:
+                print('BBK.warnings() get_warning(',id,')')
             # 'info' is an array of different language versions of the alert
             # add the list of areas to each of them
             for ii,__ in enumerate(alert['info']):
