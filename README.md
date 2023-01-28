@@ -252,9 +252,9 @@ sind, gibt es jetzt noch einen WeeWX-Service, der in der für WeeWX
 die Aufgabe der separaten Programme oder zumindeste deren Aufruf 
 übernehmen. Im Moment liefert er eine zusätzliche Funktion, die in den 
 Programmen nicht enthalten ist, nämlich den Abruf von Istwerten von 
-DWD-Wetterstationen.
+DWD- und ZAMG-Wetterstationen.
 
-## POI
+## DWD POI
 
 Unter der Überschrift POI bietet der DWD stündlich aktualisierte
 Werte von einer kleinen Anzahl ausgewählter Wetterstationen,
@@ -262,7 +262,7 @@ zusätzlich aufbereitet mit dem aktuellen Wetterzustand.
 
 [Liste der Stationen](https://github.com/roe-dl/weewx-DWD/wiki/POI-Stationen-in-Deutschland)
 
-## CDC
+## DWD CDC
 
 Unter der Überschrift CDC werden die blanken Meßwerte zur Verfügung
 gestellt. Dabei sind verschiedene Aktualisierungsraten und 
@@ -270,6 +270,13 @@ Zusammenfassungen verfügbar. Momentan können hier die
 10-Minuten-Werte abgerufen werden.
 
 [Liste der Stationen](https://opendata.dwd.de/climate_environment/CDC/help/wetter_tageswerte_Beschreibung_Stationen.txt)
+
+## ZAMG
+
+Auch der österreichische Wetterdienst ZAMG stellt aktuelle Meßwerte
+seiner Stationen im Internet zur Verfügung
+
+[Liste der Stationen](https://dataset.api.hub.zamg.ac.at/v1/station/current/tawes-v1-10min/metadata)
 
 ## Einbinden in WeeWX
 
@@ -423,6 +430,13 @@ Beispiel:
         section = Belchertown
         warnings = DL
         forecast = P0291
+[ZAMG]
+    [[current]]
+        [[[stations]]]
+            [[[[station_nr]]]]
+                prefix = observation_type_prefix_for_station
+                # equipment of the weather station (optional)
+                observations = air,wind,gust,precipitation,solar
 ```
 
 Der Eintrag `path` muß auf das im ersten Schritt angelegte Verzeichnis

@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# Copyright (C) 2022 Johanna Roedenbeck
+# Copyright (C) 2022, 2023 Johanna Roedenbeck
 
 """
 
@@ -94,6 +94,27 @@
     00722 - Brocken
     05792 - Zugspitze
     
+    ZAMG
+    ====
+    
+    Austrian weather service
+    
+    [ZAMG]
+        ...
+        [[current]]
+            [[[stations]]]
+                [[[[station_nr]]]]
+                    prefix = observation_type_prefix_for_station
+                    # equipment of the weather station (optional)
+                    observations = air,wind,gust,precipitation,solar
+                    #log_success = replace_me # True or False, optional
+                    #log_failure = replace_me # True or False, optional
+                [[[[another_station_nr]]]]
+                    ...
+    
+    station list:
+    https://dataset.api.hub.zamg.ac.at/v1/station/current/tawes-v1-10min/metadata
+    
 """
 
 VERSION = "0.x"
@@ -106,6 +127,7 @@ import io
 import zipfile
 import time
 import datetime
+import json
 
 if __name__ == '__main__':
 
@@ -270,6 +292,7 @@ class DWDPOIthread(threading.Thread):
         self.iconset = weeutil.weeutil.to_int(iconset)
         
         self.lock = threading.Lock()
+        self.evt = threading.Event()
         
         self.data = []
         self.last_get_ts = 0
@@ -288,6 +311,7 @@ class DWDPOIthread(threading.Thread):
     def shutDown(self):
         """ request thread shutdown """
         self.running = False
+        self.evt.set()
         loginf("thread '%s': shutdown requested" % self.name)
     
 
@@ -416,7 +440,7 @@ class DWDPOIthread(threading.Thread):
         try:
             while self.running:
                 self.getRecord()
-                time.sleep(300)
+                self.evt.wait(300)
         except Exception as e:
             logerr("thread '%s': main loop %s - %s" % (self.name,e.__class__.__name__,e))
         finally:
@@ -472,6 +496,7 @@ class DWDCDCthread(threading.Thread):
         self.alt = None
         
         self.lock = threading.Lock()
+        self.evt = threading.Event()
         
         self.data = []
         self.maxtime = None
@@ -504,6 +529,7 @@ class DWDCDCthread(threading.Thread):
     def shutDown(self):
         """ request thread shutdown """
         self.running = False
+        self.evt.set()
         loginf("thread '%s': shutdown requested" % self.name)
     
 
@@ -631,7 +657,13 @@ class DWDCDCthread(threading.Thread):
                 if x:
                     func = 'other table'
                     for ii in tab:
-                        x[ti[ii['dateTime']]].update(ii)
+                        if ii['dateTime'][0]>x[-1]['dateTime'][0]:
+                            ti[ii['dateTime']] = len(x)
+                            x.append(ii)
+                        else:
+                            x[ti[ii['dateTime']]].update(ii)
+                    # maximum timestamp for which there are all kinds
+                    # of records available
                     if tab[-1]['dateTime'][0]<maxtime[0]:
                         maxtime = tab[-1]['dateTime']
                 else:
@@ -665,7 +697,241 @@ class DWDCDCthread(threading.Thread):
         try:
             while self.running:
                 self.getRecord()
-                time.sleep(300)
+                self.evt.wait(300)
+        except Exception as e:
+            logerr("thread '%s': main loop %s - %s" % (self.name,e.__class__.__name__,e))
+        finally:
+            loginf("thread '%s' stopped" % self.name)
+
+
+class ZAMGthread(threading.Thread):
+
+    # https://dataset.api.hub.zamg.ac.at/v1/station/historical/klima-v1-10min/metadata
+    # https://dataset.api.hub.zamg.ac.at/v1/docs/quickstart.html
+    # https://dataset.api.hub.zamg.ac.at/v1/docs/daten.html
+    
+    # Meßnetz:
+    # https://www.zamg.ac.at/cms/de/dokumente/klima/dok_messnetze/Stationsliste_20230101.pdf
+    
+    BASE_URL = 'https://dataset.api.hub.zamg.ac.at'
+    
+    # /v1/{grid,timeseries,station}/{historical,current,forecast}/{resource_id}/
+    #
+    # Nicht alle Kombinationen funktionieren. Die Möglichkeiten können wie
+    # folgt abgefragt werden:
+    #
+    # https://dataset.api.hub.zamg.ac.at/v1/datasets?type={grid,timeseries,station}&mode={historical,current,forecast}
+    
+    RESOURCE_ID = (
+        "inca-v1-1h-1km", # INCA stündlich
+        "klima-v1-1d",    # Meßstationen Tagesdaten
+        "klima-v1-10min", # Meßstationen Zehnminutendaten
+        "klima-v1-1m",    # Meßstationen Monatsdaten
+        "tawes-v1-10min", # Tawes Meßstationen
+        "synop-v1-1h"     # Synopdaten
+    )
+    
+    OBS = {
+        'DD':('windDir','degree','group_direction'),
+        'DDX':('windGustDir','degree','group_direction'),
+        'FFAM':('windSpeed','meter_per_second','group_speed'),
+        'FFX':('windGust','meter_per_second','group_speed'),
+        'GLOW':('radiation','watt_per_meter_squared','group_radiation'),
+        'P':('pressure','hPa','group_pressure'),
+        'PRED':('pred','hPa','group_pressure'), # altimeter or barometer?
+        'RFAM':('humidity','percent','group_humidity'),
+        'SCHNEE':('snowDepth','cm','group_distance'),
+        'S0':('sunshineDur','second','group_deltatime'),
+        'TL':('outTemp','degree_C','group_temperature'),
+        'TP':('dewpoint','degree_C','group_temperature'),
+        'TS':('extraTemp1','degree_C','group_temperature'),
+        'RR':('rain','mm','group_rain')
+    }
+    
+    UNIT = {
+        '°':'degree',
+        '°C':'degree_C',
+        'm/s':'meter_per_second',
+        'mm':'mm',
+        'cm':'cm',
+        'W/m²':'watt_per_meter_squared',
+        'hPa':'hPa',
+        'min':'minute',
+        'sec':'second',
+    }
+    
+    DIRS = {
+        'air':['TL','TS','P','PRED','RFAM'],
+        'wind':['DD','FFAM'],
+        'gust':['DDX','FFX'],
+        'precipitation':['RR'],
+        'solar':['GLOW']
+    }
+    
+    def __init__(self, name, location, prefix, iconset=4, observations=None, user='', passwd='', log_success=False, log_failure=True):
+    
+        super(ZAMGthread,self).__init__(name='ZAMG-'+name)
+        self.log_success = log_success
+        self.log_failure = log_failure
+        self.location = location
+        self.iconset = weeutil.weeutil.to_int(iconset)
+        self.lat = None
+        self.lon = None
+        self.alt = None
+        
+        self.lock = threading.Lock()
+        self.evt = threading.Event()
+        
+        self.data = dict()
+        self.running = True
+        
+        datasets = self.get_datasets('station','current')
+        if datasets:
+            self.current_url = datasets[0]['url']
+        else:
+            self.current_url = None
+        self.get_meta_data()
+        
+        if not observations:
+            observations = ('air','wind','gust','precipitation')
+        self.observations = []
+        for observation in observations:
+            if observation in ZAMGthread.OBS:
+                jj = [observation]
+            else:
+                jj = ZAMGthread.DIRS.get(observation)
+            self.observations.extend(jj)
+        
+        weewx.units.obs_group_dict.setdefault(prefix+'DateTime','group_time')
+        for key in ZAMGthread.OBS:
+            obs = ZAMGthread.OBS[key]
+            obstype = obs[0]
+            obsgroup = obs[2]
+            if obsgroup:
+                weewx.units.obs_group_dict.setdefault(prefix+obstype[0].upper()+obstype[1:],obsgroup)
+        weewx.units.obs_group_dict.setdefault(prefix+'Barometer','group_pressure')
+        weewx.units.obs_group_dict.setdefault(prefix+'Altimeter','group_pressure')
+
+
+    def shutDown(self):
+        """ request thread shutdown """
+        self.running = False
+        self.evt.set()
+        loginf("thread '%s': shutdown requested" % self.name)
+    
+    
+    def get_data(self):
+        try:
+            self.lock.acquire()
+            x = self.data
+        finally:
+            self.lock.release()
+        return x,1
+
+
+    def get_datasets(self, type, mode):
+        """ get which datasets are available
+        
+            type: 'grid', 'timeseries', 'station'
+            mode: 'historical', 'current', 'forecast'
+        """
+        url = ZAMGthread.BASE_URL+'/v1/datasets?type='+type+'&mode='+mode
+        reply = wget(url,log_success=self.log_success,log_failure=self.log_failure)
+        x = []
+        if reply:
+            reply = json.loads(reply)
+            # Example:
+            # {
+            #   "/station/current/tawes-v1-10min": {    <-- resource_id
+            #     "type": "station",
+            #     "mode": "current",
+            #     "response_formats": [
+            #       "geojson",
+            #       "csv"
+            #     ],
+            #     "url": "https://dataset.api.hub.zamg.ac.at/v1/station/current/tawes-v1-10min"
+            #   }
+            # }
+            for resource_id in reply:
+                x.append({
+                    'resource_id': resource_id,
+                    'url': reply[resource_id]['url']
+                })
+        return x
+
+        
+    def get_meta_data(self):
+        url = self.current_url+'/metadata'
+        reply = wget(url)
+        if reply:
+            reply = json.loads(reply)
+            stations = reply['stations']
+            for station in stations:
+                if station['id']==self.location:
+                    self.lat = float(station['lat'])
+                    self.lon = float(station['lon'])
+                    self.alt = float(station['altitude'])
+                    self.locationName = station['name']
+                    self.locationState = station['state']
+                    loginf("thread '%s': id %s, name '%s', lat %.4f°, lon %.4f°, alt %.1f m" % (
+                                self.name,
+                                station['id'],station['name'],
+                                self.lat,self.lon,self.alt))
+                    break
+    
+    
+    def getRecord(self):
+        url = self.current_url+'?parameters=%s&station_ids=%s&output_format=geojson' % (','.join(self.observations),self.location)
+        try:
+            reply = wget(url, log_success=self.log_success, log_failure=self.log_failure)
+            if reply:
+                reply = json.loads(reply)
+                x = dict()
+                ts = reply['timestamps'][-1].split('T')
+                dt = ts[0].split('-')
+                ts = ts[1].split('+')
+                ti = ts[0].split(':')
+                d = datetime.datetime(int(dt[0]),int(dt[1]),int(dt[2]),int(ti[0]),int(ti[1]),0,tzinfo=datetime.timezone(datetime.timedelta(),'UTC'))
+                x['dateTime'] = (int(d.timestamp()),'unix_epoch','group_time')
+                observations = reply['features'][0]['properties']['parameters']
+                for observation in observations:
+                    try:
+                        name = observations[observation]['name']
+                        unit = observations[observation]['unit']
+                        unit = ZAMGthread.UNIT.get(unit,unit)
+                        val = float(observations[observation]['data'][-1])
+                        obs = ZAMGthread.OBS.get(observation)
+                        obstype = obs[0]
+                        obsgroup = obs[2]
+                        x[obstype] = (val,unit,obsgroup)
+                    except Exception as e:
+                        if self.log_failure:
+                            logerr("thread '%s': %s %s" % (self.name,observation,e))
+                if x:
+                    x['interval'] = (10,'minute','group_interval')
+                    if self.lat is not None:
+                        x['latitude'] = (self.lat,'','')
+                    if self.lon is not None:
+                        x['longitude'] = (self.lon,'','')
+                    if self.alt:
+                        x['altitude'] = (self.alt,'meter','group_altitude')
+                try:
+                    self.lock.acquire()
+                    self.data = x
+                finally:
+                    self.lock.release()
+        except Exception as e:
+            if self.log_failure:
+                logerr("thread '%s': %s" % (self.name,e))
+
+
+    def run(self):
+        """ thread loop """
+        loginf("thread '%s' starting" % self.name)
+        try:
+            while self.running:
+                self.getRecord()
+                self.evt.wait(300)
         except Exception as e:
             logerr("thread '%s': main loop %s - %s" % (self.name,e.__class__.__name__,e))
         finally:
@@ -719,6 +985,19 @@ class DWDservice(StdService):
                 if iconset=='aeris': station_dict['iconset'] = 6
             self._create_cdc_thread(station, station, station_dict)
         
+        zamg_dict = config_dict.get('ZAMG',configobj.ConfigObj()).get('current',configobj.ConfigObj())
+        stations = zamg_dict.get('stations',site_dict)
+        for station in stations.sections:
+            station_dict = weeutil.config.accumulateLeaves(stations[station])
+            station_dict['iconset'] = self.iconset
+            iconset = station_dict.get('icon_set')
+            if iconset is not None:
+                station_dict['iconset'] = self.iconset
+                if iconset=='belchertown': station_dict['iconset'] = 4
+                if iconset=='dwd': station_dict['iconset'] = 5
+                if iconset=='aeris': station_dict['iconset'] = 6
+            self._create_zamg_thread(station, station, station_dict, zamg_dict.get('user'), zamg_dict.get('password'))
+
         if  __name__!='__main__':
             self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
             self.bind(weewx.NEW_ARCHIVE_RECORD, self.new_archive_record)
@@ -753,6 +1032,22 @@ class DWDservice(StdService):
         self.threads[thread_name]['thread'].start()
     
     
+    def _create_zamg_thread(self, thread_name, location, station_dict, user, passwd):
+        prefix = station_dict.get('prefix','id'+thread_name)
+        self.threads[thread_name] = dict()
+        self.threads[thread_name]['datasource'] = 'ZAMG'
+        self.threads[thread_name]['prefix'] = prefix
+        self.threads[thread_name]['thread'] = ZAMGthread(thread_name,
+                    location,
+                    prefix,
+                    iconset=station_dict.get('iconset',4),
+                    observations=station_dict.get('observations'),
+                    user=user,passwd=passwd,
+                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',False)) or self.verbose,
+                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',True)) or self.verbose)
+        self.threads[thread_name]['thread'].start()
+    
+    
     def shutDown(self):
         """ shutdown threads """
         for ii in self.threads:
@@ -777,6 +1072,8 @@ class DWDservice(StdService):
             elif datasource=='CDC':
                 data,interval,maxtime = self.threads[thread_name]['thread'].get_data()
                 if data: data = data[maxtime]
+            elif datasource=='ZAMG':
+                data,interval = self.threads[thread_name]['thread'].get_data()
             #print(thread_name,data,interval)
             if data:
                 x = self._to_weewx(thread_name,data,event.record['usUnits'])
