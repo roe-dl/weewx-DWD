@@ -1113,15 +1113,15 @@ class DWDOPENMETEOthread(threading.Thread):
         self.debug = weeutil.weeutil.to_int(openmeteo_dict.get('debug', 0))
         self.latitude = weeutil.weeutil.to_float(openmeteo_dict.get('latitude'))
         self.longitude = weeutil.weeutil.to_float(openmeteo_dict.get('longitude'))
-        #TODO convert foot to meter
         self.altitude = None
         altitude = openmeteo_dict.get('altitude', [])
         if not isinstance(altitude, list):
             altitude.split()
-        if len(altitude) > 0:
-            if len(altitude) > 1:
-                if altitude[1] == 'meter':
-                    self.altitude = weeutil.weeutil.to_float(altitude[0])
+        if len(altitude) > 1:
+            if altitude[1] == 'meter':
+                self.altitude = weeutil.weeutil.to_float(altitude[0])
+            #else:
+                #TODO convert foot to meter
 
         self.iconset = weeutil.weeutil.to_int(openmeteo_dict.get('iconset', 4))
         self.prefix = openmeteo_dict.get('prefix','')
