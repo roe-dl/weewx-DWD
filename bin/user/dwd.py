@@ -1017,7 +1017,7 @@ class DWDOPENMETEOthread(threading.Thread):
         ,'freezinglevel_height':'freezinglevelHeight'
         ,'snowfall_height':'snowfallHeight'
         ,'weathercode':'weathercode'
-        ,'snow_depth':'snowDepth'
+        ,'snow_depth':'snowHeight'
     }
 
     CURRENTOBS = {
@@ -1143,6 +1143,8 @@ class DWDOPENMETEOthread(threading.Thread):
             elif obsweewx=='freezinglevelHeight':
                 obsgroup = 'group_altitude'
             elif obsweewx=='snowfallHeight':
+                obsgroup = 'group_altitude'
+            elif obsweewx=='snowHeight':
                 obsgroup = 'group_altitude'
             else:
                 obsgroup = weewx.units.obs_group_dict.get(obsweewx)
