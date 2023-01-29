@@ -144,7 +144,7 @@
         ...
     
     API call example:
-    https://api.open-meteo.com/v1/dwd-icon?latitude=49.632270&longitude=12.056186&timeformat=unixtime&timezone=Europe%2FBerlin&start_date=2023-01-28&end_date=2023-01-29&current_weather=true&hourly=temperature_2m,apparent_temperature,dewpoint_2m,pressure_msl,relativehumidity_2m,winddirection_10m,windspeed_10m,windgusts_10m,cloudcover,evapotranspiration,rain,showers,snowfall,freezinglevel_height,snowfall_height,weathercode,snow_depth
+    https://api.open-meteo.com/v1/dwd-icon?latitude=49.63227&longitude=12.056186&elevation=394.0&timeformat=unixtime&timezone=Europe%2FBerlin&start_date=2023-01-28&end_date=2023-01-29&temperature_unit=celsius&windspeed_unit=kmh&precipitation_unit=mm&current_weather=true&hourly=temperature_2m,apparent_temperature,dewpoint_2m,pressure_msl,relativehumidity_2m,winddirection_10m,windspeed_10m,windgusts_10m,cloudcover,evapotranspiration,rain,showers,snowfall,freezinglevel_height,snowfall_height,weathercode,snow_depth,direct_radiation_instant
     
     Open-Meteo GitHub:
     https://github.com/open-meteo/open-meteo
@@ -998,7 +998,6 @@ class ZAMGthread(threading.Thread):
 
 class DWDOPENMETEOthread(threading.Thread):
 
-    # TODO radiation values
     # Evapotranspiration: Attention, no capital letters. Otherwise the WeeWX field "ET" will be formed if no prefix is used!
     HOURLYOBS = {
         'temperature_2m':'outTemp'
@@ -1018,6 +1017,7 @@ class DWDOPENMETEOthread(threading.Thread):
         ,'snowfall_height':'snowfallHeight'
         ,'weathercode':'weathercode'
         ,'snow_depth':'snowHeight'
+        ,'direct_radiation_instant':'radiation'
     }
 
     CURRENTOBS = {
@@ -1110,10 +1110,19 @@ class DWDOPENMETEOthread(threading.Thread):
 
         self.log_success = log_success
         self.log_failure = log_failure
-        self.debug = int(openmeteo_dict.get('debug', 0))
-        self.latitude = str(openmeteo_dict.get('latitude'))
-        self.longitude = str(openmeteo_dict.get('longitude'))
-        self.interval = weeutil.weeutil.to_int(openmeteo_dict.get('interval', 300))
+        self.debug = weeutil.weeutil.to_int(openmeteo_dict.get('debug', 0))
+        self.latitude = weeutil.weeutil.to_float(openmeteo_dict.get('latitude'))
+        self.longitude = weeutil.weeutil.to_float(openmeteo_dict.get('longitude'))
+        #TODO convert foot to meter
+        self.altitude = None
+        altitude = openmeteo_dict.get('altitude', [])
+        if not isinstance(altitude, list):
+            altitude.split()
+        if len(altitude) > 0:
+            if len(altitude) > 1:
+                if altitude[1] == 'meter':
+                    self.altitude = weeutil.weeutil.to_float(altitude[0])
+
         self.iconset = weeutil.weeutil.to_int(openmeteo_dict.get('iconset', 4))
         self.prefix = openmeteo_dict.get('prefix','')
 
@@ -1191,8 +1200,10 @@ class DWDOPENMETEOthread(threading.Thread):
         baseurl = 'https://api.open-meteo.com/v1/dwd-icon'
 
         # location
-        params = '?latitude=%s' % self.latitude
-        params += '&longitude=%s' % self.longitude
+        params = '?latitude=%s' % str(self.latitude)
+        params += '&longitude=%s' % str(self.longitude)
+        if self.altitude is not None:
+            params += '&elevation=%s' % str(self.altitude)
 
         # time
         params += '&timeformat=unixtime'
@@ -1202,6 +1213,12 @@ class DWDOPENMETEOthread(threading.Thread):
         today = datetime.datetime.today().strftime('%Y-%m-%d')
         params += '&start_date=%s' % str(yesterday)
         params += '&end_date=%s' % str(today)
+
+        # TODO METRIC/METRICWX
+        # units
+        params += '&temperature_unit=celsius'
+        params += '&windspeed_unit=kmh'
+        params += '&precipitation_unit=mm'
 
         # current weather data
         # there are included (28.01.2023): temperature, windspeed, winddirection, weathercode, time
@@ -1468,6 +1485,7 @@ class DWDservice(StdService):
         if weeutil.weeutil.to_bool(openmeteo_dict.get('enabled', False)):
             openmeteo_dict['latitude'] = config_dict.get('Station', {}).get('latitude')
             openmeteo_dict['longitude'] = config_dict.get('Station', {}).get('longitude')
+            openmeteo_dict['altitude'] = config_dict.get('Station', {}).get('altitude')
             iconset = openmeteo_dict.get('icon_set')
             if iconset is not None:
                 openmeteo_dict['iconset'] = self.iconset
