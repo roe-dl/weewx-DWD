@@ -998,8 +998,8 @@ class ZAMGthread(threading.Thread):
 
 class DWDOPENMETEOthread(threading.Thread):
 
-    # Evapotranspiration
-    # Attention, no capital letters. Otherwise the WeeWX field "ET" will be formed if no prefix is used!
+    # TODO radiation values
+    # Evapotranspiration: Attention, no capital letters. Otherwise the WeeWX field "ET" will be formed if no prefix is used!
     HOURLYOBS = {
         'temperature_2m':'outTemp'
         ,'apparent_temperature':'appTemp'
@@ -1138,9 +1138,7 @@ class DWDOPENMETEOthread(threading.Thread):
                 # filled with CURRENTOBS
                 continue
             obsgroup = None
-            if obsweewx=='visibility':
-                obsgroup = 'group_distance'
-            elif obsweewx=='shower':
+            if obsweewx=='shower':
                 obsgroup = 'group_rain'
             elif obsweewx=='freezinglevelHeight':
                 obsgroup = 'group_altitude'
