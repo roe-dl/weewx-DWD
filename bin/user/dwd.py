@@ -256,29 +256,6 @@ def wget(url,log_success=False,log_failure=True):
             loginf('error downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
         return None
 
-def jsonAPI(url,log_success=False,log_failure=True):
-    """ 
-    HTTP request to get data in JSON data format.
-    
-    Args:
-        url: API URL
-        log_success: optional, default False
-        log_failure: optional, default True
-    
-    Returns:
-        dict: response JSON
-    """
-    headers={'User-Agent':'weewx-DWD'}
-    reply = requests.get(url,headers=headers)
-
-    if reply.status_code==200:
-        if log_success:
-            loginf('successfully retrieving API data from URL: %s' % reply.url)
-        return json.loads(reply.content.decode('utf-8'))
-    else:
-        if log_failure:
-            logerr("Failed retrieving API data, server returned HTTP code: %s on following URL: %s" % (str(reply.status_code), reply.url))
-        return None
 
 class DWDPOIthread(threading.Thread):
 
@@ -1279,52 +1256,52 @@ class DWDOPENMETEOthread(threading.Thread):
 
         apidata = {}
         try:
-            reply = jsonAPI(url,
+            reply = wget(url,
                      log_success=(self.log_success or self.debug > 0),
                      log_failure=(self.log_failure or self.debug > 0))
             if reply is not None:
-                apidata = reply
+                apidata = json.loads(reply.content.decode('utf-8'))
             else:
                 if self.log_failure or self.debug > 0:
-                    logerr("thread '%s': jsonAPI returns None data." % self.name)
+                    logerr("thread '%s': Open-Meteo returns None data." % self.name)
                 return
         except Exception as e:
             if self.log_failure or self.debug > 0:
-                logerr("thread '%s': jsonAPI %s - %s" % (self.name, e.__class__.__name__, e))
+                logerr("thread '%s': Open-Meteo %s - %s" % (self.name, e.__class__.__name__, e))
             return
 
         # check results
         if apidata.get('hourly') is None:
             if self.log_failure or self.debug > 0:
-                logerr("thread '%s': jsonAPI returns no hourly data." % self.name)
+                logerr("thread '%s': Open-Meteo returns no hourly data." % self.name)
             return
 
         hourly_units = apidata.get('hourly_units')
         if hourly_units is None:
             if self.log_failure or self.debug > 0:
-                logerr("thread '%s': jsonAPI returns no hourly_units data." % self.name)
+                logerr("thread '%s': Open-Meteo returns no hourly_units data." % self.name)
             return
 
         current_weather = apidata.get('current_weather')
         if current_weather is None:
             if self.log_failure or self.debug > 0:
-                logerr("thread '%s': jsonAPI returns no current_weather data." % self.name)
+                logerr("thread '%s': Open-Meteo returns no current_weather data." % self.name)
             return
 
         timelist = apidata['hourly'].get('time')
         if timelist is None:
             if self.log_failure or self.debug > 0:
-                logerr("thread '%s': jsonAPI returns no time periods data." % self.name)
+                logerr("thread '%s': Open-Meteo returns no time periods data." % self.name)
             return
 
         if not isinstance(timelist, list):
             if self.log_failure or self.debug > 0:
-                logerr("thread '%s': jsonAPI returns time periods data not as list." % self.name)
+                logerr("thread '%s': Open-Meteo returns time periods data not as list." % self.name)
             return
 
         if len(timelist) == 0:
             if self.log_failure or self.debug > 0:
-                logerr("thread '%s': jsonAPI returns time periods without data." % self.name)
+                logerr("thread '%s': Open-Meteo returns time periods without data." % self.name)
             return
 
         # holds the return values
@@ -1340,7 +1317,7 @@ class DWDOPENMETEOthread(threading.Thread):
             obshts = int(ts)
         if obshts is None:
             if self.log_failure or self.debug > 0:
-                logerr("thread '%s': jsonAPI returns timestamps only in the future." % self.name)
+                logerr("thread '%s': Open-Meteo returns timestamps only in the future." % self.name)
             return
 
         if self.debug >= 3:
@@ -1367,13 +1344,13 @@ class DWDOPENMETEOthread(threading.Thread):
             obsval = current_weather.get(obsapi)
             if obsval is None:
                 if self.log_failure or self.debug > 0:
-                    logerr("thread '%s': jsonAPI returns no value for observation %s - %s on timestamp %s" % (self.name, str(obsapi), str(obsname), str(obscts)))
+                    logerr("thread '%s': Open-Meteo returns no value for observation %s - %s on timestamp %s" % (self.name, str(obsapi), str(obsname), str(obscts)))
                 continue
             # API json contain no unit data for current weather observations
             unitapi = DWDOPENMETEOthread.CURRENTUNIT.get(obsapi)
             if unitapi is None:
                 if self.log_failure or self.debug > 0:
-                    logerr("thread '%s': jsonAPI returns no unit for observation %s - %s" % (self.name, str(obsapi), str(obsname)))
+                    logerr("thread '%s': Open-Meteo returns no unit for observation %s - %s" % (self.name, str(obsapi), str(obsname)))
                 continue
             unitweewx = DWDOPENMETEOthread.UNIT.get(unitapi)
             if unitweewx is None:
@@ -1399,18 +1376,18 @@ class DWDOPENMETEOthread(threading.Thread):
             obslist = apidata['hourly'].get(obsapi)
             if obslist is None:
                 if self.log_failure or self.debug > 0:
-                    logerr("thread '%s': jsonAPI returns no value for observation '%s' - '%s'" % (self.name, str(obsapi), str(obsname)))
+                    logerr("thread '%s': Open-Meteo returns no value for observation '%s' - '%s'" % (self.name, str(obsapi), str(obsname)))
                 continue
             obsvals = dict(zip(timelist, obslist))
             obsval = obsvals.get(obshts)
             if obsval is None:
                 if self.log_failure or self.debug > 0:
-                    logerr("thread '%s': jsonAPI returns no value for observation %s - %s on timestamp %s" % (self.name, str(obsapi), str(obsname), str(obshts)))
+                    logerr("thread '%s': Open-Meteo returns no value for observation %s - %s on timestamp %s" % (self.name, str(obsapi), str(obsname), str(obshts)))
                 continue
             unitapi = hourly_units.get(obsapi)
             if unitapi is None:
                 if self.log_failure or self.debug > 0:
-                    logerr("thread '%s': jsonAPI returns no unit for observation %s - %s" % (self.name, str(obsapi), str(obsname)))
+                    logerr("thread '%s': Open-Meteo returns no unit for observation %s - %s" % (self.name, str(obsapi), str(obsname)))
                 continue
             unitweewx = DWDOPENMETEOthread.UNIT.get(unitapi)
             if unitweewx is None:
