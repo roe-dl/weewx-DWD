@@ -1511,13 +1511,13 @@ class DWDservice(StdService):
             openmeteo_dict['latitude'] = config_dict.get('Station', {}).get('latitude')
             openmeteo_dict['longitude'] = config_dict.get('Station', {}).get('longitude')
             openmeteo_dict['altitude'] = config_dict.get('Station', {}).get('altitude')
-            iconset = openmeteo_dict.get('icon_set')
+            iconset = openmeteo_dict.get('icon_set', iconset)
             if iconset is not None:
                 openmeteo_dict['iconset'] = self.iconset
                 if iconset=='belchertown': openmeteo_dict['iconset'] = 4
                 if iconset=='dwd': openmeteo_dict['iconset'] = 5
                 if iconset=='aeris': openmeteo_dict['iconset'] = 6
-            self._create_openmeteo_thread('openmeteo', openmeteo_dict)
+            self._create_openmeteo_thread('current', openmeteo_dict)
         elif self.debug > 0:
             loginf("API Open-Meteo is not enabled.")
         
