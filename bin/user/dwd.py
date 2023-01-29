@@ -135,7 +135,7 @@
             icon_set = replace_me # 'belchertown', 'dwd' or 'aeris', optional
             ...
         [[OPENMETEO]]
-            #enabled = replace_me # True or False enable oder disable Open-Meteo Service, optional, default False
+            #enabled = replace_me # True or False, enable or disable Open-Meteo Service, optional, default False
             #prefix = replace_me # Example: "om", optional, default ""
             #icon_set = replace_me # optional, default from section [[forecast]]
             #debug = 0 # Example: 0 = no debug infos, 1 = min debug infos, 2 = more debug infos, >3 = max debug infos, optional, default 0
