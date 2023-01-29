@@ -1294,7 +1294,7 @@ class DWDOPENMETEOthread(threading.Thread):
             logdbg("thread '%s': ts hourly=%s" % (self.name, str(obshts)))
             logdbg("thread '%s': ts hourly=%s" % (self.name, str( datetime.datetime.fromtimestamp(obshts).strftime('%Y-%m-%d %H:%M:%S'))))
 
-        interval = weeutil.weeutil.to_float(self.interval / 60)
+        interval = weeutil.weeutil.to_float(300 / 60) #TODO
         y['dateTime'] = (actts, 'unix_epoch', 'group_time')
         y['interval'] = (interval, 'minute', 'group_interval')
         y['hourlyDateTime'] = (obshts, 'unix_epoch', 'group_time')
