@@ -1199,40 +1199,57 @@ class DWDOPENMETEOthread(threading.Thread):
         """ download and process POI weather data """
         baseurl = 'https://api.open-meteo.com/v1/dwd-icon'
 
-        # location
+        # Geographical WGS84 coordinate of the location
         params = '?latitude=%s' % str(self.latitude)
         params += '&longitude=%s' % str(self.longitude)
+
+        # The elevation used for statistical downscaling. Per default, a 90 meter digital elevation model is used.
+        # You can manually set the elevation to correctly match mountain peaks. If &elevation=nan is specified,
+        # downscaling will be disabled and the API uses the average grid-cell height.
         if self.altitude is not None:
             params += '&elevation=%s' % str(self.altitude)
 
-        # timeformat
+        # TODO config param?
+        # timeformat iso8601 | unixtime
         params += '&timeformat=unixtime'
 
+        # TODO config param?
         # timezone
         # If timezone is set, all timestamps are returned as local-time and data is returned starting at 00:00 local-time.
         # Any time zone name from the time zone database is supported. If auto is set as a time zone, the coordinates will
         # be automatically resolved to the local time zone.
         #params += '&timezone=Europe%2FBerlin'
 
-        # The time interval to get weather data. A day must be specified as an ISO8601 date (e.g. 2022-06-30).
+        # TODO config param?
+        # cell_selection, land | sea | nearest
+        # Set a preference how grid-cells are selected. The default land finds a suitable grid-cell on land with similar
+        # elevation to the requested coordinates using a 90-meter digital elevation model. sea prefers grid-cells on sea.
+        # nearest selects the nearest possible grid-cell.
+        #params += '&cell_selection=land'
+
         # TODO use "past_days=1" instead of yesterday?
+        # The time interval to get weather data. A day must be specified as an ISO8601 date (e.g. 2022-06-30).
         yesterday = datetime.datetime.now() - datetime.timedelta(1)
         yesterday = datetime.datetime.strftime(yesterday, '%Y-%m-%d')
         today = datetime.datetime.today().strftime('%Y-%m-%d')
         params += '&start_date=%s' % str(yesterday)
         params += '&end_date=%s' % str(today)
 
-        # TODO METRIC/METRICWX
+        # TODO US | METRIC | METRICWX
         # units
+        # celsius, if fahrenheit is set, all temperature values are converted to Fahrenheit.
         params += '&temperature_unit=celsius'
+        # kmh, other wind speed speed units: ms, mph and kn
         params += '&windspeed_unit=kmh'
+        # mm, other precipitation amount units: inch
         params += '&precipitation_unit=mm'
 
-        # current weather data
-        # there are included (28.01.2023): temperature, windspeed, winddirection, weathercode, time
+        # Include current weather conditions in the JSON output.
+        # values (28.01.2023): temperature, windspeed, winddirection, weathercode, time
         params += '&current_weather=true'
 
-        # hourly weather data
+        # A list of weather variables which should be returned. Values can be comma separated,
+        # or multiple &hourly= parameter in the URL can be used.
         params += '&hourly='
         first = True
         for obsapi in DWDOPENMETEOthread.HOURLYOBS:
