@@ -181,6 +181,9 @@ import weewx.accum
 import weewx.units
 import weewx.wxformulas
 
+for group in weewx.units.std_groups:
+    weewx.units.std_groups[group].setdefault('group_coordinate','degree_compass')
+
 # Cloud cover icons
 
 N_ICON_LIST = [
@@ -677,9 +680,9 @@ class DWDCDCthread(threading.Thread):
             for idx,_ in enumerate(x):
                 x[idx]['interval'] = (10,'minute','group_interval')
                 if self.lat is not None:
-                    x[idx]['latitude'] = (self.lat,'','')
+                    x[idx]['latitude'] = (self.lat,'degree_compass','group_coordinate')
                 if self.lon is not None:
-                    x[idx]['longitude'] = (self.lon,'','')
+                    x[idx]['longitude'] = (self.lon,'degree_compass','group_coordinate')
                 if self.alt:
                     x[idx]['altitude'] = (self.alt,'meter','group_altitude')
         #print(x[ti[maxtime]])
@@ -732,8 +735,8 @@ class ZAMGthread(threading.Thread):
     )
     
     OBS = {
-        'DD':('windDir','degree','group_direction'),
-        'DDX':('windGustDir','degree','group_direction'),
+        'DD':('windDir','degree_compass','group_direction'),
+        'DDX':('windGustDir','degree_compass','group_direction'),
         'FFAM':('windSpeed','meter_per_second','group_speed'),
         'FFX':('windGust','meter_per_second','group_speed'),
         'GLOW':('radiation','watt_per_meter_squared','group_radiation'),
@@ -749,7 +752,7 @@ class ZAMGthread(threading.Thread):
     }
     
     UNIT = {
-        '°':'degree',
+        '°':'degree_compass',
         '°C':'degree_C',
         'm/s':'meter_per_second',
         'mm':'mm',
@@ -861,7 +864,7 @@ class ZAMGthread(threading.Thread):
 
         
     def get_meta_data(self):
-        url = self.current_url+'/metadata'
+        url = self.current_url+'/metadata?station_ids=%s' % self.location
         reply = wget(url)
         if reply:
             reply = json.loads(reply)
@@ -907,12 +910,22 @@ class ZAMGthread(threading.Thread):
                     except Exception as e:
                         if self.log_failure:
                             logerr("thread '%s': %s %s" % (self.name,observation,e))
+                if 'pressure' in x and 'altimeter' not in x and self.alt is not None:
+                    try:
+                        x['altimeter'] = (weewx.wxformulas.altimeter_pressure_Metric(x['pressure'][0],self.alt),'hPa','group_pressure')
+                    except Exception as e:
+                        logerr("thread '%s': altimeter %s" % (self.name,e))
+                if 'pressure' in x and 'outTemp' in x and 'barometer' not in x and self.alt is not None:
+                    try:
+                        x['barometer'] = (weewx.wxformulas.sealevel_pressure_Metric(x['pressure'][0],self.alt,x['outTemp'][0]),'hPa','group_pressure')
+                    except Exception as e:
+                        logerr("thread '%s': barometer %s" % (self.name,e))
                 if x:
                     x['interval'] = (10,'minute','group_interval')
                     if self.lat is not None:
-                        x['latitude'] = (self.lat,'','')
+                        x['latitude'] = (self.lat,'degree_compass','group_coordinate')
                     if self.lon is not None:
-                        x['longitude'] = (self.lon,'','')
+                        x['longitude'] = (self.lon,'degree_compass','group_coordinate')
                     if self.alt:
                         x['altitude'] = (self.alt,'meter','group_altitude')
                 try:
