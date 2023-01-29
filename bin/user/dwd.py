@@ -1116,7 +1116,7 @@ class DWDOPENMETEOthread(threading.Thread):
         self.altitude = None
         altitude = openmeteo_dict.get('altitude', [])
         if not isinstance(altitude, list):
-            altitude.split()
+            altitude.split(',')
         if len(altitude) > 1:
             if altitude[1] == 'meter':
                 self.altitude = weeutil.weeutil.to_float(altitude[0])
