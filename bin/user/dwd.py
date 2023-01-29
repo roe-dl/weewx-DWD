@@ -1041,7 +1041,7 @@ class DWDOPENMETEOthread(threading.Thread):
         ,'°C':'degree_C'
         ,'mm':'mm'
         ,'cm':'cm'
-        ,'m':'m'
+        ,'m':'meter'
         ,'hPa':'hPa'
         ,'kPa':'kPa'
         ,'W/m²':'watt_per_meter_squared'
