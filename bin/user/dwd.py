@@ -1205,9 +1205,17 @@ class DWDOPENMETEOthread(threading.Thread):
         if self.altitude is not None:
             params += '&elevation=%s' % str(self.altitude)
 
-        # time
+        # timeformat
         params += '&timeformat=unixtime'
-        params += '&timezone=Europe%2FBerlin'
+
+        # timezone
+        # If timezone is set, all timestamps are returned as local-time and data is returned starting at 00:00 local-time.
+        # Any time zone name from the time zone database is supported. If auto is set as a time zone, the coordinates will
+        # be automatically resolved to the local time zone.
+        #params += '&timezone=Europe%2FBerlin'
+
+        # The time interval to get weather data. A day must be specified as an ISO8601 date (e.g. 2022-06-30).
+        # TODO use "past_days=1" instead of yesterday?
         yesterday = datetime.datetime.now() - datetime.timedelta(1)
         yesterday = datetime.datetime.strftime(yesterday, '%Y-%m-%d')
         today = datetime.datetime.today().strftime('%Y-%m-%d')
