@@ -257,7 +257,45 @@ def wget(url,log_success=False,log_failure=True):
         return None
 
 
-class DWDPOIthread(threading.Thread):
+class BaseThread(threading.Thread):
+
+    def __init__(self, name, log_success=False, log_failure=True):
+        super(BaseThread,self).__init__(name=name)
+        self.log_success = log_success
+        self.log_failure = log_failure
+        self.evt = threading.Event()
+        self.running = True
+
+
+    def shutDown(self):
+        """ request thread shutdown """
+        self.running = False
+        loginf("thread '%s': shutdown requested" % self.name)
+        self.evt.set()
+
+
+    def get_data(self):
+        raise NotImplementedError
+        
+        
+    def getRecord(self):
+        raise NotImplementedError
+
+
+    def run(self):
+        """ thread loop """
+        loginf("thread '%s' starting" % self.name)
+        try:
+            while self.running:
+                self.getRecord()
+                self.evt.wait(300)
+        except Exception as e:
+            logerr("thread '%s': main loop %s - %s" % (self.name,e.__class__.__name__,e))
+        finally:
+            loginf("thread '%s' stopped" % self.name)
+
+
+class DWDPOIthread(BaseThread):
 
     OBS = {
         'cloud_cover_total':'cloudcover',
@@ -321,18 +359,14 @@ class DWDPOIthread(threading.Thread):
     
     def __init__(self, name, location, prefix, iconset=4, log_success=False, log_failure=True):
     
-        super(DWDPOIthread,self).__init__(name='DWD-POI-'+name)
-        self.log_success = log_success
-        self.log_failure = log_failure
+        super(DWDPOIthread,self).__init__(name='DWD-POI-'+name, log_success=log_success, log_failure=log_failure)
         self.location = location
         self.iconset = weeutil.weeutil.to_int(iconset)
         
         self.lock = threading.Lock()
-        self.evt = threading.Event()
         
         self.data = []
         self.last_get_ts = 0
-        self.running = True
         
         weewx.units.obs_group_dict.setdefault(prefix+'DateTime','group_time')
         for key in DWDPOIthread.OBS:
@@ -344,12 +378,6 @@ class DWDPOIthread(threading.Thread):
             if obsgroup:
                 weewx.units.obs_group_dict.setdefault(prefix+obstype[0].upper()+obstype[1:],obsgroup)
 
-    def shutDown(self):
-        """ request thread shutdown """
-        self.running = False
-        self.evt.set()
-        loginf("thread '%s': shutdown requested" % self.name)
-    
 
     def get_data(self):
         """ get buffered data """
@@ -470,20 +498,7 @@ class DWDPOIthread(threading.Thread):
             self.lock.release()
 
 
-    def run(self):
-        """ thread loop """
-        loginf("thread '%s' starting" % self.name)
-        try:
-            while self.running:
-                self.getRecord()
-                self.evt.wait(300)
-        except Exception as e:
-            logerr("thread '%s': main loop %s - %s" % (self.name,e.__class__.__name__,e))
-        finally:
-            loginf("thread '%s' stopped" % self.name)
-
-
-class DWDCDCthread(threading.Thread):
+class DWDCDCthread(BaseThread):
 
     BASE_URL = 'https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate'
     
@@ -522,9 +537,7 @@ class DWDCDCthread(threading.Thread):
 
     def __init__(self, name, location, prefix, iconset=4, observations=None, log_success=False, log_failure=True):
     
-        super(DWDCDCthread,self).__init__(name='DWD-CDC-'+name)
-        self.log_success = log_success
-        self.log_failure = log_failure
+        super(DWDCDCthread,self).__init__(name='DWD-CDC-'+name, log_success=log_success, log_failure=log_failure)
         self.location = location
         self.iconset = weeutil.weeutil.to_int(iconset)
         self.lat = None
@@ -532,12 +545,10 @@ class DWDCDCthread(threading.Thread):
         self.alt = None
         
         self.lock = threading.Lock()
-        self.evt = threading.Event()
         
         self.data = []
         self.maxtime = None
         self.last_get_ts = 0
-        self.running = True
         
         if not observations:
             observations = ('air','wind','gust','precipitation')
@@ -561,13 +572,6 @@ class DWDCDCthread(threading.Thread):
         weewx.units.obs_group_dict.setdefault(prefix+'Barometer','group_pressure')
         weewx.units.obs_group_dict.setdefault(prefix+'Altimeter','group_pressure')
 
-
-    def shutDown(self):
-        """ request thread shutdown """
-        self.running = False
-        self.evt.set()
-        loginf("thread '%s': shutdown requested" % self.name)
-    
 
     def get_data(self):
         """ get buffered data  """
@@ -727,20 +731,7 @@ class DWDCDCthread(threading.Thread):
             self.lock.release()
 
 
-    def run(self):
-        """ thread loop """
-        loginf("thread '%s' starting" % self.name)
-        try:
-            while self.running:
-                self.getRecord()
-                self.evt.wait(300)
-        except Exception as e:
-            logerr("thread '%s': main loop %s - %s" % (self.name,e.__class__.__name__,e))
-        finally:
-            loginf("thread '%s' stopped" % self.name)
-
-
-class ZAMGthread(threading.Thread):
+class ZAMGthread(BaseThread):
 
     # https://dataset.api.hub.zamg.ac.at/v1/station/historical/klima-v1-10min/metadata
     # https://dataset.api.hub.zamg.ac.at/v1/docs/quickstart.html
@@ -806,9 +797,7 @@ class ZAMGthread(threading.Thread):
     
     def __init__(self, name, location, prefix, iconset=4, observations=None, user='', passwd='', log_success=False, log_failure=True):
     
-        super(ZAMGthread,self).__init__(name='ZAMG-'+name)
-        self.log_success = log_success
-        self.log_failure = log_failure
+        super(ZAMGthread,self).__init__(name='ZAMG-'+name, log_success=log_success, log_failure=log_failure)
         self.location = location
         self.iconset = weeutil.weeutil.to_int(iconset)
         self.lat = None
@@ -816,10 +805,8 @@ class ZAMGthread(threading.Thread):
         self.alt = None
         
         self.lock = threading.Lock()
-        self.evt = threading.Event()
         
         self.data = dict()
-        self.running = True
         
         datasets = self.get_datasets('station','current')
         if datasets:
@@ -849,13 +836,6 @@ class ZAMGthread(threading.Thread):
         weewx.units.obs_group_dict.setdefault(prefix+'Altimeter','group_pressure')
 
 
-    def shutDown(self):
-        """ request thread shutdown """
-        self.running = False
-        self.evt.set()
-        loginf("thread '%s': shutdown requested" % self.name)
-    
-    
     def get_data(self):
         try:
             self.lock.acquire()
@@ -970,18 +950,6 @@ class ZAMGthread(threading.Thread):
             if self.log_failure:
                 logerr("thread '%s': %s" % (self.name,e))
 
-
-    def run(self):
-        """ thread loop """
-        loginf("thread '%s' starting" % self.name)
-        try:
-            while self.running:
-                self.getRecord()
-                self.evt.wait(300)
-        except Exception as e:
-            logerr("thread '%s': main loop %s - %s" % (self.name,e.__class__.__name__,e))
-        finally:
-            loginf("thread '%s' stopped" % self.name)
 
 
 
