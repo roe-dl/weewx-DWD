@@ -974,7 +974,7 @@ class DWDOPENMETEOthread(threading.Thread):
         ,'freezinglevel_height':'freezinglevelHeight'
         ,'snowfall_height':'snowfallHeight'
         ,'weathercode':'weathercode'
-        ,'snow_depth':'snowHeight'
+        ,'snow_depth':'snowDepth'
         ,'direct_radiation_instant':'radiation'
     }
 
@@ -1110,8 +1110,6 @@ class DWDOPENMETEOthread(threading.Thread):
             elif obsweewx=='freezinglevelHeight':
                 obsgroup = 'group_altitude'
             elif obsweewx=='snowfallHeight':
-                obsgroup = 'group_altitude'
-            elif obsweewx=='snowHeight':
                 obsgroup = 'group_altitude'
             else:
                 obsgroup = weewx.units.obs_group_dict.get(obsweewx)
@@ -1363,6 +1361,10 @@ class DWDOPENMETEOthread(threading.Thread):
                     logerr("thread '%s': could not convert api unit '%s' to weewx unit" % (self.name, str(unitapi)))
                 continue
             groupweewx = weewx.units.obs_group_dict.get(obsname)
+            # snowDepth from meter to mm, snowDepth is weewx group_rain
+            if obsweewx == 'snowDepth':
+                obsval = (weeutil.weeutil.to_float(obsval) / 1000)
+                unitweewx = 'mm'
             y[obsweewx] = (weeutil.weeutil.to_float(obsval), unitweewx, groupweewx)
             if self.debug >= 2:
                 logdbg("thread '%s': weewx=%s result=%s" % (self.name, str(obsweewx), str(y[obsweewx])))
