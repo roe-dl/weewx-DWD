@@ -1260,7 +1260,7 @@ class DWDOPENMETEOthread(threading.Thread):
                      log_success=(self.log_success or self.debug > 0),
                      log_failure=(self.log_failure or self.debug > 0))
             if reply is not None:
-                apidata = json.loads(reply.content.decode('utf-8'))
+                apidata = json.loads(reply.decode('utf-8'))
             else:
                 if self.log_failure or self.debug > 0:
                     logerr("thread '%s': Open-Meteo returns None data." % self.name)
