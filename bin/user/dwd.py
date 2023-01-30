@@ -1080,18 +1080,7 @@ class DWDOPENMETEOthread(BaseThread):
         self.debug = weeutil.weeutil.to_int(openmeteo_dict.get('debug', 0))
         self.latitude = weeutil.weeutil.to_float(openmeteo_dict.get('latitude'))
         self.longitude = weeutil.weeutil.to_float(openmeteo_dict.get('longitude'))
-
-        # We use the station height in meters for the APi Request
-        altitude = openmeteo_dict.get('altitude', [])
-        self.altitude = None
-        if not isinstance(altitude, list):
-            altitude.split(',')
-        if len(altitude) > 1:
-            if altitude[1] == 'meter':
-                self.altitude = weeutil.weeutil.to_float(altitude[0])
-            elif altitude[1] == 'foot':
-                alt_vt = (altitude[0], altitude[1])
-                self.altitude = weeutil.weeutil.to_float(weewx.units.convert(alt_vt, 'meter')[0])
+        self.altitude = weeutil.weeutil.to_float(openmeteo_dict.get('altitude'))
 
         self.iconset = weeutil.weeutil.to_int(openmeteo_dict.get('iconset', 4))
         self.prefix = openmeteo_dict.get('prefix','')
@@ -1297,34 +1286,35 @@ class DWDOPENMETEOthread(BaseThread):
         x = []
         y = dict()
 
-        # get the last hourly observation time before the current time
-        actts = int(time.time())
+        # get the last hourly observation timestamp before the current time
+        actts = weeutil.weeutil.to_int(time.time())
         obshts = None
         for ts in timelist:
             if ts > actts:
                 break
-            obshts = int(ts)
+            obshts = weeutil.weeutil.to_int(ts)
         if obshts is None:
             if self.log_failure or self.debug > 0:
                 logerr("thread '%s': Open-Meteo returns timestamps only in the future." % self.name)
             return
 
         if self.debug >= 3:
+            logdbg("thread '%s': API result: %s" % (self.name, str(apidata)))
             logdbg("thread '%s':    ts now=%s" % (self.name, str(actts)))
             logdbg("thread '%s':    ts now=%s" % (self.name, str( datetime.datetime.fromtimestamp(actts).strftime('%Y-%m-%d %H:%M:%S'))))
             logdbg("thread '%s': ts hourly=%s" % (self.name, str(obshts)))
             logdbg("thread '%s': ts hourly=%s" % (self.name, str( datetime.datetime.fromtimestamp(obshts).strftime('%Y-%m-%d %H:%M:%S'))))
 
-        y['dateTime'] = (actts, 'unix_epoch', 'group_time')
+        # timestamp current_weather
+        obscts = int(current_weather.get('time', 0))
+
+        # final timestamp
+        obsts = weeutil.weeutil.to_int(max(obscts, obshts))
+
+        y['dateTime'] = (obsts, 'unix_epoch', 'group_time')
         y['interval'] = (60, 'minute', 'group_interval')
-        y['hourlyDateTime'] = (obshts, 'unix_epoch', 'group_time')
-        if self.debug >= 3:
-            logdbg("thread '%s': API result: %s" % (self.name, str(apidata)))
 
         #get current weather data
-        obscts = int(current_weather.get('time', 0))
-        y['currentDateTime'] = (obscts, 'unix_epoch', 'group_time')
-
         for obsapi, obsweewx in DWDOPENMETEOthread.CURRENTOBS.items():
             obsname = self.prefix+obsweewx[0].upper()+obsweewx[1:]
             if self.debug >= 2:
@@ -1484,9 +1474,9 @@ class DWDservice(StdService):
         # API open-meteo
         openmeteo_dict = config_dict.get('DeutscherWetterdienst',config_dict).get('OPENMETEO',site_dict)
         if weeutil.weeutil.to_bool(openmeteo_dict.get('enabled', False)):
-            openmeteo_dict['latitude'] = config_dict.get('Station', {}).get('latitude')
-            openmeteo_dict['longitude'] = config_dict.get('Station', {}).get('longitude')
-            openmeteo_dict['altitude'] = config_dict.get('Station', {}).get('altitude')
+            openmeteo_dict['latitude'] = engine.stn_info.latitude_f
+            openmeteo_dict['longitude'] = engine.stn_info.longitude_f
+            openmeteo_dict['altitude'] = weewx.units.convert(engine.stn_info.altitude_vt, 'meter')[0]
             iconset = openmeteo_dict.get('icon_set', iconset)
             if iconset is not None:
                 openmeteo_dict['iconset'] = self.iconset
