@@ -1472,20 +1472,33 @@ class DWDservice(StdService):
             self._create_zamg_thread(station, station, station_dict, zamg_dict.get('user'), zamg_dict.get('password'))
         
         # API open-meteo
-        openmeteo_dict = config_dict.get('DeutscherWetterdienst',config_dict).get('OPENMETEO',site_dict)
-        if weeutil.weeutil.to_bool(openmeteo_dict.get('enabled', False)):
-            openmeteo_dict['latitude'] = engine.stn_info.latitude_f
-            openmeteo_dict['longitude'] = engine.stn_info.longitude_f
-            openmeteo_dict['altitude'] = weewx.units.convert(engine.stn_info.altitude_vt, 'meter')[0]
+        openmeteo_dict = config_dict.get('Open-Meteo',configobj.ConfigObj()).get('current',configobj.ConfigObj())
+        station = openmeteo_dict.get('ThisStation')
+        if station and weeutil.weeutil.to_bool(station.get('enable',True)):
+            station_dict = weeutil.config.accumulateLeaves(station)
+            station_dict['latitude'] = engine.stn_info.latitude_f
+            station_dict['longitude'] = engine.stn_info.longitude_f
+            station_dict['altitude'] = weewx.units.convert(engine.stn_info.altitude_vt, 'meter')[0]
             iconset = openmeteo_dict.get('icon_set', iconset)
             if iconset is not None:
-                openmeteo_dict['iconset'] = self.iconset
-                if iconset=='belchertown': openmeteo_dict['iconset'] = 4
-                if iconset=='dwd': openmeteo_dict['iconset'] = 5
-                if iconset=='aeris': openmeteo_dict['iconset'] = 6
-            self._create_openmeteo_thread('current', openmeteo_dict)
+                station_dict['iconset'] = self.iconset
+                if iconset=='belchertown': station_dict['iconset'] = 4
+                if iconset=='dwd': station_dict['iconset'] = 5
+                if iconset=='aeris': station_dict['iconset'] = 6
+            self._create_openmeteo_thread(engine.stn_info.location, station_dict)
         elif self.debug > 0:
             loginf("API Open-Meteo is not enabled.")
+        stations = openmeteo_dict.get('locations',configobj.ConfigObj())
+        for station in stations.sections:
+            station_dict = weeutil.config.accumulateLeaves(stations[station])
+            iconset = station_dict.get('icon_set', iconset)
+            if iconset is not None:
+                station_dict['iconset'] = self.iconset
+                if iconset=='belchertown': station_dict['iconset'] = 4
+                if iconset=='dwd': station_dict['iconset'] = 5
+                if iconset=='aeris': station_dict['iconset'] = 6
+            if weeutil.weeutil.to_bool(station_dict.get('enable',True)):
+                self._create_openmeteo_thread(station, station_dict)
         
         if  __name__!='__main__':
             self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
@@ -1615,6 +1628,7 @@ if __name__ == '__main__':
             latitude_f = 50.0 
             longitude_f = 13.0
             altitude_vt = (100.0,'meter','group_altitude') 
+            location = 'Testlocation'
     engine = Engine()
     
     if False:
