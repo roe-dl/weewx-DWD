@@ -1609,6 +1609,13 @@ class DWDservice(StdService):
 if __name__ == '__main__':
 
     conf_dict = configobj.ConfigObj("DWD.conf")
+
+    class Engine(object):
+        class stn_info(object): 
+            latitude_f = 50.0 
+            longitude_f = 13.0
+            altitude_vt = (100.0,'meter','group_altitude') 
+    engine = Engine()
     
     if False:
 
@@ -1629,7 +1636,7 @@ if __name__ == '__main__':
 
     else:
     
-        sv = DWDservice(None,conf_dict)
+        sv = DWDservice(engine,conf_dict)
         
         try:
             while True:
