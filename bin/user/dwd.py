@@ -124,10 +124,10 @@
     No API key is required. You can use it immediately!
     https://open-meteo.com
     
-    unsing here the "DWD ICON API"
+    unsing here the "DWD ICON API" to get current weather observations
     https://open-meteo.com/en/docs/dwd-api
     
-    Configuration in weewx.conf:
+    Configuration weewx.conf:
     
     [DeutscherWetterdienst]
         ...
@@ -143,8 +143,11 @@
             #log_failure = replace_me # True or False, optional
         ...
     
+    API URL Builder:
+    https://open-meteo.com/en/docs/dwd-api
+
     API call example:
-    https://api.open-meteo.com/v1/dwd-icon?latitude=49.63227&longitude=12.056186&elevation=394.0&timeformat=unixtime&timezone=Europe%2FBerlin&start_date=2023-01-28&end_date=2023-01-29&temperature_unit=celsius&windspeed_unit=kmh&precipitation_unit=mm&current_weather=true&hourly=temperature_2m,apparent_temperature,dewpoint_2m,pressure_msl,relativehumidity_2m,winddirection_10m,windspeed_10m,windgusts_10m,cloudcover,evapotranspiration,rain,showers,snowfall,freezinglevel_height,snowfall_height,weathercode,snow_depth,direct_radiation_instant
+    https://api.open-meteo.com/v1/dwd-icon?latitude=49.63227&longitude=12.056186&elevation=394.0&timeformat=unixtime&start_date=2023-01-29&end_date=2023-01-30&temperature_unit=celsius&windspeed_unit=kmh&precipitation_unit=mm&current_weather=true&hourly=temperature_2m,apparent_temperature,dewpoint_2m,pressure_msl,relativehumidity_2m,winddirection_10m,windspeed_10m,windgusts_10m,cloudcover,evapotranspiration,rain,showers,snowfall,freezinglevel_height,snowfall_height,weathercode,snow_depth,direct_radiation_instant
     
     Open-Meteo GitHub:
     https://github.com/open-meteo/open-meteo
@@ -956,7 +959,9 @@ class ZAMGthread(BaseThread):
 
 class DWDOPENMETEOthread(BaseThread):
 
-    # Evapotranspiration: Attention, no capital letters. Otherwise the WeeWX field "ET" will be formed if no prefix is used!
+    # Evapotranspiration/UV-Index: 
+    # Attention, no capital letters for WeeWX fields. Otherwise the WeeWX field "ET"/"UV" will be formed if no prefix is used!
+    # Mapping API field -> WeeWX field
     HOURLYOBS = {
         'temperature_2m':'outTemp'
         ,'apparent_temperature':'appTemp'
@@ -972,12 +977,14 @@ class DWDOPENMETEOthread(BaseThread):
         ,'showers':'shower'
         ,'snowfall':'snow'
         ,'freezinglevel_height':'freezinglevelHeight'
-        ,'snowfall_height':'snowfallHeight'
         ,'weathercode':'weathercode'
         ,'snow_depth':'snowDepth'
         ,'direct_radiation_instant':'radiation'
+        # Europe only
+        ,'snowfall_height':'snowfallHeight'
     }
 
+    # Mapping API field -> WeeWX field
     CURRENTOBS = {
         'temperature':'outTemp'
         ,'windspeed':'windSpeed'
@@ -986,6 +993,7 @@ class DWDOPENMETEOthread(BaseThread):
     }
 
     # API result contain no units for current_weather
+    # Mapping API current_weather unit -> WeeWX unit
     CURRENTUNIT = {
         'temperature':'°C'
         ,'windspeed':'km/h'
@@ -994,6 +1002,7 @@ class DWDOPENMETEOthread(BaseThread):
         ,'time':'unixtime'
     }
 
+    # Mapping API hourly unit -> WeeWX unit
     UNIT = {
         '°':'degree_compass'
         ,'°C':'degree_C'
@@ -1071,25 +1080,26 @@ class DWDOPENMETEOthread(BaseThread):
         self.debug = weeutil.weeutil.to_int(openmeteo_dict.get('debug', 0))
         self.latitude = weeutil.weeutil.to_float(openmeteo_dict.get('latitude'))
         self.longitude = weeutil.weeutil.to_float(openmeteo_dict.get('longitude'))
-        self.altitude = None
+
+        # We use the station height in meters for the APi Request
         altitude = openmeteo_dict.get('altitude', [])
+        self.altitude = None
         if not isinstance(altitude, list):
             altitude.split(',')
         if len(altitude) > 1:
             if altitude[1] == 'meter':
                 self.altitude = weeutil.weeutil.to_float(altitude[0])
-            #else:
-                #TODO convert foot to meter
+            elif altitude[1] == 'foot':
+                alt_vt = (altitude[0], altitude[1])
+                self.altitude = weeutil.weeutil.to_float(weewx.units.convert(alt_vt, 'meter')[0])
 
         self.iconset = weeutil.weeutil.to_int(openmeteo_dict.get('iconset', 4))
         self.prefix = openmeteo_dict.get('prefix','')
 
         self.lock = threading.Lock()
-        self.evt = threading.Event()
         
         self.data = []
         self.last_get_ts = 0
-        self.running = True
         
         for opsapi, obsweewx in DWDOPENMETEOthread.CURRENTOBS.items():
             obsgroup = None
@@ -1127,10 +1137,20 @@ class DWDOPENMETEOthread(BaseThread):
         """ get buffered data """
         try:
             self.lock.acquire()
+            """
+            try:
+                last_ts = self.data[-1]['time']
+                interval = last_ts - self.last_get_ts
+                self.last_get_ts = last_ts
+            except (LookupError,TypeError,ValueError,ArithmeticError):
+                interval = None
+            """
             interval = 1
             data = self.data
+            #print('POI',data)
         finally:
             self.lock.release()
+        #loginf("get_data interval %s data %s" % (interval,data))
         return data,interval
 
     @staticmethod
@@ -1153,6 +1173,8 @@ class DWDOPENMETEOthread(BaseThread):
 
     def getRecord(self):
         """ download and process POI weather data """
+
+        # DWD API endpoint "v1/dwd-icon"
         baseurl = 'https://api.open-meteo.com/v1/dwd-icon'
 
         # Geographical WGS84 coordinate of the location
@@ -1162,18 +1184,18 @@ class DWDOPENMETEOthread(BaseThread):
         # The elevation used for statistical downscaling. Per default, a 90 meter digital elevation model is used.
         # You can manually set the elevation to correctly match mountain peaks. If &elevation=nan is specified,
         # downscaling will be disabled and the API uses the average grid-cell height.
+        # If a valid height exists, it will be used
         if self.altitude is not None:
             params += '&elevation=%s' % str(self.altitude)
 
-        # TODO config param?
         # timeformat iso8601 | unixtime
         params += '&timeformat=unixtime'
 
-        # TODO config param?
         # timezone
         # If timezone is set, all timestamps are returned as local-time and data is returned starting at 00:00 local-time.
         # Any time zone name from the time zone database is supported. If auto is set as a time zone, the coordinates will
         # be automatically resolved to the local time zone.
+        # using API default
         #params += '&timezone=Europe%2FBerlin'
 
         # TODO config param?
@@ -1191,21 +1213,22 @@ class DWDOPENMETEOthread(BaseThread):
         params += '&start_date=%s' % str(yesterday)
         params += '&end_date=%s' % str(today)
 
-        # TODO US | METRIC | METRICWX
         # units
-        # celsius, if fahrenheit is set, all temperature values are converted to Fahrenheit.
+        # The API request is made in the metric system
+        # Temperature in celsius
         params += '&temperature_unit=celsius'
-        # kmh, other wind speed speed units: ms, mph and kn
+        # Wind in km/h
         params += '&windspeed_unit=kmh'
-        # mm, other precipitation amount units: inch
+        # Precipitation in mm
         params += '&precipitation_unit=mm'
 
         # Include current weather conditions in the JSON output.
-        # values (28.01.2023): temperature, windspeed, winddirection, weathercode, time
+        # currently contained values (28.01.2023): temperature, windspeed, winddirection, weathercode, time
         params += '&current_weather=true'
 
         # A list of weather variables which should be returned. Values can be comma separated,
         # or multiple &hourly= parameter in the URL can be used.
+        # defined in HOURLYOBS
         params += '&hourly='
         first = True
         for obsapi in DWDOPENMETEOthread.HOURLYOBS:
@@ -1274,7 +1297,7 @@ class DWDOPENMETEOthread(BaseThread):
         x = []
         y = dict()
 
-        # get the last hourly observation time
+        # get the last hourly observation time before the current time
         actts = int(time.time())
         obshts = None
         for ts in timelist:
@@ -1292,7 +1315,7 @@ class DWDOPENMETEOthread(BaseThread):
             logdbg("thread '%s': ts hourly=%s" % (self.name, str(obshts)))
             logdbg("thread '%s': ts hourly=%s" % (self.name, str( datetime.datetime.fromtimestamp(obshts).strftime('%Y-%m-%d %H:%M:%S'))))
 
-        interval = weeutil.weeutil.to_float(300 / 60) #TODO
+        interval = weeutil.weeutil.to_float(300 / 60) # TODO
         y['dateTime'] = (actts, 'unix_epoch', 'group_time')
         y['interval'] = (interval, 'minute', 'group_interval')
         y['hourlyDateTime'] = (obshts, 'unix_epoch', 'group_time')
@@ -1312,7 +1335,7 @@ class DWDOPENMETEOthread(BaseThread):
                 if self.log_failure or self.debug > 0:
                     logerr("thread '%s': Open-Meteo returns no value for observation %s - %s on timestamp %s" % (self.name, str(obsapi), str(obsname), str(obscts)))
                 continue
-            # API json contain no unit data for current weather observations
+            # API json response contain no unit data for current_weather observations
             unitapi = DWDOPENMETEOthread.CURRENTUNIT.get(obsapi)
             if unitapi is None:
                 if self.log_failure or self.debug > 0:
@@ -1344,10 +1367,16 @@ class DWDOPENMETEOthread(BaseThread):
                 if self.log_failure or self.debug > 0:
                     logerr("thread '%s': Open-Meteo returns no value for observation '%s' - '%s'" % (self.name, str(obsapi), str(obsname)))
                 continue
+            # Build a dictionary with timestamps as key and the corresponding values
             obsvals = dict(zip(timelist, obslist))
             obsval = obsvals.get(obshts)
             if obsval is None:
-                if self.log_failure or self.debug > 0:
+                # snowfall_height could be None, value is not always available
+                if obsapi == 'snowfall_height':
+                    if self.debug > 0:
+                        # what is better, loginf or logdbg?
+                        logdbg("thread '%s': Open-Meteo returns no value for observation %s - %s on timestamp %s" % (self.name, str(obsapi), str(obsname), str(obshts)))
+                elif self.log_failure or self.debug > 0:
                     logerr("thread '%s': Open-Meteo returns no value for observation %s - %s on timestamp %s" % (self.name, str(obsapi), str(obsname), str(obshts)))
                 continue
             unitapi = hourly_units.get(obsapi)
@@ -1361,7 +1390,7 @@ class DWDOPENMETEOthread(BaseThread):
                     logerr("thread '%s': could not convert api unit '%s' to weewx unit" % (self.name, str(unitapi)))
                 continue
             groupweewx = weewx.units.obs_group_dict.get(obsname)
-            # snowDepth from meter to mm, snowDepth is weewx group_rain
+            # snowDepth from meter to mm, weewx snowDepth is weewx group_rain
             if obsweewx == 'snowDepth':
                 obsval = (weeutil.weeutil.to_float(obsval) / 1000)
                 unitweewx = 'mm'
