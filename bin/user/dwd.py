@@ -1381,7 +1381,7 @@ class DWDOPENMETEOthread(BaseThread):
             groupweewx = weewx.units.obs_group_dict.get(obsname)
             # snowDepth from meter to mm, weewx snowDepth is weewx group_rain
             if obsweewx == 'snowDepth':
-                obsval = (weeutil.weeutil.to_float(obsval) / 1000)
+                obsval = (weeutil.weeutil.to_float(obsval) * 1000)
                 unitweewx = 'mm'
             y[obsweewx] = (weeutil.weeutil.to_float(obsval), unitweewx, groupweewx)
             if self.debug >= 2:
