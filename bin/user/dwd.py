@@ -954,7 +954,7 @@ class ZAMGthread(BaseThread):
 
 
 
-class DWDOPENMETEOthread(threading.Thread):
+class DWDOPENMETEOthread(BaseThread):
 
     # Evapotranspiration: Attention, no capital letters. Otherwise the WeeWX field "ET" will be formed if no prefix is used!
     HOURLYOBS = {
@@ -1391,18 +1391,6 @@ class DWDOPENMETEOthread(threading.Thread):
             self.data = x
         finally:
             self.lock.release()
-
-    def run(self):
-        """ thread loop """
-        loginf("thread '%s' starting" % self.name)
-        try:
-            while self.running:
-                self.getRecord()
-                self.evt.wait(300)
-        except Exception as e:
-            logerr("thread '%s': main loop %s - %s" % (self.name,e.__class__.__name__,e))
-        finally:
-            loginf("thread '%s' stopped" % self.name)
 
 
 class DWDservice(StdService):
