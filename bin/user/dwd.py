@@ -138,7 +138,7 @@
             #enabled = replace_me # True or False, enable or disable Open-Meteo Service, optional, default False
             #prefix = replace_me # Example: "om", optional, default ""
             #icon_set = replace_me # optional, default from section [[forecast]]
-            #debug = 0 # Example: 0 = no debug infos, 1 = min debug infos, 2 = more debug infos, >3 = max debug infos, optional, default 0
+            #debug = 0 # Example: 0 = no debug infos, 1 = min debug infos, 2 = more debug infos, >=3 = max debug infos, optional, default 0
             #log_success = replace_me # True or False, optional
             #log_failure = replace_me # True or False, optional
         ...
