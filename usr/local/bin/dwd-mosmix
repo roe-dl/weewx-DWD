@@ -172,28 +172,30 @@ def get_ww(ww,n,night):
     if wwcode[0]<=3:
         night = 1 if night else 0
         cover = get_cloudcover(n)
-        # Belchertown icons
-        icon = cover[night]
-        # Aeris icons
-        aeicon = cover[4]
-        aecode = '::'+cover[3]
-        # DWD icons
-        if n<12.5:
-            dwd = N_ICON_LIST[0][2]
-        elif n<50:
-            dwd = N_ICON_LIST[1][2]
-        elif n<87.5:
-            dwd = N_ICON_LIST[2][2]
-        else:
-            dwd = N_ICON_LIST[4][2]
-        try:
-            n_str = '%.0f%%' % float(n)
-        except Exception:
-            n_str = str(n)
-        wwcode = (wwcode[0],wwcode[1]+' '+n_str,wwcode[2]+' '+str(n),wwcode[3],icon,dwd,aeicon,aecode)
+        if cover is not None:
+            # Belchertown icons
+            icon = cover[night]
+            # Aeris icons
+            aeicon = cover[4]
+            aecode = '::'+cover[3]
+            # DWD icons
+            if n<12.5:
+                dwd = N_ICON_LIST[0][2]
+            elif n<50:
+                dwd = N_ICON_LIST[1][2]
+            elif n<87.5:
+                dwd = N_ICON_LIST[2][2]
+            else:
+                dwd = N_ICON_LIST[4][2]
+            try:
+                n_str = '%.0f%%' % float(n)
+            except Exception:
+                n_str = str(n)
+            wwcode = (wwcode[0],wwcode[1]+' '+n_str,wwcode[2]+' '+str(n),wwcode[3],icon,dwd,aeicon,aecode)
     return wwcode
 
 def get_cloudcover(n):
+    if n is None: return None
     if n<7:
         icon = N_ICON_LIST[0]
     elif n<32:
@@ -1178,8 +1180,14 @@ class DwdMosmix(object):
                 if self.vertical_div_classes:
                     s += '</div>\n'
             # Copyright notice
-            s += '<p style="font-size:65%%;display:inline">herausgegeben vom <a href="https://www.dwd.de" target="_blank">DWD</a> am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M',time.localtime(issue['IssueTime']/1000.0))
-            s += '<p style="font-size:65%%;display:inline">| Vorhersage erstellt am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M')
+            s += '<p style="font-size:65%%;display:inline">'
+            if issue.get('Issuer','')=='Open-Meteo':
+                s += 'herausgegeben von <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a>'
+            else:
+                s += 'herausgegeben vom <a href="https://www.dwd.de" target="_blank">DWD</a>'
+            s += 'am %s' % time.strftime('%d.%m.%Y %H:%M',time.localtime(issue['IssueTime']/1000.0))
+            s += ' | Vorhersage erstellt am %s' % time.strftime('%d.%m.%Y %H:%M')
+            s += '</p>\n'
             fn = os.path.join(self.target_path,'forecast-'+placemark['id']+'.inc')
             if dryrun:
                 print(s)
@@ -1308,7 +1316,7 @@ class DwdMosmix(object):
                     'windSpeedKPH':nround(placemark['Forecast']['FF'][idx]),
                     'windDir':compass(nround(placemark['Forecast']['DD'][idx]),self.belchertown_compasslang,False),
                     'windDirDEG':nround(placemark['Forecast']['DD'][idx]),
-                    'visibilityKM':placemark['Forecast']['VV'][idx]*0.001,
+                    'visibilityKM':placemark['Forecast']['VV'][idx]*0.001 if 'VV' in placemark['Forecast'] else None,
                     'weather':wwcode[1],
                     'weatherCoded':wwcode[7],
                     'weatherPrimary':wwcode[1],
@@ -1451,7 +1459,7 @@ class DwdMosmix(object):
                 'weatherPrimary':wwcode[1],
                 'weatherPrimaryCoded':wwcode[7],
                 'icon':wwcode[6]+('n' if night else '')+'.png',
-                'visibilityKM':placemark['Forecast']['VV'][idx]*0.001,
+                'visibilityKM':placemark['Forecast']['VV'][idx]*0.001 if 'VV' in placemark['Forecast'] else None,
                 'solradWM2':placemark['Forecast']['Rad1h'][idx],
                 'solradMinWM2':placemark['Forecast']['Rad1h'][idx],
                 'solradMaxWM2':placemark['Forecast']['Rad1h'][idx],
@@ -1883,11 +1891,11 @@ class DwdMosmix(object):
                     days[day][ii+'ct'] = 0
             days[day]['count'] += 1
             # min and max temperature
-            ttt = vals['TTT']
+            ttt = vals.get('TTT')
             if ttt and ttt>days[day]['TTTmax']: days[day]['TTTmax'] = ttt
             if ttt and ttt<days[day]['TTTmin']: days[day]['TTTmin'] = ttt
             # min and max dewpoint
-            td = vals['Td']
+            td = vals.get('Td')
             if td and td>days[day]['Tdmax']: days[day]['Tdmax'] = td
             if td and td<days[day]['Tdmin']: days[day]['Tdmin'] = td
             # max wind gust
@@ -1899,7 +1907,7 @@ class DwdMosmix(object):
                     pass
             # minimum visibility
             try:
-                vv = vals['VV']
+                vv = vals.get('VV')
                 if vv and vv<days[day]['VVmin']: days[day]['VVmin'] = vv
             except (TypeError,LookupError):
                 pass
@@ -1908,13 +1916,13 @@ class DwdMosmix(object):
                 try:
                     days[day][ii+'sum'] += vals[ii]
                     days[day][ii+'ct'] += 1
-                except TypeError as e:
-                    if vals[ii] is not None:
+                except (TypeError,LookupError) as e:
+                    if vals.get(ii) is not None:
                         logerr("%s: %s" % (ii,e))
             # sunshine duration
             try:
                 days[day]['SunD1'] += vals['SunD1']/3600
-            except (ValueError,TypeError):
+            except (ValueError,TypeError,LookupError):
                 # If the error is during night time, it is ignored.
                 # If the error is during day time, SunD1 ist set invalid.
                 if not daynights[idx]:
@@ -1923,14 +1931,14 @@ class DwdMosmix(object):
             if vals.get('Rad1h'): days[day]['Rad1hsum'] += vals['Rad1h']/1000.0
             # rain
             for ii in ['Rd00','Rd02','Rd10','Rd50']:
-                if vals[ii]: days[day][ii] = vals[ii]
+                if vals.get(ii): days[day][ii] = vals[ii]
                 #try:
                 #    xx = placemark['Forecast'][ii][idx+1]
                 #    if xx: days[day][ii] = xx
                 #    #if xx: print(idx,ii,xx)
                 #except (ValueError,IndexError):
                 #    pass
-            if vals['RR1c']: days[day]['RR1c'] += vals['RR1c']
+            if vals.get('RR1c'): days[day]['RR1c'] += vals['RR1c']
             # collect weather codes of the day
             if vals['ww'] and vals['ww'] not in days[day]['ww']: days[day]['ww'].append(vals['ww'])
         # calculate averages and weather symbol for the days
@@ -1948,7 +1956,10 @@ class DwdMosmix(object):
                     pass
             # weather symbol
             wwcode = get_ww(days[day]['ww'],days[day]['Neffavg'],False)
-            days[day]['icon'] = self.icon_pth+'/'+wwcode[self.iconset]+('.png' if self.iconset==6 else '')
+            if wwcode[self.iconset] is None:
+                days[day]['icon'] = 'unknown.png'
+            else:
+                days[day]['icon'] = self.icon_pth+'/'+wwcode[self.iconset]+('.png' if self.iconset==6 else '')
             days[day]['icontitle'] = wwcode[2] if lang=='en' else wwcode[1]
         return days
 
@@ -2112,6 +2123,96 @@ class DwdMosmix(object):
                 cols.append('`'+ii+'`')
                 vals.append(str(values[ii]))
         cursor.execute('INSERT INTO forecast (%s) VALUES (%s)' % (','.join(cols),','.join(vals)))
+        
+    OPENMETEO_OBS = {
+        'temperature_2m':'TTT',
+        'relativehumidity_2m':'RHEL',
+        'dewpoint_2m':'Td',
+        'pressure_msl':'PPPP',
+        'cloudcover':'N',
+        'cloudcover_low':'Nl',
+        'cloudcover_mid':'Nm',
+        'cloudcover_high':'Nh',
+        'windspeed_10m':'FF',
+        'winddirection_10m':'DD',
+        'windgusts_10m':'FX1',
+        'weathercode':'ww',
+        'visibility':'VV'
+    }
+
+    def download_openmeteo(self, lat, lon, model):
+        models = ['icon_eu'] # icon_eu,icon_d2
+        #vars = 'temperature_2m,relativehumidity_2m,dewpoint_2m'
+        vars = ','.join([x for x in DwdMosmix.OPENMETEO_OBS])
+        url = 'https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&hourly=%s&models=%s&timeformat=unixtime' % (lat,lon,vars,','.join(models))
+
+        headers={'User-Agent':'weewx-DWD'}
+        try:
+            reply = requests.get(url,headers=headers)
+        except ConnectionError as e:
+            if self.log_failure:
+                logerr(e)
+            return None
+        
+        if reply.status_code==200:
+            if self.log_success or self.verbose:
+                loginf('successfully downloaded %s' % reply.url)
+            content = json.loads(reply.text)
+        else:
+            if self.log_failure or self.verbose:
+                logerr('error downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
+            return None
+        
+        # TODO: use file time from HTTP header
+        issuetime = time.time()
+        issuetimeISO = time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime(issuetime))
+        
+        geodata = self.geo(lat,lon)
+        if not geodata: geodata = dict()
+        town = geodata.get('town')
+        if not town: town = '%s %s' % (lat,lon)
+        
+        mmos = {
+            'Issuer':'Open-Meteo',
+            'ProductID':'Open-Meteo',
+            'GeneratingProcess':'',
+            'IssueTime': issuetime*1000,
+            'IssueTimeISO': issuetimeISO,
+            'ReferenceModel': {
+                'name':'dwd-icon',
+                'ReferenceTime': issuetime*1000,
+                'ReferenceTimeISO': issuetimeISO,
+            },
+            'ForecastTimeSteps': [ts*1000 for ts in content['hourly']['time']],
+            'ForecastTimeStepsISO': [time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime(ts)) for ts in content['hourly']['time']],
+            'DefaultUndefSign':'-',
+            'Placemark': [
+                {
+                    'id':'openmeteo-%s-%s' % (lat,lon),
+                    'description': town,
+                    'Forecast': dict(),
+                    'coordinates': [
+                        content.get('longitude'),
+                        content.get('latitude'),
+                        content.get('elevation')
+                    ]
+                }
+            ]
+        }
+        
+        for obs in content['hourly']:
+            val = content['hourly'][obs]
+            if obs!='time':
+                # TODO: convert 
+                mobs = DwdMosmix.OPENMETEO_OBS.get(obs,obs)
+                mmos['Placemark'][0]['Forecast'][mobs] = val
+        
+        # TODO: klären, was N und Neff ist
+        if 'N' in mmos['Placemark'][0]['Forecast']:
+            mmos['Placemark'][0]['Forecast']['Neff'] = mmos['Placemark'][0]['Forecast']['N']
+                
+        return mmos
+    
 
 if __name__ == "__main__":
 
@@ -2146,6 +2247,10 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
                       action="store_true",
                       default=None,
                       help="no placemark caption over forecast table")
+    parser.add_option("--open-meteo", dest="openmeteo",
+                      metavar="MODEL",
+                      default=None,
+                      help="get forecast from Open-Meteo")
 
     group = optparse.OptionGroup(parser,"Output and logging options")
     group.add_option("--dry-run", action="store_true",
@@ -2235,9 +2340,15 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
         print(json.dumps(zz,indent=4,ensure_ascii=False))
         exit()
 
-    zz = dwd.download_kml(location,'l')
-    mmos = dwd.process_kml(zz,options.log_tags)
-    #print(json.dumps(mos,indent=4,ensure_ascii=False))
+    if options.openmeteo is None:
+        zz = dwd.download_kml(location,'l')
+        mmos = dwd.process_kml(zz,options.log_tags)
+    else:
+        loc = location.split(',')
+        lat = float(loc[0])
+        lon = float(loc[1])
+        mmos = dwd.download_openmeteo(lat,lon,options.openmeteo)
+    #print(json.dumps(mmos,indent=4,ensure_ascii=False))
     
     output = []
     if options.all: output.append('all')
