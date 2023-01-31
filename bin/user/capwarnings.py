@@ -984,7 +984,7 @@ class DWD(CAP):
                 s+='<p style="font-size:40%%">%s &ndash; %s &emsp;&ndash;&emsp; %s &ndash; %s &emsp;&ndash;&emsp; II=%s &ndash; %s</p>' % (val['type'],val['event'],val['level'],val['level_text'],val.get('eventCode-II',''),val.get('eventCode-GROUP',''))
 
             if s:
-                s+='<p style="font-size:80%%">Quelle: <a href="%s" target="_blank">DWD</a></p>\n' % DWD.DWD_COPY.get(stateShort,"https://www.wettergefahren.de")
+                s+='<p style="font-size:80%%">Quelle: <a href="%s" target="_blank">DWD</a> | Abgerufen am %s</p>\n' % (DWD.DWD_COPY.get(stateShort,"https://www.wettergefahren.de"),time.strftime('%d.%m.%Y %H:%M'))
             else:
                 s='<p>zur Zeit keine Warnungen</p>'
             
