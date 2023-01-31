@@ -1084,6 +1084,7 @@ class DWDOPENMETEOthread(BaseThread):
 
         self.iconset = weeutil.weeutil.to_int(openmeteo_dict.get('iconset', 4))
         self.prefix = openmeteo_dict.get('prefix','')
+        self.model = openmeteo_dict.get('model','dwd-icon')
 
         self.lock = threading.Lock()
         
@@ -1164,7 +1165,7 @@ class DWDOPENMETEOthread(BaseThread):
         """ download and process POI weather data """
 
         # DWD API endpoint "v1/dwd-icon"
-        baseurl = 'https://api.open-meteo.com/v1/dwd-icon'
+        baseurl = 'https://api.open-meteo.com/v1/'+self.model
 
         # Geographical WGS84 coordinate of the location
         params = '?latitude=%s' % str(self.latitude)
