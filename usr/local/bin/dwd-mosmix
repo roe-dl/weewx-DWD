@@ -2141,26 +2141,38 @@ class DwdMosmix(object):
     }
     
     OPENMETEO_WEATHERMODELS = {
-        'ecmwf_ifs04':('EU','ECMWF','IFS'),
-        'metno_nordic':('NO','MET Norway','Nordic'),
-        'icon_seamless':('DE','DWD','Icon Seamless'),
-        'icon_global':('DE','DWD','Icon Global'),
-        'icon_eu':('DE','DWD','Icon EU'),
-        'icon_d2':('DE','DWD','Icon D2'),
-        'gfs_seamless':('US','NOAA','GFS Seamless'),
-        'gfs_global':('US','NOAA','GFS Global'),
-        'gfs_hrrr':('US','NOAA','GFS HRRR')
+        'dwd-icon':('DE','DWD','ICON','dwd-icon'), # without visibility
+        'ecmwf_ifs04':('EU','ECMWF','IFS','forecast'),
+        'metno_nordic':('NO','MET Norway','Nordic','forecast'),
+        'icon_seamless':('DE','DWD','ICON Seamless','forecast'),
+        'icon_global':('DE','DWD','ICON Global','forecast'),
+        'icon_eu':('DE','DWD','ICON EU','forecast'),
+        'icon_d2':('DE','DWD','ICON D2','forecast'),
+        'gfs_seamless':('US','NOAA','GFS Seamless','forecast'),
+        'gfs_global':('US','NOAA','GFS Global','forecast'),
+        'gfs_hrrr':('US','NOAA','GFS HRRR','forecast')
     }
 
     def download_openmeteo(self, lat, lon, model):
         if isinstance(model,list):
             models = model
+            dir = 'forecast'
+            modelsopt = '&models='+','.join(models)
         else:
             models = [model]
+            dir = DwdMosmix.OPENMETEO_WEATHERMODELS[model][3]
+            if dir=='forecast':
+                modelsopt = '&models='+model
+            else:
+                modelsopt = ''
         #models = ['icon_eu'] # icon_eu,icon_d2
         #vars = 'temperature_2m,relativehumidity_2m,dewpoint_2m'
-        vars = ','.join([x for x in DwdMosmix.OPENMETEO_OBS])
-        url = 'https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&hourly=%s&models=%s&timeformat=unixtime' % (lat,lon,vars,','.join(models))
+        if dir=='forecast':
+            excludes = list()
+        else:
+            excludes = ('visibility',)
+        vars = ','.join([x for x in DwdMosmix.OPENMETEO_OBS if x not in excludes])
+        url = 'https://api.open-meteo.com/v1/%s?latitude=%s&longitude=%s&hourly=%s%s&timeformat=unixtime' % (dir,lat,lon,vars,modelsopt)
 
         headers={'User-Agent':'weewx-DWD'}
         try:
