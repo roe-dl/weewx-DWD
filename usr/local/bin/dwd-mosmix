@@ -904,7 +904,7 @@ class DwdMosmix(object):
                         except Exception:
                             s += '<td>%s</td>' % jj
                     s += '</tr>\n'
-                fn = placemark['id']
+                fn = placemark['id'].replace(',','_').replace(' ','_')
                 s += '</table>\n'
                 if self.horizontal_div_classes:
                     s += '</div>\n'
@@ -1182,13 +1182,13 @@ class DwdMosmix(object):
             # Copyright notice
             s += '<p style="font-size:65%%;display:inline">'
             if issue.get('Issuer','')=='Open-Meteo':
-                s += 'herausgegeben von <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a>'
+                s += 'bereitgestellt von <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a>'
             else:
                 s += 'herausgegeben vom <a href="https://www.dwd.de" target="_blank">DWD</a>'
             s += 'am %s' % time.strftime('%d.%m.%Y %H:%M',time.localtime(issue['IssueTime']/1000.0))
             s += ' | Vorhersage erstellt am %s' % time.strftime('%d.%m.%Y %H:%M')
             s += '</p>\n'
-            fn = os.path.join(self.target_path,'forecast-'+placemark['id']+'.inc')
+            fn = os.path.join(self.target_path,'forecast-'+placemark['id'].replace(',','_').replace(' ','_')+'.inc')
             if dryrun:
                 print(s)
             else:
@@ -1196,7 +1196,7 @@ class DwdMosmix(object):
                     file.write(s)
     
     def dump(self, placemark, days, recs3hr, timesteps, daynights, issue, dryrun, lang='de'):
-        fn = os.path.join(self.target_path,'forecast-'+placemark['id']+'.json')
+        fn = os.path.join(self.target_path,'forecast-'+placemark['id'].replace(',','_').replace(' ','_')+'.json')
         with open(fn,"w") as file:
             hours = []
             for idx,val in enumerate(timesteps):
@@ -2158,7 +2158,11 @@ class DwdMosmix(object):
         'icon_d2':('DE','DWD','ICON D2','forecast'),
         'gfs_seamless':('US','NOAA','GFS Seamless','forecast'),
         'gfs_global':('US','NOAA','GFS Global','forecast'),
-        'gfs_hrrr':('US','NOAA','GFS HRRR','forecast')
+        'gfs_hrrr':('US','NOAA','GFS HRRR','forecast'),
+        'gem_seamless':('CA','Canadian Weather Service','GEM','forecast'),
+        'gem_global':('CA','Canadian Weather Service','GEM','forecast'),
+        'gem_regional':('CA','Canadian Weather Service','GEM','forecast'),
+        'gem_hrdps_continental':('CA','Canadian Weather Service','GEM-HRDPS','forecast')
     }
 
     def download_openmeteo(self, lat, lon, model):
@@ -2232,7 +2236,7 @@ class DwdMosmix(object):
             'DefaultUndefSign':'-',
             'Placemark': [
                 {
-                    'id':'openmeteo-%s-%s' % (lat,lon),
+                    'id':'openmeteo-%s-%s-%s' % (lat,lon,','.join(models)),
                     'description': town,
                     'Forecast': dict(),
                     'coordinates': [
