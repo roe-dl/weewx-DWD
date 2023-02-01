@@ -37,6 +37,12 @@ geben Sie bitte immer folgende Informationen mit an:
 
 # Installation
 
+Für `dwd-mosmix` ist es vorteilhaft, `GeoPy` zu installieren.
+
+```
+sudo apt-get install python3-geopy
+```
+
 Kopieren Sie `bin/user/dwd.py` und `bin/usr/capwarnings.py` ins 
 Erweiterungsverzeichnis von WeeWX, typischerweise `/usr/share/weewx/user`.
 
