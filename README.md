@@ -151,6 +151,7 @@ Options:
   --lang=ISO639         Forecast language. Default 'de'
   --aqi-source=PROVIDER Provider for Belchertown AQI section
   --hide-placemark      No placemark caption over forecast table
+  --open-meteo=MODEL    use Open-Meteo API instead of DWD MOSMIX
 
   Output and logging options:
     --dry-run           Print what would happen but do not do it. Default is
@@ -277,6 +278,12 @@ Auch der österreichische Wetterdienst ZAMG stellt aktuelle Meßwerte
 seiner Stationen im Internet zur Verfügung
 
 [Liste der Stationen](https://dataset.api.hub.zamg.ac.at/v1/station/current/tawes-v1-10min/metadata)
+
+## Open-Meteo
+
+[Open-Meteo](https://open-meteo.com/) stellt ein API zum Abruf von
+Wetterdaten aus den Wettermodellen der großen Wetterdienste bereit. 
+Der gewünschte Ort ist in Form von Koordinaten anzugeben.
 
 ## Einbinden in WeeWX
 
@@ -416,27 +423,33 @@ Beispiel:
         [[[counties]]]
             145220000000 = DL
             147130000000 = L
-    [[POI]]
-        [[[stations]]]
-            [[[[station_code]]]]
-                prefix = observation_type_prefix_for_station
-    [[CDC]]
-        [[[stations]]]
-            [[[[station_id]]]]
-                prefix = observation_type_prefix_for_station
-                # equipment of the weather station (optional)
-                observations = air,wind,gust,precipitation,solar
      [[Belchertown]]
         section = Belchertown
         warnings = DL
         forecast = P0291
-[ZAMG]
+[WeatherServices]
     [[current]]
-        [[[stations]]]
-            [[[[station_nr]]]]
-                prefix = observation_type_prefix_for_station
-                # equipment of the weather station (optional)
-                observations = air,wind,gust,precipitation,solar
+        # Examples follow.
+        [[[station_nr]]]
+            provider = ZAMG  # DWD, ZAMG or Open-Meteo
+            prefix = observation_type_prefix_for_station
+            # equipment of the weather station (optional)
+            observations = air,wind,gust,precipitation,solar
+        [[[station_code]]]
+            provider = DWD
+            model = POI
+            prefix = observation_type_prefix_for_station
+        [[[station_id]]]
+            provider = DWD
+            model = CDC
+            prefix = observation_type_prefix_for_station
+            # equipment of the weather station (optional)
+            observations = air,wind,gust,precipitation,solar
+        [[[ThisStation]]]
+            # forecast for the location of this station
+            provider = Open-Meteo
+            model = dwd-icon
+            prefix = observation_type_prefix
 ```
 
 Der Eintrag `path` muß auf das im ersten Schritt angelegte Verzeichnis

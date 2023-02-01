@@ -1185,7 +1185,7 @@ class DwdMosmix(object):
                 s += 'bereitgestellt von <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a>'
             else:
                 s += 'herausgegeben vom <a href="https://www.dwd.de" target="_blank">DWD</a>'
-            s += 'am %s' % time.strftime('%d.%m.%Y %H:%M',time.localtime(issue['IssueTime']/1000.0))
+            s += ' am %s' % time.strftime('%d.%m.%Y %H:%M',time.localtime(issue['IssueTime']/1000.0))
             s += ' | Vorhersage erstellt am %s' % time.strftime('%d.%m.%Y %H:%M')
             s += '</p>\n'
             fn = os.path.join(self.target_path,'forecast-'+placemark['id'].replace(',','_').replace(' ','_')+'.inc')
