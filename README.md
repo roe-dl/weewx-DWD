@@ -452,7 +452,7 @@ Beispiel:
             # equipment of the weather station (optional)
             observations = air,wind,gust,precipitation,solar
         [[[ThisStation]]]
-            # forecast for the location of this station
+            # actual readings out of the forecast for the location of this station
             provider = Open-Meteo
             model = dwd-icon
             prefix = observation_type_prefix
