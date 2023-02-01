@@ -2125,6 +2125,7 @@ class DwdMosmix(object):
         cursor.execute('INSERT INTO forecast (%s) VALUES (%s)' % (','.join(cols),','.join(vals)))
         
     OPENMETEO_OBS = {
+        # Open-Meteo name: DWD-MOSMIX name
         'temperature_2m':'TTT',
         'relativehumidity_2m':'RHEL',
         'dewpoint_2m':'Td',
@@ -2141,7 +2142,14 @@ class DwdMosmix(object):
     }
     
     OPENMETEO_WEATHERMODELS = {
+        # option: (country, weather service, model, URL directory)
         'dwd-icon':('DE','DWD','ICON','dwd-icon'), # without visibility
+        'gfs':('US','NOAA','GFS','gfs'),
+        'meteofrance':('FR','MeteoFrance','Arpege+Arome','meteofrance'),
+        'ecmwf':('EU','ECMWF','open IFS','ecmwf'),
+        'jma':('JP','JMA','GSM+MSM','jma'),
+        'metno':('NO','MET Norway','Nordic','metno'),
+        'gem':('CA','Canadian Weather Service','GEM+HRDPS','gem'),
         'ecmwf_ifs04':('EU','ECMWF','IFS','forecast'),
         'metno_nordic':('NO','MET Norway','Nordic','forecast'),
         'icon_seamless':('DE','DWD','ICON Seamless','forecast'),
