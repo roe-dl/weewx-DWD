@@ -206,6 +206,35 @@ Die Spracheinstellung betrifft nur die Wochentage, bei Englisch auch
 die Tooltips der Wettersymbole. Verfügbar ist `de`, `en`, `fr`, `it`
 und `cz`.
 
+Wenn die Daten von Open-Meteo anstelle vom DWD bezogen werden, stehen
+folgende Modelle zur Auswahl:
+
+--open-meteo=   | Land    | Wetterdienst             | Wettermodell
+----------------|---------|--------------------------|---------------
+dwd-icon        | DE      | DWD                      | ICON
+gfs             | US      | NOAA                     | GFS
+meteofrance     | FR      | MeteoFrance              | Arpege+Arome
+ecmwf           | EU      | ECMWF                    | open IFS
+jma             | JP      | JMA                      | GSM+MSM
+metno           | NO      | MET Norway               | Nordic
+gem             | CA      | Canadian Weather Service | GEM+HRDPS
+ecmwf_ifs04     | EU      | ECMWF                    | IFS
+metno_nordic    | NO      | MET Norway               | Nordic
+icon_seamless   | DE      | DWD                      | ICON Seamless
+icon_global     | DE      | DWD                      | ICON Global
+icon_eu         | DE      | DWD                      | ICON EU
+icon_d2         | DE      | DWD                      | ICON D2
+gfs_seamless    | US      | NOAA                     | GFS Seamless
+gfs_global      | US      | NOAA                     | GFS Global
+gfs_hrrr        | US      | NOAA                     | GFS HRRR
+gem_seamless    | CA      | Canadian Weather Service | GEM
+gem_global      | CA      | Canadian Weather Service | GEM
+gem_regional    | CA      | Canadian Weather Service | GEM
+gem_hrdps_continental | CA      | Canadian Weather Service | GEM-HRDPS
+
+Bei der Darstellung der Werte sind die Nutzungsbedingungen sowohl
+von Open-Meteo als auch der betreffenden Wetterdienste zu beachten.
+
 ## bbk-warnings
 
 Dieses Python-Script lädt Meldungen vom Bundesamt für Bevölkerungsschutz
