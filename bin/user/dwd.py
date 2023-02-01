@@ -1073,7 +1073,7 @@ class DWDOPENMETEOthread(BaseThread):
     
     def __init__(self, name, openmeteo_dict, log_success=False, log_failure=True):
     
-        super(DWDOPENMETEOthread,self).__init__(name='DWD-OPENMETEO-'+name)
+        super(DWDOPENMETEOthread,self).__init__(name='OPENMETEO-'+name)
 
         self.log_success = log_success
         self.log_failure = log_failure
@@ -1084,6 +1084,7 @@ class DWDOPENMETEOthread(BaseThread):
 
         self.iconset = weeutil.weeutil.to_int(openmeteo_dict.get('iconset', 4))
         self.prefix = openmeteo_dict.get('prefix','')
+        self.model = openmeteo_dict.get('model','dwd-icon')
 
         self.lock = threading.Lock()
         
@@ -1164,7 +1165,7 @@ class DWDOPENMETEOthread(BaseThread):
         """ download and process POI weather data """
 
         # DWD API endpoint "v1/dwd-icon"
-        baseurl = 'https://api.open-meteo.com/v1/dwd-icon'
+        baseurl = 'https://api.open-meteo.com/v1/'+self.model
 
         # Geographical WGS84 coordinate of the location
         params = '?latitude=%s' % str(self.latitude)
@@ -1471,21 +1472,51 @@ class DWDservice(StdService):
                 if iconset=='aeris': station_dict['iconset'] = 6
             self._create_zamg_thread(station, station, station_dict, zamg_dict.get('user'), zamg_dict.get('password'))
         
-        # API open-meteo
-        openmeteo_dict = config_dict.get('DeutscherWetterdienst',config_dict).get('OPENMETEO',site_dict)
-        if weeutil.weeutil.to_bool(openmeteo_dict.get('enabled', False)):
-            openmeteo_dict['latitude'] = engine.stn_info.latitude_f
-            openmeteo_dict['longitude'] = engine.stn_info.longitude_f
-            openmeteo_dict['altitude'] = weewx.units.convert(engine.stn_info.altitude_vt, 'meter')[0]
-            iconset = openmeteo_dict.get('icon_set', iconset)
+        # General interface
+        site_dict = config_dict.get('WeatherServices',configobj.ConfigObj()).get('current',configobj.ConfigObj())
+        for location in site_dict.sections:
+            location_dict = weeutil.config.accumulateLeaves(site_dict[location])
+            # Icon set 
+            iconset = location_dict.get('icon_set', iconset)
             if iconset is not None:
-                openmeteo_dict['iconset'] = self.iconset
-                if iconset=='belchertown': openmeteo_dict['iconset'] = 4
-                if iconset=='dwd': openmeteo_dict['iconset'] = 5
-                if iconset=='aeris': openmeteo_dict['iconset'] = 6
-            self._create_openmeteo_thread('current', openmeteo_dict)
-        elif self.debug > 0:
-            loginf("API Open-Meteo is not enabled.")
+                location_dict['iconset'] = self.iconset
+                if iconset=='belchertown': location_dict['iconset'] = 4
+                if iconset=='dwd': location_dict['iconset'] = 5
+                if iconset=='aeris': location_dict['iconset'] = 6
+            # Station 
+            # Note: Latitude and Longitude (if needed) are already in dict()
+            station = location_dict.get('station',location)
+            print(station)
+            if station.lower() in ('here','thisstation'):
+                location_dict['latitude'] = engine.stn_info.latitude_f
+                location_dict['longitude'] = engine.stn_info.longitude_f
+                location_dict['altitude'] = weewx.units.convert(engine.stn_info.altitude_vt, 'meter')[0]
+            # Provider and data model
+            provider = location_dict.get('provider')
+            model = location_dict.get('model')
+            if model: model = model.lower()
+            # enabled?
+            enable = weeutil.weeutil.to_bool(location_dict.get('enable',True))
+            if enable and provider:
+                provider = provider.lower()
+                if provider=='dwd':
+                    if model=='poi':
+                        self._create_poi_thread(location, station, location_dict)
+                    elif model=='cdc':
+                        self._create_cdc_thread(location, station, station_dict)
+                    else:
+                        logerr("unkown model '%s' for provider '%s'" % (model,provider))
+                elif provider=='zamg':
+                    self._create_zamg_thread(
+                        location, 
+                        station, 
+                        location_dict, 
+                        location_dict.get('user'), zamg_dict.get('password'))
+                elif provider=='open-meteo':
+                    self._create_openmeteo_thread(location, location_dict)
+                else:
+                    logerr("unknown weather service provider '%s'" % provider)
+        
         
         if  __name__!='__main__':
             self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
@@ -1615,6 +1646,7 @@ if __name__ == '__main__':
             latitude_f = 50.0 
             longitude_f = 13.0
             altitude_vt = (100.0,'meter','group_altitude') 
+            location = 'Testlocation'
     engine = Engine()
     
     if False:
