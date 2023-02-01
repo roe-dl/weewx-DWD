@@ -2139,9 +2139,25 @@ class DwdMosmix(object):
         'weathercode':'ww',
         'visibility':'VV'
     }
+    
+    OPENMETEO_WEATHERMODELS = {
+        'ecmwf_ifs04':('EU','ECMWF','IFS'),
+        'metno_nordic':('NO','MET Norway','Nordic'),
+        'icon_seamless':('DE','DWD','Icon Seamless'),
+        'icon_global':('DE','DWD','Icon Global'),
+        'icon_eu':('DE','DWD','Icon EU'),
+        'icon_d2':('DE','DWD','Icon D2'),
+        'gfs_seamless':('US','NOAA','GFS Seamless'),
+        'gfs_global':('US','NOAA','GFS Global'),
+        'gfs_hrrr':('US','NOAA','GFS HRRR')
+    }
 
     def download_openmeteo(self, lat, lon, model):
-        models = ['icon_eu'] # icon_eu,icon_d2
+        if isinstance(model,list):
+            models = model
+        else:
+            models = [model]
+        #models = ['icon_eu'] # icon_eu,icon_d2
         #vars = 'temperature_2m,relativehumidity_2m,dewpoint_2m'
         vars = ','.join([x for x in DwdMosmix.OPENMETEO_OBS])
         url = 'https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&hourly=%s&models=%s&timeformat=unixtime' % (lat,lon,vars,','.join(models))
@@ -2172,6 +2188,14 @@ class DwdMosmix(object):
         town = geodata.get('town')
         if not town: town = '%s %s' % (lat,lon)
         
+        modelname = []
+        for x in models:
+            y = DwdMosmix.OPENMETEO_WEATHERMODELS.get(x)
+            if y:
+                modelname.append(y[1]+' '+y[2])
+            else:
+                modelname.append(x)
+        
         mmos = {
             'Issuer':'Open-Meteo',
             'ProductID':'Open-Meteo',
@@ -2179,7 +2203,7 @@ class DwdMosmix(object):
             'IssueTime': issuetime*1000,
             'IssueTimeISO': issuetimeISO,
             'ReferenceModel': {
-                'name':'dwd-icon',
+                'name':','.join(modelname),
                 'ReferenceTime': issuetime*1000,
                 'ReferenceTimeISO': issuetimeISO,
             },
@@ -2349,6 +2373,8 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
         lon = float(loc[1])
         mmos = dwd.download_openmeteo(lat,lon,options.openmeteo)
     #print(json.dumps(mmos,indent=4,ensure_ascii=False))
+    if not mmos:
+        print('no data')
     
     output = []
     if options.all: output.append('all')
