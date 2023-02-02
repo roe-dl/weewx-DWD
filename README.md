@@ -11,6 +11,15 @@ Diese Daten können mit den Programmen vom DWD bezogen werden:
 * Warnmeldungen für Landkreise und Orte in Deutschland
   (`dwd-warnings` und `dwd-cap-warnings`)
 * Wetterkarten (`wget-dwd`)
+* aktuelle Meßwerte von offiziellen DWD-Wetterstationen
+
+Diese Daten können von der ZAMG bezogen werden:
+* aktuelle Meßwerte von offiziellen ZAMG-Wetterstationen
+
+Diese Daten können über das Open-Meteo-API bezogen werden:
+* vorberechnete Wettervorhersagen auf der Basis von Modellen 
+  verschiedener großer Wetterdienste für jeden Punkt der Erde
+  (`dwd-mosmix`)
 
 Zusätzlich können Meldungen des Bundesamtes für Bevölkerungsschutz
 und Katastrophenhilfe bezogen werden:
@@ -42,6 +51,14 @@ Für `dwd-mosmix` ist es vorteilhaft, `GeoPy` zu installieren.
 ```
 sudo apt-get install python3-geopy
 ```
+
+Herunterladen des Paketes von Github:
+
+```
+wget -O weewx-snmp.zip https://github.com/roe-dl/weewx-DWD/archive/master.zip
+```
+
+Packen Sie die ZIP-Datei aus.
 
 Kopieren Sie `bin/user/dwd.py` und `bin/usr/capwarnings.py` ins 
 Erweiterungsverzeichnis von WeeWX, typischerweise `/usr/share/weewx/user`.
