@@ -60,7 +60,7 @@ wget -O weewx-snmp.zip https://github.com/roe-dl/weewx-DWD/archive/master.zip
 
 Packen Sie die ZIP-Datei aus.
 
-Kopieren Sie `bin/user/dwd.py` und `bin/usr/capwarnings.py` ins 
+Kopieren Sie `bin/user/weatherservices.py` und `bin/usr/capwarnings.py` ins 
 Erweiterungsverzeichnis von WeeWX, typischerweise `/usr/share/weewx/user`.
 
 Kopieren Sie `usr/local/bin/dwd-mosmix`, `usr/local/bin/dwd-warnings`,
@@ -346,7 +346,7 @@ eingetragen werden:
 [Engine]
     [[Services]]
         ...
-        data_services = ..., user.dwd.DWDservice
+        data_services = ..., user.weatherservices.DWDservice
         ...
 ```
 
