@@ -253,12 +253,6 @@ Example:
               'Leipzig-Mitte'='L'
               'Stadt Jena'='J'
               'Dresden-Altstadt'='DD'
-    [[forecast]]
-        icons='../images'
-        orientation=h,v
-        #show_obs_symbols = True # optional
-        #show_obs_description = False # optional
-        #show_placemark = True # optional
     [[BBK]]
         #icons=...
         #logos=...
@@ -293,6 +287,12 @@ Example:
             provider = Open-Meteo
             model = dwd-icon
             prefix = observation_type_prefix
+    [[forecast]]
+        icons='../images'
+        orientation=h,v
+        #show_obs_symbols = True # optional
+        #show_obs_description = False # optional
+        #show_placemark = True # optional
 ```
 
 The key `path` has to point to the directory created before.

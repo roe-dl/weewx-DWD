@@ -460,11 +460,19 @@ class DwdMosmix(object):
         except LookupError:
             self.target_path = config_dict['DeutscherWetterdienst']['path']
         # forecast config data
-        forecast_dict = config_dict['DeutscherWetterdienst']['forecast']
+        try:
+            forecast_dict = config_dict['WeatherServices']['forecast']
+            ws = True
+        except LookupError:
+            ws = False
+            forecast_dict = config_dict['DeutscherWetterdienst']['forecast']
         # weather icons
         self.icon_pth = forecast_dict['icons']
         # station-specific configuration
-        self.stations_dict = forecast_dict.get('stations',{})
+        if ws:
+            self.stations_dict = forecast_dict
+        else:
+            self.stations_dict = forecast_dict.get('stations',configobj.ConfigObj())
         # HTML config
         self.show_obs_symbols = forecast_dict.get('show_obs_symbols',True)
         self.show_obs_description = forecast_dict.get('show_obs_description',False)
@@ -1029,7 +1037,7 @@ class DwdMosmix(object):
             try:
                 station_dict = self.stations_dict[placemark['id']]
             except Exception:
-                 station_dict = {}
+                 station_dict = configobj.ConfigObj()
             # HTML 
             s = ""
             if self.show_placemark:

@@ -465,12 +465,6 @@ Beispiel:
               'Leipzig-Mitte'='L'
               'Stadt Jena'='J'
               'Dresden-Altstadt'='DD'
-    [[forecast]]
-        icons='../images'
-        orientation=h,v
-        #show_obs_symbols = True # optional
-        #show_obs_description = False # optional
-        #show_placemark = True # optional
     [[BBK]]
         #icons=...
         #logos=...
@@ -505,6 +499,12 @@ Beispiel:
             provider = Open-Meteo
             model = dwd-icon
             prefix = observation_type_prefix
+    [[forecast]]
+        icons='../images'
+        orientation=h,v
+        #show_obs_symbols = True # optional
+        #show_obs_description = False # optional
+        #show_placemark = True # optional
 ```
 
 Der Eintrag `path` muß auf das im ersten Schritt angelegte Verzeichnis
