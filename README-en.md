@@ -216,6 +216,135 @@ If you don't want to use the configuration out of the WeeWX configuration
 file `/etc/weewx/weewx.conf` you can replace `--weewx` by 
 `--config=/path/to/your/config_file`.
 
+## WeeWX service
+
+Alongside with the standalone programs described in the previous section,
+this extension provides a WeeWX service to augment the archive record
+by actual data of official or governmental weather stations.
+
+### Weather services and products/weather models
+
+The option `provider` selects the provider to receive data from. The
+option `model` specifies a weather model or product of that provider.
+
+* DWD POI
+
+  ```
+            provider = DWD
+            model = POI
+  ```
+
+  With the product name 'POI' the DWD offers hourly actualized
+  readings of selected DWD weather stations together with the
+  actual weather state at that place.
+
+  [list of stations](https://github.com/roe-dl/weewx-DWD/wiki/POI-Stationen-in-Deutschland)
+
+* DWD CDC
+
+  ```
+            provider = DWD
+            model = CDC
+  ```
+
+  As CDC the DWD provides the bare readings. Different publishing
+  intervals are available. Here the 10 minutes interval can only
+  be used.
+
+  [list of stations](https://opendata.dwd.de/climate_environment/CDC/help/wetter_tageswerte_Beschreibung_Stationen.txt)
+
+* ZAMG
+
+  ```
+            provider = ZAMG
+  ```
+
+  The Austrian weather service ZAMG publishs weather stations readings,
+  too.
+
+  [list of stations](https://dataset.api.hub.zamg.ac.at/v1/station/current/tawes-v1-10min/metadata)
+
+* Open-Meteo
+
+  ```
+            provider = Open-Meteo
+            model = Wettermodell_laut_Liste_im_Abschnitt_dwd_mosmix
+  ```
+
+  [Open-Meteo](https://open-meteo.com/) provides an API to get 
+  weather data out of different weather models of serveral big
+  weather services of the world. The desired place is to be
+  specified by geographic coordindates.
+
+## Activating the service in WeeWX
+
+To activate this service within WeeWX you need to add its name
+to `weewx.conf`:
+
+
+```
+[Engine]
+    [[Services]]
+        ...
+        data_services = ..., user.weatherservices.DWDservice
+        ...
+```
+
+To specify the locations to get data for see section Configuration.
+
+### Observation types
+
+The observation types are named like the standard observation types of
+WeeWX, prepended by a prefix specified in configuration. The first
+character is changed to uppercase. So if you think about the outside
+temperature `outTemp` and the prefix `xyz` the resulting observation
+type name will be `xyzOutTemp`.
+
+In case you want to output this data by MQTT consider to not use
+underscores as they are used to separate observation type name
+and unit there. This is especially important when using the
+Belchertown skin.
+
+* always: 
+  * `dateTime`: measuring timestamp
+  * `interval`: measuring interval (1h for POI, 10min. for CDC)
+* Sensor group `air`: 
+  * `pressure`: air pressure QFE
+  * `barometer`: barometer
+    (bei POI im Datensatz enthalten, bei CDC berechnet,
+    wenn `pressure` und `outTemp` verfügbar)
+  * `outTemp`: air temperature at 2 m above the ground 
+  * `extraTemp1`: air temperature at 5 cm above the ground
+  * `outHumidity`: relative humidity
+  * `dewpoint`: dewpoint
+* Sensor group `wind`: 
+  * `windSpeed`: wind speed
+  * `windDir`: wind direction
+* Sensor group `gust`: 
+  * `windGust`: wind gust speed
+  * `windGustDir`: wind gust direction
+* Sensor group `precipitation`: 
+  * `rainDur`: duration of precipitation during the measuring interval
+  * `rain`: amount of precipitation during the measuring interval
+  * `rainIndex`: kind of precipitation
+* Sensor group `solar`: 
+  * `solarRad` 
+  * `radiation`
+  * `sunshineDur`: sunshine duration during the measuring interval
+  * `LS_10`
+* POI only: 
+  * `cloudcover`: cloud cover in percent
+  * `cloudbase`: cloud base
+  * `visibility`: visibility 
+  * `presentWeather`: coded weather
+  * `snowDepth`: snow depth
+  * `icon`: weather icon (file name)
+  * `icontitle`: description 
+* CDC only: 
+  * `station_id`
+  * `MESS_DATUM_ENDE`
+  * `quality_level`
+
 ## Configuration
 
 ### Create directory
