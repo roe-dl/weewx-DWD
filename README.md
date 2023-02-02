@@ -1,29 +1,32 @@
 # weewx-DWD
+
+[English Version](https://github.com/roe-dl/weewx-DWD/blob/master/README-en.md) 
+(Work in Progress)
+
 Wetter- und Warndaten herunterladen und für WeeWX und Web-Darstellung aufbereiten
 
 <p align="center"><img src="Wettervorhersage-Warnungen-Fichtelberg.png" width="600px" /></p>
 
-Diese Daten können mit den Programmen vom DWD bezogen werden:
-* vorberechnete Wettervorhersagen auf Stunden-, 3-Stunden- und
-  Tagesbasis
-  für die nächsten 10 Tage für
-  fast 6000 Orte überall auf der Welt (`dwd-mosmix`)
-* Warnmeldungen für Landkreise und Orte in Deutschland
-  (`dwd-warnings` und `dwd-cap-warnings`)
-* Wetterkarten (`wget-dwd`)
-* aktuelle Meßwerte von offiziellen DWD-Wetterstationen
-
-Diese Daten können von der ZAMG bezogen werden:
-* aktuelle Meßwerte von offiziellen ZAMG-Wetterstationen
-
-Diese Daten können über das Open-Meteo-API bezogen werden:
-* vorberechnete Wettervorhersagen auf der Basis von Modellen 
-  verschiedener großer Wetterdienste für jeden Punkt der Erde
-  (`dwd-mosmix`)
-
-Zusätzlich können Meldungen des Bundesamtes für Bevölkerungsschutz
-und Katastrophenhilfe bezogen werden:
-* Warnmeldungen (`bbk-warnings`)
+Diese Daten können mit den Programmen bezogen werden:
+* vom Deutschen Wetterdienst (DWD)
+  * vorberechnete Wettervorhersagen auf Stunden-, 3-Stunden- und
+    Tagesbasis
+    für die nächsten 10 Tage für
+    fast 6000 Orte überall auf der Welt (`dwd-mosmix`)
+  * Warnmeldungen für Landkreise und Orte in Deutschland
+    (`dwd-warnings` und `dwd-cap-warnings`)
+  * Wetterkarten (`wget-dwd`)
+  * aktuelle Meßwerte von offiziellen DWD-Wetterstationen
+    (`user.weatherservices.DWDservice`)
+* von der Zentralanstalt für Meteorologie und Geodynamik (ZAMG)
+  * aktuelle Meßwerte von offiziellen ZAMG-Wetterstationen
+    (`user.weatherservices.DWDservice`)
+* über das Open-Meteo-API
+  * vorberechnete Wettervorhersagen auf der Basis von Modellen 
+    verschiedener großer Wetterdienste für jeden Punkt der Erde
+    (`dwd-mosmix`)
+* vom Bundesamt für Bevölkerungsschutz und Katastrophenhilfe (BBK)
+  * Warnmeldungen (`bbk-warnings`)
 
 Die Daten werden aufbereitet als:
 * HTML-Dateien (`*.inc`) zum Einbinden in Skins mittels `#include`

@@ -9,14 +9,18 @@ With this extension you can receive and process the following data:
   * pre-calculated weather forecasts based on hours, three-hours, and days
     for the next 10 days for about 6000 places around the world (`dwd-mosmix`)
   * weather alerts for counties and places in Germany (`dwd-warnings` and
-    `dwd-capwarnings`)
+    `dwd-cap-warnings`)
   * weather maps of Europe (`wget-dwd`)
-  * actual readings of the DWD weather stations
+  * actual readings of the DWD weather stations in Germany
+    (`user.weatherservices.DWDservice`)
 * from Zentralanstalt für Meteorologie und Geodynamik (ZAMG)
-  * actual readings of the ZAMG weather stations
+  * actual readings of the ZAMG weather stations in Austria
+    (`user.weatherservices.DWDservice`)
 * by using the Open-Meteo weather API
   * pre-calculated weather forecasts based on different weather models for
     all over the world (`dwd-mosmix`)
+* from Bundesanstalt für Bevölkerungsschutz und Katastrophenhilfe (BBK)
+  * homeland security alerts for counties in Germany (`bbk-warnings`)
 
 Data will be processed to:
 * HTML files (`*.inc`) to include in skins with `#include`
@@ -70,6 +74,8 @@ then you have to adapt the path in the above commands.
 ## Programs
 
 ### dwd-mosmix
+
+Creates weather forecasts.
 
 You can use `dwd-mosmix` to create weather forecasts in HTML to include
 them in your website, JSON files of the forecast data for further processing
@@ -137,6 +143,7 @@ the creation to one of the tables by using the `--orientation`
 option. Possible values are `h` and `v`.
 
 The option `--icon-set` specifies the weather icon set to be used.
+Make sure to install the desired set to your website.
 
 The language option influences the weekday names only, for English
 and german the tool tips, too. `de`, `en`, `fr`, `it`, and `cz`
@@ -171,6 +178,44 @@ gem_hrdps_continental | CA      | Canadian Weather Service | GEM-HRDPS
 Don't forget to observe the terms and conditions of Open-Meteo and the respective
 weather service when using their data.
 
+### dwd-cap-warnings
+
+Downloads CAP warning alerts and creates HTML and JSON files out of them.
+
+### wget-dwd
+
+This script downloads the weather maps "Europe-North Atlantic" and
+"Western and middle Europe" as well as the files needed for the
+`dwd-warnings` script.
+
+### dwd-warnings
+
+Uses the `warnings.json` file downloaded by `wget-dwd` to create
+county wide warnings for counties in Germany. See german version
+of this readme for more details. 
+
+This script is deprecated.
+
+### /etc/cron.hourly/dwd
+
+This script takes care to invoke all the scripts hourly. It should
+contain:
+
+```
+#!/bin/bash
+/usr/local/bin/wget-dwd 2>/dev/null
+/usr/local/bin/dwd-cap-warnings --weewx --resolution=city 2>/dev/null >/dev/null
+/usr/local/bin/dwd-mosmix --weewx --daily --hourly XXXXX 2>/dev/null >/dev/null
+```
+
+Replace XXXXX by the appropriate station id or geographic coordinates
+and add the required options, which may include `--open-meteo` and
+`--belchertown`.
+
+If you don't want to use the configuration out of the WeeWX configuration
+file `/etc/weewx/weewx.conf` you can replace `--weewx` by 
+`--config=/path/to/your/config_file`.
+
 ## Configuration
 
 ### Create directory
@@ -188,6 +233,8 @@ The word `Belchertown` is to be replaced by the name of your skin.
 
 All the programs and services of this extension save their files to
 that directory.
+
+### Configuratoin in `weewx.conf`
 
 Example:
 ```
