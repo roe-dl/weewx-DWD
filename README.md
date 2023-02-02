@@ -310,35 +310,60 @@ die Aufgabe der separaten Programme oder zumindeste deren Aufruf
 Programmen nicht enthalten ist, nämlich den Abruf von Istwerten von 
 DWD- und ZAMG-Wetterstationen.
 
-## DWD POI
+## Wetterdienste und Produkte/Wettermodelle
 
-Unter der Überschrift POI bietet der DWD stündlich aktualisierte
-Werte von einer kleinen Anzahl ausgewählter Wetterstationen,
-zusätzlich aufbereitet mit dem aktuellen Wetterzustand.
+Mit der Option `provider` wird eingestellt, von welchem Anbieter
+die Daten bezogen werden sollen. Die Option `model` spezifiziert
+dann ein Wettermodell oder Produkt von diesem Anbieter. 
 
-[Liste der Stationen](https://github.com/roe-dl/weewx-DWD/wiki/POI-Stationen-in-Deutschland)
+* DWD POI
 
-## DWD CDC
+  ```
+            provider = DWD
+            model = POI
+  ```
 
-Unter der Überschrift CDC werden die blanken Meßwerte zur Verfügung
-gestellt. Dabei sind verschiedene Aktualisierungsraten und 
-Zusammenfassungen verfügbar. Momentan können hier die
-10-Minuten-Werte abgerufen werden.
+  Unter der Überschrift POI bietet der DWD stündlich aktualisierte
+  Werte von einer kleinen Anzahl ausgewählter Wetterstationen,
+  zusätzlich aufbereitet mit dem aktuellen Wetterzustand.
 
-[Liste der Stationen](https://opendata.dwd.de/climate_environment/CDC/help/wetter_tageswerte_Beschreibung_Stationen.txt)
+  [Liste der Stationen](https://github.com/roe-dl/weewx-DWD/wiki/POI-Stationen-in-Deutschland)
 
-## ZAMG
+* DWD CDC
 
-Auch der österreichische Wetterdienst ZAMG stellt aktuelle Meßwerte
-seiner Stationen im Internet zur Verfügung
+  ```
+            provider = DWD
+            model = CDC
+  ```
 
-[Liste der Stationen](https://dataset.api.hub.zamg.ac.at/v1/station/current/tawes-v1-10min/metadata)
+  Unter der Überschrift CDC werden die blanken Meßwerte zur Verfügung
+  gestellt. Dabei sind verschiedene Aktualisierungsraten und 
+  Zusammenfassungen verfügbar. Momentan können hier die
+  10-Minuten-Werte abgerufen werden.
 
-## Open-Meteo
+  [Liste der Stationen](https://opendata.dwd.de/climate_environment/CDC/help/wetter_tageswerte_Beschreibung_Stationen.txt)
 
-[Open-Meteo](https://open-meteo.com/) stellt ein API zum Abruf von
-Wetterdaten aus den Wettermodellen der großen Wetterdienste bereit. 
-Der gewünschte Ort ist in Form von Koordinaten anzugeben.
+* ZAMG
+
+  ```
+            provider = ZAMG
+  ```
+
+  Auch der österreichische Wetterdienst ZAMG stellt aktuelle Meßwerte
+  seiner Stationen im Internet zur Verfügung
+
+  [Liste der Stationen](https://dataset.api.hub.zamg.ac.at/v1/station/current/tawes-v1-10min/metadata)
+
+* Open-Meteo
+
+  ```
+            provider = Open-Meteo
+            model = Wettermodell_laut_Liste_im_Abschnitt_dwd_mosmix
+  ```
+
+  [Open-Meteo](https://open-meteo.com/) stellt ein API zum Abruf von
+  Wetterdaten aus den Wettermodellen der großen Wetterdienste bereit. 
+  Der gewünschte Ort ist in Form von Koordinaten anzugeben.
 
 ## Einbinden in WeeWX
 
