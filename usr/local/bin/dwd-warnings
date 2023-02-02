@@ -20,7 +20,10 @@ if 'DeutscherWetterdienst' in config and 'warning' in config['DeutscherWetterdie
         states=[]
     counties=config['DeutscherWetterdienst']['warning']['counties']
     ICON_PTH=config['DeutscherWetterdienst']['warning']['icons']
-    target_path=config['DeutscherWetterdienst']['path']
+    try:
+        target_path=config['WeatherServices']['path']
+    except LookupError:
+        target_path=config['DeutscherWetterdienst']['path']
 else:
     # test only
     # vom Benutzer anzupassen

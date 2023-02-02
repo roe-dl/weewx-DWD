@@ -448,7 +448,6 @@ die tatsächlich genutzt werden, müssen die Abschnitte vorhanden sein.
 Beispiel:
 ```
 [DeutscherWetterdienst]
-    path='/etc/weewx/skins/Belchertown/dwd'
     [[warning]]
         icons='../dwd/warn_icons_50x50'
         states='Sachsen','Thüringen'
@@ -480,6 +479,7 @@ Beispiel:
         warnings = DL
         forecast = P0291
 [WeatherServices]
+    path='/etc/weewx/skins/Belchertown/dwd'
     [[current]]
         # Examples follow.
         [[[station_nr]]]

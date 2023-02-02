@@ -1478,7 +1478,10 @@ class CAPwarnings(object):
         base_dict = accumulateLeaves(config_dict[section[0]])
         warn_dict = accumulateLeaves(config_dict[section[0]][section[1]])
         # target path
-        self.target_path = base_dict['path']
+        try:
+            self.target_path = config_dict['WeatherServices']['path']
+        except LookupError:
+            self.target_path = base_dict['path']
         # logging
         self.verbose = verbose
         self.log_success = tobool(warn_dict.get('log_success',base_dict.get('log_success',config_dict.get('log_success',False))))
@@ -1602,8 +1605,10 @@ if __name__ == "__main__" or invoke_fn in standalone:
         config = {
             'log_success':True,
             'log_failure':True,
-            'DeutscherWetterdienst': {
+            'WeatherServices': {
                 'path':target_path,
+            },
+            'DeutscherWetterdienst': {
                 'warning': {
                     #'dwd_status_url': get_cap_url('city','cell','neutral',False),
                     #'dwd_diff_url': get_cap_url('city','cell','neutral',True),
@@ -1623,7 +1628,7 @@ if __name__ == "__main__" or invoke_fn in standalone:
     if options.include_dwd is not None:
         config['DeutscherWetterdienst']['BBK']['include_dwd'] = options.include_dwd
     if options.target_path is not None:
-        config['DeutscherWetterdienst']['path'] = options.target_path
+        config['WeatherServices']['path'] = options.target_path
     
     # warnings provider
     if invoke_fn=='dwd-cap-warnings':

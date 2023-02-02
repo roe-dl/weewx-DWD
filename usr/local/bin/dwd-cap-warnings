@@ -411,7 +411,10 @@ class DwdWarnings(object):
     def __init__(self, config_dict, verbose=False):
 
         # target path
-        self.target_path = config_dict['DeutscherWetterdienst']['path']
+        try:
+            self.target_path = config_dict['WeatherServices']['path']
+        except LookupError:
+            self.target_path = config_dict['DeutscherWetterdienst']['path']
         # warning config data
         warn_dict = config_dict['DeutscherWetterdienst']['warning']
         # Bundeslaender und Landkreise, fuer die Warndaten
