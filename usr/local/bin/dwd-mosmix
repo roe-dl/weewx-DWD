@@ -2261,6 +2261,20 @@ class DwdMosmix(object):
                 
         return mmos
     
+    
+    @staticmethod
+    def list_openmeteo_models():
+        s = ('option          | country | weather service          | model name    \n'+
+             '----------------|---------|--------------------------|---------------\n')
+        for i in DwdMosmix.OPENMETEO_WEATHERMODELS:
+            model =  DwdMosmix.OPENMETEO_WEATHERMODELS[i]
+            s += '%-15s | %-7s | %-24s | %s\n' % (
+                i,
+                model[0],
+                model[1],
+                model[2])
+        return s
+    
 
 if __name__ == "__main__":
 
@@ -2415,5 +2429,3 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
             output.append('json')
     
     dwd.forecast_all(mmos,output,options.dry_run,lang=options.lang)
-    
-    
