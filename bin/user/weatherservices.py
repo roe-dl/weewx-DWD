@@ -164,6 +164,7 @@ import zipfile
 import time
 import datetime
 import json
+import random
 
 if __name__ == '__main__':
 
@@ -268,6 +269,7 @@ class BaseThread(threading.Thread):
         self.log_failure = log_failure
         self.evt = threading.Event()
         self.running = True
+        self.query_interval = 300
 
 
     def shutDown(self):
@@ -290,8 +292,14 @@ class BaseThread(threading.Thread):
         loginf("thread '%s' starting" % self.name)
         try:
             while self.running:
+                # download and process data
                 self.getRecord()
-                self.evt.wait(300)
+                # time to to the next interval
+                waiting = self.query_interval-time.time()%self.query_interval
+                # do a little bit of load balancing
+                if waiting>60: waiting -= random.random()*60
+                # wait
+                self.evt.wait(waiting)
         except Exception as e:
             logerr("thread '%s': main loop %s - %s" % (self.name,e.__class__.__name__,e))
         finally:
