@@ -1036,39 +1036,41 @@ class DWDOPENMETEOthread(BaseThread):
     # 96, 99 *    Thunderstorm with slight and heavy hail
     # (*) Thunderstorm forecast with hail is only available in Central Europe
 
-    # TODO Icons if the structure remains so?
-    #             0       1      2     3         4               5          6
-    # WW Key: [german, english, None, None, Belchertown Icon, DWD Icon, Aeris Icon]
+    # TODO Structure?
+    #              0       1      2     3          4              5          6
+    # WMO Key: [german, english, None, None, Belchertown Icon, DWD Icon, Aeris Icon]
     WEATHER = {
-        -1:['unbekannte Wetterbedingungen', 'unknown conditions', '', '', 'unknown.png', 'unknown.png', 'unknown']
-        ,0:['wolkenlos', 'clear sky', '', '', 'clear-day.png', '0-8.png', '']
-        ,1:['heiter', 'mainly clear', '', '','mostly-clear-day.png', '2-8.png', '']
-        ,2:['bewölkt', 'partly cloudy', '', '','mostly-cloudy-day.png', '5-8.png', '']
-        ,3:['bedeckt', 'overcast', '', '','cloudy.png', '8-8.png', '']
-        ,45:['Nebel', 'fog', '', '','fog.png', '40.png', '']
+        -1:['unbekannte Wetterbedingungen', 'unknown conditions', '', '', 'unknown.png', 'unknown.png', 'na']
+        # 0-3 using N_ICON_LIST, here only Documentation
+        ,0:['wolkenlos', 'clear sky', '', '', 'clear-day.png', '0-8.png', 'clear']
+        ,1:['heiter', 'mainly clear', '', '','mostly-clear-day.png', '2-8.png', 'fair']
+        ,2:['bewölkt', 'partly cloudy', '', '','mostly-cloudy-day.png', '5-8.png', 'pcloudy']
+        ,3:['bedeckt', 'overcast', '', '','cloudy.png', '8-8.png', 'cloudy']
+        # from here on we evaluate
+        ,45:['Nebel', 'fog', '', '','fog.png', '40.png', 'fog']
         ,48:['gefrierender Nebel', 'depositing rime fog', '', '','fog.png', '48.png', '']
-        ,51:['leichter Nieselregen', 'light drizzle', '', '','rain.png', '7.png', '']
-        ,53:['Nieselregen', 'moderate drizzle', '', '','rain.png', '8.png', '']
-        ,55:['kräftiger Nieselregen', 'dense drizzle', '', '','rain.png', '9.png', '']
-        ,56:['gefrierender Nieselregen', 'light freezing drizzle', '', '','sleet.png', '66.png', '']
-        ,57:['kräftiger gefrierender Nieselregen', 'dense freezing drizzle', '', '','sleet.png', '67.png', '']
-        ,61:['leichter Nieselregen', 'slight rain', '', '','rain.png', '7.png', '']
-        ,63:['Nieselregen', 'moderate rain', '', '','rain.png', '8.png', '']
-        ,65:['kräftiger Nieselregen', 'heavy rain', '', '','rain.png', '9.png', '']
-        ,66:['gefrierender Regen', 'light freezing rain', '', '','sleet.png', '66.png', '']
-        ,67:['kräftiger gefrierender Regen', 'heavy freezing rain', '', '','sleet.png', '67.png', '']
-        ,71:['leichter Schneefall', 'slight snow fall', '', '','snow.png', '14.png', '']
-        ,73:['Schneefall', 'moderate snow fall', '', '','snow.png', '15.png', '']
-        ,75:['kräftiger Schneefall', 'heavy snow fall', '', '','snow.png', '16.png', '']
-        ,77:['Eiskörner', 'snow grains' , '', '','snow.png', '17.png', '']
-        ,80:['leichter Regenschauer', 'slight rain showers', '', '','rain.png', '80.png', '']
-        ,81:['Regenschauer', 'moderate rain showers', '', '','rain.png', '80.png', '']
-        ,82:['kräftiger Regenschauer', 'heavy rain showers', '', '','rain.png', '82.png', '']
-        ,85:['Schneeregen', 'slight snow showers', '', '','sleet.png', '12.png', '']
-        ,86:['kräftiger Schneeregen', 'heavy snow showers', '', '', 'sleet.png', '13.png', '']
-        ,95:['Gewitter', 'thunderstorm', '', '', 'thunderstorm.png', '27.png', '']
-        ,96:['Gewitter mit Hagel', 'thunderstorm with slight hail', '', '', 'thunderstorm.png', '29.png', '']
-        ,99:['kräftiges Gewitter mit Hagel', 'thunderstorm with slight hail', '', '', 'thunderstrom.png', '30.png', '']
+        ,51:['leichter Nieselregen', 'light drizzle', '', '','rain.png', '7.png', 'drizzle']
+        ,53:['Nieselregen', 'moderate drizzle', '', '','rain.png', '8.png', 'drizzle']
+        ,55:['starker Nieselregen', 'dense drizzle', '', '','rain.png', '9.png', 'drizzle']
+        ,56:['gefrierender Nieselregen', 'light freezing drizzle', '', '','sleet.png', '66.png', 'freezingrain']
+        ,57:['kräftiger gefrierender Nieselregen', 'dense freezing drizzle', '', '','sleet.png', '67.png', 'freezingrain']
+        ,61:['leichter Regen', 'slight rain', '', '','rain.png', '7.png', 'rain']
+        ,63:['Regen', 'moderate rain', '', '','rain.png', '8.png', 'rain']
+        ,65:['starker Regen', 'heavy rain', '', '','rain.png', '9.png', 'rain']
+        ,66:['gefrierender Regen', 'light freezing rain', '', '','sleet.png', '66.png', 'freezingrain']
+        ,67:['starker gefrierender Regen', 'heavy freezing rain', '', '','sleet.png', '67.png', 'freezingrain']
+        ,71:['leichter Schneefall', 'slight snow fall', '', '','snow.png', '14.png', 'snow']
+        ,73:['Schneefall', 'moderate snow fall', '', '','snow.png', '15.png', 'snow']
+        ,75:['starker Schneefall', 'heavy snow fall', '', '','snow.png', '16.png', 'snow']
+        ,77:['Eiskörner', 'snow grains' , '', '','snow.png', '17.png', 'sleet']
+        ,80:['leichter Regenschauer', 'slight rain showers', '', '','rain.png', '80.png', 'showers']
+        ,81:['Regenschauer', 'moderate rain showers', '', '','rain.png', '80.png', 'showers']
+        ,82:['starker Regenschauer', 'heavy rain showers', '', '','rain.png', '82.png', 'showers']
+        ,85:['Schneeregen', 'slight snow showers', '', '','sleet.png', '12.png', 'rainandsnow']
+        ,86:['starker Schneeregen', 'heavy snow showers', '', '', 'sleet.png', '13.png', 'rainandsnow']
+        ,95:['Gewitter', 'thunderstorm', '', '', 'thunderstorm.png', '27.png', 'tstorm']
+        ,96:['Gewitter mit Hagel', 'thunderstorm with slight hail', '', '', 'thunderstorm.png', '29.png', 'tstorm']
+        ,99:['starkes Gewitter mit Hagel', 'thunderstorm with slight hail', '', '', 'thunderstrom.png', '30.png', 'tstorm']
     }
     
     def __init__(self, name, openmeteo_dict, log_success=False, log_failure=True):
