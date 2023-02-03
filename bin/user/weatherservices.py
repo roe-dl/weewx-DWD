@@ -296,9 +296,11 @@ class BaseThread(threading.Thread):
                 self.getRecord()
                 # time to to the next interval
                 waiting = self.query_interval-time.time()%self.query_interval
+                if waiting<=60: waiting += self.query_interval
                 # do a little bit of load balancing
-                if waiting>60: waiting -= random.random()*60
+                waiting -= random.random()*60
                 # wait
+                logdbg ("thread '%s': wait %s s" % (self.name,waiting))
                 self.evt.wait(waiting)
         except Exception as e:
             logerr("thread '%s': main loop %s - %s" % (self.name,e.__class__.__name__,e))
@@ -1513,7 +1515,7 @@ class DWDservice(StdService):
                     if model=='poi':
                         self._create_poi_thread(location, station, location_dict)
                     elif model=='cdc':
-                        self._create_cdc_thread(location, station, station_dict)
+                        self._create_cdc_thread(location, station, location_dict)
                     else:
                         logerr("unkown model '%s' for provider '%s'" % (model,provider))
                 elif provider=='zamg':
