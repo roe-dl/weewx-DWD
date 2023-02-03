@@ -1174,15 +1174,15 @@ class DWDOPENMETEOthread(BaseThread):
         baseurl = 'https://api.open-meteo.com/v1/'+self.model
 
         # Geographical WGS84 coordinate of the location
-        params = '?latitude=%s' % str(self.latitude)
-        params += '&longitude=%s' % str(self.longitude)
+        params = '?latitude=%s' % self.latitude
+        params += '&longitude=%s' % self.longitude
 
         # The elevation used for statistical downscaling. Per default, a 90 meter digital elevation model is used.
         # You can manually set the elevation to correctly match mountain peaks. If &elevation=nan is specified,
         # downscaling will be disabled and the API uses the average grid-cell height.
         # If a valid height exists, it will be used
         if self.altitude is not None:
-            params += '&elevation=%s' % str(self.altitude)
+            params += '&elevation=%s' % self.altitude
 
         # timeformat iso8601 | unixtime
         params += '&timeformat=unixtime'
@@ -1225,7 +1225,8 @@ class DWDOPENMETEOthread(BaseThread):
         # A list of weather variables which should be returned. Values can be comma separated,
         # or multiple &hourly= parameter in the URL can be used.
         # defined in HOURLYOBS
-        params += '&hourly='
+        params += '&hourly='+','.join([ii for ii in DWDOPENMETEOthread.HOURLYOBS])
+        """
         first = True
         for obsapi in DWDOPENMETEOthread.HOURLYOBS:
             if first:
@@ -1233,6 +1234,7 @@ class DWDOPENMETEOthread(BaseThread):
                 first = False
             else:
                 params += "," + obsapi
+        """
 
         url = baseurl + params
 
@@ -1288,6 +1290,10 @@ class DWDOPENMETEOthread(BaseThread):
             if self.log_failure or self.debug > 0:
                 logerr("thread '%s': Open-Meteo returns time periods without data." % self.name)
             return
+            
+        latitude = apidata.get('latitude')
+        longitude = apidata.get('longitude')
+        altitude = apidata.get('elevation')
 
         # holds the return values
         x = []
@@ -1311,6 +1317,7 @@ class DWDOPENMETEOthread(BaseThread):
             logdbg("thread '%s':    ts now=%s" % (self.name, str( datetime.datetime.fromtimestamp(actts).strftime('%Y-%m-%d %H:%M:%S'))))
             logdbg("thread '%s': ts hourly=%s" % (self.name, str(obshts)))
             logdbg("thread '%s': ts hourly=%s" % (self.name, str( datetime.datetime.fromtimestamp(obshts).strftime('%Y-%m-%d %H:%M:%S'))))
+            logdbg("thread '%s': lat %s lon %s alt %s" % (self.name,latitude,longitude,altitude))
 
         # timestamp current_weather
         obscts = int(current_weather.get('time', 0))
@@ -1405,6 +1412,12 @@ class DWDOPENMETEOthread(BaseThread):
         if wwcode:
             y['icon'] = (wwcode[self.iconset],None,None)
             y['icontitle'] = (wwcode[0],None,None)
+        
+        if latitude is not None and longitude is not None:
+            y['latitude'] = (latitude,'degree_compass','group_coordinate')
+            y['longitude'] = (longitude,'degree_compass','group_coordinate')
+        if altitude is not None:
+            y['altitude'] = (altitude,'meter','group_altitude')
 
         x.append(y)
 
@@ -1658,8 +1671,8 @@ if __name__ == '__main__':
 
     class Engine(object):
         class stn_info(object): 
-            latitude_f = 50.0 
-            longitude_f = 13.0
+            latitude_f = conf_dict['Station']['latitude']
+            longitude_f = conf_dict['Station']['longitude']
             altitude_vt = (100.0,'meter','group_altitude') 
             location = 'Testlocation'
     engine = Engine()
