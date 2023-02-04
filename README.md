@@ -270,6 +270,8 @@ Die ARS, für die Meldungen abzufragen sind, können in beim
 Programmaufruf auf der Kommanodozeile oder in der Konfiguration im 
 Abschnitt `[[BBK]][[[counties]]]` angegeben werden.
 
+[Liste der Regionalschlüssel ARS der Landkreise](https://github.com/roe-dl/weewx-DWD/wiki/Namen-der-Landkreise-in-der-Schreibweise-des-Deutschen-Wetterdienstes)
+
 Für eine bundesweite Liste von Warnungen können folgende Kennungen anstelle
 des ARS auf der Kommandozeile angegeben werden:
 * `katwarn`: Katwarn-Meldungen
