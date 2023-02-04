@@ -1340,7 +1340,7 @@ class DwdMosmix(object):
                     'weatherPrimaryCoded':wwcode[7],
                     'cloudsCoded':get_cloudcover(placemark['Forecast']['N'][idx])[3],
                     'icon':wwcode[6]+('n' if night else '')+'.png',
-                    'solradWM2':placemark['Forecast']['Rad1h'][idx],
+                    'solradWM2':placemark['Forecast']['Rad1h'][idx] if 'Rad1h' in placemark['Forecast'] else None,
                     'isDay':not night,
                     'sky':int(placemark['Forecast']['N'][idx])
                 },
@@ -1411,7 +1411,7 @@ class DwdMosmix(object):
                     'minDewpointC':rec['Tdmin'],
                     'avgDewpointC':rec['Tdavg'],
                     'dewpointC':rec['Td'],
-                    'pop':rec['R101max'],
+                    'pop':rec.get('R101max'),
                     'pressureMB':rec['PPPPavg'],
                     'windDir':compass(rec['DDavg'],self.belchertown_compasslang,False),
                     'windDirDEG':rec['DDavg'],
@@ -1426,7 +1426,7 @@ class DwdMosmix(object):
                     'weatherPrimary':wwcode[1],
                     'weatherPrimaryCoded':wwcode[7],
                     'icon':wwcode[6]+('n' if night else '')+'.png',
-                    'visibilityKM':rec['VVmin']/1000.0 if rec['VVmin'] is not None else None,
+                    'visibilityKM':rec['VVmin']/1000.0 if rec.get('VVmin') is not None else None,
                     'isDay':not rec['night'],
                     'maxCoverage':''
                     }
@@ -1462,8 +1462,8 @@ class DwdMosmix(object):
                 'minDewpointC':placemark['Forecast']['Td'][idx],
                 'avgDewpointC':placemark['Forecast']['Td'][idx],
                 'dewpointC':placemark['Forecast']['Td'][idx],
-                'pop':placemark['Forecast']['R101'][idx],
-                'precipMM':placemark['Forecast']['RR1c'][idx],
+                'pop':placemark['Forecast']['R101'][idx] if 'R101' in placemark['Forecast'] else None,
+                'precipMM':placemark['Forecast']['RR1c'][idx] if 'RR1c' in placemark['Forecast'] else None,
                 'pressureMB':placemark['Forecast']['PPPP'][idx],
                 'windDir':compass(placemark['Forecast']['DD'][idx],self.belchertown_compasslang,False),
                 'windDirDEG':placemark['Forecast']['DD'][idx],
@@ -1477,9 +1477,9 @@ class DwdMosmix(object):
                 'weatherPrimaryCoded':wwcode[7],
                 'icon':wwcode[6]+('n' if night else '')+'.png',
                 'visibilityKM':placemark['Forecast']['VV'][idx]*0.001 if 'VV' in placemark['Forecast'] else None,
-                'solradWM2':placemark['Forecast']['Rad1h'][idx],
-                'solradMinWM2':placemark['Forecast']['Rad1h'][idx],
-                'solradMaxWM2':placemark['Forecast']['Rad1h'][idx],
+                'solradWM2':placemark['Forecast']['Rad1h'][idx] if 'Rad1h' in placemark['Forecast'] else None,
+                'solradMinWM2':placemark['Forecast']['Rad1hmin'][idx] if 'Rad1hmin' in placemark['Forecast'] else None,
+                'solradMaxWM2':placemark['Forecast']['Rad1hmax'][idx] if 'Rad1hmax' in placemark['Forecast'] else None,
                 'isDay':not night
                 }
             belchertown_hours.append(hour)
