@@ -1803,7 +1803,11 @@ class DwdMosmix(object):
         """
         recs = []
         for idx,val in enumerate(timesteps):
-            if placemark['Forecast']['ww3'][idx] is not None:
+            if 'ww3' in placemark['Forecast']:
+                ok = placemark['Forecast']['ww3'][idx] is not None
+            else:
+                ok = (val%10800000)==0
+            if ok:
                 vals = {ii:placemark['Forecast'][ii][idx] for ii in placemark['Forecast'] if placemark['Forecast'][ii][idx] is not None}
                 vals['timestamp'] = int(val*0.001)
                 try:
@@ -1817,12 +1821,7 @@ class DwdMosmix(object):
                 try:
                     vals['ww3'] = int(placemark['Forecast']['ww3'][idx])
                 except Exception:
-                    ww3 = (0,'','',100,None,None,None,None)
-                    for ii in vals['ww']:
-                         ww = get_ww(ii,0,None)
-                         if ww[3]<ww3[3]:
-                            ww3 = ww
-                    vals['ww3'] = ww3
+                    vals['ww3'] = get_ww(vals['ww'],0,None)
                 # calculate min, max, and avg for hourly observerations
                 for ii in ['PPPP','TTT','Td','T5cm','DD','FF','N','Neff','VV','R101']:
                     try:
