@@ -133,9 +133,9 @@ if __name__ == "__main__" or invoke_fn in standalone:
     import optparse
     sys.path.append('/usr/share/weewx')
     def loginf(x):
-        print(x, file=sys.stderr)
+        print('INFO', x, file=sys.stderr)
     def logerr(x):
-        print(x, file=sys.stderr)
+        print('ERROR', x, file=sys.stderr)
         
     def accumulateLeaves(x):
         return x
@@ -392,7 +392,10 @@ class CAP(object):
                         info_dict = None
                         # search the <info> section for the required language
                         for info in alert_dict[lvl2]:
-                            info_lang = info['language'][0:2].lower()
+                            try:
+                                info_lang = info['language'][0:2].lower()
+                            except LookupError:
+                                info_lang = lang
                             #print('info_lang',info_lang,'lang',lang)
                             if info_lang==lang:
                                 #print('4',json.dumps(info,indent=4))
@@ -413,7 +416,7 @@ class CAP(object):
                             ar = self._area_filter(info_dict)
                             if ar: areas.extend(ar)
                     except Exception as e:
-                        logerr(e)
+                        logerr("%s %s" % (e.__class__.__name__,e))
                         pass
                 else:
                     pass
@@ -498,13 +501,20 @@ class CAP(object):
                         alert_dict.get('BBK_eventcode')
                     )
                 )
+                if alert['icon']=='https://warnung.bund.de/api31/appdata/gsb/eventCodes/bbkicon.png':
+                    if alert['sender']=='CAP@hochwasserzentralen.de':
+                        alert['icon'] = 'https://warnung.bund.de/assets/icons/report_hochwasser.svg'
+                    else:
+                        alert['icon'] = 'https://warnung.bund.de/assets/icons/report_mowas.svg'
             except Exception:
                 pass
             # sender
             if 'sender' in alert:
                 logo = self.get_logo(alert['sender'])
                 if logo:
-                    if 'image' in logo and self.logo_base_url:
+                    if alert['sender']=='CAP@hochwasserzentralen.de' and self.logo_base_url=='https://warnung.bund.de/api31/appdata/gsb/logos':
+                        alert['sender_logo'] = 'https://www.hochwasserzentralen.de/images/logo_lhp3.png'
+                    elif 'image' in logo and self.logo_base_url:
                         alert['sender_logo'] = self.logo_base_url+'/'+logo['image']
                     if 'name' in logo:
                         alert['sender_name'] = logo['name']
