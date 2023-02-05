@@ -562,7 +562,7 @@ section `[[warnings]]` if any. Using the optional key
 All the warnings coming in effect within that timespan in future
 will be included additionally. The default is 0.
 
-The key 'forecast` sets the id of the forecast location to be used.
+The key `forecast` sets the id of the forecast location to be used.
 In case of Open-Meteo this is `openmeteo-latitude-longitude-model`,
 where 'latitude' and 'longitude' is to be replaced by the geographic 
 coordinates of the location and 'model' by the weather model. In
