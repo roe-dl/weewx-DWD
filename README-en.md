@@ -453,7 +453,7 @@ The paths, states, and counties are to replaced by the appropriate names.
 **Note:** The key `icons` refers to the web servers. The value must not
 start with `/`.
 
-## Where you can include the following examples?
+## Where can you include the following examples?
 
 ### Belchertown skin
 
@@ -546,7 +546,7 @@ section of `weewx.conf`.
         # include warnings coming into effect in future
         #include_advance_warnings = 0 # optional
         # air quality provider (optional)
-        # possible values: aeris uba{station_code}
+        # possible values: aeris ubaXXXX
         #aqi_source = ... 
         # compass direction language (optional)
         # possible values: de, en, fr, it, cz, es, nl, no, gr
@@ -579,3 +579,38 @@ usr/local/bin/dwd-mosmix --print-uba=meta,measure
 
 If you want to use warnings, you need to call `dwd-cap-warnings` before
 `dwd-mosmix`. Otherwise outdated warnings may be processed.
+
+## Weather map in HTML template
+
+Please, adjust the path within the following examples to the path you
+configured in `[WeatherServices]` section of `weewx.conf`.
+
+```
+  <div class="col-sm-12 snapshot-records-text">
+    Wetterkarte (Luftdruck am Boden)
+  </div>
+  
+  <div class="col-sm-12">
+    <img src="$relative_url/dwd/bwk_bodendruck_na_ana.png?v=<%=os.path.getmtime("/etc/weewx/skins/Belchertown-de/dwd/bwk_bodendruck_na_ana.png")%>" />
+  </div>
+```
+
+In order to make the image file uploaded to the web server, you need
+to add it in `weewx.conf`:
+
+```
+[CopyGenerator]
+    ...
+    copy_always = ...,dwd/bwk_bodendruck_na_ana.png
+```
+
+Instead of `bwk_bodendruck_na_ana.png` (Europe-Northern Atlantics) you can
+also use `bwk_bodendruck_weu_ana.png` (western and middle Europe). Both
+those files are downlaoded by `wget-dwd`.
+
+# Links
+
+* [WeeWX Homepage](http://weewx.com) - [WeeWX Wiki](https://github.com/weewx/weewx/wiki)
+* [page "Homepagewetter" from Deutscher Wetterdienstes](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/objekteinbindung_node.html)
+* [warning icons](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/icons/warnicons_nach_stufen_50x50_zip.zip?__blob=publicationFile&v=2)
+* [spoken weather forecasts with Python](https://beltoforion.de/de/wetterbericht/)
