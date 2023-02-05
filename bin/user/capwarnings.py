@@ -1357,7 +1357,146 @@ class BBK(CAP):
                     json.dump(wwarn[__ww],file,indent=4)
 
         
+
+class MSC(CAP):
+
+    # Canada
+    # https://eccc-msc.github.io/open-data/msc-data/alerts/readme_alerts-datamart_en/
+    # https://dd.weather.gc.ca/alerts/cap/
+
+    MSC_URL = 'https://dd.weather.gc.ca/alerts/cap'
+    
+    OFFICES = {
+        'CWUL',
+        'CWEG',
+        'CWNT',
+        'CWWG',
+        'GWVR',
+        'CWTO',
+        'CYQX',
+        'CWAO',
+        'CWIS',
+        'CWHX'
+    }
+
+    def __init__(self, warn_dict, log_success=True, log_failure=True, verbose=False):
+        super(MSC,self).__init__(warn_dict)
+        self.filter_area = dict()
+        self.offices = []
+        for loc in warn_dict.sections:
+            if warn_dict[loc].get('provider','')=='MSC':
+                location = warn_dict[loc]
+                if 'office' in location:
+                    self.offices = location['office']
+                if 'county' in location:
+                    self.filter_area[location['county']] = location['file']
+        if not self.offices:
+            self.offices = [ii for ii in MSC.OFFICES]
+                
         
+    def dir(self, url, dirtype):
+        if self.verbose:
+            loginf('about to download zip file list from %s' % url)
+        reply = self.wget(url,'subdirectory list from %s successfully downloaded')
+        if reply:
+            reply = reply.decode(encoding='utf-8')
+            parser = MSCsubdirParser(dirtype)
+            parser.feed(reply)
+            return parser.get_files()
+        else:
+            return None
+            
+
+    def warnings(self, lang='en',log_tags=False):
+        now = time.time()
+        dt = time.strftime("%Y%m%d",time.localtime())
+        url = MSC.MSC_URL+'/'+dt
+        dirs = self.dir(url,'office')
+        for dir in dirs:
+          if dir[0:4] in self.offices:
+            #loginf(dir)
+            subdirs = self.dir(url+'/'+dir,'hour')
+            for subdir in subdirs:
+                x = url+'/'+dir+subdir
+                #loginf(x)
+                files = self.dir(x,'cap')
+                for file in files:
+                    reply = self.wget(x+file)
+                    if reply:
+                        xmltext = reply.decode(encoding='utf-8')
+                        cap_dict = self.convert_xml(xmltext,log_tags)
+                        yield cap_dict['alert']
+
+
+    def _area_filter(self, info_dict):
+        """ find out whether the given alert is valid for one of the areas 
+            (cities, counties etc.) we are interested in
+            
+            As the providers provide that information in different ways, this
+            function has to be defined in the provider specific classes.
+        """
+        #print('++++++++++++++++++++++++++++++++++++')
+        #print(json.dumps(info_dict,indent=4))
+        #print('------------------------------------')
+        reply = []
+        for tag,val in info_dict.items():
+            try:
+                if tag=='area':
+                    for ii in val:
+                        try:
+                            if ii['areadesc'] in self.filter_area:
+                                reply.append((ii['areadesc'],'id',0,3000,'state','state',self.filter_area[ii['areadesc']]))
+                                
+                        except Exception as e:
+                            if self.verbose:
+                                logerr("inner %s %s" % (e.__class__.__name__,e))
+            except Exception as e:
+                if self.verbose:
+                    logerr("outer %s %s" % (e.__class__.__name__,e))
+        return reply
+
+
+    def write_html(self, wwarn, target_path, dryrun):
+        """ Canada """
+        for __ww in wwarn:
+            s = ""
+            stateShort = ""
+            r = None
+            for idx,val in enumerate(wwarn[__ww]):
+                # alert message 
+                s+='<table style="vertical-align:middle"><tr style="vertical-align:middle">\n'
+                if val.get('icon'):
+                    s+='<td style="width:60px"><img src="%s" alt="%s"/></td>\n' % (val['icon'],val['event'])
+                __size=110 if int(val['level'])>2 else 100
+                s+='<td><p style="font-size:%i%%;margin-bottom:0">%s</p>\n' % (__size,val['headline'])
+                s='%s<p style="font-size:80%%">valid from %s to %s\n' % (s,time.strftime("%d.%m. %H:%M",time.localtime(val['start']/1000)),time.strftime("%d.%m. %H:%M",time.localtime(val['end']/1000)))
+                s+='</p></td>\n</tr></table>\n'
+
+                if val.get('description'):
+                    s+="<p>%s</p>\n" % val['description']
+                if val.get('instruction'):
+                    s+="<p>%s</p>\n" % val['instruction']
+
+                s+='<p style="font-size:40%%">%s &ndash; %s &emsp;&ndash;&emsp; %s &ndash; %s &emsp;&ndash;&emsp; II=%s &ndash; %s</p>' % (val['type'],val['event'],val['level'],val['level_text'],val.get('eventCode-II',''),val.get('eventCode-GROUP',''))
+
+            if s:
+                s+='<p style="font-size:80%%">Source: <a href="%s" target="_blank">DWD</a> | Downloaded at %s</p>\n' % ('Env. Can. - Can. Met. Ctr. – Montréal',time.strftime('%Y-%m-%d %H:%M'))
+            else:
+                s='<p>Actually no warnings</p>'
+            
+            if dryrun:
+                print("########################################")
+                print("-- HTML -- warn-%s.inc ------------------------------"%__ww)
+                print(s)
+                print("-- JSON -- warn-%s.json -----------------------------"%__ww)
+                print(json.dumps(wwarn[__ww],indent=4,ensure_ascii=False))
+            else:
+                with open("%s/warn-%s.inc" % (target_path,__ww),"w") as file:
+                    file.write(s)
+                with open("%s/warn-%s.json" % (target_path,__ww),"w") as file:
+                    json.dump(wwarn[__ww],file,indent=4)
+
+
 ##############################################################################
 #   extract file names from directory listing                                #
 ##############################################################################
@@ -1380,6 +1519,36 @@ class CapDirParser(html.parser.HTMLParser):
                     file_lang = (i[1][-6:-4]).lower()
                     if file_lang==self.lang and i[1][-4:].lower()=='.zip':
                         self.files.append(i[1])
+    
+    def get_files(self):
+        """ get the list of file names found and close parser """
+        self.close()
+        return self.files
+
+
+class MSCsubdirParser(html.parser.HTMLParser):
+
+    def __init__(self, dirtype):
+        super(MSCsubdirParser,self).__init__()
+        if dirtype=='office':
+            self.dirtype = ('C',)
+        elif dirtype=='hour':
+            self.dirtype = ('0','1','2')
+        elif dirtype=='cap':
+            self.dirtype = ('.cap',)
+        self.files = []
+    
+    def isvalid(self, href):
+        if self.dirtype[0]=='.cap':
+            return href[-4:]=='.cap'
+        return href[0] in self.dirtype
+        
+    def handle_starttag(self, tag, attrs):
+        """ process HTML start tags """
+        if tag=='a':
+            for i in attrs:
+                if i[0]=='href' and self.isvalid(i[1]):
+                    self.files.append(i[1])
     
     def get_files(self):
         """ get the list of file names found and close parser """
@@ -1477,7 +1646,8 @@ class CAPwarnings(object):
 
     PROVIDERS = {
         'DWD':('DeutscherWetterdienst','warning',DWD),
-        'BBK':('DeutscherWetterdienst','BBK',BBK)
+        'BBK':('DeutscherWetterdienst','BBK',BBK),
+        'MSC':('WeatherServices','warning',MSC)
     }
     
     def __init__(self, config_dict, provider, verbose=False):
@@ -1612,11 +1782,19 @@ if __name__ == "__main__" or invoke_fn in standalone:
         ICON_PTH="../dwd/warn_icons_50x50"
         target_path='.'
     
-        config = {
+        config = configobj.ConfigObj({
             'log_success':True,
             'log_failure':True,
             'WeatherServices': {
                 'path':target_path,
+                'warning':{
+                    '1': {
+                        'provider':'MSC',
+                        'office':'CWHX',
+                        'county':'Upper Lake Melville',
+                        'file':'XX'
+                    }
+                }
             },
             'DeutscherWetterdienst': {
                 'warning': {
@@ -1631,7 +1809,7 @@ if __name__ == "__main__" or invoke_fn in standalone:
                          '145220080080':'DL',
                          #'145220250250':'DL',
                          '147130000000':'L',
-                         '145210440440':'Oberwiesenthal'}}}}
+                         '145210440440':'Oberwiesenthal'}}}})
 
     if options.resolution:
         config['DeutscherWetterdienst']['warning']['resolution'] = options.resolution
@@ -1647,6 +1825,9 @@ if __name__ == "__main__" or invoke_fn in standalone:
     elif invoke_fn=='bbk-warnings':
         # Bundesamt für Bevoelkerungsschutz und Katastrophenhilfe
         provider = 'BBK'
+    elif invoke_fn=='msc-warnings':
+        # Canada
+        provider = 'MSC'
     else:
         provider = options.provider
         if not provider:
