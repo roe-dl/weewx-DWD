@@ -1367,17 +1367,62 @@ class MSC(CAP):
     MSC_URL = 'https://dd.weather.gc.ca/alerts/cap'
     
     OFFICES = {
-        'CWUL',
-        'CWEG',
-        'CWNT',
-        'CWWG',
-        'GWVR',
-        'CWTO',
-        'CYQX',
-        'CWAO',
-        'CWIS',
-        'CWHX'
+        'CWUL':(
+            'Quebec Storm Prediction Centre',
+            'centre de prévision des intempéries du Québec',
+            'QSPC','CPIQ','Montréal'),
+        'CWEG':(
+            'Prairie and Arctic Storm Prediction Centre',
+            "centre de prévision des intempéries des Prairies et de l'Arctique",
+            'PASPC','CPIPA','Edmonton'),
+        'CWNT':(
+            'Prairie and Arctic Storm Prediction Centre',
+            "centre de prévision des intempéries des Prairies et de l'Arctique",
+            'PASPC','CPIPA','Edmonton'),
+        'CWWG':(
+            'Prairie and Arctic Storm Prediction Centre',
+            "centre de prévision des intempéries des Prairies et de l'Arctique",
+            'PASPC','CPIPA','Winnipeg'),
+        'CWVR':(
+            'Pacific and Yukon Storm Prediction Centre',
+            "centre de prévision des intempéries de la région du Pacfique et du Yukon",
+            'PSPC','CPIP','Vancouver'),
+        'CWTO':(
+            'Ontario Storm Prediction Centre',
+            "centre de prévision des intempéries de l'Ontario",
+            'OSPC','CPIO','Toronto'),
+        'CYQX':(
+            'Newfoundland and Labrador Weather Office',
+            "centre de prévision des intempéries de Terre-Neuve-et-Labrador",
+            'NLWO','CPITNL','Gander'),
+        'CWAO':(
+            'Canadian Meteorological Centre',
+            "Centre météorologique canadien",
+            'CMC','CMC','Montréal'),
+        'CWIS':(
+            'Canadian Ice Service',
+            "Service canadien des glaces",
+            'CIS','SCG','Ottawa'),
+        'CWHX':(
+            'Atlantic Storm Prediction Centre',
+            "centre de prévision des intempéries de la région de l'Atlantique",
+            'ASPC','CPIRA','Dartmouth')
     }
+
+    MSC_LEVEL = (
+        'no warning',     # 0 no warning
+        'preliminary info',    # 1 preliminary info
+        'minor',     # 2 minor
+        'moderate',  # 3 moderate
+        'servere',   # 4 severe
+        'extreme'  # 5 extreme
+    )
+
+    def level_text(self, level, lang='en', isdwd=True):
+        try:
+            return MSC.MSC_LEVEL[level]
+        except LookupError:
+            return 'unknown'
 
     def __init__(self, warn_dict, log_success=True, log_failure=True, verbose=False):
         super(MSC,self).__init__(warn_dict)
@@ -1387,7 +1432,10 @@ class MSC(CAP):
             if warn_dict[loc].get('provider','')=='MSC':
                 location = warn_dict[loc]
                 if 'office' in location:
-                    self.offices = location['office']
+                    if isinstance(location['office'],list):
+                        self.offices.extend(location['office'])
+                    else:
+                        self.offices.append(location['office'])
                 if 'county' in location:
                     self.filter_area[location['county']] = location['file']
         if not self.offices:
@@ -1425,6 +1473,8 @@ class MSC(CAP):
                     if reply:
                         xmltext = reply.decode(encoding='utf-8')
                         cap_dict = self.convert_xml(xmltext,log_tags)
+                        cap_dict['alert']['MSC_office'] = dir[0:4]
+                        cap_dict['alert']['MSC_hour'] = subdir[0:2]
                         yield cap_dict['alert']
 
 
@@ -1477,10 +1527,10 @@ class MSC(CAP):
                 if val.get('instruction'):
                     s+="<p>%s</p>\n" % val['instruction']
 
-                s+='<p style="font-size:40%%">%s &ndash; %s &emsp;&ndash;&emsp; %s &ndash; %s &emsp;&ndash;&emsp; II=%s &ndash; %s</p>' % (val['type'],val['event'],val['level'],val['level_text'],val.get('eventCode-II',''),val.get('eventCode-GROUP',''))
+                s+='<p style="font-size:40%%">%s &ndash; %s &emsp;&ndash;&emsp; %s &ndash; %s &emsp;&ndash;&emsp; II=%s &ndash; %s</p>' % (val['type'],val['event'],val['level'],val['level_text'],val.get('eventCode-II',''),val.get('eventCode-profile:CAP-CP:Event:0.4',''))
 
             if s:
-                s+='<p style="font-size:80%%">Source: <a href="%s" target="_blank">DWD</a> | Downloaded at %s</p>\n' % ('Env. Can. - Can. Met. Ctr. – Montréal',time.strftime('%Y-%m-%d %H:%M'))
+                s+='<p style="font-size:80%%">Source: %s | Downloaded at %s</p>\n' % (val['source'],time.strftime('%Y-%m-%d %H:%M'))
             else:
                 s='<p>Actually no warnings</p>'
             

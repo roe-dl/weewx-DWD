@@ -66,6 +66,7 @@ Create the following links:
 ```
 sudo ln -s /usr/share/weewx/user/capwarnings.py /usr/local/bin/bbk-warnings
 sudo ln -s /usr/share/weewx/user/capwarnings.py /usr/local/bin/dwd-cap-warnings
+sudo ln -s /usr/share/weewx/user/capwarnings.py /usr/local/bin/msc-warnings
 ```
 
 If you installed WeeWX into another directory than `/usr/share/weewx`
@@ -276,7 +277,7 @@ option `model` specifies a weather model or product of that provider.
   weather services of the world. The desired place is to be
   specified by geographic coordindates.
 
-## Activating the service in WeeWX
+### Activating the service in WeeWX
 
 To activate this service within WeeWX you need to add its name
 to `weewx.conf`:
@@ -444,6 +445,14 @@ Example:
         #show_obs_description = False # optional
         # show place name above the forecast table in HTML
         #show_placemark = True # optional
+    # warnings
+    [[warning]]
+        # examples
+        [[[1]]]
+            provider = MSC # Canada
+            office = ... # Code of the issuing office (try without if unsure)
+            county = county_name
+            file = target_file
 ```
 
 The key `path` has to point to the directory created before.
@@ -615,6 +624,6 @@ those files are downlaoded by `wget-dwd`.
 # Links
 
 * [WeeWX Homepage](http://weewx.com) - [WeeWX Wiki](https://github.com/weewx/weewx/wiki)
-* [page "Homepagewetter" from Deutscher Wetterdienstes](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/objekteinbindung_node.html)
+* [page "Homepagewetter" from Deutscher Wetterdienst](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/objekteinbindung_node.html)
 * [warning icons](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/icons/warnicons_nach_stufen_50x50_zip.zip?__blob=publicationFile&v=2)
 * [spoken weather forecasts with Python](https://beltoforion.de/de/wetterbericht/)
