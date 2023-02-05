@@ -525,7 +525,7 @@ class DwdMosmix(object):
             self.sun = ephem.Sun()
         # Belchertown
         try:
-            belchertown_dict = config_dict['DeutscherWetterdienst'].get('Belchertown',{})
+            belchertown_dict = config_dict['DeutscherWetterdienst'].get('Belchertown',configobj.ConfigObj())
             belchertown_section = config_dict['StdReport'][belchertown_dict['section']]
             if 'HTML_ROOT' in belchertown_section:
                 self.belchertown_html_root = os.path.join(
@@ -555,13 +555,16 @@ class DwdMosmix(object):
                 es = dict()
             self.forecast_api_id = ew.get('forecast_api_id',es.get('forecast_api_id'))
             self.forecast_api_secret = ew.get('forecast_api_secret',es.get('forecast_api_secret'))
-        except LookupError:
-            belchertown_section = {}
+        except LookupError as e:
+            logerr("%s %s" % (e.__class__.__name__,e))
+            belchertown_section = configobj.ConfigObj()
             self.belchertown_html_root = None
             self.belchertown_warning = None
             self.belchertown_forecast = None
             self.forecast_api_id = None
             self.forecast_api_secret = None
+            self.belchertown_aqi_source = None
+            self.belchertown_compasslang = 'en'
         # Database
         try:
             self.SQLITE_ROOT = config_dict['DatabaseTypes']['SQLite']['SQLITE_ROOT']
