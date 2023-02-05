@@ -16,6 +16,8 @@ With this extension you can receive and process the following data:
 * from Zentralanstalt für Meteorologie und Geodynamik (ZAMG)
   * actual readings of the ZAMG weather stations in Austria
     (`user.weatherservices.DWDservice`)
+* from MSC/ECCC Canada
+  * weather alerts for counties (`msc-warnings`)
 * by using the Open-Meteo weather API
   * pre-calculated weather forecasts based on different weather models for
     all over the world (`dwd-mosmix`)
