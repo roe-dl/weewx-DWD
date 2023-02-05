@@ -368,6 +368,7 @@ that directory.
 Example:
 ```
 [DeutscherWetterdienst]
+    # configuration for dwd-cap-warnings
     [[warning]]
         icons='../dwd/warn_icons_50x50'
         states='Sachsen','Thüringen'
@@ -382,20 +383,31 @@ Example:
               'Leipzig-Mitte'='L'
               'Stadt Jena'='J'
               'Dresden-Altstadt'='DD'
+    # configuration for bbk-warnings
     [[BBK]]
         #icons=...
         #logos=...
         [[[counties]]]
             145220000000 = DL
             147130000000 = L
+     # configuration for the --belchertown option of dwd-mosmix
      [[Belchertown]]
+        # name of the section of the Belchertown skin in [StdReport]
         section = Belchertown
+        # warnings file from section [[warnings]]
         warnings = DL
+        # forecast file from running dwd-mosmix
         forecast = P0291
-        #aqi_source = ... # optional
+        # air quality provider (optional)
+        # possible values: aeris uba{station_code}
+        #aqi_source = ... 
+        # compass direction language (optional)
+        # possible values: de, en, fr, it, cz, es, nl, no, gr
         #compass_lang = 'en' # optional
 [WeatherServices]
+    # path to the directory to save the files there
     path='/etc/weewx/skins/Belchertown/dwd'
+    # configuration to get readings of official or governmental stations
     [[current]]
         # Examples follow.
         [[[station_nr]]]
@@ -418,11 +430,17 @@ Example:
             provider = Open-Meteo
             model = dwd-icon
             prefix = observation_type_prefix
+    # configuration for dwd-mosmix
     [[forecast]]
+        # location of the icons on the web server
         icons='../images'
+        # which orientation(s) shall be created in HTML?
         orientation=h,v
+        # show observation type icons in HTML
         #show_obs_symbols = True # optional
+        # show observation type description in HTML
         #show_obs_description = False # optional
+        # show place name above the forecast table in HTML
         #show_placemark = True # optional
 ```
 

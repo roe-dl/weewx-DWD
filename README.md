@@ -478,6 +478,7 @@ die tatsächlich genutzt werden, müssen die Abschnitte vorhanden sein.
 Beispiel:
 ```
 [DeutscherWetterdienst]
+    # Konfiguration für dwd-cap-warnings
     [[warning]]
         icons='../dwd/warn_icons_50x50'
         states='Sachsen','Thüringen'
@@ -492,20 +493,32 @@ Beispiel:
               'Leipzig-Mitte'='L'
               'Stadt Jena'='J'
               'Dresden-Altstadt'='DD'
+    # Konfiguration für bbk-warnings
     [[BBK]]
         #icons=...
         #logos=...
         [[[counties]]]
             145220000000 = DL
             147130000000 = L
+     # Konfiguration für die --belchertown Option von dwd-mosmix
      [[Belchertown]]
+        # Name des Abschnittes der Belchertown-Skin in [StdReport]
         section = Belchertown
+        # Warndatei aus dem Abschnitt [[warnings]]
         warnings = DL
+        # Vorhersagedatei aus dem Aufruf 'dwd-mosmix'
         forecast = P0291
-        #aqi_source = ... # optional
+        # Quelle für Luftqualtitätsdaten (optional)
+        # mögliche Werte: aeris, uba{Stationscode}
+        #aqi_source = ...
+        # Sprache für die Himmelrichtungen (optional)
+        # mögliche Werte: de, en, fr, it, cz, es, nl, no, gr
         #compass_lang = 'de' # optional
 [WeatherServices]
+    # Verzeichnis, in das die Dateien gespeichert werden sollen
     path='/etc/weewx/skins/Belchertown/dwd'
+    # Konfiguration zum Download aktueller Meßwerte von offiziellen
+    # Stationen
     [[current]]
         # Examples follow.
         [[[station_nr]]]
@@ -528,11 +541,17 @@ Beispiel:
             provider = Open-Meteo
             model = dwd-icon
             prefix = observation_type_prefix
+    # Konfiguration für dwd-mosmix
     [[forecast]]
+        # Speicherort der Symbole auf dem Web-Server
         icons='../images'
+        # für welche Orientierungen soll die HTML-Datei erzeugt werden?
         orientation=h,v
+        # Sollen die Meßgrößensymbole in die Tabelle aufgenommen werden?
         #show_obs_symbols = True # optional
+        # Soll die Meßgrößenbeschreibung in die Tabelle aufgenommen werden?
         #show_obs_description = False # optional
+        # Soll der Ortsname über die Tabelle geschrieben werden?
         #show_placemark = True # optional
 ```
 
