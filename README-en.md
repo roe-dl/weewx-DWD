@@ -363,7 +363,7 @@ The word `Belchertown` is to be replaced by the name of your skin.
 All the programs and services of this extension save their files to
 that directory.
 
-### Configuratoin in `weewx.conf`
+### Configuration in `weewx.conf`
 
 Example:
 ```
@@ -398,6 +398,8 @@ Example:
         warnings = DL
         # forecast file from running dwd-mosmix
         forecast = P0291
+        # include warnings coming into effect in future
+        #include_advance_warnings = 0 # optional
         # air quality provider (optional)
         # possible values: aeris uba{station_code}
         #aqi_source = ... 
@@ -451,3 +453,129 @@ The paths, states, and counties are to replaced by the appropriate names.
 **Note:** The key `icons` refers to the web servers. The value must not
 start with `/`.
 
+## Where you can include the following examples?
+
+### Belchertown skin
+
+There are special files available that are intended to be used for 
+additional content. Simply create the file and fill it with what
+you want to display:
+* `index_hook_after_station_info.inc`
+* `index_hook_after_forecast.inc`
+* `index_hook_after_snapshot.inc`
+* `index_hook_after_charts.inc`
+
+The name of the file indicates the place where it is included in the
+web page.
+
+### other skins
+
+Determine which include files are defined for that skin or include
+the example into files with the name ending in `.html.tmpl`
+
+## Weather forecast in HTML template
+
+Replace `dwd/forecast-P0291.inc` by the apprpriate file name
+
+```
+  <div class="col-sm-8">
+    <p style="font-size:110%">Wettervorhersage</p>
+    #include raw "dwd/forecast-P0291.inc"
+  </div>
+```
+
+Additionally you need to add the following to the style sheet file.
+For the Belchertown skin that would be in `custom.css`
+```
+.dwdforecasttable {
+    line-height: 1.0;
+}
+.dwdforecasttable td {
+    text-align: center;
+    padding-left: 3px;
+    padding-right: 3px;
+    line-height: 1.2;
+}
+.dwdforecasttable .icons td {
+    padding-top: 5px;
+    padding-bottom: 0px;
+}
+.dwdforecasttable .topdist td {
+    padding-top: 5px;
+}
+.light .dwdforecasttable td.weekend {
+    background-color: #ffe;
+}
+.dark .dwdforecasttable td.weekend {
+    background-color: #333;
+}
+```
+
+Example for a forecast:
+
+<img src="MOSMIX-Vorhersage.png" width="700px"/>
+
+## Forecast in Belchertown skin
+
+Using the option `--belchertown` with `dwd-mosmix` you can create the
+`forecast.json` file for the Belchertown skin. No changes to the
+code of the Belchertown skin is required. You only need to change
+some configuration option in `skin.conf` or the `[[Belchertown]]` 
+section of `[StdReport]` in `weewx.conf`.
+
+```
+    forecast_enabled = 1
+    forecast_stale = 86400
+    forecast_alert_enabled = 1
+```
+
+Additionally you need to add a sub-section in the `[DeutscherWetterdienst]`
+section of `weewx.conf`.
+
+```
+[DeutscherWetterdienst]
+    ...
+    # configuration for the --belchertown option of dwd-mosmix
+    [[Belchertown]]
+        # name of the section of the Belchertown skin in [StdReport]
+        section = Belchertown
+        # warnings file from section [[warnings]]
+        warnings = DL
+        # forecast file from running dwd-mosmix
+        forecast = P0291
+        # include warnings coming into effect in future
+        #include_advance_warnings = 0 # optional
+        # air quality provider (optional)
+        # possible values: aeris uba{station_code}
+        #aqi_source = ... 
+        # compass direction language (optional)
+        # possible values: de, en, fr, it, cz, es, nl, no, gr
+        #compass_lang = 'en'
+```
+
+The key `section` has to point to the section of the Belchertown skin
+in the `[StdReport]` section of `weewx.conf`. 
+
+The key `warnings` sets the file name of a warnings file defined in
+section `[[warnings]]` if any. Using the optional key 
+`include_advance_warnings` you can specify a timespan in seconds.
+All the warnings coming in effect within that timespan in future
+will be included additionally. The default is 0.
+
+The key 'forecast` sets the file name of a forecast file to be used.
+
+Using the key `aqi_source` you can specify a provider air quality
+data can be received from. Possible values are `aeris` or `ubaXXXX`,
+where XXXX is the code of the station the readings should be used.
+
+*Please note*: The amount of downloads from Aeris is restricted.
+Additionally you nead an account with them.
+
+A list of air quality stations of the german Umweltbundesamt (UBA)
+can be acquired by
+```
+usr/local/bin/dwd-mosmix --print-uba=meta,measure
+```
+
+If you want to use warnings, you need to call `dwd-cap-warnings` before
+`dwd-mosmix`. Otherwise outdated warnings may be processed.
