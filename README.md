@@ -508,10 +508,13 @@ Beispiel:
         warnings = DL
         # Vorhersagedatei aus dem Aufruf 'dwd-mosmix'
         forecast = P0291
+        # schließe Warnungen ein, die die angegebene Zahl von Sekunden in
+        # der Zukunft gültig werden (optional)
+        #include_advance_warnings = 0 
         # Quelle für Luftqualtitätsdaten (optional)
-        # mögliche Werte: aeris, uba{Stationscode}
+        # mögliche Werte: aeris, ubaXXXX
         #aqi_source = ...
-        # Sprache für die Himmelrichtungen (optional)
+        # Sprache für die Himmelsrichtungen (optional)
         # mögliche Werte: de, en, fr, it, cz, es, nl, no, gr
         #compass_lang = 'de' # optional
 [WeatherServices]
@@ -520,7 +523,7 @@ Beispiel:
     # Konfiguration zum Download aktueller Meßwerte von offiziellen
     # Stationen
     [[current]]
-        # Examples follow.
+        # Es folgen Beispiele.
         [[[station_nr]]]
             provider = ZAMG  # DWD, ZAMG or Open-Meteo
             prefix = observation_type_prefix_for_station
@@ -716,7 +719,10 @@ Der Schlüssel `section` muß den Namen des Abschnittes der Belchertown-Skin
 unter `[StdReport]` angeben. Der Schlüssel `warnings` gibt das Kürzel der 
 zu verwendenden Warn-Datei aus dem Abschnitt `[[warning]]` an. 
 Der Schlüssel `forecast` gibt das Kürzel der Station an, deren Vorhersage 
-verwendet werden soll. 
+verwendet werden soll. Im Falle von Open-Meteo lautet die Angabe
+`openmeteo-latitude-longitude-model`, wobei 'latitude' durch die
+georaphische Breite, 'longitude' durch die geographische Länge und
+'model' durch das Wettermodel zu ersetzen ist.
 Mit dem optionalen Schlüssel `include_advance_warnings` kann man eine Zeitspanne
 in Sekunden vorgeben. Es werden dann neben den aktiven Warnungen auch
 Warnungen angezeigt, die bis zu der angegebenen Zahl Sekunden in der
