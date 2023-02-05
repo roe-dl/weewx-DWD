@@ -392,6 +392,8 @@ Example:
         section = Belchertown
         warnings = DL
         forecast = P0291
+        #aqi_source = ... # optional
+        #compass_lang = 'en' # optional
 [WeatherServices]
     path='/etc/weewx/skins/Belchertown/dwd'
     [[current]]

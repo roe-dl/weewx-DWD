@@ -538,7 +538,8 @@ class DwdMosmix(object):
             self.belchertown_forecast = belchertown_dict['forecast']
             self.belchertown_warning = belchertown_dict['warnings']
             self.belchertown_include_advance_warning = int(belchertown_dict.get('include_advance_warnings',0))
-            self.belchertown_aqi_source = str(belchertown_dict.get('aqi_source',None)).lower()
+            self.belchertown_aqi_source = str(belchertown_dict.get('aqi_source',None))
+            if self.belchertown_aqi_source: self.belchertown_aqi_source = self.belchertown_aqi_source.lower()
             self.belchertown_compasslang = str(belchertown_dict.get('compass_lang','en')).lower()
             try:
                 ew = belchertown_section['Extras']
