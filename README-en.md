@@ -86,6 +86,12 @@ by Javascript, and the `forecast.json` file of the Belchertown skin to
 replace the Aeris forecast by the forecast of another weather service
 provider.
 
+Data source are at your choice the MOSMIX forecasts from the Deutscher
+Wetterdienst (DWD) or the forecasts provided by Open-Meteo and based
+on the weather model you chose when invoking `dwd-mosmix`. The MOSMIX
+forecasts are based on both the ICON model of the DWD and the IFS
+model of the EZMW, enriched by additional information.
+
 To use `dwd-mosmix` you need:
 * weather icons of the [Belchertown Skin](https://obrienlabs.net/belchertownweather-com-website-theme-for-weewx/)
   or the [DWD](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/piktogramm_node.html)

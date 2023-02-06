@@ -155,7 +155,14 @@ Options:
 ## dwd-mosmix
 
 Dieses Python-Script erzeugt eine Wettervorhersage in Tabellenform und
-eine JSON-Datei mit den Inhalten der Wettervorhersage.
+eine JSON-Datei mit den Inhalten der Wettervorhersage. Es kann auch
+die `forecast.json`-Datei für die Belchertown-Skin erzeugen.
+
+Datenquelle sind entweder die MOSMIX-Vorhersagen des Deutschen
+Wetterdienstes (DWD) oder die vom Open-Meteo-Dienst bereitgestellten
+Vorhersagen auf der Basis des jeweils ausgewählten Wettermodells. 
+Die MOSMIX-Vorhersagen wiederum auf den Modellen ICON des DWD 
+und IFS des EZMW und werden mit zusätzlichen Informationen verfeinert.
 
 Zur Darstellung sind folgende Ressourcen nötig:
 * Wetter-Icons der [Belchertown Skin](https://obrienlabs.net/belchertownweather-com-website-theme-for-weewx/)
