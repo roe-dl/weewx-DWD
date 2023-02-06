@@ -161,7 +161,7 @@ die `forecast.json`-Datei für die Belchertown-Skin erzeugen.
 Datenquelle sind entweder die MOSMIX-Vorhersagen des Deutschen
 Wetterdienstes (DWD) oder die vom Open-Meteo-Dienst bereitgestellten
 Vorhersagen auf der Basis des jeweils ausgewählten Wettermodells. 
-Die MOSMIX-Vorhersagen wiederum auf den Modellen ICON des DWD 
+Die MOSMIX-Vorhersagen basieren auf den Modellen ICON des DWD 
 und IFS des EZMW und werden mit zusätzlichen Informationen verfeinert.
 
 Zur Darstellung sind folgende Ressourcen nötig:
