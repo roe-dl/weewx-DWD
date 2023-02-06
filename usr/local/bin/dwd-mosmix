@@ -71,9 +71,9 @@ if __name__ == "__main__":
     import optparse
     import sys
     def loginf(x):
-        print(x, file=sys.stderr)
+        print("INFO", x, file=sys.stderr)
     def logerr(x):
-        print(x, file=sys.stderr)
+        print("ERROR", x, file=sys.stderr)
 
 
 DEFAULT_LOCAL_FORECAST_URL = "https://opendata.dwd.de/weather/local_forecasts"
@@ -165,7 +165,7 @@ def get_ww(ww,n,night):
             wwcode = ii
             break
     else:
-        wwcode = (0,'','',30,None,None)
+        wwcode = (0,'','',30,'unknown.png','unknown.png','unknown.png','')
     # Otherwise use cloud coverage
     # see aerisweather for percentage values
     # https://www.aerisweather.com/support/docs/api/reference/weather-codes/
@@ -1865,8 +1865,15 @@ class DwdMosmix(object):
                     vals['ww3'] = int(placemark['Forecast']['ww3'][idx])
                 except Exception:
                     vals['ww3'] = get_ww(vals['ww'],0,None)
-                # calculate min, max, and avg for hourly observerations
+                # which observations are available?
+                observations = []
                 for ii in ['PPPP','TTT','Td','T5cm','DD','FF','N','Neff','VV','R101']:
+                    if ii in placemark['Forecast']:
+                        observations.append(ii)
+                if self.verbose:
+                    loginf("3hr-forecast available observations %s" % observations)
+                # calculate min, max, and avg for hourly observerations
+                for ii in observations:
                     try:
                         # collect the last 3 observations
                         p = []
@@ -1894,7 +1901,7 @@ class DwdMosmix(object):
                         except Exception:
                             vals[ii+'avg'] = None
                     except Exception as e:
-                        logerr(e)
+                        logerr("3hr-forecast %s %s %s" % (ii,e.__class__.__name__,e))
                 # Is the timestamp night or day?
                 try:
                     #night = self.is_night(location,val*0.001)
@@ -1910,7 +1917,7 @@ class DwdMosmix(object):
                     vals['icon'] = icon
                     vals['icontitle'] = wwcode[2] if lang=='en' else wwcode[1]
                 except Exception as e:
-                    logerr(e)
+                    logerr("3hr-forecast %s %s" % (e.__class__.__name__,e))
                 # append new record to the list
                 recs.append(vals)
         return recs
@@ -2214,7 +2221,7 @@ class DwdMosmix(object):
         'ecmwf':('EU','ECMWF','open IFS','ecmwf'),
         'jma':('JP','JMA','GSM+MSM','jma'),
         'metno':('NO','MET Norway','Nordic','metno'),
-        'gem':('CA','Canadian Weather Service','GEM+HRDPS','gem'),
+        'gem':('CA','MSC-CMC','GEM+HRDPS','gem'),
         'ecmwf_ifs04':('EU','ECMWF','IFS','forecast'),
         'metno_nordic':('NO','MET Norway','Nordic','forecast'),
         'icon_seamless':('DE','DWD','ICON Seamless','forecast'),
@@ -2224,10 +2231,10 @@ class DwdMosmix(object):
         'gfs_seamless':('US','NOAA','GFS Seamless','forecast'),
         'gfs_global':('US','NOAA','GFS Global','forecast'),
         'gfs_hrrr':('US','NOAA','GFS HRRR','forecast'),
-        'gem_seamless':('CA','Canadian Weather Service','GEM','forecast'),
-        'gem_global':('CA','Canadian Weather Service','GEM','forecast'),
-        'gem_regional':('CA','Canadian Weather Service','GEM','forecast'),
-        'gem_hrdps_continental':('CA','Canadian Weather Service','GEM-HRDPS','forecast')
+        'gem_seamless':('CA','MSC-CMC','GEM','forecast'),
+        'gem_global':('CA','MSC-CMC','GEM','forecast'),
+        'gem_regional':('CA','MSC-CMC','GEM','forecast'),
+        'gem_hrdps_continental':('CA','MSC-CMC','GEM-HRDPS','forecast')
     }
 
     def download_openmeteo(self, lat, lon, model):
