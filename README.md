@@ -27,6 +27,8 @@ Diese Daten können mit den Programmen bezogen werden:
     (`dwd-mosmix`)
 * vom Bundesamt für Bevölkerungsschutz und Katastrophenhilfe (BBK)
   * Warnmeldungen (`bbk-warnings`)
+* von Meteorological Service Canada (MSC)
+  * Warnmeldungen (`msc-warnings`)
 
 Die Daten werden aufbereitet als:
 * HTML-Dateien (`*.inc`) zum Einbinden in Skins mittels `#include`
@@ -74,6 +76,7 @@ Legen Sie folgende Links an:
 ```
 sudo ln -s /usr/share/weewx/user/capwarnings.py /usr/local/bin/bbk-warnings
 sudo ln -s /usr/share/weewx/user/capwarnings.py /usr/local/bin/dwd-cap-warnings
+sudo ln -s /usr/share/weewx/user/capwarnings.py /usr/local/bin/msc-warnings
 ```
 
 Wenn sich `capwarnings.py` nicht unter `/usr/share/weewx/user` befindet,
@@ -162,7 +165,7 @@ Datenquelle sind entweder die MOSMIX-Vorhersagen des Deutschen
 Wetterdienstes (DWD) oder die vom Open-Meteo-Dienst bereitgestellten
 Vorhersagen auf der Basis des jeweils ausgewählten Wettermodells. 
 Die MOSMIX-Vorhersagen basieren auf den Modellen ICON des DWD 
-und IFS des EZMW und werden mit zusätzlichen Informationen verfeinert.
+und IFS des ECMWF und werden mit zusätzlichen Informationen verfeinert.
 
 Zur Darstellung sind folgende Ressourcen nötig:
 * Wetter-Icons der [Belchertown Skin](https://obrienlabs.net/belchertownweather-com-website-theme-for-weewx/)
@@ -244,7 +247,7 @@ meteofrance     | FR      | MeteoFrance              | Arpege+Arome
 ecmwf           | EU      | ECMWF                    | open IFS
 jma             | JP      | JMA                      | GSM+MSM
 metno           | NO      | MET Norway               | Nordic
-gem             | CA      | Canadian Weather Service | GEM+HRDPS
+gem             | CA      | MSC-CMC | GEM+HRDPS
 ecmwf_ifs04     | EU      | ECMWF                    | IFS
 metno_nordic    | NO      | MET Norway               | Nordic
 icon_seamless   | DE      | DWD                      | ICON Seamless
@@ -254,10 +257,10 @@ icon_d2         | DE      | DWD                      | ICON D2
 gfs_seamless    | US      | NOAA                     | GFS Seamless
 gfs_global      | US      | NOAA                     | GFS Global
 gfs_hrrr        | US      | NOAA                     | GFS HRRR
-gem_seamless    | CA      | Canadian Weather Service | GEM
-gem_global      | CA      | Canadian Weather Service | GEM
-gem_regional    | CA      | Canadian Weather Service | GEM
-gem_hrdps_continental | CA      | Canadian Weather Service | GEM-HRDPS
+gem_seamless    | CA      | MSC-CMC | GEM
+gem_global      | CA      | MSC-CMC | GEM
+gem_regional    | CA      | MSC-CMC | GEM
+gem_hrdps_continental | CA      | MSC-CMC | GEM-HRDPS
 
 Bei der Darstellung der Werte sind die Nutzungsbedingungen sowohl
 von Open-Meteo als auch der betreffenden Wetterdienste zu beachten.

@@ -16,7 +16,7 @@ With this extension you can receive and process the following data:
 * from Zentralanstalt für Meteorologie und Geodynamik (ZAMG)
   * actual readings of the ZAMG weather stations in Austria
     (`user.weatherservices.DWDservice`)
-* from MSC/ECCC Canada
+* from Meteorological Service Canada (MSC)
   * weather alerts for counties (`msc-warnings`)
 * by using the Open-Meteo weather API
   * pre-calculated weather forecasts based on different weather models for
@@ -169,7 +169,7 @@ meteofrance     | FR      | MeteoFrance              | Arpege+Arome
 ecmwf           | EU      | ECMWF                    | open IFS
 jma             | JP      | JMA                      | GSM+MSM
 metno           | NO      | MET Norway               | Nordic
-gem             | CA      | Canadian Weather Service | GEM+HRDPS
+gem             | CA      | MSC-CMC | GEM+HRDPS
 ecmwf_ifs04     | EU      | ECMWF                    | IFS
 metno_nordic    | NO      | MET Norway               | Nordic
 icon_seamless   | DE      | DWD                      | ICON Seamless
@@ -179,10 +179,10 @@ icon_d2         | DE      | DWD                      | ICON D2
 gfs_seamless    | US      | NOAA                     | GFS Seamless
 gfs_global      | US      | NOAA                     | GFS Global
 gfs_hrrr        | US      | NOAA                     | GFS HRRR
-gem_seamless    | CA      | Canadian Weather Service | GEM
-gem_global      | CA      | Canadian Weather Service | GEM
-gem_regional    | CA      | Canadian Weather Service | GEM
-gem_hrdps_continental | CA      | Canadian Weather Service | GEM-HRDPS
+gem_seamless    | CA      | MSC-CMC | GEM
+gem_global      | CA      | MSC-CMC | GEM
+gem_regional    | CA      | MSC-CMC | GEM
+gem_hrdps_continental | CA      | MSC-CMC | GEM-HRDPS
 
 Don't forget to observe the terms and conditions of Open-Meteo and the respective
 weather service when using their data.
