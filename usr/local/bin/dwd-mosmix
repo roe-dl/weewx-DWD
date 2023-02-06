@@ -2202,7 +2202,8 @@ class DwdMosmix(object):
         'winddirection_10m':'DD',
         'windgusts_10m':'FX1',
         'weathercode':'ww',
-        'visibility':'VV'
+        'visibility':'VV',
+        'precipitation':'RR1c'
     }
     
     OPENMETEO_WEATHERMODELS = {
