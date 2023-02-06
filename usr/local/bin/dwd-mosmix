@@ -910,7 +910,7 @@ class DwdMosmix(object):
                     color = ' style="color:%s"' % prec_color if prec_color else ''
                     s += '<td%s>%s</td>' % (color,self.OBS_LABEL.get(ii,(ii,'',''))[2])
                     # values columns
-                    for idx,jj in enumerate(placemark['Forecast'][ii]):
+                    for idx,jj in enumerate(placemark['Forecast'].get(ii,[])):
                         if idx<start_ct: continue
                         if idx>=count+start_ct: break
                         try:
