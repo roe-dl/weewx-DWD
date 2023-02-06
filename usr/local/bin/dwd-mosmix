@@ -330,6 +330,10 @@ def fahrenheit(tempC):
     if tempC is None: return None
     return tempC*9.0/5.0+32.0
 
+def inchHG(pressureMB):
+    if pressureMB is None: return None
+    return pressureMB*0.02952998330101
+    
     
 ##############################################################################
 #    Parser for the DWD KML weather forecast file                            #
@@ -1340,6 +1344,7 @@ class DwdMosmix(object):
                     'dewpointC':nround(placemark['Forecast']['Td'][idx],1),
                     'dewpointF':nround(fahrenheit(placemark['Forecast']['Td'][idx]),1),
                     'pressureMB':nround(placemark['Forecast']['PPPP'][idx]),
+                    'pressureIN':nround(inchHG(placemark['Forecast']['PPPP'][idx]),2),
                     'windKPH':nround(placemark['Forecast']['FF'][idx]),
                     'windSpeedKPH':nround(placemark['Forecast']['FF'][idx]),
                     'windDir':compass(nround(placemark['Forecast']['DD'][idx]),self.belchertown_compasslang,False),
@@ -1389,6 +1394,7 @@ class DwdMosmix(object):
                 'pop':days[day].get('Rd10'),
                 'precipMM':nround(days[day].get('RR1c'),1),
                 'pressureMB':nround(days[day]['PPPPavg']),
+                'pressureIN':nround(inchHG(days[day]['PPPPavg']),2),
                 'windDir':compass(days[day]['DDavg'],self.belchertown_compasslang,False),
                 'windDirDEG':nround(days[day]['DDavg']),
                 'windSpeedKPH':nround(days[day]['FFavg']),
@@ -1440,6 +1446,7 @@ class DwdMosmix(object):
                     'dewpointF':fahrenheit(rec['Td']),
                     'pop':rec.get('R101max'),
                     'pressureMB':rec['PPPPavg'],
+                    'pressureIN':nround(inchHG(rec['PPPPavg']),2),
                     'windDir':compass(rec['DDavg'],self.belchertown_compasslang,False),
                     'windDirDEG':rec['DDavg'],
                     'windSpeedKPH':rec['FFavg'],
@@ -1500,6 +1507,7 @@ class DwdMosmix(object):
                 'pop':placemark['Forecast']['R101'][idx] if 'R101' in placemark['Forecast'] else None,
                 'precipMM':placemark['Forecast']['RR1c'][idx] if 'RR1c' in placemark['Forecast'] else None,
                 'pressureMB':placemark['Forecast']['PPPP'][idx],
+                'pressureIN':nround(inchHG(placemark['Forecast']['PPPP'][idx]),2),
                 'windDir':compass(placemark['Forecast']['DD'][idx],self.belchertown_compasslang,False),
                 'windDirDEG':placemark['Forecast']['DD'][idx],
                 'windSpeedKPH':placemark['Forecast']['FF'][idx],
