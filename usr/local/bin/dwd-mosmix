@@ -741,9 +741,10 @@ class DwdMosmix(object):
                 location = ephem.Observer()
                 location.lat = geo[1]*0.017453292519943
                 location.lon = geo[0]*0.017453292519943
-                location.elevation = geo[2]
+                if geo[2] is not None:
+                    location.elevation = geo[2]
             except Exception as e:
-                logerr('Observer: %s' % e)
+                logerr('Observer: %s %s' % (e.__class__.__name__,e))
         else:
             location = None
         daynights = []
@@ -2251,7 +2252,9 @@ class DwdMosmix(object):
                 modelsopt = ''
         #models = ['icon_eu'] # icon_eu,icon_d2
         #vars = 'temperature_2m,relativehumidity_2m,dewpoint_2m'
-        if dir=='forecast':
+        if 'ecmwf' in models:
+            excludes = ('relativehumidity_2m','dewpoint_2m','windgusts_10m','visibility')
+        elif dir=='forecast':
             excludes = list()
         else:
             excludes = ('visibility',)
