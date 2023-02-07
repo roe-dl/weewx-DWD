@@ -546,6 +546,10 @@ section of `[StdReport]` in `weewx.conf`.
     forecast_alert_enabled = 1
 ```
 
+There is a separate key for the unit system to be used for the forecast
+of the Belchertown skin. Set `forecast_units = si` for metric units
+or `forecast_units = us` for U.S. units.
+
 Additionally you need to add a sub-section in the `[DeutscherWetterdienst]`
 section of `weewx.conf`.
 

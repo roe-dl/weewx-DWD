@@ -710,6 +710,11 @@ eingeschaltet sein.
     forecast_alert_enabled = 1
 ```
 
+Für das Einheitensystem gibt es eine gesonderte Einstellung für die
+Vorhersage in der Belchertown-Skin. `forecast_units = si` stellt
+auf metrische Einheiten ein, `forecast_units = us` auf US-amerikanische
+Einheiten.
+
 Außerdem muß der Abschnitt des Deutschen Wetterdienstes in `weewx.conf`
 ergänzt werden:
 
