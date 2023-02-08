@@ -26,7 +26,8 @@ sed -e 's/\Ä/\&Auml;/g' \
     -e 's/\^b/\&bull;/g' \
     -e 's/\^e/\&#8644;/g' \
     -e 's/<pre.*>/ /g' \
-    -e 's/<\/pre>/ /g'
+    -e 's/<\/pre>/ /g' \
+    -e 's/\°/\&deg;/g'
 
 
 #     -e 's/<pre style="font-family: sans-serif">/ /g' \
