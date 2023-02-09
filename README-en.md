@@ -399,22 +399,6 @@ Example:
         [[[counties]]]
             145220000000 = DL
             147130000000 = L
-     # configuration for the --belchertown option of dwd-mosmix
-     [[Belchertown]]
-        # name of the section of the Belchertown skin in [StdReport]
-        section = Belchertown
-        # warnings file from section [[warnings]]
-        warnings = DL
-        # forecast file from running dwd-mosmix
-        forecast = P0291
-        # include warnings coming into effect in future
-        #include_advance_warnings = 0 # optional
-        # air quality provider (optional)
-        # possible values: aeris uba{station_code}
-        #aqi_source = ... 
-        # compass direction language (optional)
-        # possible values: de, en, fr, it, cz, es, nl, no, gr
-        #compass_lang = 'en' # optional
 [WeatherServices]
     # path to the directory to save the files there
     path='/etc/weewx/skins/Belchertown/dwd'
@@ -461,6 +445,22 @@ Example:
             office = ... # Code of the issuing office (try without if unsure)
             county = county_name
             file = target_file
+     # configuration for the --belchertown option of dwd-mosmix
+     [[Belchertown]]
+        # name of the section of the Belchertown skin in [StdReport]
+        section = Belchertown
+        # warnings file from section [[warnings]]
+        warnings = DL
+        # forecast file from running dwd-mosmix
+        forecast = P0291
+        # include warnings coming into effect in future
+        #include_advance_warnings = 0 # optional
+        # air quality provider (optional)
+        # possible values: aeris uba{station_code}
+        #aqi_source = ... 
+        # compass direction language (optional)
+        # possible values: de, en, fr, it, cz, es, nl, no, gr
+        #compass_lang = 'en' # optional
 ```
 
 The key `path` has to point to the directory created before.
@@ -554,7 +554,7 @@ Additionally you need to add a sub-section in the `[DeutscherWetterdienst]`
 section of `weewx.conf`.
 
 ```
-[DeutscherWetterdienst]
+[WeatherServices]
     ...
     # configuration for the --belchertown option of dwd-mosmix
     [[Belchertown]]
@@ -638,4 +638,6 @@ those files are downlaoded by `wget-dwd`.
 * [WeeWX Homepage](http://weewx.com) - [WeeWX Wiki](https://github.com/weewx/weewx/wiki)
 * [page "Homepagewetter" from Deutscher Wetterdienst](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/objekteinbindung_node.html)
 * [warning icons](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/icons/warnicons_nach_stufen_50x50_zip.zip?__blob=publicationFile&v=2)
+* [DWD-MOSMIX](https://www.dwd.de/EN/ourservices/met_application_mosmix/met_application_mosmix.html;jsessionid=20DEB86AFBC29A8EA7F97358302C7EB9.live31083)
 * [spoken weather forecasts with Python](https://beltoforion.de/de/wetterbericht/)
+* [Open-Meteo](https://open-meteo.com/)

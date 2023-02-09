@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # Wettervorhersage
-# Copyright (C) 2022 Johanna Roedenbeck
+# Copyright (C) 2022, 2023 Johanna Roedenbeck
 # licensed under the terms of the General Public License (GPL) v3
 
 from __future__ import absolute_import
@@ -546,7 +546,7 @@ class DwdMosmix(object):
             self.sun = ephem.Sun()
         # Belchertown
         try:
-            belchertown_dict = config_dict['DeutscherWetterdienst'].get('Belchertown',configobj.ConfigObj())
+            belchertown_dict = config_dict['WeatherServices'].get('Belchertown',configobj.ConfigObj())
             belchertown_section = config_dict['StdReport'][belchertown_dict['section']]
             if 'HTML_ROOT' in belchertown_section:
                 self.belchertown_html_root = os.path.join(
@@ -2499,9 +2499,9 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
     if options.iconset:
         config['DeutscherWetterdienst']['forecast']['icon_set'] = options.iconset
     if options.aqisource:
-        if 'Belchertown' not in config['DeutscherWetterdienst']:
-            config['DeutscherWetterdienst']['Belchertown'] = dict()
-        config['DeutscherWetterdienst']['Belchertown']['aqi_source'] = options.aqisource
+        if 'Belchertown' not in config['WeatherServices']:
+            config['WeatherServices']['Belchertown'] = dict()
+        config['WeatherServices']['Belchertown']['aqi_source'] = options.aqisource
     if options.hideplacemark is not None:
         config['DeutscherWetterdienst']['forecast']['show_placemark'] = not options.hideplacemark
 

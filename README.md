@@ -510,23 +510,6 @@ Beispiel:
         [[[counties]]]
             145220000000 = DL
             147130000000 = L
-     # Konfiguration für die --belchertown Option von dwd-mosmix
-     [[Belchertown]]
-        # Name des Abschnittes der Belchertown-Skin in [StdReport]
-        section = Belchertown
-        # Warndatei aus dem Abschnitt [[warnings]]
-        warnings = DL
-        # Vorhersagedatei aus dem Aufruf 'dwd-mosmix'
-        forecast = P0291
-        # schließe Warnungen ein, die die angegebene Zahl von Sekunden in
-        # der Zukunft gültig werden (optional)
-        #include_advance_warnings = 0 
-        # Quelle für Luftqualtitätsdaten (optional)
-        # mögliche Werte: aeris, ubaXXXX
-        #aqi_source = ...
-        # Sprache für die Himmelsrichtungen (optional)
-        # mögliche Werte: de, en, fr, it, cz, es, nl, no, gr
-        #compass_lang = 'de' # optional
 [WeatherServices]
     # Verzeichnis, in das die Dateien gespeichert werden sollen
     path='/etc/weewx/skins/Belchertown/dwd'
@@ -566,6 +549,23 @@ Beispiel:
         #show_obs_description = False # optional
         # Soll der Ortsname über die Tabelle geschrieben werden?
         #show_placemark = True # optional
+     # Konfiguration für die --belchertown Option von dwd-mosmix
+     [[Belchertown]]
+        # Name des Abschnittes der Belchertown-Skin in [StdReport]
+        section = Belchertown
+        # Warndatei aus dem Abschnitt [[warnings]]
+        warnings = DL
+        # Vorhersagedatei aus dem Aufruf 'dwd-mosmix'
+        forecast = P0291
+        # schließe Warnungen ein, die die angegebene Zahl von Sekunden in
+        # der Zukunft gültig werden (optional)
+        #include_advance_warnings = 0 
+        # Quelle für Luftqualtitätsdaten (optional)
+        # mögliche Werte: aeris, ubaXXXX
+        #aqi_source = ...
+        # Sprache für die Himmelsrichtungen (optional)
+        # mögliche Werte: de, en, fr, it, cz, es, nl, no, gr
+        #compass_lang = 'de' # optional
 ```
 
 Der Eintrag `path` muß auf das im ersten Schritt angelegte Verzeichnis
@@ -719,7 +719,7 @@ Außerdem muß der Abschnitt des Deutschen Wetterdienstes in `weewx.conf`
 ergänzt werden:
 
 ```
-[DeutscherWetterdienst]
+[WeatherServices]
     ...
     [[Belchertown]]
         section = "Belchertown"
@@ -892,4 +892,6 @@ von `wget-dwd` heruntergeladen.
 * [Warnicons](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/icons/warnicons_nach_stufen_50x50_zip.zip?__blob=publicationFile&v=2)
 * [Seite "Wetter und Klima vor Ort" des Deutschen Wetterdienstes mit Unterseiten für die Bundesländer](https://www.dwd.de/DE/wetter/wetterundklima_vorort/_node.html)
 * [Seite "Warnlagebericht" des Deutschen Wetterdienstes mit Unterseiten für die Bundesländer](https://www.dwd.de/DE/wetter/warnungen_aktuell/warnlagebericht/warnlagebericht_node.html)
+* [DWD-MOSMIX](https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/met_verfahren_mosmix.html)
 * [gesprochene Wetterberichte mit Python](https://beltoforion.de/de/wetterbericht/)
+* [Open-Meteo](https://open-meteo.com/)
