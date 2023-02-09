@@ -2483,7 +2483,7 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
                 'latitude':53.6059563,
                 'longitude':11.341407,
                 'altitude':[53.6,'meter']},
-            'DeutscherWetterdienst': {
+            'WeatherServices': {
                 'path':'/etc/weewx/skins/Belchertown1_3/dwd',
                 'forecast':{
                     'icons':'./weewx/belchertown/images'}}}
@@ -2493,17 +2493,23 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
         if not location: location = None
     else:
         location = 'Döbeln'
-        
+    
+    if 'WeatherServices' in config and 'forecast' in config['WeatherServices']:
+        ws = 'WeatherServices'
+    else:
+        # deprecated
+        ws = 'DeutscherWetterdienst'
+    
     if options.orientation:
-        config['DeutscherWetterdienst']['forecast']['orientation'] = options.orientation
+        config[ws]['forecast']['orientation'] = options.orientation
     if options.iconset:
-        config['DeutscherWetterdienst']['forecast']['icon_set'] = options.iconset
+        config[ws]['forecast']['icon_set'] = options.iconset
     if options.aqisource:
         if 'Belchertown' not in config['WeatherServices']:
             config['WeatherServices']['Belchertown'] = dict()
         config['WeatherServices']['Belchertown']['aqi_source'] = options.aqisource
     if options.hideplacemark is not None:
-        config['DeutscherWetterdienst']['forecast']['show_placemark'] = not options.hideplacemark
+        config[ws]['forecast']['show_placemark'] = not options.hideplacemark
 
     dwd = DwdMosmix(config,options.verbose)
 
