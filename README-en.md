@@ -381,6 +381,7 @@ Example:
     [[warning]]
         icons='../dwd/warn_icons_50x50'
         states='Sachsen','Thüringen'
+        resolution = county|city
         [[[counties]]]
               'Kreis Mittelsachsen - Tiefland'='DL'
               'Stadt Leipzig'='L'
@@ -392,13 +393,6 @@ Example:
               'Leipzig-Mitte'='L'
               'Stadt Jena'='J'
               'Dresden-Altstadt'='DD'
-    # configuration for bbk-warnings
-    [[BBK]]
-        #icons=...
-        #logos=...
-        [[[counties]]]
-            145220000000 = DL
-            147130000000 = L
 [WeatherServices]
     # path to the directory to save the files there
     path='/etc/weewx/skins/Belchertown/dwd'
@@ -439,12 +433,27 @@ Example:
         #show_placemark = True # optional
     # warnings
     [[warning]]
+        #icons = ... # optional
+        #bbk_icons = ... # optional
+        #bbk_logos = ... # optional
+        #bbk_include_dwd = True|False # optional
+        #dwd_icons = ... # optional
+        #dwd_status_url = ... # optional
+        #dwd_diff_url = ... # optional
         # examples
         [[[1]]]
             provider = MSC # Canada
             office = ... # Code of the issuing office (try without if unsure)
             county = county_name
             file = target_file
+        [[[145220000000]]]
+            provider = BBK
+            # section name is county 
+            file = DL
+        [[[Leipzig]]]
+            provider = BBK
+            county = 147130000000 
+            file = L
      # configuration for the --belchertown option of dwd-mosmix
      [[Belchertown]]
         # name of the section of the Belchertown skin in [StdReport]

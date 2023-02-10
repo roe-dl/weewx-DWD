@@ -138,7 +138,11 @@ if __name__ == "__main__" or invoke_fn in standalone:
         print('ERROR', x, file=sys.stderr)
         
     def accumulateLeaves(x):
-        return x
+        y = dict()
+        y.update({a:x.parent.parent[a] for a in x.parent.parent.scalars})
+        y.update({a:x.parent[a] for a in x.parent.scalars})
+        y.update({a:x[a] for a in x.scalars})
+        return y
 
 else:
 
@@ -255,6 +259,12 @@ class Germany(object):
 
 class CAP(object):
 
+    NOWARNING = {
+        'de': 'zur Zeit keine Warnungen',
+        'en': 'no warnings at present',
+        'fr': "pas d'alerte pour le moment"
+    }
+
     # Codes from CAP
 
     SEVERITY = {
@@ -319,12 +329,15 @@ class CAP(object):
         """ file name of the alert icon """
         return None
 
-    def __init__(self, warn_dict, log_success=True, log_failure=True, verbose=False):
+    def __init__(self, warn_dict, verbose=False):
         super(CAP,self).__init__()
         # logging configuration
-        self.log_success = log_success
-        self.log_failure = log_failure
+        self.log_success = tobool(warn_dict.get('log_success',False))
+        self.log_failure = tobool(warn_dict.get('log_failure',False))
         self.verbose = verbose
+        if verbose:
+            self.log_success = True
+            self.log_failure = True
         # internal data to be initialized in the provider specific classes
         self.icon_base_url = None
         self.logo_base_url = None
@@ -518,6 +531,9 @@ class CAP(object):
                         alert['sender_logo'] = self.logo_base_url+'/'+logo['image']
                     if 'name' in logo:
                         alert['sender_name'] = logo['name']
+
+            if 'capwarnings-downloaded' in alert_dict:
+                alert['capwarnings_downloaded'] = alert_dict['capwarnings-downloaded']
             
             return alert
         return None
@@ -559,12 +575,12 @@ class CAP(object):
         #if self.verbose:
         #    loginf('file %s processed' % filename)
         #print(json.dumps(wwarn,indent=4,ensure_ascii=False))
-        return wwarn
+        return wwarn, lang
 
     def write_html(self, wwarn, target_path, dryrun):
         """ prototype function """
         raise NotImplementedError
-
+    
 
 ##############################################################################
 #   DWD specific constants and functions                                     #
@@ -819,13 +835,16 @@ class DWD(CAP):
             return None
 
 
-    def __init__(self, warn_dict, log_success=True, log_failure=True, verbose=False):
-        super(DWD,self).__init__(warn_dict, log_success, log_failure, verbose)
+    def __init__(self, warn_dict, verbose=False):
+        super(DWD,self).__init__(warn_dict, verbose)
         # warn icons
-        self.icon_base_url = warn_dict['icons']
+        if 'dwd_icons' in warn_dict:
+            self.icon_base_url = warn_dict['dwd_icons']
+        else:
+            self.icon_base_url = warn_dict['icons']
         # Bundeslaender und Landkreise, fuer die Warndaten
         # bereitgestellt werden sollen, aus weewx.conf lesen
-        self.resolution = warn_dict.get('resolution','city')
+        self.resolution = warn_dict.get('dwd_resolution','city')
         self.states = warn_dict.get('states',[])
         if not isinstance(self.states,list): self.states=[self.states]
         _area = DWD.CAP_URL_RES.get(self.resolution,'COMMUNEUNION' if 'cities' in warn_dict else 'DISTRICT')
@@ -890,13 +909,15 @@ class DWD(CAP):
         wwarn={self.filter_area[i]:dict() for i in self.filter_area}
         # download CAP file 
         zz = self.download_zip(diff,filename)
+        ti = time.time()
         # process alerts included in the CAP file
         for name in zz.namelist():
             # read file out of zip file and convert to dict
             xmltext = zz.read(name).decode(encoding='utf-8')
             cap_dict = self.convert_xml(xmltext,log_tags)
             for warn in cap_dict:
-                yield(cap_dict[warn])
+                cap_dict[warn]['capwarnings-downloaded'] = ti
+                yield cap_dict[warn]
         
         
     def _area_filter(self, info_dict):
@@ -942,6 +963,9 @@ class DWD(CAP):
 
 
     def write_html(self, wwarn, target_path, dryrun):
+        lang = wwarn[1]
+        wwarn = wwarn[0]
+        # loop over all target file names
         for __ww in wwarn:
             s = ""
             stateShort = ""
@@ -991,12 +1015,14 @@ class DWD(CAP):
                 if val.get('instruction'):
                     s+="<p>%s</p>\n" % val['instruction']
 
-                s+='<p style="font-size:40%%">%s &ndash; %s &emsp;&ndash;&emsp; %s &ndash; %s &emsp;&ndash;&emsp; II=%s &ndash; %s</p>' % (val['type'],val['event'],val['level'],val['level_text'],val.get('eventCode-II',''),val.get('eventCode-GROUP',''))
+                s += '<p style="font-size:40%%">%s &ndash; %s &emsp;&ndash;&emsp; %s &ndash; %s &emsp;&ndash;&emsp; II=%s &ndash; %s</p>' % (val['type'],val['event'],val['level'],val['level_text'],val.get('eventCode-II',''),val.get('eventCode-GROUP',''))
 
+            ti = time.localtime(wwarn[__ww][0]['capwarnings_downloaded'] if wwarn[__ww] else time.time())
             if s:
-                s+='<p style="font-size:80%%">Quelle: <a href="%s" target="_blank">DWD</a> | Abgerufen am %s</p>\n' % (DWD.DWD_COPY.get(stateShort,"https://www.wettergefahren.de"),time.strftime('%d.%m.%Y %H:%M'))
+                s += '<p style="font-size:80%%">Quelle: <a href="%s" target="_blank">DWD</a> | Abgerufen am %s</p>\n' % (DWD.DWD_COPY.get(stateShort,"https://www.wettergefahren.de"),time.strftime('%d.%m.%Y %H:%M',ti))
             else:
-                s='<p>zur Zeit keine Warnungen</p>'
+                s = '<p>%s</p>' % CAP.NOWARNING.get(lang,CAP.NOWARNING['en'])
+                s += '<p style="font-size:80%%">Zuletzt beim <a href="%s" target="_blank">DWD</a> abgerufen am %s</p>\n' % (DWD.DWD_COPY.get(stateShort,"https://www.wettergefahren.de"),time.strftime('%d.%m.%Y %H:%M',ti))
             
             if dryrun:
                 print("########################################")
@@ -1120,17 +1146,29 @@ class BBK(CAP):
         else:
             return 'bbkicon.png'
     
-    def __init__(self, warn_dict, log_success=True, log_failure=True, verbose=False):
-        super(BBK,self).__init__(warn_dict,log_success,log_failure,verbose)
+    def __init__(self, warn_dict, verbose=False):
+        super(BBK,self).__init__(warn_dict,verbose)
         self.bbk_url = BBK.DEFAULT_BBK_URL
         # warn icons
-        self.icon_base_url = warn_dict.get('icons',self.bbk_url+'/appdata/gsb/eventCodes')
-        self.logo_base_url = warn_dict.get('logos',self.bbk_url+'/appdata/gsb/logos')
+        if 'bbk_icons' in warn_dict:
+            self.icon_base_url = warn_dict['bbk_icons']
+        else:
+            self.icon_base_url = warn_dict.get('icons',self.bbk_url+'/appdata/gsb/eventCodes')
+        if 'bbk_logos' in warn_dict:
+            self.logo_base_url = warn_dict['bbk_logos']
+        else:
+            self.logo_base_url = warn_dict.get('logos',self.bbk_url+'/appdata/gsb/logos')
         self.eventicons = self.get_eventcodes()
         self.logos = self.get_logos()
-        self.filter_area = warn_dict.get('counties',dict())
+        # list of counties to get warnings for
+        self.filter_area = warn_dict.get('counties',configobj.ConfigObj())
+        for section in warn_dict.sections:
+            if section not in ('counties','cities'):
+                sec_dict = warn_dict[section]
+                if sec_dict.get('provider','------').upper()=='BBK':
+                    self.filter_area[sec_dict.get('county',section)] = sec_dict.get('file',section)
         # include DWD warnings (default: no)
-        self.include_dwd = tobool(warn_dict.get('include_dwd',False))
+        self.include_dwd = tobool(warn_dict.get('bbk_include_dwd',False))
 
 
     def wget(self, url, success_msg='successfully downloaded %s'):
@@ -1231,6 +1269,7 @@ class BBK(CAP):
         for id in areas:
             # download warning
             alert = self.get_warning(id)
+            ti = time.time()
             if self.verbose:
                 print('BBK.warnings() get_warning(',id,')')
             # 'info' is an array of different language versions of the alert
@@ -1242,7 +1281,8 @@ class BBK(CAP):
             
             # "opendata@dwd.de"
             if alert.get('sender','')!="opendata@dwd.de" or self.include_dwd:
-                yield(alert)
+                alert['capwarnings-downloaded'] = ti
+                yield alert
                     
                         
                 
@@ -1297,6 +1337,8 @@ class BBK(CAP):
 
     def write_html(self, wwarn, target_path, dryrun):
         """ BBK """
+        lang = wwarn[1]
+        wwarn = wwarn[0]
         for __ww in wwarn:
             s = ""
             r = None
@@ -1342,7 +1384,8 @@ class BBK(CAP):
             if s:
                 s += '<p style="font-size:65%%">Herausgegeben vom BBK | Abgerufen am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M')
             else:
-                s='<p>zur Zeit keine Warnungen</p>'
+                s = '<p>%s</p>' % CAP.NOWARNING.get(lang,CAP.NOWARNING['en'])
+                s += '<p style="font-size:65%%">Zuletzt beim BBK abgerufen am %s</p>\n' % time.strftime('%d.%m.%Y %H:%M')
  
             if dryrun:
                 print("########################################")
@@ -1424,7 +1467,7 @@ class MSC(CAP):
         except LookupError:
             return 'unknown'
 
-    def __init__(self, warn_dict, log_success=True, log_failure=True, verbose=False):
+    def __init__(self, warn_dict, verbose=False):
         super(MSC,self).__init__(warn_dict)
         self.filter_area = dict()
         self.offices = []
@@ -1470,11 +1513,13 @@ class MSC(CAP):
                 files = self.dir(x,'cap')
                 for file in files:
                     reply = self.wget(x+file)
+                    ti = time.time()
                     if reply:
                         xmltext = reply.decode(encoding='utf-8')
                         cap_dict = self.convert_xml(xmltext,log_tags)
                         cap_dict['alert']['MSC_office'] = dir[0:4]
                         cap_dict['alert']['MSC_hour'] = subdir[0:2]
+                        cap_dict['alert']['capwarnings_downloaded'] = ti
                         yield cap_dict['alert']
 
 
@@ -1508,6 +1553,8 @@ class MSC(CAP):
 
     def write_html(self, wwarn, target_path, dryrun):
         """ Canada """
+        lang = wwarn[1]
+        wwarn = wwarn[0]
         for __ww in wwarn:
             s = ""
             stateShort = ""
@@ -1532,7 +1579,7 @@ class MSC(CAP):
             if s:
                 s+='<p style="font-size:80%%">Source: %s | Downloaded at %s</p>\n' % (val['source'],time.strftime('%Y-%m-%d %H:%M'))
             else:
-                s='<p>Actually no warnings</p>'
+                s='<p>%s</p>' % CAP.NOWARNING.get(lang,CAP.NOWARNING['en'])
             
             if dryrun:
                 print("########################################")
@@ -1705,8 +1752,30 @@ class CAPwarnings(object):
         super(CAPwarnings,self).__init__()
         self.provider = provider
         section = CAPwarnings.PROVIDERS[provider]
-        base_dict = accumulateLeaves(config_dict[section[0]])
-        warn_dict = accumulateLeaves(config_dict[section[0]][section[1]])
+        ws_dict = configobj.ConfigObj()
+        if 'WeatherServices' in config_dict and 'warning' in config_dict['WeatherServices']:
+            base_dict = accumulateLeaves(config_dict['WeatherServices'])
+            ws_dict.update(accumulateLeaves(config_dict['WeatherServices']['warning']))
+            for sec in config_dict['WeatherServices']['warning']:
+                sec_dict = accumulateLeaves(config_dict['WeatherServices']['warning'][sec])
+                ws_dict[sec] = sec_dict
+        if 'DeutscherWetterdienst' in config_dict:
+            if provider=='BBK' and 'BBK' in config_dict['DeutscherWetterdienst']:
+                for county,file in config_dict['DeutscherWetterdienst']['BBK']['counties'].items():
+                    ws_dict[county] = {'provider':'BBK','file':file}
+                if 'icons' in config_dict['DeutscherWetterdienst']['BBK']:
+                    ws_dict['bbk_icons'] = config_dict['DeutscherWetterdienst']['BBK']['icons']
+                if 'logos' in config_dict['DeutscherWetterdienst']['BBK']:
+                    ws_dict['bbk_logos'] = config_dict['DeutscherWetterdienst']['BBK']['logos']
+                base_dict = accumulateLeaves(config_dict['DeutscherWetterdienst'])
+            if provider=='DWD' and 'warning' in config_dict['DeutscherWetterdienst']:
+                ws_dict['counties'] = config_dict['DeutscherWetterdienst']['warning']['counties']
+                ws_dict['cities'] = config_dict['DeutscherWetterdienst']['warning']['cities']
+                if 'icons' in config_dict['DeutscherWetterdienst']['warning']:
+                    ws_dict['dwd_icons'] = config_dict['DeutscherWetterdienst']['warning']['icons']
+                if 'resolution' in config_dict['DeutscherWetterdienst']['warning']:
+                    ws_dict['dwd_resolution'] = config_dict['DeutscherWetterdienst']['warning']['resolution']
+                base_dict = accumulateLeaves(config_dict['DeutscherWetterdienst'])
         # target path
         try:
             self.target_path = config_dict['WeatherServices']['path']
@@ -1714,14 +1783,16 @@ class CAPwarnings(object):
             self.target_path = base_dict['path']
         # logging
         self.verbose = verbose
-        self.log_success = tobool(warn_dict.get('log_success',base_dict.get('log_success',config_dict.get('log_success',False))))
-        self.log_failure = tobool(warn_dict.get('log_failure',base_dict.get('log_failure',config_dict.get('log_failure',False))))
+        self.log_success = tobool(ws_dict.get('log_success',base_dict.get('log_success',config_dict.get('log_success',False))))
+        self.log_failure = tobool(ws_dict.get('log_failure',base_dict.get('log_failure',config_dict.get('log_failure',False))))
         if int(config_dict.get('debug',0))>0 or verbose:
             self.log_success = True
             self.log_failure = True
             self.verbose = True
+        ws_dict['log_success'] = self.log_success
+        ws_dict['log_failure'] = self.log_failure
         # 
-        self.cap = section[2](warn_dict,log_success=self.log_success, log_failure=self.log_failure, verbose=self.verbose)
+        self.cap = section[2](ws_dict,verbose=self.verbose)
         
         if __name__ == "__main__" and verbose:
             print('-- configuration data ----------------------------------')
@@ -1733,6 +1804,8 @@ class CAPwarnings(object):
             print('target path:  ',self.target_path)
             print('icon URL:     ',self.cap.icon_base_url)
             print('logo URL:     ',self.cap.logo_base_url)
+            print('-- configuration dict ----------------------------------')
+            print(json.dumps(ws_dict,indent=4,ensure_ascii=False))
             print('--------------------------------------------------------')
 
 
@@ -1863,8 +1936,6 @@ if __name__ == "__main__" or invoke_fn in standalone:
 
     if options.resolution:
         config['DeutscherWetterdienst']['warning']['resolution'] = options.resolution
-    if options.include_dwd is not None:
-        config['DeutscherWetterdienst']['BBK']['include_dwd'] = options.include_dwd
     if options.target_path is not None:
         config['WeatherServices']['path'] = options.target_path
     
@@ -1886,17 +1957,25 @@ if __name__ == "__main__" or invoke_fn in standalone:
 
     # areas (cities, counties) to get alerts for
     if len(args)>0:
-        arg_dict = {arg:arg for arg in args}
-        if provider=='BBK':
-            config['DeutscherWetterdienst']['BBK']['counties'] = arg_dict
-        elif provider=='DWD':
+        if provider=='DWD':
+            arg_dict = {arg:arg for arg in args}
             res = config['DeutscherWetterdienst']['warning']['resolution']
             if res in ('county','counties'):
                 res = 'counties'
             elif res in ('city','cities'):
                 res = 'cities'
             config['DeutscherWetterdienst']['warning'][res] = arg_dict
-            
+        else:
+            arg_dict = {arg:{'provider':provider} for arg in args}
+            config['WeatherServices']['warning'] = arg_dict
+            if 'warning' in config['DeutscherWetterdienst']:
+                del config['DeutscherWetterdienst']['warning']
+    
+    if options.include_dwd is not None:
+        if 'WeatherServices' in config and 'warning' in config['WeatherServices']:
+            config['WeatherServices']['warning']['bbk_include_dwd'] = options.include_dwd
+        else:
+            config['DeutscherWetterdienst']['BBK']['include_dwd'] = options.include_dwd
 
     if options.lsii:
         # list II weather codes

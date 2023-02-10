@@ -277,8 +277,8 @@ Gemeindeebene, herausgegeben. Das bedeutet, daß die letzten sieben
 Stellen des ARS 0 sein müssen.
 
 Die ARS, für die Meldungen abzufragen sind, können in beim
-Programmaufruf auf der Kommanodozeile oder in der Konfiguration im 
-Abschnitt `[[BBK]][[[counties]]]` angegeben werden.
+Programmaufruf auf der Kommanodozeile oder in der Konfiguration 
+angegeben werden.
 
 [Liste der Regionalschlüssel ARS der Landkreise](https://github.com/roe-dl/weewx-DWD/wiki/Namen-der-Landkreise-in-der-Schreibweise-des-Deutschen-Wetterdienstes)
 
@@ -492,6 +492,7 @@ Beispiel:
     [[warning]]
         icons='../dwd/warn_icons_50x50'
         states='Sachsen','Thüringen'
+        resolution = county|city
         [[[counties]]]
               'Kreis Mittelsachsen - Tiefland'='DL'
               'Stadt Leipzig'='L'
@@ -503,13 +504,6 @@ Beispiel:
               'Leipzig-Mitte'='L'
               'Stadt Jena'='J'
               'Dresden-Altstadt'='DD'
-    # Konfiguration für bbk-warnings
-    [[BBK]]
-        #icons=...
-        #logos=...
-        [[[counties]]]
-            145220000000 = DL
-            147130000000 = L
 [WeatherServices]
     # Verzeichnis, in das die Dateien gespeichert werden sollen
     path='/etc/weewx/skins/Belchertown/dwd'
@@ -549,6 +543,29 @@ Beispiel:
         #show_obs_description = False # optional
         # Soll der Ortsname über die Tabelle geschrieben werden?
         #show_placemark = True # optional
+    # Warnungen (dwd-cap-warnings, bbk-warnings, msc-warnings)
+    [[warning]]
+        #icons = ... # Optional, für alle Provider
+        #bbk_icons = ... # Optional, nur für BBK
+        #bbk_logos = ... # Optional, nur für BBK
+        #bbk_include_dwd ... # Optional, nur für BBK
+        #dwd_icons = ... # Optional, nur für DWD
+        #dwd_status_url = ... # Optional, nur für DWD
+        #dwd_diff_url = ... # Optional, nur für DWD
+        # Beispiele
+        [[[1]]]
+            provider = MSC # Canada
+            office = ... # Code of the issuing office (try without if unsure)
+            county = county_name
+            file = target_file
+        [[[145220000000]]]
+            provider = BBK 
+            # Die Überschrift ist die Kreiskennung.
+            file = DL
+        [[[Leipzig]]]
+            provider = BBK
+            county = 147130000000 
+            file = L
      # Konfiguration für die --belchertown Option von dwd-mosmix
      [[Belchertown]]
         # Name des Abschnittes der Belchertown-Skin in [StdReport]

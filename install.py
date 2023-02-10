@@ -4,17 +4,29 @@
 
 # Caution! Not finished.
 
+"""
+    This script is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This script is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+"""
+
 from weecfg.extension import ExtensionInstaller
 import os
 import os.path
 import shutil
 
 def loader():
-    return PVInstaller()
+    return DWDInstaller()
 
-class PVInstaller(ExtensionInstaller):
+class DWDInstaller(ExtensionInstaller):
     def __init__(self):
-        super(PVInstaller, self).__init__(
+        super(DWDInstaller, self).__init__(
             version="0.x",
             name='weather forecasts',
             description='Service to retrieve data from weather services',
