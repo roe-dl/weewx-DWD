@@ -2079,11 +2079,15 @@ class DwdMosmix(object):
         return days
 
 
-    def write_database(self, placemark, timesteps):
+    def write_database(self, placemark, timesteps, issue):
         #print(placemark)
         #print(timesteps)
         if has_sqlite and self.SQLITE_ROOT:
-            self.dbm_open(placemark['id'],[dwd_obs_to_weewx_obs(jj) for jj in placemark['Forecast']])
+            if issue.get('Issuer','')=='Open-Meteo':
+                columns = [dwd_obs_to_weewx_obs(jj) for jj in placemark['Forecast']]
+            else:
+                columns = None
+            self.dbm_open(placemark['id'],columns)
             cursor = self.dbm_cursor()
             self.dbm_truncate(cursor)
             for idx,ii in enumerate(timesteps):
@@ -2093,7 +2097,7 @@ class DwdMosmix(object):
                           'hour':time.localtime(ii*0.001).tm_hour} # min.
                 for jj in placemark['Forecast']:
                     key = dwd_obs_to_weewx_obs(jj)
-                    if key:
+                    if key and key in self.dbm_columns():
                         values[key] = placemark['Forecast'][jj][idx]
                         if key=='rain': values[key] *= 0.1
                 try:
@@ -2151,7 +2155,7 @@ class DwdMosmix(object):
         if 'database' in output:
             if self.verbose:
                 loginf('database')
-            self.write_database(placemark,timesteps)
+            self.write_database(placemark,timesteps,issue)
             
         if self.verbose:
             loginf('placemark id "%s" processed' % placemark.get('id'))
@@ -2197,21 +2201,23 @@ class DwdMosmix(object):
             for ii in icons:
                 print('%-16s: %s' % (ii,icons[ii]))
                 
-    def dbm_open(self, id, columns):
+    def dbm_open(self, id, columns=None):
         if has_sqlite and self.SQLITE_ROOT:
             fn = os.path.join(self.SQLITE_ROOT,'dwd-forecast-%s.sdb' % id)
             new = not os.path.exists(fn)
             self.connection = sqlite3.connect(fn)
-            schema = [('dateTime','INTEGER NOT NULL PRIMARY KEY'),
+            if columns:
+                sch = [('dateTime','INTEGER NOT NULL PRIMARY KEY'),
                      ('usUnits','INTEGER NOT NULL'),
                      ('interval','INTEGER NOT NULL'),
                      ('hour','INTEGER')]
-            for x in columns:
-                if x is not None:
-                    schema.append((x,'INTEGER' if x=='ww' else 'REAL'))
+                for x in columns:
+                    if x is not None:
+                        sch.append((x,'INTEGER' if x=='ww' else 'REAL'))
+            else:
+                sch = schema
             if new:
-                #s = ','.join(s)
-                s = ','.join([x[0]+' '+x[1] for x in schema])
+                s = ','.join([x[0]+' '+x[1] for x in sch])
                 s = 'CREATE TABLE forecast ('+s+')'
                 if self.verbose:
                     print('dbm_open',s)
@@ -2219,7 +2225,7 @@ class DwdMosmix(object):
                 if cur:
                     cur.execute(s)
                     self.dbm_commit()
-            self.columns = [x[0] for x in schema]
+            self.columns = [x[0] for x in sch]
             return True
         return False
         
@@ -2250,6 +2256,9 @@ class DwdMosmix(object):
                 cols.append('`'+ii+'`')
                 vals.append(str(values[ii]))
         cursor.execute('INSERT INTO forecast (%s) VALUES (%s)' % (','.join(cols),','.join(vals)))
+        
+    def dbm_columns(self):
+        return self.columns
         
     OPENMETEO_OBS = {
         # Open-Meteo name: DWD-MOSMIX name
@@ -2576,7 +2585,7 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
     
     if options.html: output.append('html')
     if options.json: output.append('json')
-    if not options.html and not options.json and not options.belchertown:
+    if not options.html and not options.json and not options.belchertown and not options.database:
         output.append('html')
         if options.daily:
             output.append('json')
