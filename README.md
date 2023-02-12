@@ -534,9 +534,11 @@ Beispiel:
     # Konfiguration für dwd-mosmix
     [[forecast]]
         # Speicherort der Symbole auf dem Web-Server
-        icons='../images'
+        icons = '../images'
+        # zu verwendender Symbolsatz: belchertown, dwd, aeris
+        icon_set = belchertown
         # für welche Orientierungen soll die HTML-Datei erzeugt werden?
-        orientation=h,v
+        orientation = h,v
         # Sollen die Meßgrößensymbole in die Tabelle aufgenommen werden?
         #show_obs_symbols = True # optional
         # Soll die Meßgrößenbeschreibung in die Tabelle aufgenommen werden?

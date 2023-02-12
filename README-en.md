@@ -422,9 +422,11 @@ Example:
     # configuration for dwd-mosmix
     [[forecast]]
         # location of the icons on the web server
-        icons='../images'
+        icons = '../images'
+        # which icon set to use: belchertown, dwd, aeris
+        icon_set = belchertown
         # which orientation(s) shall be created in HTML?
-        orientation=h,v
+        orientation = h,v
         # show observation type icons in HTML
         #show_obs_symbols = True # optional
         # show observation type description in HTML
