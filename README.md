@@ -848,6 +848,8 @@ Vorhersagegrößen:
 * `rainDur`: Regendauer innerhalb der letzten Stunde
 * `sunshineDur`: Sonnenscheindauer innerhalb der letzten Stunde
 
+### Belchertown-Skin
+
 Beispielkonfiguration in `graphs.conf` für Belchertown-Skin:
 ```
     [[forecast]]
@@ -859,6 +861,11 @@ Beispielkonfiguration in `graphs.conf` für Belchertown-Skin:
         [[[outTemp]]]
         [[[dewpoint]]]
 ```
+
+Beispiel:
+<img src="forecast-chart-belchertown.png" />
+
+### Andere Skins
 
 Beispielkonfiguration in `skin.conf`:
 ```
@@ -875,8 +882,7 @@ Beispielkonfiguration in `skin.conf`:
             [[[[dewpoint]]]]
 ```
 
-Beispiel:
-<img src="forecast-chart-belchertown.png" />
+![Vorhersagediagramm](./forecast-chart-other.png)
 
 ## Wetterkarte im HTML-Template
 
