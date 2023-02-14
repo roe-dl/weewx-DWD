@@ -616,6 +616,101 @@ usr/local/bin/dwd-mosmix --print-uba=meta,measure
 If you want to use warnings, you need to call `dwd-cap-warnings` before
 `dwd-mosmix`. Otherwise outdated warnings may be processed.
 
+## Weather forecast diagram
+
+Using the option `--database` you can create an SQLITE database file.
+It is written into the path defined by `SQLITE_ROOT` and named
+`dwd-forecast-station_code.sdb`.
+
+Generally, the values are in hourly interval.
+
+To use that file for diagrams you need to declare it in `weewx.conf`
+as follows:
+
+```
+[DataBindings]
+    ...
+    [[dwd_binding]]
+        database = dwd_sqlite
+        table_name = forecast
+        manager = weewx.manager.Manager
+        schema = schemas.dwd.schema
+[Databases]
+    ...
+    [[dwd_sqlite]]
+        database_name = dwd-forecast-Stationscode.sdb
+        database_type = SQLite
+```
+
+Then write a file named `dwd.py` into the `schemas` directory of
+WeeWX, containing the following:
+
+```
+schema = [('dateTime','INTEGER NOT NULL PRIMARY KEY'),
+          ('usUnits','INTEGER NOT NULL'),
+          ('interval','INTEGER NOT NULL')]
+```
+
+In `extensions.py` the missing observation types are to be defined:
+
+```
+import weewx.units
+weewx.units.obs_group_dict['pop'] = 'group_percent'
+weewx.units.obs_group_dict['cloudcover'] = 'group_percent'
+weewx.units.obs_group_dict['sunshineDur'] = 'group_deltatime'
+weewx.units.obs_group_dict['rainDur'] = 'group_deltatime'
+```
+
+Observation types in forecast:
+* `outTemp`: air temperature 2m above the ground
+* `dewpoint`: dewpoint 2m above the ground
+* `windDir`: wind direction
+* `windSpeed`: wind speed
+* `windGust`: wind gust speed
+* `pop`: propability of precipitation
+* `cloudcover`: cloud cover
+* `barometer`: barometer
+* `rain`: amount of rain during the last hour
+* `rainDur`: rain duration during the last hour
+* `sunshineDur`: sunshine duration during the last hour
+
+### Belchertown skin
+
+Example configuration within `graphs.conf`:
+
+```
+    [[forecast]]
+        tooltip_date_format = "dddd LLL"
+        gapsize = 3600 # 1 hour in seconds
+        credits = "&copy; DWD"
+        data_binding = dwd_binding
+        time_length = all
+        [[[outTemp]]]
+        [[[dewpoint]]]
+```
+
+![Belchertown skin example](./forecast-chart-belchertown.png)
+
+### Other skins
+
+Example configuration within `skin.conf`:
+
+```
+[ImageGenerator]
+    ...
+    [[day_images]]
+        ...
+        [[[forecast]]]
+            data_binding = dwd_binding
+            line_gap_fraction = 0.04
+            time_length = 950400
+            x_label_format = %d.%m.
+            [[[[outTemp]]]]
+            [[[[dewpoint]]]]
+```
+
+![Other skin example](./forecast-chart-other.png)
+
 ## Weather map in HTML template
 
 Please, adjust the path within the following examples to the path you
