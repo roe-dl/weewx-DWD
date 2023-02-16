@@ -451,6 +451,64 @@ Folgende Meßgrößen sind definiert, aber nicht immer verfügbar:
 `icon`, `icontitle`, `station_id` und `MESS_DATUM_ENDE` sind 
 Textfelder, die nur mit `.raw` benutzt werden können.
 
+# Searchlist-Erweiterung `$presentweather`
+
+Die Wettervorhersage und auch manche Meßgeräte liefern einen Code `ww` für das
+aktuelle Wetter, wie er von der WMO standardisiert worden ist. Diesen
+Codes ist jeweils ein passends Icon zugeordnet. Beim Erzeugen der
+Wettervorhersagen mit `dwd-mosmix` wird das Icon zugeordnet und in
+die Tabelle eingefügt. 
+
+Steht der Wert dagegen zum Beispiel als Meßgröße zur Verfügung, dann kann 
+man diese Searchlist-Erweiterung benutzen, um das zum Code passende Icon
+darzustellen.
+
+In `skin.conf` ist dazu folgende Eintragung nötig:
+
+```
+[CheetahGenerator]
+    search_list_extensions = user.weathercodes.WeatherSearchList
+    ...
+```
+
+Gibt es die Zeile `search_list_extensions` schon, ist der Wert am Schluß
+mit Komma getrennt anzufügen.
+
+Anschließend steht ein neues Tag zur Verfügung:
+
+```
+$presentweather($ww,$n,$night).option
+```
+
+Die Paremter sind:
+* `$ww`: der Wettercode ww oder eine Liste von Wettercodes, von denen
+   der "schlimmste" verwendet wird
+* `$n`: die Wolkenbedeckung in Prozent (nur bei $ww<4 nötig)
+* `$night`: `True`, wenn das Nachtsymbol verwendet werden soll
+
+`option` ist eine der folgenden Möglichkeiten:
+* `ww`: der Wettercode, der aus der Liste herausgesucht wurde
+* `text`: Beschreibung des zugehörigen Wetterereignisses
+* `belchertown_icon`: Dateiname des Icons aus dem Belchertown-Icon-Satz
+* `dwd_icon`: Dateiname des Icons aus dem DWD-Icon-Satz
+* `aeris_icon`: Dateiname des Icons aus dem Aeris-Icon-Satz
+* `wmo_symbol`: Symbol der Meteorologen für den Wetterzustand
+* `smo_symbol($width)`: Symbol der Meteorologen für den Wetterzustand
+  mit Größenangabe
+
+Die Dateinamen werden zusammen mit dem HTML-Tag `<img>` verwendet,
+zum Beispiel:
+
+```
+<img src="$relative_url/images/$presentweather($ww,$n,$night).belchertown_icon" />
+```
+
+`wmo_symbol` wird dagegen direkt verwendet, zum Beispiel:
+
+```
+$presentweather($ww,$n,$night).wmo_symbol(30)
+```
+
 # Warnregionen
 
 Die Warnungen in der JSONP-Datei `warnings.json` ist nach Landkreisen gegliedert. Manche Landkreise sind dann noch weiter nach Landschaftsmerkmalen wie etwa Bergland und Tiefland unterteilt. Andere Dateien sind nach Bundesländern gegliedert. Im Wiki sind die vom Deutschen Wetterdienst verwendeten Bezeichnungen und Abkürzungen beschrieben:

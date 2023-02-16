@@ -20,6 +20,54 @@ from __future__ import with_statement
 """
 
 """
+    Usage
+    =====
+    
+    Standard use case is to set up a search list extension in skin.conf:
+    
+        search_list_extensions = ..., user.weathercodes.WeatherSearchList
+        
+    Then an additional tag is available:
+    
+        $presentweather(ww, n=None, night=False).ww
+        $presentweather(ww, n=None, night=False).text
+        $presentweather(ww, n=None, night=False).mosmix_priority
+        $presentweather(ww, n=None, night=False).belchertown_icon
+        $presentweather(ww, n=None, night=False).dwd_icon
+        $presentweather(ww, n=None, night=False).aeris_icon
+        $presentweather(ww, n=None, night=False).wmo_symbol
+        $presentweather(ww, n=None, night=False).wmo_symbol(width)
+
+    Use the icons with the <img> tag, for example:
+    
+        <img src="../images/$presentweather($ww,$n,$night).belchertown_icon" />
+
+    "wmo_symbol" is a vector graphic that is displayed directly. The tag
+    is enough. No <img> needed.
+    
+        $presentweather($ww,$n,$night).wmo_symbol($width)
+    
+    Standalone usage:
+    
+    python3 user/weathercodes.py --print-ww-list
+    
+        print an HTML table of all ww symbols and descriptions to stdout
+        
+    python3 user/weathercodes.py --print-ww-tab
+    
+        print an HTML table of all the ww symbols
+        
+    python3 user/weathercodes.py --write-ww-files
+    
+        write an SVG file for each of the ww symbols
+        
+    python3 user/weathercodes.py --test-searchlist
+    
+        for debugging only
+    
+    Present weather codes
+    =====================
+    
     Codes of present weather as defined by the WMO code 4677
     
     ww      | description

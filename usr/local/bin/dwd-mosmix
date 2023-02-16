@@ -117,6 +117,7 @@ def get_mos_url(location, mosmix):
     return DEFAULT_LOCAL_FORECAST_URL+'/'+"mos"+"/"+MOSMIX_DICT.get(mosmix.lower(),mosmix)+"/"+location
 
 # https://www.dwd.de/DE/leistungen/opendata/help/schluessel_datenformate/kml/mosmix_element_weather_xls.xlsx?__blob=publicationFile&v=6
+# ww, german description, English description, severity, Belchertown icon, DWD icon, Aeris icon, Aeris coded weather
 WW_LIST = [
     (95,'leichtes oder mäßiges Gewitter mit Regen oder Schnee','slight or moderate thunderstorm with rain or snow',1,'thunderstorm.png','27.png','tstorm','::T'),
     (57,'mäßiger oder starker gefrierender Sprühregen','Drizzle, freezing, moderate or heavy (dence)',2,'sleet.png','67.png','freezingrain',':H:ZL'),
