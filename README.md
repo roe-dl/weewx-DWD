@@ -477,16 +477,16 @@ mit Komma getrennt anzufügen.
 Anschließend steht ein neues Tag zur Verfügung:
 
 ```
-$presentweather($ww,$n,$night).option
+$presentweather($ww,$n,$night).attr
 ```
 
-Die Paremter sind:
+Die Parameter sind:
 * `$ww`: der Wettercode ww oder eine Liste von Wettercodes, von denen
    der "schlimmste" verwendet wird
 * `$n`: die Wolkenbedeckung in Prozent (nur bei $ww<4 nötig)
 * `$night`: `True`, wenn das Nachtsymbol verwendet werden soll
 
-`option` ist eine der folgenden Möglichkeiten:
+`attr` ist eine der folgenden Möglichkeiten:
 * `ww`: der Wettercode, der aus der Liste herausgesucht wurde
 * `text`: Beschreibung des zugehörigen Wetterereignisses
 * `belchertown_icon`: Dateiname des Icons aus dem Belchertown-Icon-Satz
@@ -508,6 +508,8 @@ zum Beispiel:
 ```
 $presentweather($ww,$n,$night).wmo_symbol(30)
 ```
+
+[Beschreibung der Symbole](https://www.woellsdorf-wetter.de/info/presentweather.html)
 
 # Warnregionen
 
