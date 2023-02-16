@@ -493,7 +493,7 @@ Die Paremter sind:
 * `dwd_icon`: Dateiname des Icons aus dem DWD-Icon-Satz
 * `aeris_icon`: Dateiname des Icons aus dem Aeris-Icon-Satz
 * `wmo_symbol`: Symbol der Meteorologen für den Wetterzustand
-* `smo_symbol($width)`: Symbol der Meteorologen für den Wetterzustand
+* `wmo_symbol($width)`: Symbol der Meteorologen für den Wetterzustand
   mit Größenangabe
 
 Die Dateinamen werden zusammen mit dem HTML-Tag `<img>` verwendet,
