@@ -49,11 +49,19 @@ from __future__ import with_statement
 
     https://www.dwd.de/DE/leistungen/opendata/help/schluessel_datenformate/kml/mosmix_element_weather_xls.xlsx?__blob=publicationFile&v=6
     https://www.nodc.noaa.gov/archive/arc0021/0002199/1.1/data/0-data/HTML/WMO-CODE/WMO4677.HTM
+    https://www.woellsdorf-wetter.de/info/presentweather.html
     
 """
 
 import json
 import copy
+import configobj
+if __name__ == "__main__":
+    import optparse
+    import os.path
+    import sys
+    import time
+    sys.path.append('/usr/share/weewx')
 try:
     from weewx.cheetahgenerator import SearchList
     hasSearchList = True
@@ -168,7 +176,7 @@ WW_LIST = [
     (11,'Nebelschwaden','patches of fog or ice fog',None,'fog.png','40.png','fog','PA::BR'),
     (10,'feuchter Dunst','mist',None,None,None,'fog','::BR'),
     (9,'Staub- oder Sandsturm in Sichtweite','duststorm or sandstorm in sight',None,'wind.png','18.png','wind','VC::BD'),
-    (8,'kleine Windhose mit Staub oder Sand','well developed dust whirl(s) or sand whirls(s)',None,None,None,None,'VC::BD'),
+    (8,'kleine Wirbel mit Staub oder Sand','well developed dust whirl(s) or sand whirls(s)',None,None,None,None,'VC::BD'),
     (7,'Staub oder Sand aufgewirbelt in der Luft','dust or sand raised by wind',None,None,None,'dust','::BD'),
     (6,'Staub in der Luft, kein Wind','widespread dust in suspension in the air, not raised by wind',None,None,None,'dust','::H'),
     (5,'trockener Dunst','haze',None,None,None,'hazy','::H'),
@@ -220,7 +228,7 @@ WW_SECTIONS = {
     60:('Regen','rain'),
     70:('feste Niederschläge, nicht in Form von Schauern','solid precipitation not in showers'),
     80:('Schauer','shower(s)'),
-    91:('Gewitter während der letzten Stunde, jetzt nicht mehr','thunderstorm during the preceding hour but not at the time of observation'),
+    91:('Gewitter während der letzten Stunde, jetzt nur noch Niederschläge','thunderstorm during the preceding hour but not at the time of observation'),
     95:('Gewitter jetzt','thunderstorm at the time of observation')
 }
 WW_XML = '<?xml version="1.0" encoding="UTF-8" standalone="no"?> <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"> '
@@ -254,11 +262,11 @@ WW_SYMBOLS = [
     # 13 https://upload.wikimedia.org/wikipedia/commons/8/82/Symbol_code_ww_13.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 13 	Description: Lighting visible, no thunder heard </desc> <g id="ww_13" fill="none" stroke-width="3" stroke="#ed1c24" > 	<path d="M -16.5,-17.5 m 24,0 l-14,19.5 l 14.5,14.5"/> 	<path d="M 7,16.5 h1 v-1 z"/> </g> </svg> ',
     # 14 https://upload.wikimedia.org/wikipedia/commons/8/8e/Symbol_code_ww_14.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 14 	Description: Precipitation within sight, but NOT reaching the ground </desc> <g id="ww_14"> <circle r="5.5" cy="-4.5" fill="black" /> <path d="M 18.5,1 a 25,25 0 0,1 -37,0" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 14 	Description: Precipitation within sight, but NOT reaching the ground </desc> <g id="ww_14"> <circle r="5.5" cy="-4.5" fill="#00d700" /> <path d="M 18.5,1 a 25,25 0 0,1 -37,0" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
     # 15 https://upload.wikimedia.org/wikipedia/commons/4/49/Symbol_code_ww_15.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 15 	Description: Precipitation within sight, reaching ground or the surface of the sea, but distant, i.e. estimated to be more than 3 miles from the station </desc> <g id="ww_15"> <circle r="5.5" fill="black" /> <path d="M -18.5,-18.5 a 25,25 0 0,1 0,37 M 18.5,-18.5 a 25,25 0 0,0 0,37" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 15 	Description: Precipitation within sight, reaching ground or the surface of the sea, but distant, i.e. estimated to be more than 3 miles from the station </desc> <g id="ww_15"> <circle r="5.5" fill="#00d700" /> <path d="M -18.5,-18.5 a 25,25 0 0,1 0,37 M 18.5,-18.5 a 25,25 0 0,0 0,37" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
     # 16 https://upload.wikimedia.org/wikipedia/commons/7/7b/Symbol_code_ww_16.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 16 	Description: Precipitation within sight, reaching the ground or the surface of the sea, near to (within 3 miles), but not at the station </desc> <g id="ww_16"> <circle r="5.5" fill="black" /> <path d="M -5.5,-18.5 a 25,25 0 0,0 0,37 M 5.5,-18.5 a 25,25 0 0,1 0,37" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 16 	Description: Precipitation within sight, reaching the ground or the surface of the sea, near to (within 3 miles), but not at the station </desc> <g id="ww_16"> <circle r="5.5" fill="#00d700" /> <path d="M -5.5,-18.5 a 25,25 0 0,0 0,37 M 5.5,-18.5 a 25,25 0 0,1 0,37" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
     # 17 https://upload.wikimedia.org/wikipedia/commons/7/7b/Symbol_code_ww_17.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 17 	Description: Thunder heard, but no precipitation at the station </desc> <g id="ww_17" fill="none" stroke-width="3" stroke="#ed1c24" > 	<path d="M -14.5,-17.5 h 24 l-14,19.5 l 14.5,14.5"/> 	<path d="M -10.5,-17.5 v 37"/> 	<path d="M 9,16.5 h1 v-1 z"/> </g> </svg> ',
     # 18 https://upload.wikimedia.org/wikipedia/commons/7/74/Symbol_code_ww_18.svg
@@ -310,17 +318,17 @@ WW_SYMBOLS = [
     # 41 https://upload.wikimedia.org/wikipedia/commons/9/99/Symbol_code_ww_41.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 41 	Description: Fog in patches </desc> <g id="ww_41"> 	<path d="M -17.5,-9.5 h 14.5 M 17.5,-9.5 h -14.5 M -17.5,0 h 35 M -17.5,9.5 h 14.5 M 17.5,9.5 h -14.5" fill="none" stroke-width="3" stroke="#ffc83f" /> </g> </svg> ',
     # 42 https://upload.wikimedia.org/wikipedia/commons/a/ab/Symbol_code_ww_42.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 42 	Description: Fog sky visible (has become thinner during preceding hour) </desc> <g id="ww_42"> 	<path d="M -20,-9.5 h 14 M 14,-9.5 h -14 M -20,0 h 34 M -20,9.5 h 34 M 18.5,-11 v 22" fill="none" stroke-width="3" stroke="#ffc83f" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 42 	Description: Fog sky visible (has become thinner during preceding hour) </desc> <g id="ww_42"> 	<path d="M -20,-9.5 h 14 M 14,-9.5 h -14 M -20,0 h 34 M -20,9.5 h 34" fill="none" stroke-width="3" stroke="#ffc83f" /> <path d="M 18.5,-11 v 22" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
     # 43 https://upload.wikimedia.org/wikipedia/commons/8/80/Symbol_code_ww_43.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 43 	Description: Fog sky obscured (has become thinner during preceding hour) </desc> <g id="ww_43"> 	<path d="M -20,-9.5 h 34 M -20,0 h 34 M -20,9.5 h 34 M 18.5,-11 v 22" fill="none" stroke-width="3" stroke="#ffc83f" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 43 	Description: Fog sky obscured (has become thinner during preceding hour) </desc> <g id="ww_43"> 	<path d="M -20,-9.5 h 34 M -20,0 h 34 M -20,9.5 h 34"fill="none" stroke-width="3" stroke="#ffc83f" /> <path d="M 18.5,-11 v 22" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
     # 44 https://upload.wikimedia.org/wikipedia/commons/3/38/Symbol_code_ww_44.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 44 	Description: Fog sky visible (no appreciable change during the preceding hour) </desc> <g id="ww_44"> 	<path d="M -17.5,-9.5 h 14.5 M 17.5,-9.5 h -14.5 M -17.5,0 h 35 M -17.5,9.5 h 35" fill="none" stroke-width="3" stroke="#ffc83f" /> </g> </svg> ',
     # 45 https://upload.wikimedia.org/wikipedia/commons/5/5b/Symbol_code_ww_45.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 45 	Description: Fog sky obscured (no appreciable change during the preceding hour) </desc> <g id="ww_45"> 	<path d="M -17.5,-9.5 h 35 M -17.5,0 h 35 M -17.5,9.5 h 35" fill="none" stroke-width="3" stroke="#ffc83f" /> </g> </svg> ',
     # 46 https://upload.wikimedia.org/wikipedia/commons/4/45/Symbol_code_ww_46.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 46 	Description: Fog sky visible (has begun or has become thicker during the preceding hour) </desc> <g id="ww_46"> 	<path d="M -14,-9.5 h 14 M 20,-9.5 h -14 M -14,0 h 34 M -14,9.5 h 34 M -18.5,-11 v 22" fill="none" stroke-width="3" stroke="#ffc83f" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 46 	Description: Fog sky visible (has begun or has become thicker during the preceding hour) </desc> <g id="ww_46"> 	<path d="M -14,-9.5 h 14 M 20,-9.5 h -14 M -14,0 h 34 M -14,9.5 h 34" fill="none" stroke-width="3" stroke="#ffc83f" /> <path d="M -18.5,-11 v 22" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
     # 47 https://upload.wikimedia.org/wikipedia/commons/0/02/Symbol_code_ww_47.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 47 	Description: Fog sky obscured (has begun or has become thicker during the preceding hour) </desc> <g id="ww_47"> 	<path d="M -14,-9.5 h 34 M -14,0 h 34 M -14,9.5 h 34 M -18.5,-11 v 22" fill="none" stroke-width="3" stroke="#ffc83f" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 47 	Description: Fog sky obscured (has begun or has become thicker during the preceding hour) </desc> <g id="ww_47"> 	<path d="M -14,-9.5 h 34 M -14,0 h 34 M -14,9.5 h 34" fill="none" stroke-width="3" stroke="#ffc83f" /> <path d="M -18.5,-11 v 22" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
     # 48 https://upload.wikimedia.org/wikipedia/commons/7/77/Symbol_code_ww_48.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 48 	Description: Fog, depositing rime ice, sky visible </desc> <g id="ww_48"> 	<path d="M -2,0 L 0,4 L 2,0" fill="none" stroke-width="3" stroke="#ffc83f" stroke-linejoin="miter" /> 	<path d="M -17.5,-9.5 L -8.5,-9.5 L 0,7.5 L 8.5,-9.5 L 17.5,-9.5 M -17.5,0 h 35 M -17.5,9.5 h 35" fill="none" stroke-width="3" stroke="#ffc83f" stroke-linejoin="miter" /> </g> </svg> ',
     # 49 https://upload.wikimedia.org/wikipedia/commons/6/64/Symbol_code_ww_49.svg
@@ -485,7 +493,7 @@ def get_cloudcover(n):
         icon = N_ICON_LIST[4]
     return icon
 
-def print_tab(image_path='.'):
+def print_ww_list(image_path='.'):
     x = copy.copy(WW_LIST)
     x.sort(key=lambda x:x[0])
     s = '<table>\n'
@@ -508,27 +516,52 @@ def print_tab(image_path='.'):
     s += '</table>\n'
     return s
     
+def print_ww_tab(image_path='.'):
+    s = '<table cellspacing="0">\n'
+    s += '<tr>\n  <th style="margin:0px;border:1px solid black;padding:5px;background-color:#E0E0E0"></th>\n'
+    for i in range(10):
+        s += '  <th style="margin:0px;border-top:1px solid black;border-right:1px solid black;border-bottom:1px solid black;padding:5px;background-color:#E0E0E0">%1d</th>\n' % i
+    s += '</tr>\n'
+    for ww,sym in enumerate(WW_SYMBOLS):
+        if (ww%10)==0:
+            s += '<tr>\n  <th style="margin:0px;border-left:1px solid black;border-right:1px solid black;border-bottom:1px solid black;padding:5px;background-color:#E0E0E0">%1d0</th>\n' % (ww//10)
+        s += '  <td style="margin:0px;border-right:1px solid black;border-bottom:1px solid black;padding:5px">'+sym.replace('width="55"','width="40"').replace('height="55"','height="40"')+'</td>\n'
+        if (ww%10)==9:
+            s += '</tr>\n'
+    s += '</table>\n'
+    return s
+
+def write_svg_files(image_path='.'):
+    for ww,sym in enumerate(WW_SYMBOLS):
+        fn = os.path.join(image_path,'ww%02d.svg' % ww)
+        with open(fn,'w') as file:
+            file.write(WW_XML)
+            file.write(sym)
 
 if hasSearchList:
 
     class PresentWeatherBinder(object):
     
-        def __init__(self, ww, n=None, night=False, lang='en'):
-            if isinstance(ww,list):
-                self.ww = ww
+        def __init__(self, wwl, n=None, night=False, lang='en', ww_texts=None):
+            if isinstance(wwl,list):
+                self.ww_list = wwl
             else:
-                self.ww = [ww]
+                self.ww_list = [wwl]
             self.n = n
             self.night = night
             self.lang = lang
+            self.ww_texts = ww_texts
             
         def __getattr__(self, attr):
-            wwcode = get_ww(self.ww,self.n,self.night)
+            wwcode = get_ww(self.ww_list,self.n,self.night)
             if wwcode:
                 if attr=='ww':
                     return wwcode[0]
                 if attr=='text':
-                    if lang=='de':
+                    ww_str = '%02d' % wwcode[0]
+                    if self.ww_texts and ww_str in self.ww_texts:
+                        return self.ww_texts[ww_str]
+                    elif self.lang=='de':
                         return wwcode[1]
                     else:
                         return wwcode[2]
@@ -541,7 +574,7 @@ if hasSearchList:
                 if attr=='aeris_icon':
                     icon = wwcode[6]
                     if icon:
-                        if night: icon += 'n'
+                        if self.night: icon += 'n'
                         icon += '.png'
                     return icon
                 if attr=='wmo_symbol':
@@ -553,8 +586,8 @@ if hasSearchList:
         def __init__(self, ww):
             self.ww = ww
             try:
-                self.wmosymbol = WW_SYMBOLS.get(ww%100)
-            except (TypeError,ValueError,ArithmeticError):
+                self.wmosymbol = WW_SYMBOLS[ww%100]
+            except (LookupError,TypeError,ValueError,ArithmeticError):
                 self.wmosymbol = str(ww)
             
         def __str__(self):
@@ -570,20 +603,73 @@ if hasSearchList:
             super(WeatherSearchList,self).__init__(generator)
             # get language
             self.lang = self.generator.skin_dict.get('lang','en')
+            self.ww_texts = self.generator.skin_dict.get('Texts',configobj.ConfigObj()).get('ww',None)
             
         def get_extension_list(self, timespan, db_lookup):
         
             def presentweather(ww, n=None, night=False):
-                return PresentWeatherBinder(ww, n=n, night=night, lang=self.lang)
+                return PresentWeatherBinder(ww, n=n, night=night, lang=self.lang, ww_texts=self.ww_texts)
                 
             return [{'presentweather':presentweather}]
             
             
 if __name__ == "__main__":
 
+    usage = """Usage: %prog [options]
+
+Direct call is for testing only."""
+    epilog = None
+
+    # Create a command line parser:
+    parser = optparse.OptionParser(usage=usage, epilog=epilog)
+
+    parser.add_option("--print-ww-list", dest="printwwlist", action="store_true",
+                      help="Print ww list")
+    parser.add_option("--print-ww-tab", dest="printwwtab", action="store_true",
+                      help="Print ww table")
+    parser.add_option("--write-ww-files", dest="writesvg", action="store_true",
+                      help="Create a set of SVG files")
+    parser.add_option("--test-searchlist", dest="searchlist", action="store_true",
+                      help="Test search list extension")
+
+    (options, args) = parser.parse_args()
+
+    # options
     #x = copy.copy(WW_LIST)
     #x.sort(key=lambda x:x[0])
     #for i in x:
     #    print("%02d %-60s %-62s %4s %-16s %-8s %-14s %8s" % i)
-    print(print_tab())
-    
+    if options.printwwlist:
+        print(print_ww_list())
+    elif options.printwwtab:
+        print(print_ww_tab())
+    elif options.writesvg:
+        if len(args)>0:
+            pth = args[0]
+        else:
+            pth = '.'
+        write_svg_files(pth)
+    elif options.searchlist:
+        class Generator(object):
+            skin_dict = configobj.ConfigObj()
+        print('SearchList class loaded: %s' % hasSearchList)
+        ti = time.time()
+        wsl = WeatherSearchList(Generator())
+        print('Language code: %s' % wsl.lang)
+        sli = wsl.get_extension_list((ti-86400,ti),None)
+        print('Extension list: %s' % sli)
+        func = sli[0]['presentweather']
+        print('Function: %s' % func)
+        print('ww22',func(22).ww,type(func(22).ww))
+        print('text',func(5).text)
+        print('mosmix_priority',func(20).mosmix_priority)
+        print('belchertown_icon',func(45).belchertown_icon)
+        print('dwd_icon',func(67).dwd_icon)
+        print('aeris_icon',func(92).aeris_icon)
+        wmosym = func(71).wmo_symbol
+        print('wmo_symbol',wmosym)
+        print('wmo_symbol',func(83).wmo_symbol(30))
+        print('50% bewölkt Tag',func(0,50,False).belchertown_icon)
+        print('25% bewölkt Nacht',func(0,25,True).belchertown_icon)
+    else:
+        print('nothing to do')
