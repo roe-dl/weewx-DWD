@@ -886,7 +886,7 @@ schema = [('dateTime','INTEGER NOT NULL PRIMARY KEY'),
           ('interval','INTEGER NOT NULL')]
 ```
 
-In `extension.py` sind ggf. die fehlenden Meßgrößen zu definieren:
+In `user/extensions.py` sind ggf. die fehlenden Meßgrößen zu definieren:
 ```
 import weewx.units
 weewx.units.obs_group_dict['pop'] = 'group_percent'
