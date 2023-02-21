@@ -505,47 +505,91 @@ WW_SYMBOLS = [
 ]
 
 WAWA_SYMBOLS = [
-    # 0...9
-    '','','','',
+    # 00 No significant weather observed
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> </svg>',
+    # 01 Clouds generally dissolving or becoming less developed during the past hour
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> </svg>',
+    # 02 State of sky on the whole unchanged during the past hour
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> </svg>',
+    # 03 Clouds generally forming or developing during the past hour
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> </svg>',
+    # 04 Haze or smoke, or dust in suspension in the air, visibility equal to, or greater than, 1 km
     '',
+    # 05 Haze or smoke, or dust in suspension in the air, visibility less than 1 km
     '',
+    # 06...09 reserved
     None,None,None,None,
-    # 10...19
+    # 10 Mist
     WW_SYMBOLS[10],
+    # 11 Diamond dust
     WW_SYMBOLS[76],
+    # 12 Distant lightning
     WW_SYMBOLS[13],
+    # 13...17 reserved
     None,None,None,None,None,
+    # 18 Squalls
     WW_SYMBOLS[18],
+    # 19 reserved
     None,
-    # 20...29
+    # 20...29 events at the station during the preceding hour but not at the time of observation
+    # 20 Fog
     WW_SYMBOLS[28],
-    '',
+    # 21 PRECIPITATION
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g> <path d="M -13.5,0 A 9 9 0 0 1 4.5 0" fill="none" stroke="#00d700" stroke-linecap="round" stroke-width="3" /> <path d="M 6,-21 h 7 v42 h-7" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    # 22 Drizzle (not freezing) or snow grains
     WW_SYMBOLS[20],
+    # 23 Rain (not freezing)
     WW_SYMBOLS[21],
+    # 24 Snow
     WW_SYMBOLS[22],
+    # 25 Freezing drizzle or freezing rain
     WW_SYMBOLS[24],
+    # 26 Thunderstorm (with or without precipitation)
     WW_SYMBOLS[29],
+    # 27 BLOWING OR DRIFTING SNOW OR SAND
     '',
+    # 28 Blowing or drifting snow or sand, visibility equal to, or greater than, 1 km
     '',
+    # 29 Blowing or drifting snow or sand, visibility less than 1 km
     '',
-    # 30...39
-    '',
+    # 30...39 FOG
+    # 30 FOG
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <path d="M -17.5,14.25 h 35 M -17.5,-14.25 h 35 M -17.5,4.75 h 14 M -17.5,-4.75 h 14 M 17.5,-4.75 h -14 M 17.5,4.75 h -14" fill="none" stroke-width="3" stroke="#ffc83f" stroke-linejoin="miter" /> </svg>',
+    # 31 Fog or ice fog in patches
     WW_SYMBOLS[41],
+    # 32 Fog or ice fog, has become thinner during the past hour
     WW_SYMBOLS[43],
+    # 33 Fog or ice fog, no appreciable change during the past hour
     WW_SYMBOLS[45],
+    # 34 Fog or ice fog, has begun or become thicker during the past hour
     WW_SYMBOLS[47],
-    '',
+    # 35 Fog, depositing rime
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g> <path d="M -8.5,-9.5 L 0,7.5 L 8.5,-9.5 M -17.5,0 h 35 M -17.5,9.5 h 35" fill="none" stroke-width="3" stroke="#ffc83f" stroke-linejoin="miter" /> </g> </svg> ',
+    # 36...39 reserved
     None,None,None,None,
-    # 40...49
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"><g><path d="M -5.5,0 A 5.5 5.5 0 0 1 5.5 0" fill="none" stroke="#00d700" stroke-linecap="round" stroke-width="3" /></g></svg>',
+    # 40...49 PRECIPITATION
+    # 40 PRECIPITATION
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"><g><path d="M -9,0 A 9 9 0 0 1 9 0" fill="none" stroke="#00d700" stroke-linecap="round" stroke-width="3" /></g></svg>',
+    # 41 Precipitation, slight or moderate
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"><g><path d="M -14,0 A 5.5 5.5 0 0 1 -3 0 M 3,0 A 5.5 5.5 0 0 1 14,0" fill="none" stroke="#00d700" stroke-linecap="round" stroke-width="3" /></g></svg>',
+    # 42 Precipitation, heavy
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"><g><path d="M -14,0 A 5.5 5.5 0 0 1 -3 0 M 3,0 A 5.5 5.5 0 0 1 14,0 M -5.5,11.5 A 5.5 5.5 0 0 1 5.5 11.5 M -5.5,-11.5 A 5.5 5.5 0 0 1 5.5 -11.5" fill="none" stroke="#00d700" stroke-linecap="round" stroke-width="3" /></g></svg>',
-    '','',
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g><path d="M -12.389087297,-3.889087297 l 7.778174593,7.778174593 M -12.389087297,3.889087297 l 7.778174593,-7.778174593 M 4.610912697,-3.889087297 l 7.778174593,7.778174593 M 4.610912697,3.889087297 l 7.778174593,-7.778174593" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /> </g> </svg> ',
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g><path d="M -12.389087297,-3.889087297 l 7.778174593,7.778174593 M -12.389087297,3.889087297 l 7.778174593,-7.778174593 M 4.610912697,-3.889087297 l 7.778174593,7.778174593 M 4.610912697,3.889087297 l 7.778174593,-7.778174593 M -3.889087297,-16.389087297 l 7.778174593,7.778174593 M -3.889087297,-8.610912703 l 7.778174593,-7.778174593 M -3.889087297,8.610912703 l 7.778174593,7.778174593 M -3.889087297,16.389087297 l 7.778174593,-7.778174593" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /> </g> </svg> ',
-    '','',None,
-    # 50...59
+    # 43 Liquid precipitation, slight or moderate
     '',
+    # 44 Liquid precipitation, heavy
+    '',
+    # 45 Solid precipitation, slight or moderate
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g><path d="M -12.389087297,-3.889087297 l 7.778174593,7.778174593 M -12.389087297,3.889087297 l 7.778174593,-7.778174593 M 4.610912697,-3.889087297 l 7.778174593,7.778174593 M 4.610912697,3.889087297 l 7.778174593,-7.778174593" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /> </g> </svg> ',
+    # 46 Solid precipitation, heavy
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g><path d="M -12.389087297,-3.889087297 l 7.778174593,7.778174593 M -12.389087297,3.889087297 l 7.778174593,-7.778174593 M 4.610912697,-3.889087297 l 7.778174593,7.778174593 M 4.610912697,3.889087297 l 7.778174593,-7.778174593 M -3.889087297,-16.389087297 l 7.778174593,7.778174593 M -3.889087297,-8.610912703 l 7.778174593,-7.778174593 M -3.889087297,8.610912703 l 7.778174593,7.778174593 M -3.889087297,16.389087297 l 7.778174593,-7.778174593" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /> </g> </svg> ',
+    # 47 Freezing precipitation, slight or moderate
+    '',
+    # 48 Freezing precipitation, heavy
+    '',
+    # 49 reserved
+    None,
+    # 50...59 DRIZZLE
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <circle r="5.5" stroke="#00d700" stroke-width="1.5" fill="none" /> <path style="fill:none; stroke:#00d700; stroke-width:1.5; stroke-linecap:round;" d="M 5.5,0 C 4,3.7 1.9,7.1 -1,9.2" /> </svg> ',
     WW_SYMBOLS[51],
     WW_SYMBOLS[53],
     WW_SYMBOLS[55],
@@ -555,7 +599,7 @@ WAWA_SYMBOLS = [
     WW_SYMBOLS[58],
     WW_SYMBOLS[59],
     None,
-    # 60...69
+    # 60...69 RAIN
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <circle r="6.5" stroke="#00d700" stroke-width="1.5" fill="none"/> </svg> ',
     WW_SYMBOLS[61],
     WW_SYMBOLS[63],
@@ -566,8 +610,8 @@ WAWA_SYMBOLS = [
     WW_SYMBOLS[68],
     WW_SYMBOLS[69],
     None,
-    # 70...79
-    '',
+    # 70...79 SNOW
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <path d="M -17.5,0 h 35 L 8.75,-15.155 L -8.75,15.155 L 8.75,15.155 L -8.75,-15.155 z" fill="none" stroke="#ac00ff" stroke-width="1.5" /></svg>',
     WW_SYMBOLS[71],
     WW_SYMBOLS[73],
     WW_SYMBOLS[75],
@@ -577,26 +621,43 @@ WAWA_SYMBOLS = [
     WW_SYMBOLS[77],
     WW_SYMBOLS[78],
     None,
-    # 80...89
+    # 80...89 SHOWER(S) or INTERMITTENT PRECIPITATION
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g> <path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> </svg> ',
+    # 81 Rain shower(s) or intermittent rain, slight
     WW_SYMBOLS[80],
+    # 82 Rain shower(s) or intermittent rain, moderate
     WW_SYMBOLS[81],
-    '',
+    # 83 Rain shower(s) or intermittent rain, heavy
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <circle r="5.5" cx="7" cy="-15.5" fill="#00d700" /> <circle r="5.5" cx="-7" cy="-15.5" fill="#00d700" /> <path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> </svg> ',
+    # 84 Rain shower(s) or intermittent rain, violent
     WW_SYMBOLS[82],
+    # 85 Snow shower(s) or intermittent snow, slight
     WW_SYMBOLS[85],
+    # 86 Snow shower(s) or intermittent snow, moderate
     WW_SYMBOLS[86],
+    # 87 Snow shower(s) or intermittent snow, heavy
     '',
+    # 88 reserved
     None,
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g style="stroke-width:3; stroke:#ac00ff; fill:#ac00ff; stroke-linejoin:miter"> 	<path d="M 0,-8 l 8.7,14.6 h-17.4 z" /> </g> </svg> ',
-    # 90...99
+    # 89 Hail
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g stroke="#000000" fill="#000000" style="stroke-width:3; stroke-linejoin:miter"> <path d="M 0,-8 l 8.7,14.6 h-17.4 z" /> </g> </svg> ',
+    # 90 THUNDERSTORM
     WW_SYMBOLS[17],
+    # 91 Thunderstorm, slight or moderate, with no precipitation
     '',
+    # 92 Thunderstorm, slight or moderate, with rain showers and/or snow showers
     WW_SYMBOLS[95],
+    # 93 Thunderstorm, slight or moderate, with hail
     WW_SYMBOLS[96],
+    # 94 Thunderstorm, heavy, with no precipitation
     '',
+    # 95 Thunderstorm, heavy, with rain showers and/or snow showers
     WW_SYMBOLS[97],
+    # 96 Thunderstorm, heavy, with hail
     WW_SYMBOLS[99],
+    # 97...98 reserved
     None,None,
+    # 99 Tornado
     ''
 ]
 
