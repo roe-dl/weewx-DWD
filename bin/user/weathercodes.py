@@ -68,7 +68,8 @@ from __future__ import with_statement
     Present weather codes
     =====================
     
-    Codes of present weather as defined by the WMO code 4677
+    Codes of present weather as defined by the WMO code table 4677
+    ("present weather reported from a manned weather station")
     
     ww      | description
     --------|------------------------------------------------------------------
@@ -88,6 +89,9 @@ from __future__ import with_statement
             | thunderstorm
     
     Not all of the codes are used by the DWD-MOSMIX forecast.
+    
+    WMO 4680 w(a)w(a) present weather reported from an automatic weather station
+    WMO 4687 W(1)W(1)
 
     yellow  #ffc83f
     red     #ed1c24
@@ -98,6 +102,10 @@ from __future__ import with_statement
     https://www.dwd.de/DE/leistungen/opendata/help/schluessel_datenformate/kml/mosmix_element_weather_xls.xlsx?__blob=publicationFile&v=6
     https://www.nodc.noaa.gov/archive/arc0021/0002199/1.1/data/0-data/HTML/WMO-CODE/WMO4677.HTM
     https://www.woellsdorf-wetter.de/info/presentweather.html
+    https://library.wmo.int/doc_num.php?explnum_id=10235
+    https://rmets.onlinelibrary.wiley.com/doi/pdf/10.1017/S1350482701004108
+    https://www.meteopool.org/en/encyclopedia-wmo-ww-wx-code-id2
+    https://www.meteopool.org/de/encyclopedia-wmo-ww-wx-code-id2
     
 """
 
@@ -141,6 +149,9 @@ WW_LIST = [
     (89,'leichte Hagelschauer','slight shower(s) of hail',None,'hail.png','17.png','hail',':L:A'),
     (88,'kräftige Graupelschauer','moderate or heavy shower(s) of snow pellets',None,'snow.png','86.png','snow',':H:A'),
     (87,'leichte Graupelschauer','slight shower(s) of snow pellets',None,'snow.png','85.png','snow',':L:A'),
+    # 70...79
+    # 79 Eiskörner
+    (79,'Niederschlag in Form von Eiskörnern','ice pellets',None,'snow.png','85.png','snow',':L:A'),
     # 91...94 thunderstorm during the preceding hour but not at time of observation
     (94,'Schnee, Schneeregen oder Hagel nach einem Gewitter','snow, or rain and snow mixed or hail after thunderstorm',None,'snow.png','27.png','snow',':H:T'),
     (93,'leichter Schnee, Schneeregen oder Hagel nach einem Gewitter','slight snow, or rain and snow mixed or hail after thunderstorm',None,'snow.png','27.png','snow',':L:T'),
@@ -180,6 +191,10 @@ WW_LIST = [
     (62,'intermittierend mäßiger Regen','moderate rain, not freezing, intermittent',None,'rain.png','8.png','rain','IN::R'),
     (61,'durchgehend leichter Regen','slight rain, not freezing, continuous',23,'rain.png','7.png','rain',':L:R'),
     (60,'intermittierend leichter Regen','slight rain, not freezing, intermittent',None,'rain.png','7.png','rain','IN:L:R'),
+    
+    (78,'einzelne Schneeflocken, mit oder ohne Nebel','isolated star-like snow crystals with or without fog',None,'snow.png','14.png','snow',':L:S'),
+    (77,'Schneegriesel, mit oder ohne Nebel','snow grains with or without fog',None,'snow.png','14.png','snow',':L:S'),
+    (76,'Eisnadeln (auch Diamantstaub genannt), mit oder ohne Nebel','diamond dust with our without fog',None,'fog.png','','dust',''),
 
     # 49 in MOSMIX
     (49,'Nebel mit Reifansatz, Himmel nicht erkennbar, unverändert','Ice Fog, sky not recognizable',24,'fog.png','48.png','fog','::IF'),
@@ -217,8 +232,13 @@ WW_LIST = [
     (31,'leichter oder mittlerer Staub- oder Sandsturm, unverändert','slight or moderate duststorm or sandstorm, no change',None,'wind.png','18.png','wind',':L:BD'),
     # 30 slight or moderate duststorm or sandstorm, decreasing
     (30,'leichter oder mittlerer Staub- oder Sandsturm, abnehmend','slight or moderate duststorm or sandstorm, decreasing',None,'wind.png','18.png','wind',':L:BD'),
+    
+    (18,'Sturmböen','squalls',None,'wind.png','18.png','wind',''),
 
     (17,'Gewitter ohne Niederschlag','thunderstorm, but no precipitation',None,'thunderstorm.png','26.png','tstorm','VC::T'),
+    (16,'Niederschläge in Sichtweite aber nicht an der Station, den Boden erreichend','Precipitation within sight, reaching the ground or the surface of the sea, near to, but not at the station',None,None,None,None,None),
+    (15,'Niederschläge in Sichtweite, aber entfernt, den Boden erreichend','Precipitation within sight, reaching the ground or the surface of the sea, but distant, i.e.  estimated to be more than 5 km from the station',None,None,None,None,None),
+    (14,'Niederschläge in Sichtweite, nicht den Boden erreichend','Precipitation within sight, not reaching the ground or the surface of the sea',None,None,None,None,None),
     (13,'Wetterleuchten','lightning visible, no thunder heard',None,None,None,None,'VC::T'),
     (12,'flacher Nebel','shallow fog or ice fog',None,'fog.png','40.png','fog','::BR'),
     (11,'Nebelschwaden','patches of fog or ice fog',None,'fog.png','40.png','fog','PA::BR'),
@@ -269,6 +289,7 @@ WW_SECTIONS = {
     0:('Wolken und Bewölkungsentwicklung','clouds and cloud development'),
     4:('Dunst oder Staub','dust or haze'),
     13:('entfernte Wettererscheinungen','distant weather'),
+    18:('besondere Windereignisse','remarkable wind events'),
     20:('Niederschlag in der letzten Stunde aber jetzt nicht mehr','events during the preceding hour but not now'),
     30:('Staubsturm, Sandsturm, Schneefegen','duststorm, sandstorm, drifting or blowing snow'),
     40:('Nebel oder Eisnebel in verschiedenen Ausführungen','fog or ice fog'),
@@ -362,7 +383,7 @@ WW_SYMBOLS = [
     # 39 https://upload.wikimedia.org/wikipedia/commons/1/1e/Symbol_code_ww_39.svg
     '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 39 	Description: Heavy drifting snow (generally above eye level) </desc> <path d="M 0,-16 l 1,1.5 h-2 l 1,-1.5 z v 32.5" fill="none" stroke="black" stroke-width="3"/> <path d="M 15,2.8 h -32 M 15,-2.8 h -32 M 19,0 m -8,-6 l 8,6 l -8,6" fill="none" stroke="black" stroke-width="1"/> </svg> ',
     # 40 https://upload.wikimedia.org/wikipedia/commons/b/ba/Symbol_code_ww_40.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 40 	Description: Fog at a distance at the time of observation, but not at the station during the preceding hour, the fog or ice fog extending to a level above that of the observer </desc> <g id="ww_40"> 	<path d="M -17.5,-9.5 h 35 M -17.5,0 h 35 M -17.5,9.5 h 35" style="fill:none; stroke-width:3; stroke:#ffc83f" /><path d="M -15.5,-18.5 a 25,25 0 0,0 0,37 M 15.5,18.5 a 25,25 0 0,0 0,-37" style="fill:none; stroke-width:3; stroke:#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 40 	Description: Fog at a distance at the time of observation, but not at the station during the preceding hour, the fog or ice fog extending to a level above that of the observer </desc> <g id="ww_40"> 	<path d="M -17.5,-9.5 h 35 M -17.5,0 h 35 M -17.5,9.5 h 35" style="fill:none; stroke-width:3; stroke:#ffc83f" /><path d="M -15.5,-18.5 a 25,25 0 0,0 0,37 M 15.5,18.5 a 25,25 0 0,0 0,-37" stroke="#000000" style="fill:none; stroke-width:3" /> </g> </svg> ',
     # 41 https://upload.wikimedia.org/wikipedia/commons/9/99/Symbol_code_ww_41.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 41 	Description: Fog in patches </desc> <g id="ww_41"> 	<path d="M -17.5,-9.5 h 14.5 M 17.5,-9.5 h -14.5 M -17.5,0 h 35 M -17.5,9.5 h 14.5 M 17.5,9.5 h -14.5" fill="none" stroke-width="3" stroke="#ffc83f" /> </g> </svg> ',
     # 42 https://upload.wikimedia.org/wikipedia/commons/a/ab/Symbol_code_ww_42.svg
@@ -434,13 +455,13 @@ WW_SYMBOLS = [
     # 75 https://upload.wikimedia.org/wikipedia/commons/7/73/Symbol_solid_precipitation_75.svg
     '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 70-79 General Group: Solid precipitation not in showers. 	Code: 75 	Description: Continuous fall of snowflakes (heavy at time of observation) </desc> <g transform="translate(-12,0)"> 	<g id="ww_75"> 		<path id="ww75arm" d="M -5.5,0 h11" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /> 		<use xlink:href="#ww75arm" transform="rotate(60)" /> 		<use xlink:href="#ww75arm" transform="rotate(120)" /> 		 	</g> </g> <use xlink:href="#ww_75" y="-12" /> <use xlink:href="#ww_75" y="12" /> <use xlink:href="#ww_75" x="12" /> </svg> ',
     # 76 https://upload.wikimedia.org/wikipedia/commons/e/ec/Symbol_solid_precipitation_76.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 70-79 General Group: Solid precipitation not in showers. 	Code: 76 	Description: Ice needles (with or without fog) </desc> <g style="stroke-width:3; stroke:#000000; fill:none; stroke-linejoin:miter"> 	<path id="ww_76_arrow" d="M -9,4.5 L -16,0 L -9,-4.5"  stroke-linecap="round" /> 	<use xlink:href="#ww_76_arrow" transform="scale(-1,1)" /> 	<path id="ww_76_line" d="M -15,0 h30" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 70-79 General Group: Solid precipitation not in showers. 	Code: 76 	Description: Ice needles (with or without fog) </desc> <g style="stroke-width:3; stroke:#ac00ff; fill:none; stroke-linejoin:miter"> 	<path id="ww_76_arrow" d="M -9,4.5 L -16,0 L -9,-4.5"  stroke-linecap="round" /> 	<use xlink:href="#ww_76_arrow" transform="scale(-1,1)" /> 	<path id="ww_76_line" d="M -15,0 h30" /> </g> </svg> ',
     # 77 https://upload.wikimedia.org/wikipedia/commons/2/23/Symbol_solid_precipitation_77.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 70-79 General Group: Solid precipitation not in showers. 	Code: 77 	Description: Snow grains (with or without fog) </desc> <g style="stroke-width:3; stroke:#000000; fill:none; stroke-linejoin:miter"> 	<path id="ww_77_triangle" d="M 0,-8 l 8.7,14.6 h-17.4 z" /> 	<path id="ww_77_line" d="M -18,0 h36" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 70-79 General Group: Solid precipitation not in showers. 	Code: 77 	Description: Snow grains (with or without fog) </desc> <g style="stroke-width:3; stroke:#ac00ff; fill:none; stroke-linejoin:miter"> 	<path id="ww_77_triangle" d="M 0,-8 l 8.7,14.6 h-17.4 z" /> 	<path id="ww_77_line" d="M -18,0 h36" /> </g> </svg> ',
     # 78 https://upload.wikimedia.org/wikipedia/commons/b/bb/Symbol_solid_precipitation_78.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 70-79 General Group: Solid precipitation not in showers. 	Code: 78 	Description: Isolated star-like snow crystals (with or without fog) </desc> <g style="stroke-width:3; stroke:#000000; fill:none;"> 	<path id="ww_78_arm" d="M -5,-5 l 10,10" stroke-linecap="round" /> 	<use xlink:href="#ww_78_arm" transform="rotate(90)" /> 	<path id="ww_78_line" d="M -15,0 h30" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 70-79 General Group: Solid precipitation not in showers. 	Code: 78 	Description: Isolated star-like snow crystals (with or without fog) </desc> <g style="stroke-width:3; stroke:#ac00ff; fill:none;"> 	<path id="ww_78_arm" d="M -5,-5 l 10,10" stroke-linecap="round" /> 	<use xlink:href="#ww_78_arm" transform="rotate(90)" /> 	<path id="ww_78_line" d="M -15,0 h30" /> </g> </svg> ',
     # 79 https://upload.wikimedia.org/wikipedia/commons/0/0e/Symbol_solid_precipitation_79.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 70-79 General Group: Solid precipitation not in showers. 	Code: 79 	Description: Ice pellets (sleet) </desc> <g transform="translate(0,6)"> 	<circle r="4.2" fill="#000000" /> 	<path d="M 0,-17.4 l 15.068842,26.1 h-30.137684 z" style="stroke-width:3; stroke:#000000; fill:none" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 70-79 General Group: Solid precipitation not in showers. 	Code: 79 	Description: Ice pellets (sleet) </desc> <g transform="translate(0,6)"> 	<circle r="4.2" fill="#ac00ff" /> 	<path d="M 0,-17.4 l 15.068842,26.1 h-30.137684 z" style="stroke-width:3; stroke:#ac00ff; fill:none" /> </g> </svg> ',
     # 80 https://upload.wikimedia.org/wikipedia/commons/5/57/Symbol_code_ww_80.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 80-99 General Group: Showery precipitation, or precipitation with current or recent thunderstorm. 	Code: 80 	Description: Rain shower(s), slight </desc> <g id="ww_80"> 	<circle r="5.5" cy="-15.5" fill="#00d700" /> 	<path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> </svg> ',
     # 81 https://upload.wikimedia.org/wikipedia/commons/7/71/Symbol_code_ww_81.svg
@@ -481,6 +502,102 @@ WW_SYMBOLS = [
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 80-99 General Group: Showery precipitation, or precipitation with current or recent thunderstorm. 	Code: 98 	Description: Thunderstorm combined with duststorm or sandstorm at time of observation </desc> <g id="ww_98"> 	<path d="M 3,-21 a3,3 0 0,0 -6,0 a3,3 0 0,0 3,3  	a3,3 0 0,1 3,3 a3,3 0 0,1 -6,0" style="fill:none; stroke-width:1.5; stroke:#000000" /> 	<path d="M -7,-18 h 14" style="fill:none; stroke-width:1.5; stroke:#000000" /> 	<path d="M 7,-18 v-0.5 l 0.5,0.5 l -0.5,0.5 z" style="fill:#000000; stroke-width:1.5; stroke:#000000" /> 	<path d="M -10.5,-8 h 20 l-11.5,16.5 l 12,12" style="fill:none; stroke-width:3; stroke:#ed1c24" /> 	<path d="M -6.5,-8 v 31.5" style="fill:none; stroke-width:3; stroke:#ed1c24" /> 	<path d="M 9,20.5 h1 v-1 z" style="fill:#ed1c24; stroke-width:3; stroke:#ed1c24" /> </g> </svg> ',
     # 99 https://upload.wikimedia.org/wikipedia/commons/8/89/Symbol_code_ww_99.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 80-99 General Group: Showery precipitation, or precipitation with current or recent thunderstorm. 	Code: 99 	Description: Thunderstorm, heavy, with hail at time of observation </desc> <g id="ww_99"> 	<path d="M -4,-14 h 8 l -4,-6.93 z" style="fill:none; stroke-width:2.5; stroke:#000000" /> 	<path d="M -10.5,-8 h 20 l-7.5,14.5 l 6.5,6.5 l-6.5,6.5" style="fill:none; stroke-width:3; stroke:#ed1c24" /> 	<path d="M -6.5,-8 v 31.5" style="fill:none; stroke-width:3; stroke:#ed1c24" /> 	<path d="M 2,20.5 h-1 v-1 z" style="fill:#ed1c24; stroke-width:3; stroke:#ed1c24" /> </g> </svg> '
+]
+
+WAWA_SYMBOLS = [
+    # 0...9
+    '','','','',
+    '',
+    '',
+    None,None,None,None,
+    # 10...19
+    WW_SYMBOLS[10],
+    WW_SYMBOLS[76],
+    WW_SYMBOLS[13],
+    None,None,None,None,None,
+    WW_SYMBOLS[18],
+    None,
+    # 20...29
+    WW_SYMBOLS[28],
+    '',
+    WW_SYMBOLS[20],
+    WW_SYMBOLS[21],
+    WW_SYMBOLS[22],
+    WW_SYMBOLS[24],
+    WW_SYMBOLS[29],
+    '',
+    '',
+    '',
+    # 30...39
+    '',
+    WW_SYMBOLS[41],
+    WW_SYMBOLS[43],
+    WW_SYMBOLS[45],
+    WW_SYMBOLS[47],
+    '',
+    None,None,None,None,
+    # 40...49
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"><g><path d="M -5.5,0 A 5.5 5.5 0 0 1 5.5 0" fill="none" stroke="#00d700" stroke-linecap="round" stroke-width="3" /></g></svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"><g><path d="M -14,0 A 5.5 5.5 0 0 1 -3 0 M 3,0 A 5.5 5.5 0 0 1 14,0" fill="none" stroke="#00d700" stroke-linecap="round" stroke-width="3" /></g></svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"><g><path d="M -14,0 A 5.5 5.5 0 0 1 -3 0 M 3,0 A 5.5 5.5 0 0 1 14,0 M -5.5,11.5 A 5.5 5.5 0 0 1 5.5 11.5 M -5.5,-11.5 A 5.5 5.5 0 0 1 5.5 -11.5" fill="none" stroke="#00d700" stroke-linecap="round" stroke-width="3" /></g></svg>',
+    '','',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g><path d="M -12.389087297,-3.889087297 l 7.778174593,7.778174593 M -12.389087297,3.889087297 l 7.778174593,-7.778174593 M 4.610912697,-3.889087297 l 7.778174593,7.778174593 M 4.610912697,3.889087297 l 7.778174593,-7.778174593" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g><path d="M -12.389087297,-3.889087297 l 7.778174593,7.778174593 M -12.389087297,3.889087297 l 7.778174593,-7.778174593 M 4.610912697,-3.889087297 l 7.778174593,7.778174593 M 4.610912697,3.889087297 l 7.778174593,-7.778174593 M -3.889087297,-16.389087297 l 7.778174593,7.778174593 M -3.889087297,-8.610912703 l 7.778174593,-7.778174593 M -3.889087297,8.610912703 l 7.778174593,7.778174593 M -3.889087297,16.389087297 l 7.778174593,-7.778174593" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /> </g> </svg> ',
+    '','',None,
+    # 50...59
+    '',
+    WW_SYMBOLS[51],
+    WW_SYMBOLS[53],
+    WW_SYMBOLS[55],
+    WW_SYMBOLS[56],
+    WW_SYMBOLS[57],
+    '',
+    WW_SYMBOLS[58],
+    WW_SYMBOLS[59],
+    None,
+    # 60...69
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <circle r="6.5" stroke="#00d700" stroke-width="1.5" fill="none"/> </svg> ',
+    WW_SYMBOLS[61],
+    WW_SYMBOLS[63],
+    WW_SYMBOLS[65],
+    WW_SYMBOLS[66],
+    WW_SYMBOLS[67],
+    '',
+    WW_SYMBOLS[68],
+    WW_SYMBOLS[69],
+    None,
+    # 70...79
+    '',
+    WW_SYMBOLS[71],
+    WW_SYMBOLS[73],
+    WW_SYMBOLS[75],
+    WW_SYMBOLS[79],
+    '',
+    '',
+    WW_SYMBOLS[77],
+    WW_SYMBOLS[78],
+    None,
+    # 80...89
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g> <path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> </svg> ',
+    WW_SYMBOLS[80],
+    WW_SYMBOLS[81],
+    '',
+    WW_SYMBOLS[82],
+    WW_SYMBOLS[85],
+    WW_SYMBOLS[86],
+    '',
+    None,
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g style="stroke-width:3; stroke:#ac00ff; fill:#ac00ff; stroke-linejoin:miter"> 	<path d="M 0,-8 l 8.7,14.6 h-17.4 z" /> </g> </svg> ',
+    # 90...99
+    WW_SYMBOLS[17],
+    '',
+    WW_SYMBOLS[95],
+    WW_SYMBOLS[96],
+    '',
+    WW_SYMBOLS[97],
+    WW_SYMBOLS[99],
+    None,None,
+    ''
 ]
 
 def get_ww(ww,n,night):
@@ -541,6 +658,10 @@ def get_cloudcover(n):
         icon = N_ICON_LIST[4]
     return icon
 
+def decolor_ww(ww_symbol, color):
+    if color is None: return ww_symbol
+    return ww_symbol.replace('#ffc83f',color).replace('#ed1c24',color).replace('#00d700',color).replace('#ac00ff',color).replace('#000000',color).replace('black',color)
+
 def print_ww_list(image_path='.'):
     x = copy.copy(WW_LIST)
     x.sort(key=lambda x:x[0])
@@ -564,16 +685,36 @@ def print_ww_list(image_path='.'):
     s += '</table>\n'
     return s
     
-def print_ww_tab(image_path='.'):
+def print_ww_tab(image_path='.', color=None):
     s = '<table cellspacing="0">\n'
-    s += '<tr>\n  <th style="margin:0px;border:1px solid black;padding:5px;background-color:#E0E0E0"></th>\n'
+    s += '<tr>\n  <th style="margin:0px;border:1px solid black;padding:5px;background-color:#E0E0E0">ww</th>\n'
     for i in range(10):
         s += '  <th style="margin:0px;border-top:1px solid black;border-right:1px solid black;border-bottom:1px solid black;padding:5px;background-color:#E0E0E0">%1d</th>\n' % i
     s += '</tr>\n'
     for ww,sym in enumerate(WW_SYMBOLS):
         if (ww%10)==0:
             s += '<tr>\n  <th style="margin:0px;border-left:1px solid black;border-right:1px solid black;border-bottom:1px solid black;padding:5px;background-color:#E0E0E0">%1d0</th>\n' % (ww//10)
-        s += '  <td style="margin:0px;border-right:1px solid black;border-bottom:1px solid black;padding:5px">'+sym.replace('width="55"','width="40"').replace('height="55"','height="40"')+'</td>\n'
+        s += '  <td style="margin:0px;border-right:1px solid black;border-bottom:1px solid black;padding:5px">'+decolor_ww(sym,color).replace('width="55"','width="40"').replace('height="55"','height="40"')+'</td>\n'
+        if (ww%10)==9:
+            s += '</tr>\n'
+    s += '</table>\n'
+    return s
+
+def print_wawa_tab(image_path='.', color=None):
+    s = '<table cellspacing="0">\n'
+    s += '<tr>\n  <th style="margin:0px;border:1px solid black;padding:5px;background-color:#E0E0E0">w<sub>a</sub>w<sub>a</sub></th>\n'
+    for i in range(10):
+        s += '  <th style="margin:0px;border-top:1px solid black;border-right:1px solid black;border-bottom:1px solid black;padding:5px;background-color:#E0E0E0">%1d</th>\n' % i
+    s += '</tr>\n'
+    for ww,sym in enumerate(WAWA_SYMBOLS):
+        if (ww%10)==0:
+            s += '<tr>\n  <th style="margin:0px;border-left:1px solid black;border-right:1px solid black;border-bottom:1px solid black;padding:5px;background-color:#E0E0E0">%1d0</th>\n' % (ww//10)
+        s += '  <td style="margin:0px;border-right:1px solid black;border-bottom:1px solid black;padding:5px;text-align:center">'
+        if sym is not None:
+            s += decolor_ww(sym,color).replace('width="55"','width="40"').replace('height="55"','height="40"')
+        else:
+            s += 'res.'
+        s += '</td>\n'
         if (ww%10)==9:
             s += '</tr>\n'
     s += '</table>\n'
@@ -641,8 +782,13 @@ if hasSearchList:
         def __str__(self):
             return self.wmosymbol
             
-        def __call__(self, width=40):
-            return self.wmosymbol.replace('width="55"','width="%s"' % width).replace('height="55"','height="%s"' % width)
+        def __call__(self, width=40, color=None):
+            sym = self.wmosymbol
+            if width:
+                sym = sym.replace('width="55"','width="%s"' % width).replace('height="55"','height="%s"' % width)
+            if color is not None:
+                sym = decolor_ww(sym,color)
+            return sym
     
     class WeatherSearchList(SearchList):
     
@@ -675,6 +821,8 @@ Direct call is for testing only."""
                       help="Print ww list")
     parser.add_option("--print-ww-tab", dest="printwwtab", action="store_true",
                       help="Print ww table")
+    parser.add_option("--print-wawa-tab", dest="printwawatab", action="store_true",
+                      help="Print wawa table")
     parser.add_option("--write-ww-files", dest="writesvg", action="store_true",
                       help="Create a set of SVG files")
     parser.add_option("--test-searchlist", dest="searchlist", action="store_true",
@@ -690,7 +838,9 @@ Direct call is for testing only."""
     if options.printwwlist:
         print(print_ww_list())
     elif options.printwwtab:
-        print(print_ww_tab())
+        print(print_ww_tab(color=None))
+    elif options.printwawatab:
+        print(print_wawa_tab(color=None))
     elif options.writesvg:
         if len(args)>0:
             pth = args[0]
