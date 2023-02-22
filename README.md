@@ -522,6 +522,8 @@ der Originalfarbgebung (ggf. mehrfarbig) dargestellt.
 
 [Beschreibung der Symbole](https://www.woellsdorf-wetter.de/info/presentweather.html)
 
+![Code-Tabelle](WMO-code-table-4677-colored.png)
+
 Mittels
 ```
 python3 /usr/share/weewx/user/weathercodes.py --write-svg Zielverzeichnis
