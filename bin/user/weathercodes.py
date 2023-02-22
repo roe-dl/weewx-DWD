@@ -514,9 +514,9 @@ WAWA_SYMBOLS = [
     # 03 Clouds generally forming or developing during the past hour
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> </svg>',
     # 04 Haze or smoke, or dust in suspension in the air, visibility equal to, or greater than, 1 km
-    '',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g fill="none" stroke-width="3" stroke="#000000" > <path d="M 0,0 a 12,12 0 0,0 0,24 a 12,12 0 0,0 0,-24 a 12,12 0 0,1 0,-24 a 12,12 0 0,1 0,24 z"/> </g> </svg> ',
     # 05 Haze or smoke, or dust in suspension in the air, visibility less than 1 km
-    '',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <circle cx="0" cy="12" r="12" fill="#000000" /> <g fill="none" stroke-width="3" stroke="#000000" > <path d="M 0,0 a 12,12 0 0,0 0,24 a 12,12 0 0,0 0,-24 a 12,12 0 0,1 0,-24 a 12,12 0 0,1 0,24 z"/> </g> </svg> ',
     # 06...09 reserved
     None,None,None,None,
     # 10 Mist
@@ -575,17 +575,17 @@ WAWA_SYMBOLS = [
     # 42 Precipitation, heavy
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"><g><path d="M -14,0 A 5.5 5.5 0 0 1 -3 0 M 3,0 A 5.5 5.5 0 0 1 14,0 M -5.5,11.5 A 5.5 5.5 0 0 1 5.5 11.5 M -5.5,-11.5 A 5.5 5.5 0 0 1 5.5 -11.5" fill="none" stroke="#00d700" stroke-linecap="round" stroke-width="3" /></g></svg>',
     # 43 Liquid precipitation, slight or moderate
-    '',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g id="wawa_43" transform="translate(-9.5,0)"> <circle r="5.5" fill="#00d700" /> <path style="fill:none; stroke:#00d700; stroke-width:3; stroke-linecap:round;" d="M -4,0 C -4,-3.7 -1.9,-7.1 1,-9.2" /> </g> <use xlink:href="#wawa_43" transform="translate(19,0)" /> </svg> ',
     # 44 Liquid precipitation, heavy
-    '',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g transform="translate(11,0)"> <g id="wawa_44"> <circle r="5.5" fill="#00d700" /> <path style="fill:none; stroke:#00d700; stroke-width:3; stroke-linecap:round;" d="M -4,0 C -4,-3.7 -1.9,-7.1 1,-9.2" /> 	</g> </g> <use xlink:href="#wawa_44" x="-11" /> <use xlink:href="#wawa_44" y="-11" /> <use xlink:href="#wawa_44" y="11" /> </svg> ',
     # 45 Solid precipitation, slight or moderate
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g><path d="M -12.389087297,-3.889087297 l 7.778174593,7.778174593 M -12.389087297,3.889087297 l 7.778174593,-7.778174593 M 4.610912697,-3.889087297 l 7.778174593,7.778174593 M 4.610912697,3.889087297 l 7.778174593,-7.778174593" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /> </g> </svg> ',
     # 46 Solid precipitation, heavy
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g><path d="M -12.389087297,-3.889087297 l 7.778174593,7.778174593 M -12.389087297,3.889087297 l 7.778174593,-7.778174593 M 4.610912697,-3.889087297 l 7.778174593,7.778174593 M 4.610912697,3.889087297 l 7.778174593,-7.778174593 M -3.889087297,-16.389087297 l 7.778174593,7.778174593 M -3.889087297,-8.610912703 l 7.778174593,-7.778174593 M -3.889087297,8.610912703 l 7.778174593,7.778174593 M -3.889087297,16.389087297 l 7.778174593,-7.778174593" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /> </g> </svg> ',
     # 47 Freezing precipitation, slight or moderate
-    '',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"><g transform="translate(-10,0) scale(0.7)"> <circle r="5.5" fill="#00d700" /> <path style="fill:none; stroke:#00d700; stroke-width:3; stroke-linecap:round;" d="M -4,0 C -4,-3.7 -1.9,-7.1 1,-9.2" /> </g> <path id="wawa_arc56" d="M 0,0 a10,10 0 0,0 20,0 v-2" fill="none" stroke="#ed1c24" stroke-linecap="round" stroke-width="3" /> <use xlink:href="#wawa_arc56" transform="scale(-1,-1)"/> </svg> ',
     # 48 Freezing precipitation, heavy
-    '',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g transform="translate(-10,0) scale(0.7)"> <circle r="5.5" fill="#00d700" /> <path style="fill:none; stroke:#00d700; stroke-width:3; stroke-linecap:round;" d="M -4,0 C -4,-3.7 -1.9,-7.1 1,-9.2" /> </g> <g transform="translate(10,0) scale(0.7)"> <circle r="5.5" fill="#00d700" /> <path style="fill:none; stroke:#00d700; stroke-width:3; stroke-linecap:round;" d="M -4,0 C -4,-3.7 -1.9,-7.1 1,-9.2" /> </g> <use xlink:href="#wawa_50" transform="scale(-1,-1)"/> <path id="wawa_arc48" d="M 0,0 a10,10 0 0,0 20,0 v-2" fill="none" stroke="#ed1c24" stroke-linecap="round" stroke-width="3" /> <use xlink:href="#wawa_arc48" transform="scale(-1,-1)"/> </svg> ',
     # 49 reserved
     None,
     # 50...59 DRIZZLE
@@ -792,8 +792,8 @@ if hasSearchList:
 
     class PresentWeatherBinder(object):
     
-        def __init__(self, wwl, n=None, night=False, lang='en', ww_texts=None):
-            if isinstance(wwl,list):
+        def __init__(self, wwl=None, n=None, night=False, lang='en', ww_texts=None, wawal=None):
+            if (wwl is None) or isinstance(wwl,list):
                 self.ww_list = wwl
             else:
                 self.ww_list = [wwl]
@@ -801,42 +801,69 @@ if hasSearchList:
             self.night = night
             self.lang = lang
             self.ww_texts = ww_texts
+            if (wawal is None) or isinstance(wawal,list):
+                self.wawa_list = wawal
+            else:
+                self.wawa_list = [wawal]
             
         def __getattr__(self, attr):
-            wwcode = get_ww(self.ww_list,self.n,self.night)
-            if wwcode:
-                if attr=='ww':
-                    return wwcode[0]
-                if attr=='text':
-                    ww_str = '%02d' % wwcode[0]
-                    if self.ww_texts and ww_str in self.ww_texts:
-                        return self.ww_texts[ww_str]
-                    elif self.lang=='de':
-                        return wwcode[1]
-                    else:
-                        return wwcode[2]
-                if attr=='mosmix_priority':
-                    return wwcode[3]
-                if attr=='belchertown_icon':
-                    return wwcode[4]
-                if attr=='dwd_icon':
-                    return wwcode[5]
-                if attr=='aeris_icon':
-                    icon = wwcode[6]
-                    if icon:
-                        if self.night: icon += 'n'
-                        icon += '.png'
-                    return icon
+            if self.ww_list is not None:
+                wwcode = get_ww(self.ww_list,self.n,self.night)
+                if wwcode:
+                    if attr=='ww':
+                        return wwcode[0]
+                    if attr=='text':
+                        ww_str = '%02d' % wwcode[0]
+                        if self.ww_texts and ww_str in self.ww_texts:
+                            return self.ww_texts[ww_str]
+                        elif self.lang=='de':
+                            return wwcode[1]
+                        else:
+                            return wwcode[2]
+                    if attr=='mosmix_priority':
+                        return wwcode[3]
+                    if attr=='belchertown_icon':
+                        return wwcode[4]
+                    if attr=='dwd_icon':
+                        return wwcode[5]
+                    if attr=='aeris_icon':
+                        icon = wwcode[6]
+                        if icon:
+                            if self.night: icon += 'n'
+                            icon += '.png'
+                        return icon
+                    if attr=='wmo_symbol':
+                        return WMOSymbolBinder(wwcode[0],4677)
+            elif self.wawa_list is not None:
                 if attr=='wmo_symbol':
-                    return WMOSymbolBinder(wwcode[0])
+                    return WMOSymbolBinder(max(self.wawa_list),4680)
+            elif self.n is not None:
+                n = get_cloudcover(self.n)
+                if attr=='belchertown_icon':
+                    night = 1 if self.night else 0
+                    return n[night]
+                if attr=='dwd_icon':
+                    return n[2]
+                if attr=='aeris_icon':
+                    night = 'n' if self.night else ''
+                    return n[4]+night+'.png'
+                if attr=='wmo_symbol':
+                    # TODO
+                    pass
             return super(PresentWeatherBinder,self).__getattr__(attr)
 
     class WMOSymbolBinder(object):
     
-        def __init__(self, ww):
+        def __init__(self, ww, code_table):
             self.ww = ww
+            self.code_table = code_table
             try:
-                self.wmosymbol = WW_SYMBOLS[ww%100]
+                if code_table==4677:
+                    self.wmosymbol = WW_SYMBOLS[ww%100]
+                elif code_table==4680:
+                    self.wmosymbol = WAWA_SYMBOLS[ww%100]
+                else:
+                    raise ValueError('unknown code table %s' % code_table)
             except (LookupError,TypeError,ValueError,ArithmeticError):
                 self.wmosymbol = str(ww)
             
@@ -862,8 +889,8 @@ if hasSearchList:
             
         def get_extension_list(self, timespan, db_lookup):
         
-            def presentweather(ww, n=None, night=False):
-                return PresentWeatherBinder(ww, n=n, night=night, lang=self.lang, ww_texts=self.ww_texts)
+            def presentweather(ww=None, n=None, night=False, wawa=None):
+                return PresentWeatherBinder(wwl=ww, n=n, night=night, lang=self.lang, ww_texts=self.ww_texts, wawal=wawa)
                 
             return [{'presentweather':presentweather}]
             
@@ -930,5 +957,6 @@ Direct call is for testing only."""
         print('wmo_symbol',func(83).wmo_symbol(30))
         print('50% bewölkt Tag',func(0,50,False).belchertown_icon)
         print('25% bewölkt Nacht',func(0,25,True).belchertown_icon)
+        print('wawa44 wmo_symbol',func(wawa=44).wmo_symbol)
     else:
         print('nothing to do')
