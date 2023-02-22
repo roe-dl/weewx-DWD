@@ -606,7 +606,7 @@ WAWA_SYMBOLS = [
     WW_SYMBOLS[65],
     WW_SYMBOLS[66],
     WW_SYMBOLS[67],
-    '',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g id="wawa_half67"> 	<circle r="4.5" cx="10" cy="9" fill="#00d700" /> <path id="wawa_arc67" d="M 0,9 a10,10 0 0,0 20,0 v-2" fill="none" stroke="#ed1c24" stroke-linecap="round" stroke-width="3" /> </g> <use xlink:href="#wawa_half67" transform="scale(-1,-1),translate(0,-18)"/>  <circle cx="0" cy="-9" r="4.5" fill="#00d700" /></svg> ',
     WW_SYMBOLS[68],
     WW_SYMBOLS[69],
     None,
@@ -781,12 +781,20 @@ def print_wawa_tab(image_path='.', color=None):
     s += '</table>\n'
     return s
 
-def write_svg_files(image_path='.'):
+def write_svg_files_ww(image_path='.'):
     for ww,sym in enumerate(WW_SYMBOLS):
-        fn = os.path.join(image_path,'ww%02d.svg' % ww)
+        fn = os.path.join(image_path,'wmo4677_ww%02d.svg' % ww)
         with open(fn,'w') as file:
             file.write(WW_XML)
             file.write(sym)
+
+def write_svg_files_wawa(image_path='.'):
+    for ww,sym in enumerate(WAWA_SYMBOLS):
+        fn = os.path.join(image_path,'wmo4680_wawa%02d.svg' % ww)
+        if sym:
+            with open(fn,'w') as file:
+                file.write(WW_XML)
+                file.write(sym)
 
 if hasSearchList:
 
@@ -911,7 +919,7 @@ Direct call is for testing only."""
                       help="Print ww table")
     parser.add_option("--print-wawa-tab", dest="printwawatab", action="store_true",
                       help="Print wawa table")
-    parser.add_option("--write-ww-files", dest="writesvg", action="store_true",
+    parser.add_option("--write-svg", dest="writesvg", action="store_true",
                       help="Create a set of SVG files")
     parser.add_option("--test-searchlist", dest="searchlist", action="store_true",
                       help="Test search list extension")
@@ -934,7 +942,8 @@ Direct call is for testing only."""
             pth = args[0]
         else:
             pth = '.'
-        write_svg_files(pth)
+        write_svg_files_ww(pth)
+        write_svg_files_wawa(pth)
     elif options.searchlist:
         class Generator(object):
             skin_dict = configobj.ConfigObj()

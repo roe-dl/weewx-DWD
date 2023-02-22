@@ -522,6 +522,21 @@ der Originalfarbgebung (ggf. mehrfarbig) dargestellt.
 
 [Beschreibung der Symbole](https://www.woellsdorf-wetter.de/info/presentweather.html)
 
+Mittels
+```
+python3 /usr/share/weewx/user/weathercodes.py --write-svg Zielverzeichnis
+```
+können alle WMO-Symbole als SVG-Dateien in "Zielverzeichnis" geschrieben
+werden. Diese Dateien können dann mit dem `<img>`-Tag in Webseiten
+eingefügt werden.
+
+Mit 
+```
+python3 /usr/share/weewx/user/weathercodes.py --print-ww-tab >wmo4677.inc
+python3 /usr/share/weewx/user/weathercodes.py --print-wawa-tab >wmo4680.inc
+```
+kann eine HTML-Tabelle der Symbole zum Einfügen in Webseiten erzeugt werden.
+
 # Warnregionen
 
 Die Warnungen in der JSONP-Datei `warnings.json` ist nach Landkreisen gegliedert. Manche Landkreise sind dann noch weiter nach Landschaftsmerkmalen wie etwa Bergland und Tiefland unterteilt. Andere Dateien sind nach Bundesländern gegliedert. Im Wiki sind die vom Deutschen Wetterdienst verwendeten Bezeichnungen und Abkürzungen beschrieben:
