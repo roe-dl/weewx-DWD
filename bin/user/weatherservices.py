@@ -304,7 +304,7 @@ def wget(url,log_success=False,log_failure=True):
         if log_success:
             loginf('Successfully downloaded %s' % reply.url)
         return reply.content
-    elif reply.status_code >= 400 and reply.status_code < 500:
+    elif reply.status_code==400:
         if log_failure:
             loginf('Bad Request downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
         return reply.content
