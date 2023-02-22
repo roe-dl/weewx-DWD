@@ -477,14 +477,21 @@ mit Komma getrennt anzufügen.
 Anschließend steht ein neues Tag zur Verfügung:
 
 ```
-$presentweather($ww,$n,$night).attr
+$presentweather(ww=$ww, n=$n, night=$night, wawa=$wawa).attr
 ```
 
 Die Parameter sind:
-* `$ww`: der Wettercode ww oder eine Liste von Wettercodes, von denen
+* `ww`: der Wettercode ww oder eine Liste von Wettercodes, von denen
    der "schlimmste" verwendet wird
-* `$n`: die Wolkenbedeckung in Prozent (nur bei $ww<4 nötig)
-* `$night`: `True`, wenn das Nachtsymbol verwendet werden soll
+* `n`: die Wolkenbedeckung in Prozent (nur bei $ww<4 nötig)
+* `night`: `True`, wenn das Nachtsymbol verwendet werden soll
+* `wawa`: der Wettercode wawa oder eine Liste von Wettercodes, von denen
+   der "schlimmste" verwendet wird
+
+Alle Parameter sind optional. Wenigstens einer von den Parametern
+`ww`, `n` und `wawa` muß ungleich `None` sein. Wenn sowohl `ww` als
+auch `wawa` vorhanden sind, wird `ww` verwendet und `wawa` ignoriert.
+`n` wird verwendet, wenn `ww` und `wawa` `None` oder kleiner 4 sind.
 
 `attr` ist eine der folgenden Möglichkeiten:
 * `ww`: der Wettercode, der aus der Liste herausgesucht wurde
@@ -493,8 +500,8 @@ Die Parameter sind:
 * `dwd_icon`: Dateiname des Icons aus dem DWD-Icon-Satz
 * `aeris_icon`: Dateiname des Icons aus dem Aeris-Icon-Satz
 * `wmo_symbol`: Symbol der Meteorologen für den Wetterzustand
-* `wmo_symbol($width)`: Symbol der Meteorologen für den Wetterzustand
-  mit Größenangabe
+* `wmo_symbol($width,color=$color)`: Symbol der Meteorologen für den 
+  Wetterzustand mit Größenangabe und optionaler Farbangabe.
 
 Die Dateinamen werden zusammen mit dem HTML-Tag `<img>` verwendet,
 zum Beispiel:
@@ -509,7 +516,28 @@ zum Beispiel:
 $presentweather($ww,$n,$night).wmo_symbol(30)
 ```
 
+Wird eine Farbe angegeben, wird das ganze Symbol einfarbig in dieser
+Farbe dargestellt. Wird keine Farbe angegeben, wird das Symbol in
+der Originalfarbgebung (ggf. mehrfarbig) dargestellt.
+
 [Beschreibung der Symbole](https://www.woellsdorf-wetter.de/info/presentweather.html)
+
+![Code-Tabelle](WMO-code-table-4677-colored.png) ![Code-Tabelle](WMO-code-table-4680-colored.png)
+
+Mittels
+```
+python3 /usr/share/weewx/user/weathercodes.py --write-svg Zielverzeichnis
+```
+können alle WMO-Symbole als SVG-Dateien in "Zielverzeichnis" geschrieben
+werden. Diese Dateien können dann mit dem `<img>`-Tag in Webseiten
+eingefügt werden.
+
+Mit 
+```
+python3 /usr/share/weewx/user/weathercodes.py --print-ww-tab >wmo4677.inc
+python3 /usr/share/weewx/user/weathercodes.py --print-wawa-tab >wmo4680.inc
+```
+kann eine HTML-Tabelle der Symbole zum Einfügen in Webseiten erzeugt werden.
 
 # Warnregionen
 
