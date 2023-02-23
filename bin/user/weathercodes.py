@@ -583,9 +583,9 @@ WAWA_SYMBOLS = [
     # 46 Solid precipitation, heavy
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g><path d="M -12.389087297,-3.889087297 l 7.778174593,7.778174593 M -12.389087297,3.889087297 l 7.778174593,-7.778174593 M 4.610912697,-3.889087297 l 7.778174593,7.778174593 M 4.610912697,3.889087297 l 7.778174593,-7.778174593 M -3.889087297,-16.389087297 l 7.778174593,7.778174593 M -3.889087297,-8.610912703 l 7.778174593,-7.778174593 M -3.889087297,8.610912703 l 7.778174593,7.778174593 M -3.889087297,16.389087297 l 7.778174593,-7.778174593" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /> </g> </svg> ',
     # 47 Freezing precipitation, slight or moderate
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"><g transform="translate(-10,0) scale(0.7)"> <circle r="5.5" fill="#00d700" /> <path style="fill:none; stroke:#00d700; stroke-width:3; stroke-linecap:round;" d="M -4,0 C -4,-3.7 -1.9,-7.1 1,-9.2" /> </g> <path id="wawa_arc56" d="M 0,0 a10,10 0 0,0 20,0 v-2" fill="none" stroke="#ed1c24" stroke-linecap="round" stroke-width="3" /> <use xlink:href="#wawa_arc56" transform="scale(-1,-1)"/> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"><g transform="translate(-10,0) scale(0.7)"> <circle r="5.5" fill="#00d700" /> <path style="fill:none; stroke:#00d700; stroke-width:3; stroke-linecap:round;" d="M -4,0 C -4,-3.7 -1.9,-7.1 1,-9.2" /> </g> <path d="M 0,0 m -20,2 v -2 a 10,10 0 0 1 20,0 a10,10 0 0,0 20,0 v-2" fill="none" stroke="#ed1c24" stroke-linecap="round" stroke-width="3" /> </svg> ',
     # 48 Freezing precipitation, heavy
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g transform="translate(-10,0) scale(0.7)"> <circle r="5.5" fill="#00d700" /> <path style="fill:none; stroke:#00d700; stroke-width:3; stroke-linecap:round;" d="M -4,0 C -4,-3.7 -1.9,-7.1 1,-9.2" /> </g> <g transform="translate(10,0) scale(0.7)"> <circle r="5.5" fill="#00d700" /> <path style="fill:none; stroke:#00d700; stroke-width:3; stroke-linecap:round;" d="M -4,0 C -4,-3.7 -1.9,-7.1 1,-9.2" /> </g> <use xlink:href="#wawa_50" transform="scale(-1,-1)"/> <path id="wawa_arc48" d="M 0,0 a10,10 0 0,0 20,0 v-2" fill="none" stroke="#ed1c24" stroke-linecap="round" stroke-width="3" /> <use xlink:href="#wawa_arc48" transform="scale(-1,-1)"/> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g transform="translate(-10,0) scale(0.7)"> <circle r="5.5" fill="#00d700" /> <path style="fill:none; stroke:#00d700; stroke-width:3; stroke-linecap:round;" d="M -4,0 C -4,-3.7 -1.9,-7.1 1,-9.2" /> </g> <g transform="translate(10,0) scale(0.7)"> <circle r="5.5" fill="#00d700" /> <path style="fill:none; stroke:#00d700; stroke-width:3; stroke-linecap:round;" d="M -4,0 C -4,-3.7 -1.9,-7.1 1,-9.2" /> </g>  <path d="M 0,0 m -20,2 v -2 a 10,10 0 0 1 20,0 a10,10 0 0,0 20,0 v-2" fill="none" stroke="#ed1c24" stroke-linecap="round" stroke-width="3" /> </svg> ',
     # 49 reserved
     None,
     # 50...59 DRIZZLE
@@ -595,7 +595,7 @@ WAWA_SYMBOLS = [
     WW_SYMBOLS[55],
     WW_SYMBOLS[56],
     WW_SYMBOLS[57],
-    '',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g transform="translate(10,9),scale(0.7)"> <circle r="5.5" cx="0" cy="0" fill="#00d700" /> <path style="fill:none; stroke:#00d700; stroke-width:3; stroke-linecap:round;" d="M 4,0 C 4,3.7 1.9,7.1 -1,9.2" /></g> <g transform="translate(-10,9),scale(0.7)"> <circle r="5.5" cx="0" cy="0" fill="#00d700" /> <path style="fill:none; stroke:#00d700; stroke-width:3; stroke-linecap:round;" d="M 4,0 C 4,3.7 1.9,7.1 -1,9.2" /></g> <g transform="translate(0,-9),scale(0.7)"> <circle r="5.5" cx="0" cy="0" fill="#00d700" /> <path style="fill:none; stroke:#00d700; stroke-width:3; stroke-linecap:round;" d="M 4,0 C 4,3.7 1.9,7.1 -1,9.2" /></g> <g><path d="M 0,9 m -20,2 v -2 a 10,10 0 0 1 20,0 a10,10 0 0,0 20,0 v-2" fill="none" stroke="#ed1c24" stroke-linecap="round" stroke-width="3" /> </g></svg> ',
     WW_SYMBOLS[58],
     WW_SYMBOLS[59],
     None,
@@ -606,7 +606,7 @@ WAWA_SYMBOLS = [
     WW_SYMBOLS[65],
     WW_SYMBOLS[66],
     WW_SYMBOLS[67],
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g id="wawa_half67"> 	<circle r="4.5" cx="10" cy="9" fill="#00d700" /> <path id="wawa_arc67" d="M 0,9 a10,10 0 0,0 20,0 v-2" fill="none" stroke="#ed1c24" stroke-linecap="round" stroke-width="3" /> </g> <use xlink:href="#wawa_half67" transform="scale(-1,-1),translate(0,-18)"/>  <circle cx="0" cy="-9" r="4.5" fill="#00d700" /></svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g> <circle r="4.5" cx="10" cy="9" fill="#00d700" /> <circle r="4.5" cx="-10" cy="9" fill="#00d700" /><path d="M 0,9 m -20,2 v -2 a 10,10 0 0 1 20,0 a10,10 0 0,0 20,0 v-2" fill="none" stroke="#ed1c24" stroke-linecap="round" stroke-width="3" /> </g> <circle cx="0" cy="-9" r="4.5" fill="#00d700" /></svg> ',
     WW_SYMBOLS[68],
     WW_SYMBOLS[69],
     None,
