@@ -131,7 +131,7 @@
     
     [WeatherServices]
         ...
-        # Logging for services.
+        # optional, logging for services.
         # defaults: value from weewx.conf
         log_success =
         log_failure =
@@ -139,15 +139,17 @@
         [[forecast]]
             ...
             # optional, 'belchertown', 'dwd' or 'aeris'
+            # default: belchertown
             icon_set =
 
-            # optional, used for queries where a language is required, e.g. Open-Meteo geocoding API. default: de
+            # optional, used for queries where a language is required, e.g. Open-Meteo geocoding API.
+            # default: de
             lang =
             ...
         [[current]]
             ...
-            # Any identifier for this service. Used to give the service a unique identifier, for example.
-            [[[any_identifier_for_this_service]]]
+            # Any unique identifier for this service. Used to give the service a id for logging e.g.
+            [[[any_unique_identifier_for_this_service]]]
                 # required, service provider
                 provider = open-meteo
 
@@ -156,8 +158,8 @@
                 enable = False
 
                 # optional, not case sensitiv. 'ThisStation' for local station
-                # or a valid city name or postal code e.g. 'Döbeln'.
-                # default: 'ThisStation'
+                # or a valid city name or postal code e.g. 'Döbeln' or '04720'.
+                # default: ThisStation
                 station =
 
                 # optional, latitude in decimal degrees. Negative for southern hemisphere.
@@ -196,7 +198,7 @@
                 # default: 0
                 debug = 0
 
-                # Logging for services.
+                # optional, logging for services.
                 # defaults: value from section [WeatherServices]
                 log_success =
                 log_failure =
