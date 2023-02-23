@@ -1899,16 +1899,16 @@ class DWDservice(StdService):
         
         site_dict = config_dict.get('WeatherServices',configobj.ConfigObj()).get('current',configobj.ConfigObj())
         for section in site_dict.sections:
-            location_dict = weeutil.config.accumulateLeaves(site_dict[section])
+            section_dict = weeutil.config.accumulateLeaves(site_dict[section])
 
             # section enabled?
-            if not weeutil.weeutil.to_bool(location_dict.get('enable',True)):
+            if not weeutil.weeutil.to_bool(section_dict.get('enable',True)):
                 if self.log_success or self.debug > 0:
                     loginf("Section '%s' is not enabled. Skip section." % section)
                 continue
 
             # Check required provider
-            provider = location_dict.get('provider')
+            provider = section_dict.get('provider')
             if provider: provider = provider.lower()
             if provider not in ('dwd', 'zamg', 'open-meteo'):
                 if self.log_failure or self.debug > 0:
@@ -1916,7 +1916,7 @@ class DWDservice(StdService):
                 continue
 
             # Check required model
-            model = location_dict.get('model')
+            model = section_dict.get('model')
             if model: model = model.lower()
             if provider == 'dwd':
                 if model not in ('cdc', 'poi'):
@@ -1930,63 +1930,63 @@ class DWDservice(StdService):
                     continue
 
             # check required station 
-            station = location_dict.get('station')
+            station = section_dict.get('station')
             if (provider == 'dwd' or provider == 'ZAMG') and station is None:
                 if self.log_failure or self.debug > 0:
                     logerr("Section '%s' weather service provider '%s' - station is not valid. Skip section." % (section, provider))
                 continue
 
             # Icon set 
-            iconset = location_dict.get('icon_set', iconset)
+            iconset = section_dict.get('icon_set', iconset)
             if iconset is not None:
-                location_dict['iconset'] = self.iconset
-                if iconset=='belchertown': location_dict['iconset'] = 4
-                if iconset=='dwd': location_dict['iconset'] = 5
-                if iconset=='aeris': location_dict['iconset'] = 6
+                section_dict['iconset'] = self.iconset
+                if iconset=='belchertown': section_dict['iconset'] = 4
+                if iconset=='dwd': section_dict['iconset'] = 5
+                if iconset=='aeris': section_dict['iconset'] = 6
 
             # possible station coordinates
             if provider == 'open-meteo' or (provider == 'dwd' and model == 'poi'):
-                altitude = location_dict.get('altitude')
+                altitude = section_dict.get('altitude')
                 if altitude is not None:
                     altitude_t = weeutil.weeutil.option_as_list(altitude)
                     if len(altitude_t) >= 2:
                         altitude_t[1] = altitude_t[1].lower()
                         if altitude_t[1] in ('meter', 'foot'):
                             altitude_vt = weewx.units.ValueTuple(weeutil.weeutil.to_float(altitude_t[0]), altitude_t[1], "group_altitude")
-                            location_dict['altitude'] = weewx.units.convert(altitude_vt, 'meter')[0]
+                            section_dict['altitude'] = weewx.units.convert(altitude_vt, 'meter')[0]
                         else:
-                            location_dict['altitude'] = None
+                            section_dict['altitude'] = None
                             if self.log_failure or self.debug > 0:
                                 logerr("Configured unit '%s' for altitude in section '%s' is not valid, altitude will be ignored." % (altitude_t[1], section))
                     else:
-                        location_dict['altitude'] = None
+                        section_dict['altitude'] = None
                         if self.log_failure or self.debug > 0:
                             logerr("Configured altitude '%s' in section '%s' is not valid, altitude will be ignored." % (altitude, section))
 
                 if station.lower() in ('here','thisstation'):
-                    location_dict['latitude'] = location_dict.get('latitude', engine.stn_info.latitude_f)
-                    location_dict['longitude'] = location_dict.get('longitude', engine.stn_info.longitude_f)
-                    if location_dict.get('altitude') is None:
-                        location_dict['altitude'] = weewx.units.convert(engine.stn_info.altitude_vt, 'meter')[0]
+                    section_dict['latitude'] = section_dict.get('latitude', engine.stn_info.latitude_f)
+                    section_dict['longitude'] = section_dict.get('longitude', engine.stn_info.longitude_f)
+                    if section_dict.get('altitude') is None:
+                        section_dict['altitude'] = weewx.units.convert(engine.stn_info.altitude_vt, 'meter')[0]
 
             if provider == 'dwd':
                 if model == 'poi':
-                    self._create_poi_thread(section, location_dict)
+                    self._create_poi_thread(section, section_dict)
                 elif model == 'cdc':
-                    self._create_cdc_thread(section, location_dict)
+                    self._create_cdc_thread(section, section_dict)
             elif provider == 'zamg':
-                self._create_zamg_thread(section, location_dict)
+                self._create_zamg_thread(section, section_dict)
             elif provider == 'open-meteo':
                 # TODO remove 'test' in stable release
                 if model == 'test':
-                    prefix = location_dict.get('prefix', '')
+                    prefix = section_dict.get('prefix', '')
                     for ommodel in OPENMETEOthread.WEATHERMODELS:
                         modlocation = section + "_" + ommodel.upper()
-                        location_dict['model'] = ommodel
-                        location_dict['prefix'] = prefix + '_' + ommodel + '_'
-                        self._create_openmeteo_thread(modlocation, location_dict)
+                        section_dict['model'] = ommodel
+                        section_dict['prefix'] = prefix + '_' + ommodel + '_'
+                        self._create_openmeteo_thread(modlocation, section_dict)
                 else:
-                    self._create_openmeteo_thread(section, location_dict)
+                    self._create_openmeteo_thread(section, section_dict)
             elif self.log_failure or self.debug > 0:
                 logerr("Unknown weather service provider '%s' in section '%s'" % (provider, section))
 
@@ -1995,51 +1995,51 @@ class DWDservice(StdService):
             self.bind(weewx.NEW_ARCHIVE_RECORD, self.new_archive_record)
 
 
-    def _create_poi_thread(self, thread_name, station_dict):
-        prefix = station_dict.get('prefix','id'+thread_name)
+    def _create_poi_thread(self, thread_name, section_dict):
+        prefix = section_dict.get('prefix','id'+thread_name)
         self.threads[thread_name] = dict()
         self.threads[thread_name]['datasource'] = 'POI'
         self.threads[thread_name]['prefix'] = prefix
         self.threads[thread_name]['thread'] = DWDPOIthread(thread_name,
-                    station_dict,
-                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',self.log_success)) or self.verbose,
-                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',self.log_failure)) or self.verbose)
+                    section_dict,
+                    log_success=weeutil.weeutil.to_bool(section_dict.get('log_success',self.log_success)) or self.verbose,
+                    log_failure=weeutil.weeutil.to_bool(section_dict.get('log_failure',self.log_failure)) or self.verbose)
         self.threads[thread_name]['thread'].start()
     
     
-    def _create_cdc_thread(self, thread_name, station_dict):
-        prefix = station_dict.get('prefix','id'+thread_name)
+    def _create_cdc_thread(self, thread_name, section_dict):
+        prefix = section_dict.get('prefix','id'+thread_name)
         self.threads[thread_name] = dict()
         self.threads[thread_name]['datasource'] = 'CDC'
         self.threads[thread_name]['prefix'] = prefix
         self.threads[thread_name]['thread'] = DWDCDCthread(thread_name,
-                    station_dict,
-                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',self.log_success)) or self.verbose,
-                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',self.log_failure)) or self.verbose)
+                    section_dict,
+                    log_success=weeutil.weeutil.to_bool(section_dict.get('log_success',self.log_success)) or self.verbose,
+                    log_failure=weeutil.weeutil.to_bool(section_dict.get('log_failure',self.log_failure)) or self.verbose)
         self.threads[thread_name]['thread'].start()
     
     
-    def _create_zamg_thread(self, thread_name, station_dict):
-        prefix = station_dict.get('prefix','id'+thread_name)
+    def _create_zamg_thread(self, thread_name, section_dict):
+        prefix = section_dict.get('prefix','id'+thread_name)
         self.threads[thread_name] = dict()
         self.threads[thread_name]['datasource'] = 'ZAMG'
         self.threads[thread_name]['prefix'] = prefix
         self.threads[thread_name]['thread'] = ZAMGthread(thread_name,
-                    station_dict,
-                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',self.log_success)) or self.verbose,
-                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',self.log_failure)) or self.verbose)
+                    section_dict,
+                    log_success=weeutil.weeutil.to_bool(section_dict.get('log_success',self.log_success)) or self.verbose,
+                    log_failure=weeutil.weeutil.to_bool(section_dict.get('log_failure',self.log_failure)) or self.verbose)
         self.threads[thread_name]['thread'].start()
     
     
-    def _create_openmeteo_thread(self, thread_name, station_dict):
-        prefix = station_dict.get('prefix','id'+thread_name)
+    def _create_openmeteo_thread(self, thread_name, section_dict):
+        prefix = section_dict.get('prefix','id'+thread_name)
         self.threads[thread_name] = dict()
         self.threads[thread_name]['datasource'] = 'OPENMETEO'
         self.threads[thread_name]['prefix'] = prefix
         self.threads[thread_name]['thread'] = OPENMETEOthread(thread_name,
-                    station_dict,
-                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',self.log_success)) or self.verbose,
-                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',self.log_failure)) or self.verbose)
+                    section_dict,
+                    log_success=weeutil.weeutil.to_bool(section_dict.get('log_success',self.log_success)) or self.verbose,
+                    log_failure=weeutil.weeutil.to_bool(section_dict.get('log_failure',self.log_failure)) or self.verbose)
         self.threads[thread_name]['thread'].start()
     
     
