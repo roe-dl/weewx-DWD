@@ -1321,12 +1321,14 @@ class OPENMETEOthread(BaseThread):
         ,'apparent_temperature': 'appTemp'
         ,'dewpoint_2m': 'dewpoint' # not available in forecast model ecmwf
         ,'pressure_msl': 'barometer'
+        ,'surface_pressure': 'pressure'
         ,'relativehumidity_2m': 'outHumidity' # not available in forecast model ecmwf
         ,'winddirection_10m': 'windDir'
         ,'windspeed_10m': 'windSpeed'
         ,'windgusts_10m': 'windGust' # not available in forecast model ecmwf
         ,'cloudcover': 'cloudcover'
         ,'evapotranspiration': 'et'
+        ,'precipitation': 'precipitation'
         ,'rain': 'rain'
         ,'showers': 'shower'
         ,'snowfall':'snow'
@@ -1541,7 +1543,9 @@ class OPENMETEOthread(BaseThread):
                 # filled with CURRENTOBS
                 continue
             obsgroup = None
-            if obsweewx=='shower':
+            if obsweewx=='precipitation':
+                obsgroup = 'group_rain'
+            elif obsweewx=='shower':
                 obsgroup = 'group_rain'
             elif obsweewx=='freezinglevelHeight':
                 obsgroup = 'group_altitude'
@@ -1764,31 +1768,31 @@ class OPENMETEOthread(BaseThread):
         #get current weather data
         for obsapi, obsweewx in self.current_obs.items():
             obsname = self.prefix+obsweewx[0].upper()+obsweewx[1:]
-            if self.debug >= 2:
-                logdbg("thread '%s': weewx=%s api=%s obs=%s" % (self.name, str(obsweewx), str(obsapi), str(obsname)))
+            if self.debug >= 3:
+                logdbg("thread '%s': current: weewx=%s api=%s obs=%s" % (self.name, str(obsweewx), str(obsapi), str(obsname)))
             obsval = current_weather.get(obsapi)
             if obsval is None:
                 if self.debug > 2:
-                    logdbg("thread '%s': Open-Meteo returns None for observation %s - %s on timestamp %s" % (self.name, str(obsapi), str(obsname), str(obscts)))
+                    logdbg("thread '%s': current: Value 'None' for observation %s - %s on timestamp %s" % (self.name, str(obsapi), str(obsname), str(obscts)))
                 continue
             # API json response contain no unit data for current_weather observations
             unitapi = OPENMETEOthread.CURRENTUNIT.get(obsapi)
             if unitapi is None:
                 if self.log_failure or self.debug > 0:
-                    logerr("thread '%s': Open-Meteo returns no unit for observation %s - %s" % (self.name, str(obsapi), str(obsname)))
+                    logerr("thread '%s': current: No valid unit for observation %s - %s" % (self.name, str(obsapi), str(obsname)))
                 continue
             unitweewx = OPENMETEOthread.UNIT.get(unitapi)
             if unitweewx is None:
                 if self.log_failure or self.debug > 0:
-                    logerr("thread '%s': could not convert api unit '%s' to weewx unit" % (self.name, str(unitapi)))
+                    logerr("thread '%s': current: Could not convert api unit '%s' to weewx unit" % (self.name, str(unitapi)))
                 continue
             groupweewx = weewx.units.obs_group_dict.get(obsname)
             y[obsweewx] = (weeutil.weeutil.to_float(obsval), unitweewx, groupweewx)
             if self.debug >= 3:
-                logdbg("thread '%s': weewx=%s result=%s" % (self.name, str(obsweewx), str(y[obsweewx])))
+                logdbg("thread '%s': current: weewx=%s result=%s" % (self.name, str(obsweewx), str(y[obsweewx])))
 
         if self.debug >= 3:
-            logdbg("thread '%s': current weather data=%s" % (self.name, str(y)))
+            logdbg("thread '%s': current: result=%s" % (self.name, str(y)))
 
         # get hourly weather data
         for obsapi, obsweewx in self.hourly_obs.items():
@@ -1797,28 +1801,28 @@ class OPENMETEOthread(BaseThread):
                 # filled with current_weather data
                 continue
             if self.debug >= 3:
-                logdbg("thread '%s': weewx=%s api=%s obs=%s" % (self.name, str(obsweewx), str(obsapi), str(obsname)))
+                logdbg("thread '%s': hourly: weewx=%s api=%s obs=%s" % (self.name, str(obsweewx), str(obsapi), str(obsname)))
             obslist = apidata['hourly'].get(obsapi)
             if obslist is None:
                 if self.debug >= 2:
-                    logdbg("thread '%s': Open-Meteo returns no value for observation '%s' - '%s'" % (self.name, str(obsapi), str(obsname)))
+                    logdbg("thread '%s': hourly: No value for observation '%s' - '%s'" % (self.name, str(obsapi), str(obsname)))
                 continue
             # Build a dictionary with timestamps as key and the corresponding values
             obsvals = dict(zip(timelist, obslist))
             obsval = obsvals.get(obshts)
             if obsval is None:
                 if self.debug >= 2:
-                    logdbg("thread '%s': Open-Meteo returns None for observation %s - %s on timestamp %s" % (self.name, str(obsapi), str(obsname), str(obshts)))
+                    logdbg("thread '%s': hourly: Value 'None' for observation %s - %s on timestamp %s" % (self.name, str(obsapi), str(obsname), str(obshts)))
                 continue
             unitapi = hourly_units.get(obsapi)
             if unitapi is None:
                 if self.log_failure or self.debug > 0:
-                    logerr("thread '%s': Open-Meteo returns no unit for observation %s - %s" % (self.name, str(obsapi), str(obsname)))
+                    logerr("thread '%s': hourly: No unit for observation %s - %s" % (self.name, str(obsapi), str(obsname)))
                 continue
             unitweewx = OPENMETEOthread.UNIT.get(unitapi)
             if unitweewx is None:
                 if self.log_failure or self.debug > 0:
-                    logerr("thread '%s': could not convert api unit '%s' to weewx unit" % (self.name, str(unitapi)))
+                    logerr("thread '%s': hourly: Could not convert api unit '%s' to weewx unit" % (self.name, str(unitapi)))
                 continue
             groupweewx = weewx.units.obs_group_dict.get(obsname)
             # snowDepth from meter to mm, weewx snowDepth is weewx group_rain
@@ -1831,7 +1835,7 @@ class OPENMETEOthread(BaseThread):
                 unitweewx = 'km'
             y[obsweewx] = (weeutil.weeutil.to_float(obsval), unitweewx, groupweewx)
             if self.debug >= 3:
-                logdbg("thread '%s': weewx=%s result=%s" % (self.name, str(obsweewx), str(y[obsweewx])))
+                logdbg("thread '%s': hourly: weewx=%s result=%s" % (self.name, str(obsweewx), str(y[obsweewx])))
 
         if latitude is not None and longitude is not None:
             y['latitude'] = (latitude,'degree_compass','group_coordinate')
