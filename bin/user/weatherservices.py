@@ -1878,10 +1878,10 @@ class DWDservice(StdService):
         super(DWDservice,self).__init__(engine, config_dict)
         
         site_dict = weeutil.config.accumulateLeaves(config_dict.get('WeatherServices',configobj.ConfigObj()))
-        self.log_success = weeutil.weeutil.to_bool(site_dict.get('log_success',True))
-        self.log_failure = weeutil.weeutil.to_bool(site_dict.get('log_failure',True))
-        self.debug = weeutil.weeutil.to_int(site_dict.get('debug',0))
-        if self.debug>0:
+        self.log_success = weeutil.weeutil.to_bool(site_dict.get('log_success',config_dict.get('log_success', True)))
+        self.log_failure = weeutil.weeutil.to_bool(site_dict.get('log_failure',config_dict.get('log_failure', True)))
+        self.debug = weeutil.weeutil.to_int(site_dict.get('debug', config_dict.get('debug', 0)))
+        if self.debug > 0:
             self.log_success = True
             self.log_failure = True
 
