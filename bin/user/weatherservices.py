@@ -1307,6 +1307,8 @@ class OPENMETEOthread(BaseThread):
         ,'meteofrance':('FR', 'MeteoFrance', 'Arpege+Arome', 'meteofrance',['evapotranspiration', 'freezinglevel_height', 'rain', 'showers', 'snow_depth', 'snowfall_height', 'visibility'])
         ,'metno':('NO', 'MET Norway', 'Nordic', 'metno',['evapotranspiration', 'freezinglevel_height', 'rain', 'showers', 'snow_depth', 'snowfall_height', 'visibility'])
         ,'metno_nordic':('NO', 'MET Norway', 'Nordic', 'forecast',['snowfall_height'])
+        # TODO test only
+        #,'test':('', '', '', '',[])
     }
     
     # https://open-meteo.com/en/docs
