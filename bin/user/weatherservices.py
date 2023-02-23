@@ -22,25 +22,76 @@
     POI
     ===
     
+    TODO: POI station lat, lon, alt from station list
+    
     There are data of 47 DWD weather stations available. 
     
-    Configuration in weewx.conf:
+    DWD POI Service configuration weewx.conf:
     
-    [DeutscherWetterdienst]
+    [WeatherServices]
+        ...
+        # optional, logging for services.
+        # defaults: value from weewx.conf
+        log_success =
+        log_failure =
         ...
         [[forecast]]
-            icon_set = replace_me # 'belchertown', 'dwd' or 'aeris', optional
             ...
-        [[POI]]
-            [[[stations]]]
-                [[[[station_id]]]]
-                    prefix = observation_type_prefix_for_station
-                    #icon_set = replace_me # optional, default from section [[forecast]]
-                    #log_success = replace_me # True or False, optional
-                    #log_failure = replace_me # True or False, optional
-                [[[[another_station_id]]]]
-                    ...
+            # optional, 'belchertown', 'dwd' or 'aeris'
+            # default: belchertown
+            icon_set =
             ...
+
+        [[current]]
+            ...
+            # Any unique identifier for this DWD POI service. Used to give the service a id for logging e.g.
+            [[[any_unique_identifier_for_this_dwd_poi_service]]]
+                # required, service provider: DWD
+                provider = DWD
+
+                # required, service: POI
+                model = POI
+
+                # required, DWD POI station id, see station list
+                station = replace_me
+
+                # optional, enable or disable this service.
+                # default: False
+                enable = False
+
+                # optional, a prefix for each observation, e.g. "poi" results "poiObersvationname"
+                # Useful if multiple services are used to be able to distinguish the data, see also weewx-DWD documentation.
+                # default: ""
+                prefix =
+
+                # optional, 'belchertown', 'dwd' or 'aeris'
+                # default: value from section [[forecast]]
+                icon_set =
+
+                # optional, debug level, e.g. 0 = no debug infos, 1 = min debug infos, 2 = more debug infos, >=3 = max debug infos.
+                # default: 0
+                debug = 0
+
+                # optional, logging for services.
+                # defaults: value from section [WeatherServices]
+                log_success =
+                log_failure =
+
+                # optional, POI Station latitude in decimal degrees.
+                # POI Station latitude see station list
+                latitude =
+
+                # optional, POI Station longitude in decimal degrees.
+                # POI Station longitude see station list
+                longitude =
+
+                # optional, POI Station altitude with the unit. Choose 'foot' or 'meter' for unit.
+                # POI Station altitude see station list
+                altitude =
+            ...
+            [[[other_unique_identifier_for_a_dwd_poi_service]]]
+            ...
+        ...
     
     station list:
     https://github.com/roe-dl/weewx-DWD/wiki/POI-Stationen-in-Deutschland
@@ -70,19 +121,64 @@
     
     Configuration in weewx.conf:
     
-    [DeutscherWetterdienst]
+    DWD CDC Service configuration weewx.conf:
+    
+    [WeatherServices]
         ...
-        [[CDC]]
-            [[[stations]]]
-                [[[[station_nr]]]]
-                    prefix = observation_type_prefix_for_station
-                    # equipment of the weather station (optional)
-                    observations = air,wind,gust,precipitation,solar
-                    #log_success = replace_me # True or False, optional
-                    #log_failure = replace_me # True or False, optional
-                [[[[another_station_nr]]]]
-                    ...
+        # optional, logging for services.
+        # defaults: value from weewx.conf
+        log_success =
+        log_failure =
+        ...
+        [[forecast]]
             ...
+            # optional, 'belchertown', 'dwd' or 'aeris'
+            # default: belchertown
+            icon_set =
+            ...
+
+        [[current]]
+            ...
+            # Any unique identifier for this DWD CDC service. Used to give the service a id for logging e.g.
+            [[[any_unique_identifier_for_this_dwd_cdc_service]]]
+                # required, service provider: DWD
+                provider = DWD
+
+                # required, service: CDC
+                model = CDC
+
+                # required, DWD CDC station id, see station list
+                station = replace_me
+
+                # optional, enable or disable this service.
+                # default: False
+                enable = False
+
+                # optional, equipment of the weather station
+                # default: air,wind,gust,precipitation,solar
+                observations =
+
+                # optional, a prefix for each observation, e.g. "cdc" results "cdcObersvationname"
+                # Useful if multiple services are used to be able to distinguish the data, see also weewx-DWD documentation.
+                # default: ""
+                prefix =
+
+                # optional, 'belchertown', 'dwd' or 'aeris'
+                # default: value from section [[forecast]]
+                icon_set =
+
+                # optional, debug level, e.g. 0 = no debug infos, 1 = min debug infos, 2 = more debug infos, >=3 = max debug infos.
+                # default: 0
+                debug = 0
+
+                # optional, logging for services.
+                # defaults: value from section [WeatherServices]
+                log_success =
+                log_failure =
+            ...
+            [[[other_unique_identifier_for_a_dwd_cdc_service]]]
+            ...
+        ...
     
     station list:
     https://opendata.dwd.de/climate_environment/CDC/help/wetter_tageswerte_Beschreibung_Stationen.txt
@@ -99,18 +195,61 @@
     
     Austrian weather service
     
-    [ZAMG]
+    ZAMG Service configuration weewx.conf:
+    
+    [WeatherServices]
         ...
+        # optional, logging for services.
+        # defaults: value from weewx.conf
+        log_success =
+        log_failure =
+        ...
+        [[forecast]]
+            ...
+            # optional, 'belchertown', 'dwd' or 'aeris'
+            # default: belchertown
+            icon_set =
+            ...
+
         [[current]]
-            [[[stations]]]
-                [[[[station_nr]]]]
-                    prefix = observation_type_prefix_for_station
-                    # equipment of the weather station (optional)
-                    observations = air,wind,gust,precipitation,solar
-                    #log_success = replace_me # True or False, optional
-                    #log_failure = replace_me # True or False, optional
-                [[[[another_station_nr]]]]
-                    ...
+            ...
+            # Any unique identifier for this ZAMG service. Used to give the service a id for logging e.g.
+            [[[any_unique_identifier_for_this_zamg_service]]]
+                # required, service provider: ZAMG
+                provider = ZAMG
+
+                # required, ZAMG station id, see station list above
+                station = replace_me
+
+                # optional, enable or disable this service.
+                # default: False
+                enable = False
+
+                # optional, equipment of the weather station
+                # default: air,wind,gust,precipitation,solar
+                observations =
+
+                # optional, a prefix for each observation, e.g. "zamg" results "zamgObersvationname"
+                # Useful if multiple services are used to be able to distinguish the data, see also weewx-DWD documentation.
+                # default: ""
+                prefix =
+
+                # optional, 'belchertown', 'dwd' or 'aeris'
+                # default: value from section [[forecast]]
+                icon_set =
+
+                # optional, debug level, e.g. 0 = no debug infos, 1 = min debug infos, 2 = more debug infos, >=3 = max debug infos.
+                # default: 0
+                debug = 0
+
+                # optional, logging for services.
+                # defaults: value from section [WeatherServices]
+                log_success =
+                log_failure =
+            ...
+            [[[other_unique_identifier_for_a_zamg_service]]]
+            ...
+        ...
     
     station list:
     https://dataset.api.hub.zamg.ac.at/v1/station/current/tawes-v1-10min/metadata
@@ -148,9 +287,9 @@
             ...
         [[current]]
             ...
-            # Any unique identifier for this service. Used to give the service a id for logging e.g.
-            [[[any_unique_identifier_for_this_service]]]
-                # required, service provider
+            # Any unique identifier for this open-meteo service. Used to give the service a id for logging e.g.
+            [[[any_unique_identifier_for_this_open-meteo_service]]]
+                # required, service provider: open-meteo
                 provider = open-meteo
 
                 # optional, enable or disable this service.
@@ -162,12 +301,17 @@
                 # default: ThisStation
                 station =
 
+                # optional, Open-Meteo weather model, for possible values see dwd-mosmix Open-Meteo documentation or
+                # DWD ICON API / Weather Forecast API documentation on Open-Meteo website https://open-meteo.com
+                # default: dwd-icon
+                model =
+
                 # optional, latitude in decimal degrees. Negative for southern hemisphere.
                 # default: If station above in 'ThisStation': latitude value from weewx.conf [station]
                 #          otherwise: latitude from Open-Weather Geocoding API with station city or postal code
                 latitude =
 
-                # optinal, longitude in decimal degrees. Negative for western hemisphere.
+                # optional, longitude in decimal degrees. Negative for western hemisphere.
                 # default: If station above in 'ThisStation': longitude value from weewx.conf [station]
                 #          otherwise: longitude from Open-Weather Geocoding API with station city or postal code
                 longitude =
@@ -177,12 +321,8 @@
                 #          otherwise: altitude from Open-Weather Geocoding API with station city or postal code
                 altitude =
 
-                # optional, Open-Meteo weather model, for possible values see dwd-mosmix Open-Meteo documentation or
-                # DWD ICON API / Weather Forecast API documentation on Open-Meteo website https://open-meteo.com
-                # default: dwd-icon
-                model =
-
                 # optional, a prefix for each observation, e.g. "om" results "omObersvationname"
+                # Useful if multiple services are used to be able to distinguish the data, see also weewx-DWD documentation.
                 # default: ""
                 prefix =
 
@@ -202,6 +342,8 @@
                 # defaults: value from section [WeatherServices]
                 log_success =
                 log_failure =
+            ...
+            [[[other_unique_identifier_for_a_service]]]
             ...
         ...
     
@@ -1140,7 +1282,7 @@ class ZAMGthread(BaseThread):
 
 
 
-class DWDOPENMETEOthread(BaseThread):
+class OPENMETEOthread(BaseThread):
 
     WEATHERMODELS = {
         # option: (country, weather service, model, API endpoint, exclude list)
@@ -1284,11 +1426,11 @@ class DWDOPENMETEOthread(BaseThread):
     }
     
     def get_current_obs(self):
-        return DWDOPENMETEOthread.CURRENTOBS
+        return OPENMETEOthread.CURRENTOBS
 
     def get_hourly_obs(self):
-        hobs = copy.deepcopy(DWDOPENMETEOthread.HOURLYOBS)
-        modelparams = DWDOPENMETEOthread.WEATHERMODELS.get(self.model)
+        hobs = copy.deepcopy(OPENMETEOthread.HOURLYOBS)
+        modelparams = OPENMETEOthread.WEATHERMODELS.get(self.model)
         if modelparams is not None:
             # remove exclude list from obs
             for x in modelparams[4]:
@@ -1348,7 +1490,7 @@ class DWDOPENMETEOthread(BaseThread):
 
     def __init__(self, name, openmeteo_dict, log_success=False, log_failure=True):
     
-        super(DWDOPENMETEOthread,self).__init__(name='OPENMETEO-'+name, log_success=log_success, log_failure=log_failure)
+        super(OPENMETEOthread,self).__init__(name='OPENMETEO-'+name, log_success=log_success, log_failure=log_failure)
 
         self.lock = threading.Lock()
         self.log_success = weeutil.weeutil.to_bool(openmeteo_dict.get('log_success', log_success))
@@ -1436,10 +1578,10 @@ class DWDOPENMETEOthread(BaseThread):
             returns: (german_text,english_text,'','',belchertown_icon,dwd_icon,aeris_icon)
         """
         try:
-            x = DWDOPENMETEOthread.WEATHER[wwcode]
+            x = OPENMETEOthread.WEATHER[wwcode]
         except (LookupError,TypeError):
             # fallback
-            x = DWDOPENMETEOthread.WEATHER[-1]
+            x = OPENMETEOthread.WEATHER[-1]
         if wwcode < 4:
             # clouds only, nothing more
             night = 1 if night else 0
@@ -1451,7 +1593,7 @@ class DWDOPENMETEOthread(BaseThread):
     def getRecord(self):
         """ download and process Open-Meteo weather data """
 
-        endpoint = DWDOPENMETEOthread.WEATHERMODELS.get(self.model)[3]
+        endpoint = OPENMETEOthread.WEATHERMODELS.get(self.model)[3]
         if endpoint == 'forecast':
             modelparams = '&models=%s' % self.model
         else:
@@ -1628,12 +1770,12 @@ class DWDOPENMETEOthread(BaseThread):
                     logdbg("thread '%s': Open-Meteo returns None for observation %s - %s on timestamp %s" % (self.name, str(obsapi), str(obsname), str(obscts)))
                 continue
             # API json response contain no unit data for current_weather observations
-            unitapi = DWDOPENMETEOthread.CURRENTUNIT.get(obsapi)
+            unitapi = OPENMETEOthread.CURRENTUNIT.get(obsapi)
             if unitapi is None:
                 if self.log_failure or self.debug > 0:
                     logerr("thread '%s': Open-Meteo returns no unit for observation %s - %s" % (self.name, str(obsapi), str(obsname)))
                 continue
-            unitweewx = DWDOPENMETEOthread.UNIT.get(unitapi)
+            unitweewx = OPENMETEOthread.UNIT.get(unitapi)
             if unitweewx is None:
                 if self.log_failure or self.debug > 0:
                     logerr("thread '%s': could not convert api unit '%s' to weewx unit" % (self.name, str(unitapi)))
@@ -1671,7 +1813,7 @@ class DWDOPENMETEOthread(BaseThread):
                 if self.log_failure or self.debug > 0:
                     logerr("thread '%s': Open-Meteo returns no unit for observation %s - %s" % (self.name, str(obsapi), str(obsname)))
                 continue
-            unitweewx = DWDOPENMETEOthread.UNIT.get(unitapi)
+            unitweewx = OPENMETEOthread.UNIT.get(unitapi)
             if unitweewx is None:
                 if self.log_failure or self.debug > 0:
                     logerr("thread '%s': could not convert api unit '%s' to weewx unit" % (self.name, str(unitapi)))
@@ -1711,7 +1853,7 @@ class DWDOPENMETEOthread(BaseThread):
             if self.log_failure or self.debug > 0:
                 logerr("thread '%s': Determining day or night was not possible." % self.name)
 
-        wwcode = DWDOPENMETEOthread.get_ww(wwcode, night)
+        wwcode = OPENMETEOthread.get_ww(wwcode, night)
         if wwcode:
             y['icon'] = (wwcode[self.iconset],None,None)
             y['icontitle'] = (wwcode[0],None,None)
@@ -1765,22 +1907,34 @@ class DWDservice(StdService):
                     loginf("Section '%s' is not enabled. Skip section." % section)
                 continue
 
-            # Check required Provider and data model
+            # Check required provider
             provider = location_dict.get('provider')
-            if provider is None:
+            if provider: provider = provider.lower()
+            if provider not in ('dwd', 'zamg', 'open-meteo'):
                 if self.log_failure or self.debug > 0:
-                    logerr("Section '%s' weather service provider is not valid. Skip section." % section)
+                    logerr("Section '%s' - weather service provider is not valid. Skip section." % section)
                 continue
-            else:
-                provider = provider.lower()
 
+            # Check required model
             model = location_dict.get('model')
-            if provider == 'dwd' and model is None:
+            if model: model = model.lower()
+            if provider == 'dwd':
+                if model not in ('cdc', 'poi'):
+                    if self.log_failure or self.debug > 0:
+                        logerr("Section '%s' weather service provider '%s' - model is not valid. Skip section." % (section, provider))
+                    continue
+            elif provider == 'open-meteo':
+                if model not in OPENMETEOthread.WEATHERMODELS:
+                    if self.log_failure or self.debug > 0:
+                        logerr("Section '%s' weather service provider '%s' - model is not valid. Skip section." % (section, provider))
+                    continue
+
+            # check required station 
+            station = location_dict.get('station')
+            if (provider == 'dwd' or provider == 'ZAMG') and station is None:
                 if self.log_failure or self.debug > 0:
-                    logerr("Section '%s' weather service provider '%s' - model is not valid. Skip section." % (section, model))
+                    logerr("Section '%s' weather service provider '%s' - station is not valid. Skip section." % (section, provider))
                 continue
-            else:
-                model = model.lower()
 
             # Icon set 
             iconset = location_dict.get('icon_set', iconset)
@@ -1790,46 +1944,43 @@ class DWDservice(StdService):
                 if iconset=='dwd': location_dict['iconset'] = 5
                 if iconset=='aeris': location_dict['iconset'] = 6
 
-            # Station 
-            station = location_dict.get('station', 'ThisStation')
-
-            altitude = location_dict.get('altitude')
-            if altitude is not None:
-                altitude_t = weeutil.weeutil.option_as_list(altitude)
-                if len(altitude_t) >= 2:
-                    altitude_t[1] = altitude_t[1].lower()
-                    if altitude_t[1] in ('meter', 'foot'):
-                        altitude_vt = weewx.units.ValueTuple(weeutil.weeutil.to_float(altitude_t[0]), altitude_t[1], "group_altitude")
-                        location_dict['altitude'] = weewx.units.convert(altitude_vt, 'meter')[0]
+            # possible station coordinates
+            if provider == 'open-meteo' or (provider == 'dwd' and model == 'poi'):
+                altitude = location_dict.get('altitude')
+                if altitude is not None:
+                    altitude_t = weeutil.weeutil.option_as_list(altitude)
+                    if len(altitude_t) >= 2:
+                        altitude_t[1] = altitude_t[1].lower()
+                        if altitude_t[1] in ('meter', 'foot'):
+                            altitude_vt = weewx.units.ValueTuple(weeutil.weeutil.to_float(altitude_t[0]), altitude_t[1], "group_altitude")
+                            location_dict['altitude'] = weewx.units.convert(altitude_vt, 'meter')[0]
+                        else:
+                            location_dict['altitude'] = None
+                            if self.log_failure or self.debug > 0:
+                                logerr("Configured unit '%s' for altitude in section '%s' is not valid, altitude will be ignored." % (altitude_t[1], section))
                     else:
                         location_dict['altitude'] = None
                         if self.log_failure or self.debug > 0:
-                            logerr("Configured unit value '%s' for altitude in section [[[%s]]] is not valid, altitude will be ignored." % (altitude_t[1], section))
-                else:
-                    location_dict['altitude'] = None
-                    if self.log_failure or self.debug > 0:
-                        logerr("Configured altitude value '%s' in section [[[%s]]] is not valid, altitude will be ignored." % (altitude, section))
+                            logerr("Configured altitude '%s' in section '%s' is not valid, altitude will be ignored." % (altitude, section))
 
-            if station.lower() in ('here','thisstation'):
-                location_dict['latitude'] = location_dict.get('latitude', engine.stn_info.latitude_f)
-                location_dict['longitude'] = location_dict.get('longitude', engine.stn_info.longitude_f)
-                if location_dict.get('altitude') is None:
-                    location_dict['altitude'] = weewx.units.convert(engine.stn_info.altitude_vt, 'meter')[0]
+                if station.lower() in ('here','thisstation'):
+                    location_dict['latitude'] = location_dict.get('latitude', engine.stn_info.latitude_f)
+                    location_dict['longitude'] = location_dict.get('longitude', engine.stn_info.longitude_f)
+                    if location_dict.get('altitude') is None:
+                        location_dict['altitude'] = weewx.units.convert(engine.stn_info.altitude_vt, 'meter')[0]
 
-            if provider=='dwd':
-                if model=='poi':
+            if provider == 'dwd':
+                if model == 'poi':
                     self._create_poi_thread(section, location_dict)
-                elif model=='cdc':
+                elif model == 'cdc':
                     self._create_cdc_thread(section, location_dict)
-                elif self.log_failure or self.debug > 0:
-                    logerr("Unkown model '%s' in section '%s' for provider '%s'" % (model, section, provider))
-            elif provider=='zamg':
+            elif provider == 'zamg':
                 self._create_zamg_thread(section, location_dict)
-            elif provider=='open-meteo':
+            elif provider == 'open-meteo':
                 # TODO remove 'test' in stable release
                 if model == 'test':
                     prefix = location_dict.get('prefix', '')
-                    for ommodel in DWDOPENMETEOthread.WEATHERMODELS:
+                    for ommodel in OPENMETEOthread.WEATHERMODELS:
                         modlocation = section + "_" + ommodel.upper()
                         location_dict['model'] = ommodel
                         location_dict['prefix'] = prefix + '_' + ommodel + '_'
@@ -1885,7 +2036,7 @@ class DWDservice(StdService):
         self.threads[thread_name] = dict()
         self.threads[thread_name]['datasource'] = 'OPENMETEO'
         self.threads[thread_name]['prefix'] = prefix
-        self.threads[thread_name]['thread'] = DWDOPENMETEOthread(thread_name,
+        self.threads[thread_name]['thread'] = OPENMETEOthread(thread_name,
                     station_dict,
                     log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',self.log_success)) or self.verbose,
                     log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',self.log_failure)) or self.verbose)
