@@ -131,60 +131,76 @@
     
     [WeatherServices]
         ...
+        # Logging for services.
+        # defaults: value from weewx.conf
+        log_success =
+        log_failure =
+        ...
         [[forecast]]
             ...
             # optional, 'belchertown', 'dwd' or 'aeris'
             icon_set =
+
+            # optional, used for queries where a language is required, e.g. Open-Meteo geocoding API. default: de
+            lang =
             ...
-        [[any_identifier_for_this_service]]
-            # required, service provider
-            provider = open-meteo
+        [[current]]
+            ...
+            # Any identifier for this service. Used to give the service a unique identifier, for example.
+            [[[any_identifier_for_this_service]]]
+                # required, service provider
+                provider = open-meteo
 
-            # optional, enable or disable this service.
-            # default: False
-            enable = False
+                # optional, enable or disable this service.
+                # default: False
+                enable = False
 
-            # optional, not case sensitiv. 'ThisStation', 'here or 'station" for local station
-            # or a valid city name or postal code e.g. "Döbeln".
-            # default: 'any_identifier_for_this_service' from this section
-            station =
+                # optional, not case sensitiv. 'ThisStation' for local station
+                # or a valid city name or postal code e.g. 'Döbeln'.
+                # default: 'ThisStation'
+                station =
 
-            # optional, latitude in decimal degrees. Negative for southern hemisphere.
-            # default: If station above in 'ThisStation': latitude value from weewx.conf [station]
-            #          otherwise: latitude from Open-Weather Geocoding API with station city or postal code
-            latitude =
+                # optional, latitude in decimal degrees. Negative for southern hemisphere.
+                # default: If station above in 'ThisStation': latitude value from weewx.conf [station]
+                #          otherwise: latitude from Open-Weather Geocoding API with station city or postal code
+                latitude =
 
-            # optinal, longitude in decimal degrees. Negative for western hemisphere.
-            # default: If station above in 'ThisStation': longitude value from weewx.conf [station]
-            #          otherwise: longitude from Open-Weather Geocoding API with station city or postal code
-            longitude =
+                # optinal, longitude in decimal degrees. Negative for western hemisphere.
+                # default: If station above in 'ThisStation': longitude value from weewx.conf [station]
+                #          otherwise: longitude from Open-Weather Geocoding API with station city or postal code
+                longitude =
 
-            # optional, altitude of the station, with the unit. Choose 'foot' or 'meter' for unit.
-            # default: If station above in 'ThisStation': altitude value from weewx.conf [station]
-            #          otherwise: altitude from Open-Weather Geocoding API with station city or postal code
-            altitude =
+                # optional, altitude of the station, with the unit. Choose 'foot' or 'meter' for unit.
+                # default: If station above in 'ThisStation': altitude value from weewx.conf [station]
+                #          otherwise: altitude from Open-Weather Geocoding API with station city or postal code
+                altitude =
 
-            # optional, Open-Meteo weather model, for possible values see dwd-mosmix Open-Meteo documentation or
-            # DWD ICON API / Weather Forecast API documentation on Open-Meteo website https://open-meteo.com
-            # default: dwd-icon
-            model =
+                # optional, Open-Meteo weather model, for possible values see dwd-mosmix Open-Meteo documentation or
+                # DWD ICON API / Weather Forecast API documentation on Open-Meteo website https://open-meteo.com
+                # default: dwd-icon
+                model =
 
-            # optional, a prefix for each observation, e.g. "om" results "omObersvationname"
-            # default: ""
-            prefix =
-            
-            # optional, 'belchertown', 'dwd' or 'aeris'
-            # default: value from section [[forecast]]
-            icon_set =
-            
-            # optional, debug level, e.g. 0 = no debug infos, 1 = min debug infos, 2 = more debug infos, >=3 = max debug infos.
-            # default: 0
-            debug = 0
-            
-            # Logging for services.
-            # defaults: False
-            log_success =
-            log_failure =
+                # optional, a prefix for each observation, e.g. "om" results "omObersvationname"
+                # default: ""
+                prefix =
+
+                # optional, used for queries where a language is required, e.g. Open-Meteo geocoding API.
+                # default: value from section [[forecast]]
+                lang =
+
+                # optional, 'belchertown', 'dwd' or 'aeris'
+                # default: value from section [[forecast]]
+                icon_set =
+
+                # optional, debug level, e.g. 0 = no debug infos, 1 = min debug infos, 2 = more debug infos, >=3 = max debug infos.
+                # default: 0
+                debug = 0
+
+                # Logging for services.
+                # defaults: value from section [WeatherServices]
+                log_success =
+                log_failure =
+            ...
         ...
     
     API URL Builder "v1/dwd-icon" endpoint (Model: "dwd-icon":
@@ -313,7 +329,7 @@ def wget(url,log_success=False,log_failure=True):
             loginf('Error downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
         return None
 
-def is_night(record):
+def is_night(record,log_success=False,log_failure=True):
     """
     Portions based on the dashboard service Copyright 2021 Gary Roderick gjroderick<at>gmail.com
     and distributed under the terms of the GNU Public License (GPLv3).
@@ -333,7 +349,7 @@ def is_night(record):
         longitude = record['longitude'][0]
         altitude = record['altitude'][0]
     except LookupError as e:
-        if self.log_failure or self.debug > 0:
+        if log_failure:
             logerr("thread '%s': is_night %s - %s" % (self.name, e.__class__.__name__, e))
         return "N/A"
 
@@ -479,9 +495,10 @@ class DWDPOIthread(BaseThread):
         super(DWDPOIthread,self).__init__(name='DWD-POI-'+name, log_success=log_success, log_failure=log_failure)
 
         self.lock = threading.Lock()
-        self.log_success = log_success
-        self.log_failure = log_failure
+        self.log_success = weeutil.weeutil.to_bool(poi_dict.get('log_success', log_success))
+        self.log_failure = weeutil.weeutil.to_bool(poi_dict.get('log_failure', log_failure))
         self.debug = weeutil.weeutil.to_int(poi_dict.get('debug', 0))
+        self.lang = poi_dict.get('lang', 'de')
 
         self.station = poi_dict.get('station')
         self.iconset = weeutil.weeutil.to_int(poi_dict.get('iconset', 4))
@@ -618,7 +635,8 @@ class DWDPOIthread(BaseThread):
                 if self.alt is not None:
                     y['altitude'] = (self.alt,'meter','group_altitude')
 
-                night = is_night(y)
+                night = is_night(y, log_success=(self.log_success or self.debug > 0),
+                                    log_failure=(self.log_failure or self.debug > 0))
                 if night != "N/A":
                     y['day'] = (0 if night else 1,None,None)
                 else:
@@ -638,7 +656,7 @@ class DWDPOIthread(BaseThread):
             self.data = x
         finally:
             self.lock.release()
-        if self.debug >= 2 and len(x) > 0:
+        if self.debug > 0 and len(x) > 0:
             logdbg("thread '%s': result=%s" % (self.name, str(x[0])))
 
 
@@ -685,9 +703,10 @@ class DWDCDCthread(BaseThread):
         super(DWDCDCthread,self).__init__(name='DWD-CDC-'+name, log_success=log_success, log_failure=log_failure)
 
         self.lock = threading.Lock()
-        self.log_success = log_success
-        self.log_failure = log_failure
+        self.log_success = weeutil.weeutil.to_bool(cdc_dict.get('log_success', log_success))
+        self.log_failure = weeutil.weeutil.to_bool(cdc_dict.get('log_failure', log_failure))
         self.debug = weeutil.weeutil.to_int(cdc_dict.get('debug', 0))
+        self.lang = cdc_dict.get('lang', 'de')
 
         self.station = cdc_dict.get('station')
         self.iconset = weeutil.weeutil.to_int(cdc_dict.get('iconset', 4))
@@ -880,7 +899,7 @@ class DWDCDCthread(BaseThread):
             self.maxtime = ti[maxtime] if ti and maxtime else None
         finally:
             self.lock.release()
-        if self.debug >= 2:
+        if self.debug >= 0:
             logdbg("thread '%s': result=%s" % (self.name, str(self.data[self.maxtime])))
 
 
@@ -954,9 +973,10 @@ class ZAMGthread(BaseThread):
         super(ZAMGthread,self).__init__(name='ZAMG-'+name, log_success=log_success, log_failure=log_failure)
 
         self.lock = threading.Lock()
-        self.log_success = log_success
-        self.log_failure = log_failure
+        self.log_success = weeutil.weeutil.to_bool(zamg_dict.get('log_success', log_success))
+        self.log_failure = weeutil.weeutil.to_bool(zamg_dict.get('log_failure', log_failure))
         self.debug = weeutil.weeutil.to_int(zamg_dict.get('debug', 0))
+        self.lang = zamg_dict.get('lang', 'de')
 
         self.station = zamg_dict.get('station')
         self.iconset = weeutil.weeutil.to_int(zamg_dict.get('iconset', 4))
@@ -1103,7 +1123,7 @@ class ZAMGthread(BaseThread):
                         x['longitude'] = (self.lon,'degree_compass','group_coordinate')
                     if self.alt:
                         x['altitude'] = (self.alt,'meter','group_altitude')
-                    if self.debug >= 2:
+                    if self.debug > 0:
                         logdbg("thread '%s': result=%s" % (self.name, str(x)))
                 try:
                     self.lock.acquire()
@@ -1268,6 +1288,7 @@ class DWDOPENMETEOthread(BaseThread):
         hobs = copy.deepcopy(DWDOPENMETEOthread.HOURLYOBS)
         modelparams = DWDOPENMETEOthread.WEATHERMODELS.get(self.model)
         if modelparams is not None:
+            # remove exclude list from obs
             for x in modelparams[4]:
                 hobs.pop(x)
         return hobs
@@ -1294,8 +1315,7 @@ class DWDOPENMETEOthread(BaseThread):
         # By default, results are returned as JSON.
         params += '&format=json'
         # Return translated results, if available, otherwise return english or the native location name. Lower-cased.
-        # TODO: not relevant yet, but later possibly configurable, e.g. station = Döbeln, de
-        params += '&language=de'
+        params += '&language=%s' % self.lang
         
         url = baseurl + params
 
@@ -1329,9 +1349,10 @@ class DWDOPENMETEOthread(BaseThread):
         super(DWDOPENMETEOthread,self).__init__(name='OPENMETEO-'+name, log_success=log_success, log_failure=log_failure)
 
         self.lock = threading.Lock()
-        self.log_success = log_success
-        self.log_failure = log_failure
+        self.log_success = weeutil.weeutil.to_bool(openmeteo_dict.get('log_success', log_success))
+        self.log_failure = weeutil.weeutil.to_bool(openmeteo_dict.get('log_failure', log_failure))
         self.debug = weeutil.weeutil.to_int(openmeteo_dict.get('debug', 0))
+        self.lang = openmeteo_dict.get('lang', 'de')
 
         self.iconset = weeutil.weeutil.to_int(openmeteo_dict.get('iconset', 4))
         self.prefix = openmeteo_dict.get('prefix', '')
@@ -1343,12 +1364,12 @@ class DWDOPENMETEOthread(BaseThread):
         self.data = []
         self.last_get_ts = 0
 
-        station = openmeteo_dict.get('station')
+        station = openmeteo_dict.get('station', 'ThisStation')
         self.lat = weeutil.weeutil.to_float(openmeteo_dict.get('latitude'))
         self.lon = weeutil.weeutil.to_float(openmeteo_dict.get('longitude'))
         self.alt = weeutil.weeutil.to_float(openmeteo_dict.get('altitude'))
         if self.lat is None or self.lon is None or self.alt is None:
-            if station.lower() not in ('here', 'thisstation'):
+            if station.lower() not in ('thisstation', 'here'):
                 # station is a city name or postal code
                 geo = self.get_geocoding(station)
                 if self.lat is None:
@@ -1358,7 +1379,7 @@ class DWDOPENMETEOthread(BaseThread):
                 if self.alt is None:
                     self.alt = weeutil.weeutil.to_float(geo.get('elevation'))
             else:
-                raise weewx.ViolatedPrecondition("thread '%s': Location is not valid." % self.name)
+                raise weewx.ViolatedPrecondition("thread '%s': Configured location is not valid." % self.name)
 
         for opsapi, obsweewx in self.current_obs.items():
             obsgroup = None
@@ -1469,8 +1490,8 @@ class DWDOPENMETEOthread(BaseThread):
         yesterday = datetime.datetime.now() - datetime.timedelta(1)
         yesterday = datetime.datetime.strftime(yesterday, '%Y-%m-%d')
         today = datetime.datetime.today().strftime('%Y-%m-%d')
-        params += '&start_date=%s' % str(yesterday)
-        params += '&end_date=%s' % str(today)
+        params += '&start_date=%s' % yesterday
+        params += '&end_date=%s' % today
 
         # units
         # The API request is made in the metric system
@@ -1501,8 +1522,8 @@ class DWDOPENMETEOthread(BaseThread):
         apidata = {}
         try:
             reply = wget(url,
-                     log_success=(self.log_success or self.debug > 0),
-                     log_failure=(self.log_failure or self.debug > 0))
+                         log_success=(self.log_success or self.debug > 0),
+                         log_failure=(self.log_failure or self.debug > 0))
             if reply is not None:
                 apidata = json.loads(reply.decode('utf-8'))
             else:
@@ -1597,11 +1618,11 @@ class DWDOPENMETEOthread(BaseThread):
         #get current weather data
         for obsapi, obsweewx in self.current_obs.items():
             obsname = self.prefix+obsweewx[0].upper()+obsweewx[1:]
-            if self.debug >= 3:
+            if self.debug >= 2:
                 logdbg("thread '%s': weewx=%s api=%s obs=%s" % (self.name, str(obsweewx), str(obsapi), str(obsname)))
             obsval = current_weather.get(obsapi)
             if obsval is None:
-                if self.debug > 0:
+                if self.debug > 2:
                     logdbg("thread '%s': Open-Meteo returns None for observation %s - %s on timestamp %s" % (self.name, str(obsapi), str(obsname), str(obscts)))
                 continue
             # API json response contain no unit data for current_weather observations
@@ -1633,14 +1654,14 @@ class DWDOPENMETEOthread(BaseThread):
                 logdbg("thread '%s': weewx=%s api=%s obs=%s" % (self.name, str(obsweewx), str(obsapi), str(obsname)))
             obslist = apidata['hourly'].get(obsapi)
             if obslist is None:
-                if self.debug > 0:
+                if self.debug >= 2:
                     logdbg("thread '%s': Open-Meteo returns no value for observation '%s' - '%s'" % (self.name, str(obsapi), str(obsname)))
                 continue
             # Build a dictionary with timestamps as key and the corresponding values
             obsvals = dict(zip(timelist, obslist))
             obsval = obsvals.get(obshts)
             if obsval is None:
-                if self.debug > 0:
+                if self.debug >= 2:
                     logdbg("thread '%s': Open-Meteo returns None for observation %s - %s on timestamp %s" % (self.name, str(obsapi), str(obsname), str(obshts)))
                 continue
             unitapi = hourly_units.get(obsapi)
@@ -1658,6 +1679,10 @@ class DWDOPENMETEOthread(BaseThread):
             if obsweewx == 'snowDepth':
                 obsval = (weeutil.weeutil.to_float(obsval) * 1000)
                 unitweewx = 'mm'
+            # visibility from meter to km
+            if obsweewx == 'visibility':
+                obsval = (weeutil.weeutil.to_float(obsval) / 1000)
+                unitweewx = 'km'
             y[obsweewx] = (weeutil.weeutil.to_float(obsval), unitweewx, groupweewx)
             if self.debug >= 3:
                 logdbg("thread '%s': weewx=%s result=%s" % (self.name, str(obsweewx), str(y[obsweewx])))
@@ -1674,7 +1699,8 @@ class DWDOPENMETEOthread(BaseThread):
         else:
             wwcode = -1
 
-        night = is_night(y)
+        night = is_night(y, log_success=(self.log_success or self.debug > 0),
+                         log_failure=(self.log_failure or self.debug > 0))
         if night != "N/A":
             y['day'] = (0 if night else 1,None,None)
         else:
@@ -1692,7 +1718,7 @@ class DWDOPENMETEOthread(BaseThread):
 
         x.append(y)
 
-        if self.debug >= 2:
+        if self.debug > 0:
             logdbg("thread '%s': result=%s" % (self.name, str(x[0])))
 
         try:
@@ -1719,15 +1745,40 @@ class DWDservice(StdService):
         
         try:
             iconset = config_dict['WeatherServices']['forecast']['icon_set']
+            self.lang = config_dict['WeatherServices']['forecast']['lang']
         except LookupError:
-            iconset = config_dict.get('DeutscherWetterdienst',site_dict).get('forecast',site_dict).get('icon_set','belchertown').lower()
+            iconset = config_dict.get('WeatherServices',site_dict).get('forecast',site_dict).get('icon_set','belchertown').lower()
+            self.lang = 'de'
         self.iconset = 4
         if iconset=='dwd': self.iconset = 5
         if iconset=='aeris': self.iconset = 6
         
         site_dict = config_dict.get('WeatherServices',configobj.ConfigObj()).get('current',configobj.ConfigObj())
-        for location in site_dict.sections:
-            location_dict = weeutil.config.accumulateLeaves(site_dict[location])
+        for section in site_dict.sections:
+            location_dict = weeutil.config.accumulateLeaves(site_dict[section])
+
+            # section enabled?
+            if not weeutil.weeutil.to_bool(location_dict.get('enable',True)):
+                if self.log_success or self.debug > 0:
+                    loginf("Section '%s' is not enabled. Skip section." % section)
+                continue
+
+            # Check required Provider and data model
+            provider = location_dict.get('provider')
+            if provider is None:
+                if self.log_failure or self.debug > 0:
+                    logerr("Section '%s' weather service provider is not valid. Skip section." % section)
+                continue
+            else:
+                provider = provider.lower()
+
+            model = location_dict.get('model')
+            if provider == 'dwd' and model is None:
+                if self.log_failure or self.debug > 0:
+                    logerr("Section '%s' weather service provider '%s' - model is not valid. Skip section." % (section, model))
+                continue
+            else:
+                model = model.lower()
 
             # Icon set 
             iconset = location_dict.get('icon_set', iconset)
@@ -1738,8 +1789,7 @@ class DWDservice(StdService):
                 if iconset=='aeris': location_dict['iconset'] = 6
 
             # Station 
-            station = location_dict.get('station',location)
-            print(station)
+            station = location_dict.get('station', 'ThisStation')
 
             altitude = location_dict.get('altitude')
             if altitude is not None:
@@ -1752,11 +1802,11 @@ class DWDservice(StdService):
                     else:
                         location_dict['altitude'] = None
                         if self.log_failure or self.debug > 0:
-                            logerr("Configured unit value '%s' for altitude in section [[[%s]]] is not valid, altitude will be ignored." % (altitude_t[1], location))
+                            logerr("Configured unit value '%s' for altitude in section [[[%s]]] is not valid, altitude will be ignored." % (altitude_t[1], section))
                 else:
                     location_dict['altitude'] = None
                     if self.log_failure or self.debug > 0:
-                        logerr("Configured altitude value '%s' in section [[[%s]]] is not valid, altitude will be ignored." % (altitude, location))
+                        logerr("Configured altitude value '%s' in section [[[%s]]] is not valid, altitude will be ignored." % (altitude, section))
 
             if station.lower() in ('here','thisstation'):
                 location_dict['latitude'] = location_dict.get('latitude', engine.stn_info.latitude_f)
@@ -1764,39 +1814,29 @@ class DWDservice(StdService):
                 if location_dict.get('altitude') is None:
                     location_dict['altitude'] = weewx.units.convert(engine.stn_info.altitude_vt, 'meter')[0]
 
-            # Provider and data model
-            provider = location_dict.get('provider')
-            if provider: provider = provider.lower()
-            model = location_dict.get('model')
-            if model: model = model.lower()
-
-            # enabled?
-            enable = weeutil.weeutil.to_bool(location_dict.get('enable',True))
-            if enable and provider:
-                if provider=='dwd':
-                    if model=='poi':
-                        self._create_poi_thread(location, location_dict)
-                    elif model=='cdc':
-                        self._create_cdc_thread(location, location_dict)
-                    elif self.log_failure or self.debug > 0:
-                        logerr("unkown model '%s' for provider '%s'" % (model,provider))
-                elif provider=='zamg':
-                    self._create_zamg_thread(location, location_dict)
-                elif provider=='open-meteo':
-                    if model == 'all':
-                        prefix = location_dict.get('prefix', '')
-                        for ommodel in DWDOPENMETEOthread.WEATHERMODELS:
-                            modlocation = location + "_" + ommodel.upper()
-                            location_dict['model'] = ommodel
-                            location_dict['prefix'] = prefix + '_' + ommodel + '_'
-                            self._create_openmeteo_thread(modlocation, location_dict)
-                    else:
-                        self._create_openmeteo_thread(location, location_dict)
+            if provider=='dwd':
+                if model=='poi':
+                    self._create_poi_thread(section, location_dict)
+                elif model=='cdc':
+                    self._create_cdc_thread(section, location_dict)
                 elif self.log_failure or self.debug > 0:
-                    logerr("unknown weather service provider '%s'" % provider)
-            elif self.log_failure or self.debug > 0 and not enable:
-               loginf("Section '%s' weather service provider '%s' not enabled." % (location, provider))
-        
+                    logerr("Unkown model '%s' in section '%s' for provider '%s'" % (model, section, provider))
+            elif provider=='zamg':
+                self._create_zamg_thread(section, location_dict)
+            elif provider=='open-meteo':
+                # TODO remove 'test' in stable release
+                if model == 'test':
+                    prefix = location_dict.get('prefix', '')
+                    for ommodel in DWDOPENMETEOthread.WEATHERMODELS:
+                        modlocation = section + "_" + ommodel.upper()
+                        location_dict['model'] = ommodel
+                        location_dict['prefix'] = prefix + '_' + ommodel + '_'
+                        self._create_openmeteo_thread(modlocation, location_dict)
+                else:
+                    self._create_openmeteo_thread(section, location_dict)
+            elif self.log_failure or self.debug > 0:
+                logerr("Unknown weather service provider '%s' in section '%s'" % (provider, section))
+
         if  __name__!='__main__':
             self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
             self.bind(weewx.NEW_ARCHIVE_RECORD, self.new_archive_record)
@@ -1809,8 +1849,8 @@ class DWDservice(StdService):
         self.threads[thread_name]['prefix'] = prefix
         self.threads[thread_name]['thread'] = DWDPOIthread(thread_name,
                     station_dict,
-                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',False)) or self.verbose,
-                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',True)) or self.verbose)
+                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',self.log_success)) or self.verbose,
+                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',self.log_failure)) or self.verbose)
         self.threads[thread_name]['thread'].start()
     
     
@@ -1821,8 +1861,8 @@ class DWDservice(StdService):
         self.threads[thread_name]['prefix'] = prefix
         self.threads[thread_name]['thread'] = DWDCDCthread(thread_name,
                     station_dict,
-                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',False)) or self.verbose,
-                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',True)) or self.verbose)
+                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',self.log_success)) or self.verbose,
+                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',self.log_failure)) or self.verbose)
         self.threads[thread_name]['thread'].start()
     
     
@@ -1833,8 +1873,8 @@ class DWDservice(StdService):
         self.threads[thread_name]['prefix'] = prefix
         self.threads[thread_name]['thread'] = ZAMGthread(thread_name,
                     station_dict,
-                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',False)) or self.verbose,
-                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',True)) or self.verbose)
+                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',self.log_success)) or self.verbose,
+                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',self.log_failure)) or self.verbose)
         self.threads[thread_name]['thread'].start()
     
     
@@ -1845,8 +1885,8 @@ class DWDservice(StdService):
         self.threads[thread_name]['prefix'] = prefix
         self.threads[thread_name]['thread'] = DWDOPENMETEOthread(thread_name,
                     station_dict,
-                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',False)) or self.verbose,
-                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',True)) or self.verbose)
+                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',self.log_success)) or self.verbose,
+                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',self.log_failure)) or self.verbose)
         self.threads[thread_name]['thread'].start()
     
     
