@@ -466,8 +466,15 @@ def wget(url,log_success=False,log_failure=True):
         return reply.content
     elif reply.status_code==400:
         if log_failure:
-            loginf('Bad Request downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
-        return reply.content
+            reason = reply.reason
+            # Open-Meteo returned a JSON error object with a reason
+            if 'reason' in reply.json():
+                reason = str(reply.json()['reason'])
+            # other services may return a JSON error object with an error message
+            elif 'error' in reply.json():
+                reason = str(reply.json()['error'])
+            logerr("Error downloading %s: %s %s' % (reply.url, reply.status_code, reason))
+        return None
     else:
         if log_failure:
             loginf('Error downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
@@ -1680,12 +1687,6 @@ class OPENMETEOthread(BaseThread):
         except Exception as e:
             if self.log_failure or self.debug > 0:
                 logerr("thread '%s': Open-Meteo %s - %s" % (self.name, e.__class__.__name__, e))
-            return
-
-        # check errors
-        if apidata.get('error') is not None:
-            if self.log_failure or self.debug > 0:
-                logerr("thread '%s': Open-Meteo Error: '%s' URL: '%s'" % (self.name, apidata.get('reason', 'N/A'), url))
             return
 
         # check results
