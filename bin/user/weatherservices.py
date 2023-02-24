@@ -477,7 +477,7 @@ def wget(url,log_success=False,log_failure=True):
         return None
     else:
         if log_failure:
-            loginf('Error downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
+            logerr('Error downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
         return None
 
 def is_night(record,log_success=False,log_failure=True):
