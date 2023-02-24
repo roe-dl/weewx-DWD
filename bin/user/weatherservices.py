@@ -1311,8 +1311,8 @@ class OPENMETEOthread(BaseThread):
         ,'meteofrance':('FR', 'MeteoFrance', 'Arpege+Arome', 'meteofrance',['evapotranspiration', 'freezinglevel_height', 'rain', 'showers', 'snow_depth', 'snowfall_height', 'visibility'])
         ,'metno':('NO', 'MET Norway', 'Nordic', 'metno',['evapotranspiration', 'freezinglevel_height', 'rain', 'showers', 'snow_depth', 'snowfall_height', 'visibility'])
         ,'metno_nordic':('NO', 'MET Norway', 'Nordic', 'forecast',['snowfall_height'])
-        # TODO test only
-        #,'test':('', '', '', '',[])
+        # TODO remove 'test' in stable release?
+        ,'test':('', '', '', '',[])
     }
     
     # https://open-meteo.com/en/docs
@@ -1981,7 +1981,7 @@ class DWDservice(StdService):
             elif provider == 'zamg':
                 self._create_zamg_thread(section, station_dict)
             elif provider == 'open-meteo':
-                # TODO remove 'test' in stable release
+                # TODO remove 'test' in stable release?
                 if model == 'test':
                     prefix = station_dict.get('prefix', '')
                     for ommodel in OPENMETEOthread.WEATHERMODELS:
