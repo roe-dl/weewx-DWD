@@ -473,7 +473,7 @@ def wget(url,log_success=False,log_failure=True):
             # other services may return a JSON error object with an error message
             elif 'error' in reply.json():
                 reason = str(reply.json()['error'])
-            logerr("Error downloading %s: %s %s' % (reply.url, reply.status_code, reason))
+            logerr('Error downloading %s: %s %s' % (reply.url, reply.status_code, reason))
         return None
     else:
         if log_failure:
