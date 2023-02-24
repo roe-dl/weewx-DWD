@@ -56,7 +56,7 @@
                 station = replace_me
 
                 # optional, enable or disable this service.
-                # default: False
+                # default: True
                 #enable = replace_me
 
                 # optional, a prefix for each observation, e.g. "poi" results "poiObersvationname"
@@ -151,7 +151,7 @@
                 station = replace_me
 
                 # optional, enable or disable this service.
-                # default: False
+                # default: True
                 #enable = replace_me
 
                 # optional, equipment of the weather station
@@ -222,7 +222,7 @@
                 station = replace_me
 
                 # optional, enable or disable this service.
-                # default: False
+                # default: True
                 #enable = replace_me
 
                 # optional, equipment of the weather station
@@ -293,7 +293,7 @@
                 provider = open-meteo
 
                 # optional, enable or disable this service.
-                # default: False
+                # default: True
                 #enable = replace_me
 
                 # optional, not case sensitiv. 'ThisStation' for local station
