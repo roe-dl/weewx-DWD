@@ -32,14 +32,14 @@
         ...
         # optional, logging for services.
         # defaults: value from weewx.conf
-        log_success =
-        log_failure =
+        #log_success = replace_me
+        #log_failure = replace_me
         ...
         [[forecast]]
             ...
             # optional, 'belchertown', 'dwd' or 'aeris'
             # default: belchertown
-            icon_set =
+            #icon_set = replace_me
             ...
 
         [[current]]
@@ -57,37 +57,37 @@
 
                 # optional, enable or disable this service.
                 # default: False
-                enable = False
+                #enable = replace_me
 
                 # optional, a prefix for each observation, e.g. "poi" results "poiObersvationname"
                 # Useful if multiple services are used to be able to distinguish the data, see also weewx-DWD documentation.
                 # default: ""
-                prefix =
+                #prefix = replace_me
 
                 # optional, 'belchertown', 'dwd' or 'aeris'
                 # default: value from section [[forecast]]
-                icon_set =
+                #icon_set = replace_me
 
                 # optional, debug level, e.g. 0 = no debug infos, 1 = min debug infos, 2 = more debug infos, >=3 = max debug infos.
                 # default: 0
-                debug = 0
+                #debug = 0 replace_me
 
                 # optional, logging for services.
                 # defaults: value from section [WeatherServices]
-                log_success =
-                log_failure =
+                #log_success = replace_me
+                #log_failure = replace_me
 
                 # optional, POI Station latitude in decimal degrees.
                 # POI Station latitude see station list
-                latitude =
+                #latitude = replace_me
 
                 # optional, POI Station longitude in decimal degrees.
                 # POI Station longitude see station list
-                longitude =
+                #longitude = replace_me
 
                 # optional, POI Station altitude with the unit. Choose 'foot' or 'meter' for unit.
                 # POI Station altitude see station list
-                altitude =
+                #altitude = replace_me
             ...
             [[[other_unique_identifier_for_a_dwd_poi_service]]]
             ...
@@ -127,14 +127,14 @@
         ...
         # optional, logging for services.
         # defaults: value from weewx.conf
-        log_success =
-        log_failure =
+        #log_success = replace_me
+        #log_failure = replace_me
         ...
         [[forecast]]
             ...
             # optional, 'belchertown', 'dwd' or 'aeris'
             # default: belchertown
-            icon_set =
+            #icon_set = replace_me
             ...
 
         [[current]]
@@ -152,29 +152,29 @@
 
                 # optional, enable or disable this service.
                 # default: False
-                enable = False
+                #enable = replace_me
 
                 # optional, equipment of the weather station
                 # default: air,wind,gust,precipitation,solar
-                observations =
+                #observations = replace_me
 
                 # optional, a prefix for each observation, e.g. "cdc" results "cdcObersvationname"
                 # Useful if multiple services are used to be able to distinguish the data, see also weewx-DWD documentation.
                 # default: ""
-                prefix =
+                #prefix = replace_me
 
                 # optional, 'belchertown', 'dwd' or 'aeris'
                 # default: value from section [[forecast]]
-                icon_set =
+                #icon_set = replace_me
 
                 # optional, debug level, e.g. 0 = no debug infos, 1 = min debug infos, 2 = more debug infos, >=3 = max debug infos.
                 # default: 0
-                debug = 0
+                #debug = replace_me
 
                 # optional, logging for services.
                 # defaults: value from section [WeatherServices]
-                log_success =
-                log_failure =
+                #log_success = replace_me
+                #log_failure = replace_me
             ...
             [[[other_unique_identifier_for_a_dwd_cdc_service]]]
             ...
@@ -201,14 +201,14 @@
         ...
         # optional, logging for services.
         # defaults: value from weewx.conf
-        log_success =
-        log_failure =
+        #log_success = replace_me
+        #log_failure = replace_me
         ...
         [[forecast]]
             ...
             # optional, 'belchertown', 'dwd' or 'aeris'
             # default: belchertown
-            icon_set =
+            #icon_set = replace_me
             ...
 
         [[current]]
@@ -223,29 +223,29 @@
 
                 # optional, enable or disable this service.
                 # default: False
-                enable = False
+                #enable = replace_me
 
                 # optional, equipment of the weather station
                 # default: air,wind,gust,precipitation,solar
-                observations =
+                #observations = replace_me
 
                 # optional, a prefix for each observation, e.g. "zamg" results "zamgObersvationname"
                 # Useful if multiple services are used to be able to distinguish the data, see also weewx-DWD documentation.
                 # default: ""
-                prefix =
+                #prefix = replace_me
 
                 # optional, 'belchertown', 'dwd' or 'aeris'
                 # default: value from section [[forecast]]
-                icon_set =
+                #icon_set = replace_me
 
                 # optional, debug level, e.g. 0 = no debug infos, 1 = min debug infos, 2 = more debug infos, >=3 = max debug infos.
                 # default: 0
-                debug = 0
+                #debug = replace_me
 
                 # optional, logging for services.
                 # defaults: value from section [WeatherServices]
-                log_success =
-                log_failure =
+                #log_success = replace_me
+                #log_failure = replace_me
             ...
             [[[other_unique_identifier_for_a_zamg_service]]]
             ...
@@ -272,18 +272,18 @@
         ...
         # optional, logging for services.
         # defaults: value from weewx.conf
-        log_success =
-        log_failure =
+        #log_success = replace_me
+        #log_failure = replace_me
         ...
         [[forecast]]
             ...
             # optional, 'belchertown', 'dwd' or 'aeris'
             # default: belchertown
-            icon_set =
+            #icon_set = replace_me
 
             # optional, used for queries where a language is required, e.g. Open-Meteo geocoding API.
             # default: de
-            lang =
+            #lang = replace_me
             ...
         [[current]]
             ...
@@ -294,54 +294,54 @@
 
                 # optional, enable or disable this service.
                 # default: False
-                enable = False
+                #enable = replace_me
 
                 # optional, not case sensitiv. 'ThisStation' for local station
                 # or a valid city name or postal code e.g. 'Döbeln' or '04720'.
                 # default: ThisStation
-                station =
+                #station = replace_me
 
                 # optional, Open-Meteo weather model, for possible values see dwd-mosmix Open-Meteo documentation or
                 # DWD ICON API / Weather Forecast API documentation on Open-Meteo website https://open-meteo.com
                 # default: dwd-icon
-                model =
+                #model = replace_me
 
                 # optional, latitude in decimal degrees. Negative for southern hemisphere.
                 # default: If station above in 'ThisStation': latitude value from weewx.conf [station]
                 #          otherwise: latitude from Open-Weather Geocoding API with station city or postal code
-                latitude =
+                #latitude = replace_me
 
                 # optional, longitude in decimal degrees. Negative for western hemisphere.
                 # default: If station above in 'ThisStation': longitude value from weewx.conf [station]
                 #          otherwise: longitude from Open-Weather Geocoding API with station city or postal code
-                longitude =
+                #longitude = replace_me
 
                 # optional, altitude of the station, with the unit. Choose 'foot' or 'meter' for unit.
                 # default: If station above in 'ThisStation': altitude value from weewx.conf [station]
                 #          otherwise: altitude from Open-Weather Geocoding API with station city or postal code
-                altitude =
+                #altitude = replace_me
 
                 # optional, a prefix for each observation, e.g. "om" results "omObersvationname"
                 # Useful if multiple services are used to be able to distinguish the data, see also weewx-DWD documentation.
                 # default: ""
-                prefix =
+                #prefix = replace_me
 
                 # optional, used for queries where a language is required, e.g. Open-Meteo geocoding API.
                 # default: value from section [[forecast]]
-                lang =
+                #lang = replace_me
 
                 # optional, 'belchertown', 'dwd' or 'aeris'
                 # default: value from section [[forecast]]
-                icon_set =
+                #icon_set = replace_me
 
                 # optional, debug level, e.g. 0 = no debug infos, 1 = min debug infos, 2 = more debug infos, >=3 = max debug infos.
                 # default: 0
-                debug = 0
+                #debug = replace_me
 
                 # optional, logging for services.
                 # defaults: value from section [WeatherServices]
-                log_success =
-                log_failure =
+                #log_success = replace_me
+                #log_failure = replace_me
             ...
             [[[other_unique_identifier_for_a_service]]]
             ...
