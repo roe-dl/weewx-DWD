@@ -869,7 +869,11 @@ class DWDCDCthread(BaseThread):
         self.maxtime = None
         self.last_get_ts = 0
 
-        observations = weeutil.weeutil.option_as_list(cdc_dict.get('observations', ['air','wind','gust','precipitation','solar']))
+        observations = cdc_dict.get('observations')
+        if observations is not None:
+            observations = weeutil.weeutil.option_as_list(observations)
+        else:
+            observations = ('air','wind','gust','precipitation','solar')
         url = DWDCDCthread.BASE_URL+'/10_minutes/'
         self.urls = []
         for obs in observations:
@@ -1145,7 +1149,10 @@ class ZAMGthread(BaseThread):
         self.get_meta_data()
         
         observations = zamg_dict.get('observations')
-        observations = weeutil.weeutil.option_as_list(zamg_dict.get('observations', ['air','wind','gust','precipitation','solar']))
+        if observations is not None:
+            observations = weeutil.weeutil.option_as_list(observations)
+        else:
+            observations = ('air','wind','gust','precipitation','solar')
         self.observations = []
         for observation in observations:
             if observation in ZAMGthread.OBS:
