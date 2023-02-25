@@ -19,7 +19,7 @@ python3 /usr/share/weewx/user/weathercodes.py --write-svg Zielverzeichnis
 ----------------------------------------------------------------------------
 
 WMO 4677 ww
-![Code-Tabelle](images/WMO-code-table-4677-colored.png) 
+![Code-Tabelle](WMO-code-table-4677-colored.png) 
 
 WMO 4680 wawa
-![Code-Tabelle](images/WMO-code-table-4680-colored.png)
+![Code-Tabelle](WMO-code-table-4680-colored.png)
