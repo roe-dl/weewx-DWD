@@ -622,13 +622,13 @@ WAWA_SYMBOLS = [
     WW_SYMBOLS[78],
     None,
     # 80...89 SHOWER(S) or INTERMITTENT PRECIPITATION
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g> <path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 80</desc> <g> <path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> </svg> ',
     # 81 Rain shower(s) or intermittent rain, slight
     WW_SYMBOLS[80],
     # 82 Rain shower(s) or intermittent rain, moderate
     WW_SYMBOLS[81],
     # 83 Rain shower(s) or intermittent rain, heavy
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <circle r="5.5" cx="7" cy="-15.5" fill="#00d700" /> <circle r="5.5" cx="-7" cy="-15.5" fill="#00d700" /> <path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 83</desc> <circle r="5.5" cx="7" cy="-15.5" fill="#00d700" /> <circle r="5.5" cx="-7" cy="-15.5" fill="#00d700" /> <path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> </svg> ',
     # 84 Rain shower(s) or intermittent rain, violent
     WW_SYMBOLS[82],
     # 85 Snow shower(s) or intermittent snow, slight
@@ -636,15 +636,15 @@ WAWA_SYMBOLS = [
     # 86 Snow shower(s) or intermittent snow, moderate
     WW_SYMBOLS[86],
     # 87 Snow shower(s) or intermittent snow, heavy
-    '',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 87</desc> <g> <g transform="translate(0,-15.5)"> <path d="M -8.5,0 m -5.5,0 h 11 m -2.75,-4.763139720814413 l -5.5,9.526279441628825 m 5.5,0 l -5.5,-9.526279441628825" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /><path d="M 8.5,0 m -5.5,0 h 11 m -2.75,-4.763139720814413 l -5.5,9.526279441628825 m 5.5,0 l -5.5,-9.526279441628825" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /> </g> <path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#ac00ff" /> 	<path d="M -6,0.5 h 12" style="fill:none; stroke-width:3; stroke:#ac00ff" /> </g> </svg> ',
     # 88 reserved
     None,
     # 89 Hail
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g stroke="#000000" fill="#000000" style="stroke-width:3; stroke-linejoin:miter"> <path d="M 0,-8 l 8.7,14.6 h-17.4 z" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 89</desc> <g stroke="#000000" fill="#000000" style="stroke-width:3; stroke-linejoin:miter"> <path d="M 0,-8 l 8.7,14.6 h-17.4 z" /> </g> </svg> ',
     # 90 THUNDERSTORM
     WW_SYMBOLS[17],
     # 91 Thunderstorm, slight or moderate, with no precipitation
-    '',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 91</desc> <g fill="none" stroke-width="3" stroke="#ed1c24" > <path d="M -16.5,-17.5 h 12 m 7,0 h 12" /><path d="M 9.5,-17.5 l-14,19.5 l 14.5,14.5"/> <path d="M -10.5,-17.5 v 37"/> <path d="M 9,16.5 h1 v-1 z"/> </g> </svg> ',
     # 92 Thunderstorm, slight or moderate, with rain showers and/or snow showers
     WW_SYMBOLS[95],
     # 93 Thunderstorm, slight or moderate, with hail
@@ -658,7 +658,7 @@ WAWA_SYMBOLS = [
     # 97...98 reserved
     None,None,
     # 99 Tornado
-    ''
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 99</desc> <path fill="none" stroke-width="3" stroke="#000000" d="M -7.5,18.5 v -28.5 l -6,-8.5 M 7.5,18.5 v -28.5 l 6,-8.5 M 15,-1.9749371855331 A 18,9 0 1 0 15,7.9749371855331" /> <g transform="translate(13,9.224949798994366),rotate(-30)" > <path fill="#000000" d="M 15,0 l -15,4.5 v -9 z" />  </g> </svg>'
 ]
 
 def get_ww(ww,n,night):
