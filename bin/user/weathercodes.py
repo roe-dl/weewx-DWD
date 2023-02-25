@@ -640,7 +640,7 @@ WAWA_SYMBOLS = [
     # 88 reserved
     None,
     # 89 Hail
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 89</desc> <g stroke="#000000" fill="#000000" style="stroke-width:3; stroke-linejoin:miter"> <path d="M 0,-8 l 8.7,14.6 h-17.4 z" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 89</desc> <g stroke="#000000" fill="#000000" style="stroke-width:3; stroke-linejoin:miter"> <path d="M 0,-8 l 8.7,14.6 h-17.4 z" /> </g> </svg> ',
     # 90 THUNDERSTORM
     WW_SYMBOLS[17],
     # 91 Thunderstorm, slight or moderate, with no precipitation
@@ -650,7 +650,7 @@ WAWA_SYMBOLS = [
     # 93 Thunderstorm, slight or moderate, with hail
     WW_SYMBOLS[96],
     # 94 Thunderstorm, heavy, with no precipitation
-    '',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 94</desc> <g fill="none" stroke-width="3" stroke="#ed1c24"> <path d="M -13.635,-17.5 h 12 m 6,0 h 12" /><path d="M 11.159,-17.5 l-8.810,17.032 l 7.635,7.635 l-7.635,7.635" /> <path d="M -7.635,-17.5 v 37" /> <path d="M 2.349,15.976 h-1 v-1 z" fill="#ed1c24"  /> </g> </svg> ',
     # 95 Thunderstorm, heavy, with rain showers and/or snow showers
     WW_SYMBOLS[97],
     # 96 Thunderstorm, heavy, with hail
