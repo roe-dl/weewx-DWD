@@ -514,9 +514,9 @@ WAWA_SYMBOLS = [
     # 03 Clouds generally forming or developing during the past hour
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> </svg>',
     # 04 Haze or smoke, or dust in suspension in the air, visibility equal to, or greater than, 1 km
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g fill="none" stroke-width="3" stroke="#000000" > <path d="M 0,0 a 12,12 0 0,0 0,24 a 12,12 0 0,0 0,-24 a 12,12 0 0,1 0,-24 a 12,12 0 0,1 0,24 z"/> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g fill="none" stroke-width="3" stroke="#000000" > <path d="M 0,0 a 34,17.705691893392046 0 0 0 9,-12 a 9,9 0 0 0 -18,0 a 34,17.705691893392046 0 0 0 9,12 a 34,17.705691893392046 0 0 1 9,12 a 9,9 0 0 1 -18,0 a 34,17.705691893392046 0 0 1 9,-12" /> </svg>',
     # 05 Haze or smoke, or dust in suspension in the air, visibility less than 1 km
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <circle cx="0" cy="12" r="12" fill="#000000" /> <g fill="none" stroke-width="3" stroke="#000000" > <path d="M 0,0 a 12,12 0 0,0 0,24 a 12,12 0 0,0 0,-24 a 12,12 0 0,1 0,-24 a 12,12 0 0,1 0,24 z"/> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g fill="none" stroke-width="3" stroke="#000000" > <path d="M 0,0 a 34,17.705691893392046 0 0 0 9,-12 a 9,9 0 0 0 -18,0 a 34,17.705691893392046 0 0 0 9,12 a 34,17.705691893392046 0 0 1 9,12 a 9,9 0 0 1 -18,0 a 34,17.705691893392046 0 0 1 9,-12" /> <path fill="#000000" d="M 0,0 a 34,17.705691893392046 0 0 1 9,12 a 9,9 0 0 1 -18,0 a 34,17.705691893392046 0 0 1 9,-12 z" /> </svg>',
     # 06...09 reserved
     None,None,None,None,
     # 10 Mist
