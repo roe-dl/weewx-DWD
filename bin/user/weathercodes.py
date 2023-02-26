@@ -312,7 +312,7 @@ WW_SYMBOLS = [
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 03 	Description: Clouds generally forming or developing during past hour (not plotted) </desc> <g id="ww_03" fill="none" stroke-width="3" stroke="#000000" > 	<circle r="17"/> 	<path d="M 0,-17 v -8"/> </g> </svg> ',
     # 04 https://upload.wikimedia.org/wikipedia/commons/e/e3/Symbol_code_ww_04.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 04 	Description: Visibility reduced by smoke </desc> <g id="ww_04" fill="none" stroke-width="3" stroke="#000000" > 	<path d="M -19.5,25 v -45 a 4.5,4.5 0 0,1 9,0 a 4.5,4.5 0 0,0 9,0 a 4.5,4.5 0 0,1 9,0 a 4.5,4.5 0 0,0 9,0 a 4.5,4.5 0 0,1 4.5,-4.5"/> </g> </svg> ',
-    # 05 https://upload.wikimedia.org/wikipedia/commons/5/52/Symbol_code_ww_05.svg
+    # 05 
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4677 ww 05</desc> <path fill="none" stroke-width="3" stroke="#000000" d="M 0,0 a 17.705691893392046,34 0 0 1 -12,9 a 9,9 0 0 1 0,-18 a 17.705691893392046,34 0 0 1 12,9 a 17.705691893392046,34 0 0 0 12,9 a 9,9 0 0 0 0,-18 a 17.705691893392046,34 0 0 0 -12,9 z" /> </svg>',
     # 06 https://upload.wikimedia.org/wikipedia/commons/8/8d/Symbol_code_ww_06.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 06 	Description: Widespread dust in suspension in the air, not raised by wind at or near the station at the time of observation </desc> <g id="ww_06" fill="none" stroke-width="3" stroke="#000000" > 	<path d="M 12,-12 a 12,12 0 0,0 -24,0 a 12,12 0 0,0 12,12 a 12,12 0 0,1 12,12 a 12,12 0 0,1 -24,0"/> </g> </svg> ',
@@ -535,7 +535,7 @@ WAWA_SYMBOLS = [
     # 20 Fog
     WW_SYMBOLS[28],
     # 21 PRECIPITATION
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 21</dwsc> <g> <path d="M -13.5,0 A 9 9 0 0 1 4.5 0" fill="none" stroke="#00d700" stroke-linecap="round" stroke-width="3" /> <path d="M 6,-21 h 7 v42 h-7" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 21</desc> <g> <path d="M -13.5,0 A 9 9 0 0 1 4.5 0" fill="none" stroke="#00d700" stroke-linecap="round" stroke-width="3" /> <path d="M 6,-21 h 7 v42 h-7" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
     # 22 Drizzle (not freezing) or snow grains
     WW_SYMBOLS[20],
     # 23 Rain (not freezing)
