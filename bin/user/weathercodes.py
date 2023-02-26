@@ -547,7 +547,7 @@ WAWA_SYMBOLS = [
     # 26 Thunderstorm (with or without precipitation)
     WW_SYMBOLS[29],
     # 27 BLOWING OR DRIFTING SNOW OR SAND
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 27</desc> <g stroke="#000000" stroke-width="3" fill="none"> <path d="M -3.5,-10   a 7,7 0 0 0 -14,0   a 28,14 0 0 0 8,10   a 28,14 0 0 1 7,10   a 7,7 0 0 1 -14,0   M 6,-18.5 v 37" /> <path stroke-linecap="round" d="M -9,0 h 20.5" /> </g> <path fill="#000000" d="M18.5,0 l -7,3 v -6 z" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 27</desc> <g stroke="#000000" stroke-width="3" fill="none"> <path d="M -3.5,-10   a 7,7 0 0 0 -14,0   a 28,15.118578920369089 0 0 0 7,10   a 28,15.118578920369089 0 0 1 7,10   a 7,7 0 0 1 -14,0   M 6,-18.5 v 37" /> <path stroke-linecap="round" d="M -9,0 h 20.5" /> </g> <path fill="#000000" d="M18.5,0 l -7,3 v -6 z" /> </svg>',
     # 28 Blowing or drifting snow or sand, visibility equal to, or greater than, 1 km
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 28</desc> <g stroke="#000000" stroke-width="3" fill="none"> <path d="M -8.5,-18.5 v 37   M 6,-18.5 v 37   M -8.5,0 h 21" /> </g> <path fill="#000000" d="M18.5,0 l -7,3 v -6 z" /> </svg>',
     # 29 Blowing or drifting snow or sand, visibility less than 1 km
