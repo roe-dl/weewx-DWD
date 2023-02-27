@@ -2042,15 +2042,15 @@ class BRIGHTSKYthread(BaseThread):
         ,'dew_point': ('dewpoint', 'degree_C', 'group_temperature')
         ,'pressure_msl': ('barometer', 'hPa', 'group_pressure')
         ,'relative_humidity': ('outHumidity', 'percent', 'group_percent')
-        ,'wind_speed_10': ('windSpeed10', 'kmh', 'group_speed')
-        ,'wind_speed_30': ('windSpeed30', 'kmh', 'group_speed')
-        ,'wind_speed_60': ('windSpeed60', 'kmh', 'group_speed')
+        ,'wind_speed_10': ('windSpeed10', 'km_per_hour', 'group_speed')
+        ,'wind_speed_30': ('windSpeed30', 'km_per_hour', 'group_speed')
+        ,'wind_speed_60': ('windSpeed60', 'km_per_hour', 'group_speed')
         ,'wind_direction_10': ('windDir10', 'degree_compass', 'group_direction')
         ,'wind_direction_30': ('windDir30', 'degree_compass', 'group_direction')
         ,'wind_direction_60': ('windDir60', 'degree_compass', 'group_direction')
-        ,'wind_gust_speed_10': ('windGust10', 'kmh', 'group_speed')
-        ,'wind_gust_speed_30': ('windGust30', 'kmh', 'group_speed')
-        ,'wind_gust_speed_60': ('windGust60', 'kmh', 'group_speed')
+        ,'wind_gust_speed_10': ('windGust10', 'km_per_hour', 'group_speed')
+        ,'wind_gust_speed_30': ('windGust30', 'km_per_hour', 'group_speed')
+        ,'wind_gust_speed_60': ('windGust60', 'km_per_hour', 'group_speed')
         ,'wind_gust_direction_10': ('windGustDir10', 'degree_compass', 'group_direction')
         ,'wind_gust_direction_30': ('windGustDir30', 'degree_compass', 'group_direction')
         ,'wind_gust_direction_60': ('windGustDir60', 'degree_compass', 'group_direction')
@@ -2061,7 +2061,7 @@ class BRIGHTSKYthread(BaseThread):
         ,'sunshine_10': ('sunshineDur10', 'minute', 'group_deltatime')
         ,'sunshine_30': ('sunshineDur30', 'minute', 'group_deltatime')
         ,'sunshine_60': ('sunshineDur60', 'minute', 'group_deltatime')
-        ,'visibility': ('visibility', 'km', 'group_distance')
+        ,'visibility': ('visibility', 'meter', 'group_distance')
     }
 
     # Mapping API primary source fields -> WeeWX field, unit, group
@@ -2073,7 +2073,7 @@ class BRIGHTSKYthread(BaseThread):
         ,'lat': ('latitude', 'degree_compass', 'group_coordinate')
         ,'lon': ('longitude', 'degree_compass', 'group_coordinate')
         ,'height': ('altitude', 'meter', 'group_altitude')
-        ,'distance': ('distance', 'km', 'group_distance')
+        ,'distance': ('distance', 'meter', 'group_distance')
         ,'station_name': ('stationName', None, None)
     }
 
