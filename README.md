@@ -523,7 +523,7 @@ der Originalfarbgebung (ggf. mehrfarbig) dargestellt.
 [Beschreibung der Symbole](https://www.woellsdorf-wetter.de/info/presentweather.html)
 
 Beispiel: Belchertown-Symbole
-fog | drizzle | rain | hail | sleet | snow | thunderstorm | wind | tornado
+Nebel | Nieselregen | Regen | Hagel | Schneeregen | Schnee | Gewitter | Wind | Tornado
 ----|---------|------|------|-------|------|--------------|------|---------
 <img src="https://www.woellsdorf-wetter.de/images/fog.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/drizzle.png" width="50px" /> |<img src="https://www.woellsdorf-wetter.de/images/rain.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/hail.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/sleet.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/snow.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/thunderstorm.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/wind.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/tornado.png" width="50px" />
 
