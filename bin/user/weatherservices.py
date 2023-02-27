@@ -715,7 +715,7 @@ class DWDPOIthread(BaseThread):
     UNIT = {
         'Grad C':'degree_C',
         'W/m2':'watt_per_meter_squared',
-        'km/h':'kilometer_per_hour',
+        'km/h':'km_per_hour',
         'h':'hour',
         'min':'minute',
         '%':'percent'}
@@ -1508,7 +1508,7 @@ class OPENMETEOthread(BaseThread):
         ,'hPa': 'hPa'
         ,'kPa': 'kPa'
         ,u'W/m²': 'watt_per_meter_squared'
-        ,'km/h': 'kilometer_per_hour'
+        ,'km/h': 'km_per_hour'
         ,'%': 'percent'
         ,'wmo code': 'count'
         ,'unixtime': 'unix_epoch'
@@ -2262,19 +2262,19 @@ class BRIGHTSKYthread(BaseThread):
 
         # Physical units in which meteorological parameters will be returned. Set to si to use SI units.
         # The default dwd option uses a set of units that is more common in meteorological applications and civil use:
-        # 	                    DWD	    SI
-        # Cloud cover	        %	    %
-        # Dew point	            °C	    K
-        # Precipitation	        mm	    kg/m²
-        # Pressure	            hPa	    Pa
+        #                       DWD     SI
+        # Cloud cover           %       %
+        # Dew point             °C      K
+        # Precipitation         mm      kg/m²
+        # Pressure              hPa     Pa
         # Relative humidity     %       %
-        # Sunshine	            min	    s
-        # Temperature	        °C	    K
-        # Visibility	        m	    m
-        # Wind direction	    °	    °
-        # Wind speed	        km/h    m/s
-        # Wind gust direction   °	    °
-        # Wind gust speed	    km/h	m/s
+        # Sunshine              min     s
+        # Temperature           °C      K
+        # Visibility            m       m
+        # Wind direction        °       °
+        # Wind speed            km/h    m/s
+        # Wind gust direction   °       °
+        # Wind gust speed       km/h    m/s
         params += '&units=dwd'
 
         url = baseurl + params
