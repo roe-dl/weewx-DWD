@@ -2399,14 +2399,14 @@ class BRIGHTSKYthread(BaseThread):
 
 # ============================================================================
 #
-# Class weatherservice
+# Class CurrentService
 #
 # ============================================================================
 
-class weatherservice(StdService):
+class CurrentService(StdService):
 
     def __init__(self, engine, config_dict):
-        super(weatherservice,self).__init__(engine, config_dict)
+        super(CurrentService,self).__init__(engine, config_dict)
         
         site_dict = weeutil.config.accumulateLeaves(config_dict.get('WeatherServices',configobj.ConfigObj()))
         self.log_success = weeutil.weeutil.to_bool(site_dict.get('log_success', True))
@@ -2687,7 +2687,7 @@ if __name__ == '__main__':
 
     else:
     
-        sv = weatherservice(engine,conf_dict)
+        sv = CurrentService(engine,conf_dict)
         
         try:
             while True:
