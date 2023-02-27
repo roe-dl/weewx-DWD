@@ -2318,7 +2318,7 @@ class BRIGHTSKYthread(BaseThread):
         if self.debug >= 4:
             logdbg("thread '%s': API result: %s" % (self.name, str(apidata)))
 
-        y['interval'] = (300, 'seconds', 'group_interval')
+        y['interval'] = (60,'minute','group_interval')
 
         # get current weather data
         for obsapi, obsweewx in self.current_obs.items():
