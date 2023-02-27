@@ -473,7 +473,7 @@ def wget(url,log_success=False,log_failure=True):
             # other services may return a JSON error object with an error message
             elif 'error' in reply.json():
                 reason = str(reply.json()['error'])
-            logerr('Error downloading %s: %s %s' % (reply.url, reply.status_code, reason))
+            logerr("Download Error %s - %s URL=%s" % (reply.status_code, reason, reply.url))
         return None
     else:
         if log_failure:
@@ -531,6 +531,11 @@ def is_night(record,log_success=False,log_failure=True):
     # if we are not between sunrise and sunset it must be night
     return not (sunrise_ts < record['dateTime'][0] < sunset_ts)
 
+# ============================================================================
+#
+# Class BaseThread
+#
+# ============================================================================
 
 class BaseThread(threading.Thread):
 
@@ -578,6 +583,12 @@ class BaseThread(threading.Thread):
         finally:
             loginf("thread '%s' stopped" % self.name)
 
+
+# ============================================================================
+#
+# Class DWDPOIthread
+#
+# ============================================================================
 
 class DWDPOIthread(BaseThread):
 
@@ -810,6 +821,12 @@ class DWDPOIthread(BaseThread):
         if self.debug > 0 and len(x) > 0:
             logdbg("thread '%s': result=%s" % (self.name, str(x[0])))
 
+
+# ============================================================================
+#
+# Class DWDCDCthread
+#
+# ============================================================================
 
 class DWDCDCthread(BaseThread):
 
@@ -1056,6 +1073,12 @@ class DWDCDCthread(BaseThread):
             logdbg("thread '%s': result=%s" % (self.name, str(self.data[self.maxtime])))
 
 
+# ============================================================================
+#
+# Class ZAMGthread
+#
+# ============================================================================
+
 class ZAMGthread(BaseThread):
 
     # https://dataset.api.hub.zamg.ac.at/v1/station/historical/klima-v1-10min/metadata
@@ -1290,8 +1313,11 @@ class ZAMGthread(BaseThread):
                 logerr("thread '%s': %s" % (self.name,e))
 
 
-
-
+# ============================================================================
+#
+# Class OPENMETEOthread
+#
+# ============================================================================
 
 class OPENMETEOthread(BaseThread):
 
@@ -1496,9 +1522,11 @@ class OPENMETEOthread(BaseThread):
             else:
                 if self.log_failure or self.debug > 0:
                     logerr("thread '%s': Geocoding returns None data." % self.name)
+                return None
         except (Exception, LookupError) as e:
             if self.log_failure or self.debug > 0:
                 logerr("thread '%s': Geocoding %s - %s" % (self.name, e.__class__.__name__, e))
+            return None
 
         # return results
         return geodata
@@ -1531,14 +1559,17 @@ class OPENMETEOthread(BaseThread):
             if station.lower() not in ('thisstation', 'here'):
                 # station is a city name or postal code
                 geo = self.get_geocoding(station)
-                if self.lat is None:
-                    self.lat = weeutil.weeutil.to_float(geo.get('latitude'))
-                if self.lon is None:
-                    self.lon = weeutil.weeutil.to_float(geo.get('longitude'))
-                if self.alt is None:
-                    self.alt = weeutil.weeutil.to_float(geo.get('elevation'))
+                if geo is not None:
+                    if self.lat is None:
+                        self.lat = weeutil.weeutil.to_float(geo.get('latitude'))
+                    if self.lon is None:
+                        self.lon = weeutil.weeutil.to_float(geo.get('longitude'))
+                    if self.alt is None:
+                        self.alt = weeutil.weeutil.to_float(geo.get('elevation'))
+                else:
+                    raise weewx.ViolatedPrecondition("thread '%s': Could not get geodata for station '%s'" % (self.name, station))
             else:
-                raise weewx.ViolatedPrecondition("thread '%s': Configured location is not valid." % self.name)
+                raise weewx.ViolatedPrecondition("thread '%s': Configured station is not valid." % self.name)
 
         for opsapi, obsweewx in self.current_obs.items():
             obsgroup = None
@@ -1884,9 +1915,16 @@ class OPENMETEOthread(BaseThread):
 
 
 class DWDservice(StdService):
+# ============================================================================
+#
+# Class weatherservice
+#
+# ============================================================================
+
+class weatherservice(StdService):
 
     def __init__(self, engine, config_dict):
-        super(DWDservice,self).__init__(engine, config_dict)
+        super(weatherservice,self).__init__(engine, config_dict)
         
         site_dict = weeutil.config.accumulateLeaves(config_dict.get('WeatherServices',configobj.ConfigObj()))
         self.log_success = weeutil.weeutil.to_bool(site_dict.get('log_success', True))
@@ -1955,30 +1993,34 @@ class DWDservice(StdService):
                 if iconset=='dwd': station_dict['iconset'] = 5
                 if iconset=='aeris': station_dict['iconset'] = 6
 
+            # set default station if not selected
+            if station is None:
+                station = 'thisStation'
+
             # possible station coordinates
-            if provider == 'open-meteo' or (provider == 'dwd' and model == 'poi'):
-                altitude = station_dict.get('altitude')
-                if altitude is not None:
-                    altitude_t = weeutil.weeutil.option_as_list(altitude)
-                    if len(altitude_t) >= 2:
-                        altitude_t[1] = altitude_t[1].lower()
-                        if altitude_t[1] in ('meter', 'foot'):
-                            altitude_vt = weewx.units.ValueTuple(weeutil.weeutil.to_float(altitude_t[0]), altitude_t[1], "group_altitude")
-                            station_dict['altitude'] = weewx.units.convert(altitude_vt, 'meter')[0]
-                        else:
-                            station_dict['altitude'] = None
-                            if self.log_failure or self.debug > 0:
-                                logerr("Configured unit '%s' for altitude in section '%s' is not valid, altitude will be ignored." % (altitude_t[1], section))
+            altitude = station_dict.get('altitude')
+            if altitude is not None:
+                altitude_t = weeutil.weeutil.option_as_list(altitude)
+                if len(altitude_t) >= 2:
+                    altitude_t[1] = altitude_t[1].lower()
+                    if altitude_t[1] in ('meter', 'foot'):
+                        altitude_vt = weewx.units.ValueTuple(weeutil.weeutil.to_float(altitude_t[0]), altitude_t[1], "group_altitude")
+                        station_dict['altitude'] = weewx.units.convert(altitude_vt, 'meter')[0]
                     else:
                         station_dict['altitude'] = None
                         if self.log_failure or self.debug > 0:
-                            logerr("Configured altitude '%s' in section '%s' is not valid, altitude will be ignored." % (altitude, section))
+                            logerr("Configured unit '%s' for altitude in section '%s' is not valid, altitude will be ignored." % (altitude_t[1], section))
+                else:
+                    station_dict['altitude'] = None
+                    if self.log_failure or self.debug > 0:
+                        logerr("Configured altitude '%s' in section '%s' is not valid, altitude will be ignored." % (altitude, section))
 
-                if station.lower() in ('here','thisstation'):
+            if station.lower() in ('thisstation', 'here'):
+                if station_dict.get('latitude') is None or station_dict.get('longitude') is None:
                     station_dict['latitude'] = station_dict.get('latitude', engine.stn_info.latitude_f)
                     station_dict['longitude'] = station_dict.get('longitude', engine.stn_info.longitude_f)
-                    if station_dict.get('altitude') is None:
-                        station_dict['altitude'] = weewx.units.convert(engine.stn_info.altitude_vt, 'meter')[0]
+                if station_dict.get('altitude') is None:
+                    station_dict['altitude'] = weewx.units.convert(engine.stn_info.altitude_vt, 'meter')[0]
 
             if provider == 'dwd':
                 if model == 'poi':
@@ -2111,6 +2153,12 @@ class DWDservice(StdService):
         return data
 
 
+# ============================================================================
+#
+# __main__
+#
+# ============================================================================
+
 if __name__ == '__main__':
 
     conf_dict = configobj.ConfigObj("DWD.conf")
@@ -2142,7 +2190,7 @@ if __name__ == '__main__':
 
     else:
     
-        sv = DWDservice(engine,conf_dict)
+        sv = weatherservice(engine,conf_dict)
         
         try:
             while True:
