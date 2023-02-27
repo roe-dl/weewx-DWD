@@ -77,16 +77,15 @@
                 #log_success = replace_me
                 #log_failure = replace_me
 
-                # optional, POI Station latitude in decimal degrees.
-                # POI Station latitude see station list
+                # optional latitude and longitude of the POI station
+                # Is only used as return value
+                #   latitude in decimal degrees. Negative for southern hemisphere.
+                #   longitude in decimal degrees. Negative for western hemisphere.
                 #latitude = replace_me
-
-                # optional, POI Station longitude in decimal degrees.
-                # POI Station longitude see station list
                 #longitude = replace_me
 
-                # optional, POI Station altitude with the unit. Choose 'foot' or 'meter' for unit.
-                # POI Station altitude see station list
+                # optional altitude of the POI station with the unit. Choose 'foot' or 'meter' for unit.
+                # Is only used as return value
                 #altitude = replace_me
             ...
             [[[other_unique_identifier_for_a_dwd_poi_service]]]
@@ -306,18 +305,19 @@
                 # default: dwd-icon
                 #model = replace_me
 
-                # optional, latitude in decimal degrees. Negative for southern hemisphere.
-                # default: If station above in 'ThisStation': latitude value from weewx.conf [station]
-                #          otherwise: latitude from Open-Weather Geocoding API with station city or postal code
+                # optional
+                #   latitude in decimal degrees. Negative for southern hemisphere.
+                #   longitude in decimal degrees. Negative for western hemisphere.
+                # defaults:
+                #   If station is 'ThisStation': latitude and longitude from weewx.conf [station] will be use
+                #   If station is a city name or postal code: latitude and longitude from Open-Weather Geocoding APIwill be use
                 #latitude = replace_me
-
-                # optional, longitude in decimal degrees. Negative for western hemisphere.
-                # default: If station above in 'ThisStation': longitude value from weewx.conf [station]
-                #          otherwise: longitude from Open-Weather Geocoding API with station city or postal code
                 #longitude = replace_me
 
                 # optional, altitude of the station, with the unit. Choose 'foot' or 'meter' for unit.
-                # default: If station above in 'ThisStation': altitude value from weewx.conf [station]
+                # default: 
+                #   If station is 'ThisStation': altitude from weewx.conf [station] will be use
+                #   If station is a city name or postal code: altitude from Open-Weather Geocoding APIwill be use
                 #          otherwise: altitude from Open-Weather Geocoding API with station city or postal code
                 #altitude = replace_me
 
