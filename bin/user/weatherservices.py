@@ -2071,6 +2071,7 @@ class DWDservice(StdService):
     def new_archive_record(self, event):
         for thread_name in self.threads:
             # get collected data
+            data = None
             datasource = self.threads[thread_name]['datasource']
             if datasource=='POI':
                 data,interval = self.threads[thread_name]['thread'].get_data()
