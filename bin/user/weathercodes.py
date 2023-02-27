@@ -312,8 +312,8 @@ WW_SYMBOLS = [
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 03 	Description: Clouds generally forming or developing during past hour (not plotted) </desc> <g id="ww_03" fill="none" stroke-width="3" stroke="#000000" > 	<circle r="17"/> 	<path d="M 0,-17 v -8"/> </g> </svg> ',
     # 04 https://upload.wikimedia.org/wikipedia/commons/e/e3/Symbol_code_ww_04.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 04 	Description: Visibility reduced by smoke </desc> <g id="ww_04" fill="none" stroke-width="3" stroke="#000000" > 	<path d="M -19.5,25 v -45 a 4.5,4.5 0 0,1 9,0 a 4.5,4.5 0 0,0 9,0 a 4.5,4.5 0 0,1 9,0 a 4.5,4.5 0 0,0 9,0 a 4.5,4.5 0 0,1 4.5,-4.5"/> </g> </svg> ',
-    # 05 https://upload.wikimedia.org/wikipedia/commons/5/52/Symbol_code_ww_05.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 05 	Description: Haze </desc> <g id="ww_05" fill="none" stroke-width="3" stroke="#000000" > 	<path d="M 0,0 a 12,12 0 0,0 24,0 a 12,12 0 0,0 -24,0 a 12,12 0 0,1 -24,0 a 12,12 0 0,1 24,0 z"/> </g> </svg> ',
+    # 05 
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4677 ww 05</desc> <path fill="none" stroke-width="3" stroke="#000000" d="M 0,0 a 17.705691893392046,34 0 0 1 -12,9 a 9,9 0 0 1 0,-18 a 17.705691893392046,34 0 0 1 12,9 a 17.705691893392046,34 0 0 0 12,9 a 9,9 0 0 0 0,-18 a 17.705691893392046,34 0 0 0 -12,9 z" /> </svg>',
     # 06 https://upload.wikimedia.org/wikipedia/commons/8/8d/Symbol_code_ww_06.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 06 	Description: Widespread dust in suspension in the air, not raised by wind at or near the station at the time of observation </desc> <g id="ww_06" fill="none" stroke-width="3" stroke="#000000" > 	<path d="M 12,-12 a 12,12 0 0,0 -24,0 a 12,12 0 0,0 12,12 a 12,12 0 0,1 12,12 a 12,12 0 0,1 -24,0"/> </g> </svg> ',
     # 07 https://upload.wikimedia.org/wikipedia/commons/5/53/Symbol_code_ww_07.svg
@@ -514,9 +514,9 @@ WAWA_SYMBOLS = [
     # 03 Clouds generally forming or developing during the past hour
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> </svg>',
     # 04 Haze or smoke, or dust in suspension in the air, visibility equal to, or greater than, 1 km
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g fill="none" stroke-width="3" stroke="#000000" > <path d="M 0,0 a 12,12 0 0,0 0,24 a 12,12 0 0,0 0,-24 a 12,12 0 0,1 0,-24 a 12,12 0 0,1 0,24 z"/> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 04</desc> <path fill="none" stroke-width="3" stroke="#000000" d="M 0,0 a 34,17.705691893392046 0 0 0 9,-12 a 9,9 0 0 0 -18,0 a 34,17.705691893392046 0 0 0 9,12 a 34,17.705691893392046 0 0 1 9,12 a 9,9 0 0 1 -18,0 a 34,17.705691893392046 0 0 1 9,-12 z" /> </svg>',
     # 05 Haze or smoke, or dust in suspension in the air, visibility less than 1 km
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <circle cx="0" cy="12" r="12" fill="#000000" /> <g fill="none" stroke-width="3" stroke="#000000" > <path d="M 0,0 a 12,12 0 0,0 0,24 a 12,12 0 0,0 0,-24 a 12,12 0 0,1 0,-24 a 12,12 0 0,1 0,24 z"/> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 05</desc> <path fill="none" stroke-width="3" stroke="#000000"  d="M 0,0 a 34,17.705691893392046 0 0 0 9,-12 a 9,9 0 0 0 -18,0 a 34,17.705691893392046 0 0 0 9,12 a 34,17.705691893392046 0 0 1 9,12 a 9,9 0 0 1 -18,0 a 34,17.705691893392046 0 0 1 9,-12 z" /> <path fill="#000000" d="M 0,0 a 34,17.705691893392046 0 0 1 9,12 a 9,9 0 0 1 -18,0 a 34,17.705691893392046 0 0 1 9,-12 z" /> </svg>',
     # 06...09 reserved
     None,None,None,None,
     # 10 Mist
@@ -535,7 +535,7 @@ WAWA_SYMBOLS = [
     # 20 Fog
     WW_SYMBOLS[28],
     # 21 PRECIPITATION
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g> <path d="M -13.5,0 A 9 9 0 0 1 4.5 0" fill="none" stroke="#00d700" stroke-linecap="round" stroke-width="3" /> <path d="M 6,-21 h 7 v42 h-7" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 21</desc> <g> <path d="M -13.5,0 A 9 9 0 0 1 4.5 0" fill="none" stroke="#00d700" stroke-linecap="round" stroke-width="3" /> <path d="M 6,-21 h 7 v42 h-7" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
     # 22 Drizzle (not freezing) or snow grains
     WW_SYMBOLS[20],
     # 23 Rain (not freezing)
@@ -547,11 +547,11 @@ WAWA_SYMBOLS = [
     # 26 Thunderstorm (with or without precipitation)
     WW_SYMBOLS[29],
     # 27 BLOWING OR DRIFTING SNOW OR SAND
-    '',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 27</desc> <g stroke="#000000" stroke-width="3" fill="none"> <path d="M -3.5,-10   a 7,7 0 0 0 -14,0   a 28,15.118578920369089 0 0 0 7,10   a 28,15.118578920369089 0 0 1 7,10   a 7,7 0 0 1 -14,0   M 6,-18.5 v 37" /> <path stroke-linecap="round" d="M -9,0 h 20.5" /> </g> <path fill="#000000" d="M18.5,0 l -7,3 v -6 z" /> </svg>',
     # 28 Blowing or drifting snow or sand, visibility equal to, or greater than, 1 km
-    '',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 28</desc> <g stroke="#000000" stroke-width="3" fill="none"> <path d="M -8.5,-18.5 v 37   M 6,-18.5 v 37   M -8.5,0 h 21" /> </g> <path fill="#000000" d="M18.5,0 l -7,3 v -6 z" /> </svg>',
     # 29 Blowing or drifting snow or sand, visibility less than 1 km
-    '',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 29</desc> <g stroke="#000000" stroke-width="3" fill="none"> <path d="M -20,-18.5 v 37   M -5.5,-18.5 v 37   M 9,-18.5 v 37   M -20,0 h 34.5" /> </g> <path fill="#000000" d="M21.5,0 l -7,3 v -6 z" /> </svg>',
     # 30...39 FOG
     # 30 FOG
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <path d="M -17.5,14.25 h 35 M -17.5,-14.25 h 35 M -17.5,4.75 h 14 M -17.5,-4.75 h 14 M 17.5,-4.75 h -14 M 17.5,4.75 h -14" fill="none" stroke-width="3" stroke="#ffc83f" stroke-linejoin="miter" /> </svg>',
@@ -616,19 +616,19 @@ WAWA_SYMBOLS = [
     WW_SYMBOLS[73],
     WW_SYMBOLS[75],
     WW_SYMBOLS[79],
-    '',
-    '',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g transform="translate(-14,14.2),scale(0.7)"> <circle r="4.2" fill="#ac00ff" /> <path d="M 0,-17.4 l 15.068842,26.1 h-30.137684 z" style="stroke-width:3; stroke:#ac00ff; fill:none" /> </g> <g transform="translate(14,14.2),scale(0.7)"> <circle r="4.2" fill="#ac00ff" /> <path d="M 0,-17.4 l 15.068842,26.1 h-30.137684 z" style="stroke-width:3; stroke:#ac00ff; fill:none" /> </g> <g transform="translate(0,-10.9),scale(0.7)"> <circle r="4.2" fill="#ac00ff" /> <path d="M 0,-17.4 l 15.068842,26.1 h-30.137684 z" style="stroke-width:3; stroke:#ac00ff; fill:none" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g transform="translate(-14,3),scale(0.5)"> <circle r="4.2" fill="#ac00ff" /> <path d="M 0,-17.4 l 15.068842,26.1 h-30.137684 z" style="stroke-width:3; stroke:#ac00ff; fill:none" /> </g> <g transform="translate(14,3),scale(0.5)"> <circle r="4.2" fill="#ac00ff" /> <path d="M 0,-17.4 l 15.068842,26.1 h-30.137684 z" style="stroke-width:3; stroke:#ac00ff; fill:none" /> </g> <g transform="translate(0,-14),scale(0.5)"> <circle r="4.2" fill="#ac00ff" /> <path d="M 0,-17.4 l 15.068842,26.1 h-30.137684 z" style="stroke-width:3; stroke:#ac00ff; fill:none" /> </g> <g transform="translate(0,19),scale(0.5)"> <circle r="4.2" fill="#ac00ff" /> <path d="M 0,-17.4 l 15.068842,26.1 h-30.137684 z" style="stroke-width:3; stroke:#ac00ff; fill:none" /> </g> </svg> ',
     WW_SYMBOLS[77],
     WW_SYMBOLS[78],
     None,
     # 80...89 SHOWER(S) or INTERMITTENT PRECIPITATION
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g> <path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 80</desc> <g> <path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> </svg> ',
     # 81 Rain shower(s) or intermittent rain, slight
     WW_SYMBOLS[80],
     # 82 Rain shower(s) or intermittent rain, moderate
     WW_SYMBOLS[81],
     # 83 Rain shower(s) or intermittent rain, heavy
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <circle r="5.5" cx="7" cy="-15.5" fill="#00d700" /> <circle r="5.5" cx="-7" cy="-15.5" fill="#00d700" /> <path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 83</desc> <circle r="5.5" cx="7" cy="-15.5" fill="#00d700" /> <circle r="5.5" cx="-7" cy="-15.5" fill="#00d700" /> <path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> </svg> ',
     # 84 Rain shower(s) or intermittent rain, violent
     WW_SYMBOLS[82],
     # 85 Snow shower(s) or intermittent snow, slight
@@ -636,21 +636,21 @@ WAWA_SYMBOLS = [
     # 86 Snow shower(s) or intermittent snow, moderate
     WW_SYMBOLS[86],
     # 87 Snow shower(s) or intermittent snow, heavy
-    '',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 87</desc> <g> <g transform="translate(0,-15.5)"> <path d="M -8.5,0 m -5.5,0 h 11 m -2.75,-4.763139720814413 l -5.5,9.526279441628825 m 5.5,0 l -5.5,-9.526279441628825" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /><path d="M 8.5,0 m -5.5,0 h 11 m -2.75,-4.763139720814413 l -5.5,9.526279441628825 m 5.5,0 l -5.5,-9.526279441628825" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /> </g> <path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#ac00ff" /> 	<path d="M -6,0.5 h 12" style="fill:none; stroke-width:3; stroke:#ac00ff" /> </g> </svg> ',
     # 88 reserved
     None,
     # 89 Hail
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <g stroke="#000000" fill="#000000" style="stroke-width:3; stroke-linejoin:miter"> <path d="M 0,-8 l 8.7,14.6 h-17.4 z" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 89</desc> <g stroke="#000000" fill="#000000" style="stroke-width:3; stroke-linejoin:miter"> <path d="M 0,-8 l 8.7,14.6 h-17.4 z" /> </g> </svg> ',
     # 90 THUNDERSTORM
     WW_SYMBOLS[17],
     # 91 Thunderstorm, slight or moderate, with no precipitation
-    '',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 91</desc> <g fill="none" stroke-width="3" stroke="#ed1c24" > <path d="M -16.5,-17.5 h 12 m 7,0 h 12" /><path d="M 9.5,-17.5 l-14,19.5 l 14.5,14.5"/> <path d="M -10.5,-17.5 v 37"/> <path d="M 9,16.5 h1 v-1 z"/> </g> </svg> ',
     # 92 Thunderstorm, slight or moderate, with rain showers and/or snow showers
     WW_SYMBOLS[95],
     # 93 Thunderstorm, slight or moderate, with hail
     WW_SYMBOLS[96],
     # 94 Thunderstorm, heavy, with no precipitation
-    '',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 94</desc> <g fill="none" stroke-width="3" stroke="#ed1c24"> <path d="M -13.635,-17.5 h 12 m 6,0 h 12" /><path d="M 11.159,-17.5 l-8.810,17.032 l 7.635,7.635 l-7.635,7.635" /> <path d="M -7.635,-17.5 v 37" /> <path d="M 2.349,15.976 h-1 v-1 z" fill="#ed1c24"  /> </g> </svg> ',
     # 95 Thunderstorm, heavy, with rain showers and/or snow showers
     WW_SYMBOLS[97],
     # 96 Thunderstorm, heavy, with hail
@@ -658,7 +658,7 @@ WAWA_SYMBOLS = [
     # 97...98 reserved
     None,None,
     # 99 Tornado
-    ''
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="55" height="55" viewBox="-27.5 -27.5 55 55"> <desc>WMO 4680 wawa 99</desc> <path fill="none" stroke-width="3" stroke="#000000" d="M -7.5,18.5 v -28.5 l -6,-8.5 M 7.5,18.5 v -28.5 l 6,-8.5 M 15,-1.9749371855331 A 18,9 0 1 0 15,7.9749371855331" /> <g transform="translate(13,9.224949798994366),rotate(-30)" > <path fill="#000000" d="M 15,0 l -15,4.5 v -9 z" />  </g> </svg>'
 ]
 
 def get_ww(ww,n,night):

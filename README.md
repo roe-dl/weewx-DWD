@@ -522,7 +522,9 @@ der Originalfarbgebung (ggf. mehrfarbig) dargestellt.
 
 [Beschreibung der Symbole](https://www.woellsdorf-wetter.de/info/presentweather.html)
 
-![Code-Tabelle](WMO-code-table-4677-colored.png) ![Code-Tabelle](WMO-code-table-4680-colored.png)
+WMO-Code-Tabelle 4677 ww | WMO-Code-Tabelle 4680 wawa
+-------------------------|---------------------------
+![WMO-Code-Tabelle 4677](images/WMO-code-table-4677-colored.png) | ![WMO-Code-Tabelle 4680](images/WMO-code-table-4680-colored.png)
 
 Mittels
 ```
