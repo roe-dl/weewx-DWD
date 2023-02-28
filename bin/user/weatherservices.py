@@ -530,6 +530,13 @@ import weewx.almanac
 for group in weewx.units.std_groups:
     weewx.units.std_groups[group].setdefault('group_coordinate','degree_compass')
 
+# DWD CDC 10 Minutes radiation unit
+# https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/solar/now/BESCHREIBUNG_obsgermany_climate_10min_solar_now_de.pdf
+if weewx.units.conversionDict.get('joule_per_cm_squared_10minutes') is None:
+    weewx.units.conversionDict.setdefault('joule_per_cm_squared_10minutes',{})
+if weewx.units.conversionDict['joule_per_cm_squared_10minutes'].get('watt_per_meter_squared') is None:
+    weewx.units.conversionDict['joule_per_cm_squared_10minutes']['watt_per_meter_squared'] = lambda x : (x * 10000) / 600
+
 # Cloud cover icons
 
 N_ICON_LIST = [
@@ -956,10 +963,10 @@ class DWDCDCthread(BaseThread):
         'RWS_10':('rain','mm','group_rain'),
         'RWS_IND_10':('rainIndex','',''),
         # solar
-        'DS_10':('solarRad','J/cm^2','group_radiation'),
-        'GS_10':('radiation','J/cm^2','group_radiation'),
+        'DS_10':('solarRad','joule_per_cm_squared_10minutes','group_radiation'),
+        'GS_10':('radiation','joule_per_cm_squared_10minutes','group_radiation'),
         'SD_10':('sunshineDur','hour','group_deltatime'),
-        'LS_10':('LS_10','j/cm^2','group_radiation')}
+        'LS_10':('LS_10','joule_per_cm_squared_10minutes','group_radiation')}
         
     DIRS = {
         'air':('air_temperature','10minutenwerte_TU_','_now.zip','Meta_Daten_zehn_min_tu_'),
