@@ -532,6 +532,8 @@ for group in weewx.units.std_groups:
 
 # DWD CDC 10 Minutes radiation unit
 # https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/solar/now/BESCHREIBUNG_obsgermany_climate_10min_solar_now_de.pdf
+# formula source ChatGPT. Question: "How to convert 10 minutes sum of solar radiation in W/m^2 to J/cm^2 in python?"
+# TODO evaluate this
 if weewx.units.conversionDict.get('joule_per_cm_squared_10minutes') is None:
     weewx.units.conversionDict.setdefault('joule_per_cm_squared_10minutes',{})
 if weewx.units.conversionDict['joule_per_cm_squared_10minutes'].get('watt_per_meter_squared') is None:
