@@ -1217,8 +1217,8 @@ class ZAMGthread(BaseThread):
         'GLOW':('radiation','watt_per_meter_squared','group_radiation'),
         'P':('pressure','hPa','group_pressure'),
         'PRED':('pred','hPa','group_pressure'), # altimeter or barometer?
-        'RFAM':('humidity','percent','group_humidity'),
-        'SCHNEE':('snowDepth','cm','group_distance'),
+        'RFAM':('humidity','percent','group_percent'),
+        'SCHNEE':('snowDepth','cm','group_rain'),
         'S0':('sunshineDur','second','group_deltatime'),
         'TL':('outTemp','degree_C','group_temperature'),
         'TP':('dewpoint','degree_C','group_temperature'),
