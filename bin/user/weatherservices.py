@@ -532,8 +532,11 @@ for group in weewx.units.std_groups:
 
 # DWD CDC 10 Minutes radiation unit
 # https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/solar/now/BESCHREIBUNG_obsgermany_climate_10min_solar_now_de.pdf
-# formula source ChatGPT. Question: "How to convert 10 minutes sum of solar radiation in W/m^2 to J/cm^2 in python?"
-# TODO evaluate this
+# https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/solar/now/DESCRIPTION_obsgermany_climate_10min_solar_now_en.pdf
+# TODO evaluate formula for:
+# DS_10 - 10min-sum of diffuse solar radiation - unit J/cm^2
+# GS_10 - 10min-sum of solar incoming radiation - unit J/cm^2
+# LS_10 - 10min-sum of longwave downward radiation - unit J/cm^2
 if weewx.units.conversionDict.get('joule_per_cm_squared_10minutes') is None:
     weewx.units.conversionDict.setdefault('joule_per_cm_squared_10minutes',{})
 if weewx.units.conversionDict['joule_per_cm_squared_10minutes'].get('watt_per_meter_squared') is None:
@@ -2087,7 +2090,7 @@ class BRIGHTSKYthread(BaseThread):
 
     # Mapping API icon field to internal icon fields
     CONDITIONS = {
-        #              0       1      2     3          4              5          6
+        #                     0       1      2     3          4              5          6
         # BRIGHTSKY Icon: [german, english, None, None, Belchertown Icon, DWD Icon, Aeris Icon]
         'clear-day': ('wolkenlos', 'clear sky', '', '', 'clear-day.png', '0-8.png', 'clear')
         ,'clear-night': ('wolkenlos', 'clear sky', '', '', 'clear-night.png', '0-8.png', 'clearn')
@@ -2516,9 +2519,9 @@ class CurrentService(StdService):
                 if model == 'test':
                     prefix = station_dict.get('prefix', '')
                     for ommodel in OPENMETEOthread.WEATHERMODELS:
-                        modlocation = section + "_" + ommodel.upper()
+                        modlocation = section + "-" + ommodel.upper()
                         station_dict['model'] = ommodel
-                        station_dict['prefix'] = prefix + '_' + ommodel + '_'
+                        station_dict['prefix'] = prefix + '-' + ommodel
                         self._create_openmeteo_thread(modlocation, station_dict)
                 else:
                     self._create_openmeteo_thread(section, station_dict)
