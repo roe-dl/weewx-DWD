@@ -354,6 +354,103 @@ Belchertown skin.
   * `MESS_DATUM_ENDE`
   * `quality_level`
 
+`icon`, `icontitle`, `station_id` and 'MESS_DATUM_ENDE` are string values,
+that require `.raw` to use them.
+
+## Searchlist extension `$presentweather`
+
+The weather forecast and some measuring instruments provide a code
+called `ww` or `wawa` describing the present weather condition.
+These codes as well as the symbols representing them on weather maps
+are standardized by the WMO. When using `dwd-mosmix` the script
+includes the appropriate symbols and descriptions in the forecast.
+But otherwise, if the `ww` code is provided by some other source,
+you can use this searchlist extension to convert `ww` and `wawa`
+codes to icons and weather condition descriptions.
+
+To use the searchlist extension within a skin, you have to extend
+`skin.conf`:
+
+```
+[CheetahGenerator]
+    search_list_extensions = user.weathercodes.WeatherSearchList
+    ...
+```
+
+If the line `search_list_extensions` is already present, add the
+value at the end of the line, separeted by a komma.
+
+After that you can use an additional tag:
+
+```
+$presentweather(ww=$ww, n=$n, night=$night, wawa=$wawa).attr
+```
+
+The parameters are:
+
+* `ww`: the ww weather code or a list of weather codes 
+* `n`: cloud cover in precent (necessary for `ww`&lt;4 only)
+* `night`: `True` if the night time symbol is to be used.
+* `wawa`: the wawa weather code or a list of such weather codes
+
+All the parameters are optional. At least one of `ww`, `n`, or `wawa`
+is necessary. If both `ww` and `wawa` are present, `ww` ist used and
+`wawa` ignored. `n` is used if `ww` and `wawa` are `None` or less
+than 4.
+
+`attr` can be one of the following:
+
+* `ww`: the weather code chosen from the list
+* `text`: the description of the weather event 
+* `belchertown_icon`: the file name of the icon from the Belchertown set
+* `dwd_icon`: the file name of the icon from the DWD set
+* `aeris_icon`: the file name of the icon from the Aeris set
+* `wmo_symbol`: the meteorological symbol as defined by the WMO
+* `wmo_symbol($width,color=$color)`: the meteorological symbol as defined
+  by the WMO, formatted
+
+The file name are for use with the `<img>` tag. 
+
+Example:
+```
+<img src="$relative_url/images/$presentweather($ww,$n,$night).belchertown_icon" />
+```
+
+In contrast, `wmo_symbol` is used directly:
+
+```
+$presentweather($ww,$n,$night).wmo_symbol(30)
+```
+
+If a color is provided, the whole symbol is displayed in that color. If no
+color is provided, the symbol is displayed in original color, i.e.
+multicolor.
+
+[Description of the symbols](https://www.woellsdorf-wetter.de/info/presentweather.html)
+
+Example: Belchertown symbols
+fog | drizzle | rain | hail | sleet | snow | thunderstorm | wind | tornado
+----|---------|------|------|-------|------|--------------|------|---------
+<img src="https://www.woellsdorf-wetter.de/images/fog.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/drizzle.png" width="50px" /> |<img src="https://www.woellsdorf-wetter.de/images/rain.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/hail.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/sleet.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/snow.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/thunderstorm.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/wind.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/tornado.png" width="50px" />
+
+WMO symbols
+WMO code table  4677 ww | WMO code table 4680 wawa
+-------------------------|---------------------------
+![WMO-Code-Tabelle 4677](images/WMO-code-table-4677-colored.png) | ![WMO-Code-Tabelle 4680](images/WMO-code-table-4680-colored.png)
+
+With
+```
+python3 /usr/share/weewx/user/weathercodes.py --write-svg target_directory
+```
+alle the WMO symbols can be written to the target directory in SVG format.
+
+With
+```
+python3 /usr/share/weewx/user/weathercodes.py --print-ww-tab >wmo4677.inc
+python3 /usr/share/weewx/user/weathercodes.py --print-wawa-tab >wmo4680.inc
+```
+you can create a HTML table of the symbols.
+
 ## Configuration
 
 ### Create directory

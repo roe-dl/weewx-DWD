@@ -2093,7 +2093,7 @@ class DwdMosmix(object):
             self.dbm_truncate(cursor)
             for idx,ii in enumerate(timesteps):
                 values = {'dateTime':int(ii*0.001),
-                          'usUnits':0x10,  # METRIC
+                          'usUnits':0x10,  # METRIC (rain in cm)
                           'interval':60,
                           'hour':time.localtime(ii*0.001).tm_hour} # min.
                 for jj in placemark['Forecast']:

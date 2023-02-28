@@ -39,7 +39,7 @@ der GPL.
 ## License and Usage
 
 The symbols of code table 4677 are based on Wikimedia Commons, where
-they are marked as released to the Public Domain (PD). They habe been 
+they are marked as released to the Public Domain (PD). They have been 
 edited, especially colored. Missing symbols for code table 4680 I created 
 by myself.
 
