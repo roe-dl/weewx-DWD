@@ -2640,6 +2640,9 @@ class CurrentService(StdService):
             else:
                 try:
                     val = reply[key]
+                    # first convert val to standard unit in METRIC unit system
+                    val = weewx.units.convertStd(val, weewx.METRIC)
+                    # now convert val to archive record unit system
                     val = weewx.units.convertStd(val, usUnits)[0]
                 except (TypeError,ValueError,LookupError,ArithmeticError) as e:
                     try:
