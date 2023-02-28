@@ -723,7 +723,7 @@ class DWDPOIthread(BaseThread):
         'relative_humidity':'outHumidity',
         'temperature_at_5_cm_above_ground':'extraTemp1',
         'total_snow_depth':'snowDepth',
-        ,'maximum_wind_speed_last_hour':'windGust'}
+        'maximum_wind_speed_last_hour':'windGust'}
     
     UNIT = {
         'Grad C': 'degree_C'
