@@ -722,12 +722,14 @@ class DWDPOIthread(BaseThread):
         'total_snow_depth':'snowDepth'}
     
     UNIT = {
-        'Grad C':'degree_C',
-        'W/m2':'watt_per_meter_squared',
-        'km/h':'km_per_hour',
-        'h':'hour',
-        'min':'minute',
-        '%':'percent'}
+        'Grad C':'degree_C'
+        ,'W/m2':'watt_per_meter_squared'
+        ,'km/h':'km_per_hour'
+        ,'h':'hour'
+        ,'min':'minute'
+        ,'%':'percent'
+        ,'m': 'meter'
+    }
     
     WEATHER = (
         ('unbekannt','unknown.png','unknown.png'), # 0
@@ -963,7 +965,7 @@ class DWDCDCthread(BaseThread):
         # precipitation
         'RWS_DAU_10':('rainDur','minute','group_deltatime'),
         'RWS_10':('rain','mm','group_rain'),
-        'RWS_IND_10':('rainIndex','',''),
+        'RWS_IND_10':('rainIndex',None,None),
         # solar
         'DS_10':('solarRad','joule_per_cm_squared_10minutes','group_radiation'),
         'GS_10':('radiation','joule_per_cm_squared_10minutes','group_radiation'),
@@ -2014,7 +2016,7 @@ class OPENMETEOthread(BaseThread):
         x.append(y)
 
         if self.debug > 0:
-            logdbg("thread '%s': result=%s" % (self.name, str(x[0])))
+            logdbg("thread '%s': result=%s" % (self.name, str(x)))
 
         try:
             self.lock.acquire()
@@ -2385,7 +2387,7 @@ class BRIGHTSKYthread(BaseThread):
         x.append(y)
 
         if self.debug > 0:
-            logdbg("thread '%s': result=%s" % (self.name, str(x[0])))
+            logdbg("thread '%s': result=%s" % (self.name, str(x)))
 
         try:
             self.lock.acquire()
