@@ -1974,13 +1974,10 @@ class OPENMETEOthread(BaseThread):
                 continue
             groupweewx = weewx.units.obs_group_dict.get(obsname)
             # snowDepth from meter to mm, weewx snowDepth is weewx group_rain
+            # group_rain has no conversation from meter to mm
             if obsweewx == 'snowDepth':
                 obsval = (weeutil.weeutil.to_float(obsval) * 1000)
                 unitweewx = 'mm'
-            # visibility from meter to km
-            if obsweewx == 'visibility':
-                obsval = (weeutil.weeutil.to_float(obsval) / 1000)
-                unitweewx = 'km'
             y[obsweewx] = (weeutil.weeutil.to_float(obsval), unitweewx, groupweewx)
             if self.debug >= 3:
                 logdbg("thread '%s': hourly: weewx=%s result=%s" % (self.name, str(obsweewx), str(y[obsweewx])))
@@ -2346,13 +2343,9 @@ class BRIGHTSKYthread(BaseThread):
                 dt = dateutil.parser.isoparse(obsval)
                 # convert dt timestamp to unix timestamp
                 obsval = weeutil.weeutil.to_int(dt.timestamp())
-            # visibility from meter to km
-            elif obsapi == 'visibility':
-                obsval = (weeutil.weeutil.to_float(obsval) / 1000)
             # WeeWX value with group?
             elif obsweewx[2] is not None:
                 obsval = weeutil.weeutil.to_float(obsval)
-
             y[obsweewx[0]] = (obsval, obsweewx[1], obsweewx[2])
 
         # get primary source data
@@ -2367,10 +2360,6 @@ class BRIGHTSKYthread(BaseThread):
                             if self.debug >= 2:
                                 logdbg("thread '%s': No value for source '%s' - '%s'" % (self.name, str(obsapi), str(obsweewx[0])))
                             continue
-
-                        # distance from meter to km
-                        if obsapi == 'distance':
-                            obsval = (weeutil.weeutil.to_float(obsval) / 1000)
 
                         if self.debug >= 3:
                             logdbg("thread '%s': weewx=%s api=%s obs=%s val=%s" % (self.name, str(obsweewx[0]), str(obsapi), str(obsname), str(obsval)))
