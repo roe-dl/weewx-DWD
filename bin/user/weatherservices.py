@@ -1442,7 +1442,7 @@ class OPENMETEOthread(BaseThread):
         # option: (country, weather service, model, API endpoint, exclude list)
         'best_match':('', '', '', 'forecast',['snowfall_height'])
         ,'dwd-icon':('DE', 'DWD', 'ICON', 'dwd-icon',['visibility'])
-        ,'ecmwf':('EU', 'ECMWF', 'open IFS', 'ecmwf',['apparent_temperature', 'dewpoint_2m', 'direct_radiation_instant', 'evapotranspiration', 'freezinglevel_height', 'rain', 'relativehumidity_2m', 'showers', 'snow_depth', 'snowfall_height', 'visibility', 'windgusts_10m'])
+        ,'ecmwf':('EU', 'ECMWF', 'open IFS', 'ecmwf',['apparent_temperature', 'dewpoint_2m', 'diffuse_radiation_instant', 'evapotranspiration', 'freezinglevel_height', 'rain', 'relativehumidity_2m', 'shortwave_radiation_instant', 'showers', 'snow_depth', 'snowfall_height', 'visibility', 'windgusts_10m'])
         ,'ecmwf_ifs04':('EU', 'ECMWF', 'IFS', 'forecast',['snowfall_height'])
         ,'gem':('CA', 'MSC-CMC', 'GEM+HRDPS', 'gem',['evapotranspiration', 'freezinglevel_height', 'snow_depth', 'snowfall_height', 'visibility'])
         ,'gem_global':('CA', 'MSC-CMC', 'GEM', 'forecast',['snowfall_height'])
@@ -1489,7 +1489,8 @@ class OPENMETEOthread(BaseThread):
         ,'freezinglevel_height':'freezinglevelHeight'
         ,'weathercode':'weathercode'
         ,'snow_depth':'snowDepth'
-        ,'direct_radiation_instant':'radiation'
+        ,'shortwave_radiation_instant':'radiation'
+        ,'diffuse_radiation_instant':'solarRad'
         ,'visibility':'visibility' # only available by the American weather models.
         ,'snowfall_height':'snowfallHeight' # Europe only
     }
