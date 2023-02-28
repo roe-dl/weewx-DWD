@@ -722,16 +722,23 @@ class DWDPOIthread(BaseThread):
         'pressure_reduced_to_mean_sea_level':'barometer',
         'relative_humidity':'outHumidity',
         'temperature_at_5_cm_above_ground':'extraTemp1',
-        'total_snow_depth':'snowDepth'}
+        'total_snow_depth':'snowDepth',
+        ,'maximum_wind_speed_last_hour':'windGust'}
     
     UNIT = {
-        'Grad C':'degree_C'
-        ,'W/m2':'watt_per_meter_squared'
-        ,'km/h':'km_per_hour'
-        ,'h':'hour'
-        ,'min':'minute'
-        ,'%':'percent'
+        'Grad C': 'degree_C'
+        ,'Grad': 'degree_compass'
+        ,'W/m2': 'watt_per_meter_squared'
+        ,'km/h': 'km_per_hour'
+        ,'h': 'hour'
+        ,'min': 'minute'
+        ,'%': 'percent'
+        ,'km': 'km'
         ,'m': 'meter'
+        ,'cm': 'cm'
+        ,'mm': 'mm'
+        ,'hPa': 'hPa'
+        ,'CODE_TABLE': 'count'
     }
     
     WEATHER = (
@@ -794,9 +801,14 @@ class DWDPOIthread(BaseThread):
             obstype = DWDPOIthread.OBS[key]
             if obstype=='visibility':
                 obsgroup = 'group_distance'
+            elif obstype=='solarRad':
+                obsgroup = 'group_radiation'
+            elif obstype=='presentWeather':
+                obsgroup = 'group_count'
             else:
                 obsgroup = weewx.units.obs_group_dict.get(obstype)
             if obsgroup:
+                weewx.units.obs_group_dict.setdefault(obstype, obsgroup)
                 weewx.units.obs_group_dict.setdefault(prefix+obstype[0].upper()+obstype[1:],obsgroup)
 
 
@@ -895,6 +907,8 @@ class DWDPOIthread(BaseThread):
                         y['time'] = (val,None,None)
                     else:
                         col = DWDPOIthread.OBS.get(names[idx])
+                        if col is None:
+                            continue
                         unit = DWDPOIthread.UNIT.get(units[idx],units[idx])
                         if unit=='degree_C':
                             grp = 'group_temperature'
@@ -1025,6 +1039,7 @@ class DWDCDCthread(BaseThread):
             obstype = obs[0]
             obsgroup = obs[2]
             if obsgroup:
+                weewx.units.obs_group_dict.setdefault(obstype, obsgroup)
                 weewx.units.obs_group_dict.setdefault(prefix+obstype[0].upper()+obstype[1:],obsgroup)
         weewx.units.obs_group_dict.setdefault(prefix+'Barometer','group_pressure')
         weewx.units.obs_group_dict.setdefault(prefix+'Altimeter','group_pressure')
@@ -1308,6 +1323,7 @@ class ZAMGthread(BaseThread):
             obstype = obs[0]
             obsgroup = obs[2]
             if obsgroup:
+                weewx.units.obs_group_dict.setdefault(obstype, obsgroup)
                 weewx.units.obs_group_dict.setdefault(prefix+obstype[0].upper()+obstype[1:],obsgroup)
         weewx.units.obs_group_dict.setdefault(prefix+'Barometer','group_pressure')
         weewx.units.obs_group_dict.setdefault(prefix+'Altimeter','group_pressure')
@@ -1696,6 +1712,7 @@ class OPENMETEOthread(BaseThread):
             else:
                 obsgroup = weewx.units.obs_group_dict.get(obsweewx)
             if obsgroup is not None:
+                weewx.units.obs_group_dict.setdefault(obsweewx, obsgroup)
                 weewx.units.obs_group_dict.setdefault(self.prefix+obsweewx[0].upper()+obsweewx[1:],obsgroup)
 
         for opsapi, obsweewx in self.hourly_obs.items():
@@ -1713,9 +1730,12 @@ class OPENMETEOthread(BaseThread):
                 obsgroup = 'group_altitude'
             elif obsweewx=='visibility':
                 obsgroup = 'group_distance'
+            elif obsweewx=='solarRad':
+                obsgroup = 'group_radiation'
             else:
                 obsgroup = weewx.units.obs_group_dict.get(obsweewx)
             if obsgroup is not None:
+                weewx.units.obs_group_dict.setdefault(obsweewx, obsgroup)
                 weewx.units.obs_group_dict.setdefault(self.prefix+obsweewx[0].upper()+obsweewx[1:],obsgroup)
 
     def get_data(self):
@@ -2218,12 +2238,14 @@ class BRIGHTSKYthread(BaseThread):
             obs = obsweewx[0]
             group = obsweewx[2]
             if group is not None:
+                weewx.units.obs_group_dict.setdefault(obs, group)
                 weewx.units.obs_group_dict.setdefault(self.prefix + obs[0].upper() + obs[1:], group)
 
         for opsapi, obsweewx in self.sources_obs.items():
             obs = obsweewx[0]
             group = obsweewx[2]
             if group is not None:
+                weewx.units.obs_group_dict.setdefault(obs, group)
                 weewx.units.obs_group_dict.setdefault(self.prefix + obs[0].upper() + obs[1:], group)
 
     def get_data(self):
