@@ -845,7 +845,7 @@ if hasSearchList:
                         return icon
                     if attr=='wi_icon':
                         if wwcode[8]:
-                            return '<i class="wi %s></i>' % wwcode[8]
+                            return '<i class="wi %s"></i>' % wwcode[8]
                         return ''
                     if attr=='wmo_symbol':
                         return WMOSymbolBinder(wwcode[0],4677)
