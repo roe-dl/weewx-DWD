@@ -499,6 +499,7 @@ auch `wawa` vorhanden sind, wird `ww` verwendet und `wawa` ignoriert.
 * `belchertown_icon`: Dateiname des Icons aus dem Belchertown-Icon-Satz
 * `dwd_icon`: Dateiname des Icons aus dem DWD-Icon-Satz
 * `aeris_icon`: Dateiname des Icons aus dem Aeris-Icon-Satz
+* `wi_icon`: Icon aus dem Icon-Satz von Erik Flowers
 * `wmo_symbol`: Symbol der Meteorologen für den Wetterzustand
 * `wmo_symbol($width,color=$color)`: Symbol der Meteorologen für den 
   Wetterzustand mit Größenangabe und optionaler Farbangabe.
@@ -520,9 +521,15 @@ Wird eine Farbe angegeben, wird das ganze Symbol einfarbig in dieser
 Farbe dargestellt. Wird keine Farbe angegeben, wird das Symbol in
 der Originalfarbgebung (ggf. mehrfarbig) dargestellt.
 
+Ebenso wird `wi_icon` direkt verwendet, zum Beispiel:
+
+```
+$presentweather($ww,$n,$night).wi_icon
+```
+
 [Beschreibung der Symbole](https://www.woellsdorf-wetter.de/info/presentweather.html)
 
-Beispiel: Belchertown-Symbole
+Beispiel: Belchertown-Icons
 Nebel | Nieselregen | Regen | Hagel | Schneeregen | Schnee | Gewitter | Wind | Tornado
 ----|---------|------|------|-------|------|--------------|------|---------
 <img src="https://www.woellsdorf-wetter.de/images/fog.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/drizzle.png" width="50px" /> |<img src="https://www.woellsdorf-wetter.de/images/rain.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/hail.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/sleet.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/snow.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/thunderstorm.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/wind.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/tornado.png" width="50px" />

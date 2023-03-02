@@ -405,6 +405,7 @@ than 4.
 * `belchertown_icon`: the file name of the icon from the Belchertown set
 * `dwd_icon`: the file name of the icon from the DWD set
 * `aeris_icon`: the file name of the icon from the Aeris set
+* `wi_icon`: icon of the icon set from Erik Flowers
 * `wmo_symbol`: the meteorological symbol as defined by the WMO
 * `wmo_symbol($width,color=$color)`: the meteorological symbol as defined
   by the WMO, formatted
@@ -426,9 +427,15 @@ If a color is provided, the whole symbol is displayed in that color. If no
 color is provided, the symbol is displayed in original color, i.e.
 multicolor.
 
+`wi_icon` is used directly as well, for example:
+
+```
+$presentweather($ww,$n,$night).wi_icon
+```
+
 [Description of the symbols](https://www.woellsdorf-wetter.de/info/presentweather.html)
 
-Example: Belchertown symbols
+Example: Belchertown icons
 fog | drizzle | rain | hail | sleet | snow | thunderstorm | wind | tornado
 ----|---------|------|------|-------|------|--------------|------|---------
 <img src="https://www.woellsdorf-wetter.de/images/fog.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/drizzle.png" width="50px" /> |<img src="https://www.woellsdorf-wetter.de/images/rain.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/hail.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/sleet.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/snow.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/thunderstorm.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/wind.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/tornado.png" width="50px" />
