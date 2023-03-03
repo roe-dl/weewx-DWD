@@ -143,7 +143,7 @@ WW_LIST = [
     (66,'leichter gefrierender Regen','Rain, freezing, slight',5,'sleet.png','66.png','freezingrain',':L:ZR','wi-sleet'),
     # 20...29 events during the preceding hour but not now
     # 24 freezing drizzle or freezing rain ::ZL ::ZR
-    (24,'nach gefrierendem Regen','after freezing drizzle or freezing rain',None,'rain.png','66.png','freezingrain','::ZR','wi-sleet'),
+    (24,'nach gefrierendem Regen','after freezing drizzle or freezing rain',None,None,'eis.png',None,'::ZR',''),
     # 80...90 shower(s) or precipitation with current or recent thunderstorm
     (90,'kräftige Hagelschauer','moderate or heavy shower(s) of hail',None,'hail.png','17.png','hail',':H:A','wi-hail'),
     (89,'leichte Hagelschauer','slight shower(s) of hail',None,'hail.png','17.png','hail',':L:A','wi-hail'),
@@ -239,7 +239,7 @@ WW_LIST = [
     (16,'Niederschläge in Sichtweite aber nicht an der Station, den Boden erreichend','Precipitation within sight, reaching the ground or the surface of the sea, near to, but not at the station',None,None,None,None,None,None),
     (15,'Niederschläge in Sichtweite, aber entfernt, den Boden erreichend','Precipitation within sight, reaching the ground or the surface of the sea, but distant, i.e.  estimated to be more than 5 km from the station',None,None,None,None,None,None),
     (14,'Niederschläge in Sichtweite, nicht den Boden erreichend','Precipitation within sight, not reaching the ground or the surface of the sea',None,None,None,None,None,None),
-    (13,'Wetterleuchten','lightning visible, no thunder heard',None,None,None,None,'VC::T','wi-lightning'),
+    (13,'Wetterleuchten','lightning visible, no thunder heard',None,None,'26.png',None,'VC::T','wi-lightning'),
     (12,'flacher Nebel','shallow fog or ice fog',None,'fog.png','40.png','fog','::BR',''),
     (11,'Nebelschwaden','patches of fog or ice fog',None,'fog.png','40.png','fog','PA::BR','wi-fog'),
     (10,'feuchter Dunst','mist',None,None,None,'fog','::BR','wi-fog'),
@@ -252,19 +252,19 @@ WW_LIST = [
     
     # 20...29 events during the preceding hour but not now
     # 29 thunderstorm with or without precipitation ::T
-    (29,'nach Gewitter','after thunderstorm',None,'thunderstorm.png','27.png','tstorm','::T',''),
+    (29,'nach Gewitter','after thunderstorm',None,None,None,None,'::T',''),
     # 28 fog or ice fog ::F ::IF
-    (28,'nach Nebel oder Eisnebel','after fog or ice fog',None,'fog.png','40.png','fog','::F',''),
+    (28,'nach Nebel oder Eisnebel','after fog or ice fog',None,None,None,None,'::F',''),
     # 27 shower(s) of hail, or of rain and hail ::A
-    (27,'nach Hagelschauer','after shower(s) of hail',None,'hail.png','17.png','hail','::A',''),
+    (27,'nach Hagelschauer','after shower(s) of hail',None,None,None,None,'::A',''),
     # 26 shower(s) of snow, or of rain and snow ::SW
-    (26,'nach Schneeschauer','after shower(s) of snow or rain and snow',None,'snow.png','86.png','snowshowers','::SW',''),
+    (26,'nach Schneeschauer','after shower(s) of snow or rain and snow',None,None,None,None,'::SW',''),
     # 25 shower(s) of rain ::RW
-    (25,'nach Regenschauer','after shower(s) of rain',None,'rain.png','80.png','showers','::RW',''),
+    (25,'nach Regenschauer','after shower(s) of rain',None,None,None,None,'::RW',''),
     # 23 rain and snow or ice pellets, not falling as shower(s) ::SI
-    (23,'nach Schneeregen','after rain and snow or ice pellets',None,'sleet.png','12.png','sleet','::SI',''),
+    (23,'nach Schneeregen','after rain and snow or ice pellets',None,None,None,None,'::SI',''),
     # 22 snow, not falling as shower(s) ::S
-    (22,'nach Schneefall','after snow fall',None,'snow.png','15.png','snow','::S',''),
+    (22,'nach Schneefall','after snow fall',None,None,None,None,'::S',''),
     # 21 rain (not freezing,''), not falling as shower(s) ::R
     (21,'nach Regen','after rain',None,None,None,None,'::R',''),
     # 20 drizzle (not freezing) or snow grains, not falling as shower(s) ::L
@@ -663,6 +663,49 @@ WAWA_SYMBOLS = [
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4680 wawa 99</desc> <path fill="none" stroke-width="3" stroke="#000000" d="M -7.5,18.5 v -28.5 l -6,-8.5 M 7.5,18.5 v -28.5 l 6,-8.5 M 15,-1.9749371855331 A 18,9 0 1 0 15,7.9749371855331" /> <g transform="translate(12,9.708203933),rotate(-30)" > <path fill="#000000" d="M 15,0 l -15,4.5 v -9 z" />  </g> </svg>'
 ]
 
+OKTA_SYMBOLS = [
+    # 0/8
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> </svg>',
+    # 1/8
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> <line x1="50" y1="5" x2="50" y2="95" /> </svg>',
+    # 2/8
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 95,50 L 50,50 L 50,5 A 45 45 0 0 1 95,50 Z" fill="#000000" /> </svg>',
+    # 3/8
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 95,50 L 50,50 L 50,5 A 45 45 0 0 1 95,50 Z" fill="#000000" /> <line x1="50" y1="5" x2="50" y2="95" /> </svg>',
+    # 4/8
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 50,95 L 50,5 A 45 45 0 0 1 50,95 Z" fill="#000000" /> </svg>',
+    # 5/8
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> <line x1="5" y1="50" x2="95" y2="50" /> <path d="M 50,95 L 50,5 A 45 45 0 0 1 50,95 Z" fill="#000000" /> </svg>',
+    # 6/8
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 5,50 L 50,50 L 50,5 A 45 45 0 1 1 5,50 Z" fill="#000000" /> </svg>',
+    # 7/8
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 60,93.87482193696061 L 60,6.12517806303939 A 45 45 0 0 1 60,93.87482193696061 Z M 40,6.12517806303939 L 40,93.87482193696061 A 45 45 0 0 1 40,6.12517806303939 Z" fill="#000000" /> </svg>',
+    # 8/8
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" /> </svg>',
+    # 9/8
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> <line x1="18.180194846605361" y1="18.180194846605361" x2="81.819805153394639" y2="81.819805153394639" /> <line x1="18.180194846605361" y1="81.819805153394639" x2="81.819805153394639" y2="18.180194846605361" /> </svg>',
+    # no data
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> <line x1="5" y1="50" x2="95" y2="50" /> <line x1="50" y1="5" x2="50" y2="95" /> </svg>'
+]
+
+OKTA_TEXTS = {
+    'de':['wolkenlos','sonnig','heiter','leicht bewölkt','wolkig','bewölkt','stark bewölkt','fast bedeckt','bedeckt','nicht sichtbar','keine Daten'],
+    'en':[
+        'clear',        # 0/8
+        'fair',         # 1/8
+        'mostly sunny', # 2/8
+        'partly cloudy', # 3/8
+        'partly cloudy', # 4/8
+        'partly cloudy', # 5/8
+        'mostly cloudy', # 6/8
+        'cloudy',        # 7/8
+        'overcast',      # 8/8
+        'not visible',   # 9/8
+        'no data'
+    ]
+}
+
+
 def get_ww(ww,n,night):
     """ get icon and description for the current weather 
     
@@ -678,11 +721,11 @@ def get_ww(ww,n,night):
             wwcode = ii+(WW_SYMBOLS[ii[0]],)
             break
     else:
-        wwcode = (0,'','',30,'unknown.png','unknown.png','unknown.png','','',WW_SYMBOLS[0])
+        wwcode = (0,'','',30,'unknown.png','unknown.png','na.png','','wi_na',WW_SYMBOLS[0])
     # Otherwise use cloud coverage
     # see aerisweather for percentage values
     # https://www.aerisweather.com/support/docs/api/reference/weather-codes/
-    if wwcode[0]<=3 or (wwcode[0]>=20 and wwcode[0]<30):
+    if wwcode[0]<=3 or (wwcode[0]>=20 and wwcode[0]<30) or wwcode[0] in (14,15,16):
         night = 1 if night else 0
         cover = get_cloudcover(n)
         if cover is not None:
@@ -718,8 +761,12 @@ def get_cloudcover(n):
         icon = N_ICON_LIST[2]
     elif n<95:
         icon = N_ICON_LIST[3]
-    else:
+    elif n<106.25:
         icon = N_ICON_LIST[4]
+    elif n<118.75:
+        icon = ('fog.png','fog.png','40.png','::','fog','wi-fog','wi-fog')
+    else:
+        icon = ('unknown.png','unknown.png','','::','na','wi-na','wi-na')
     return icon
 
 def decolor_ww(ww_symbol, color):
@@ -731,7 +778,7 @@ def print_ww_list(image_path='.'):
     x.sort(key=lambda x:x[0])
     s = '<table>\n'
     s += '  <tr>\n'
-    s += '    <th>WW</td>\n'
+    s += '    <th>WW</th>\n'
     s += '    <th>WMO-Symbol</th>\n'
     s += '    <th></th>\n'
     s += '    <th>Bedeutung</th>\n'
@@ -808,7 +855,7 @@ if hasSearchList:
                 self.ww_list = wwl
             else:
                 self.ww_list = [wwl]
-            self.n = n
+            self.nn = n
             self.night = night
             self.lang = lang
             self.ww_texts = ww_texts
@@ -819,7 +866,7 @@ if hasSearchList:
             
         def __getattr__(self, attr):
             if self.ww_list is not None:
-                wwcode = get_ww(self.ww_list,self.n,self.night)
+                wwcode = get_ww(self.ww_list,self.nn,self.night)
                 if wwcode:
                     if attr=='ww':
                         return wwcode[0]
@@ -842,11 +889,13 @@ if hasSearchList:
                         if icon:
                             if self.night: icon += 'n'
                             icon += '.png'
+                        else:
+                            icon = 'na.png'
                         return icon
                     if attr=='wi_icon':
-                        if wwcode[8]:
-                            return '<i class="wi %s"></i>' % wwcode[8]
-                        return ''
+                        icon = wwcode[8]
+                        if not icon: icon = 'wi-na'
+                        return '<i class="wi %s"></i>' % icon
                     if attr=='wmo_symbol':
                         return WMOSymbolBinder(wwcode[0],4677)
             elif self.wawa_list is not None:
@@ -854,8 +903,32 @@ if hasSearchList:
                     return '<i class="wi wi-wmo4680-%02d"></i>' % max(self.wawa_list)
                 if attr=='wmo_symbol':
                     return WMOSymbolBinder(max(self.wawa_list),4680)
-            elif self.n is not None:
-                n = get_cloudcover(self.n)
+            elif self.nn is not None:
+                if attr=='n':
+                    if self.nn>106.25:
+                        if self.nn>118.75:
+                            return '/'
+                        return '-'
+                    if self.lang=='de':
+                        return ('%s%%' % self.nn).replace('.',',')
+                    return '%s%%' % self.nn
+                if attr=='okta':
+                    if self.nn>118.75:
+                        return '/'
+                    return '%.0f/8' % (self.nn/100*8)
+                if attr=='wmo_symbol':
+                    try:
+                        return WMOSymbolBinder(int(round(self.nn/100*8,0)),2700)
+                    except (LookupError,TypeError,ValueError):
+                        return WMOSymbolBinder(None,2700)
+                if attr=='text':
+                    try:
+                        if self.lang in OKTA_TEXTS:
+                            return OKTA_TEXTS[self.lang][int(round(self.nn/100*8,0))]
+                        return '%s%%' % self.nn
+                    except (LookupError,TypeError,ValueError):
+                        return str(self.nn)
+                n = get_cloudcover(self.nn)
                 if attr=='belchertown_icon':
                     night = 1 if self.night else 0
                     return n[night]
@@ -867,9 +940,6 @@ if hasSearchList:
                 if attr=='wi_icon':
                     night = 6 if self.night else 5
                     return '<i class="wi %s"></i>' % n[night]
-                if attr=='wmo_symbol':
-                    # TODO
-                    pass
             return super(PresentWeatherBinder,self).__getattr__(attr)
 
     class WMOSymbolBinder(object):
@@ -878,7 +948,9 @@ if hasSearchList:
             self.ww = ww
             self.code_table = code_table
             try:
-                if code_table==4677:
+                if code_table==2700:
+                    self.wmosymbol = OKTA_SYMBOLS[ww]
+                elif code_table==4677:
                     self.wmosymbol = WW_SYMBOLS[ww%100]
                 elif code_table==4680:
                     self.wmosymbol = WAWA_SYMBOLS[ww%100]
@@ -981,5 +1053,6 @@ Direct call is for testing only."""
         print('wawa44 wmo_symbol',func(wawa=44).wmo_symbol)
         print('wi',func(ww=19).wi_icon)
         print('wi',func(n=50).wi_icon)
+        print('okta',func(n=87.5).wmo_symbol)
     else:
         print('nothing to do')

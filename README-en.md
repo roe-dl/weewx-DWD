@@ -409,6 +409,8 @@ than 4.
 * `wmo_symbol`: the meteorological symbol as defined by the WMO
 * `wmo_symbol($width,color=$color)`: the meteorological symbol as defined
   by the WMO, formatted
+* `n`: cloud cover in percent (if parameter `n` is given only)
+* `okta`: cloud cover in Okta (if parameter `n` is given only)
 
 The file name are for use with the `<img>` tag. 
 

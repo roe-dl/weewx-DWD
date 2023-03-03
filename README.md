@@ -503,6 +503,8 @@ auch `wawa` vorhanden sind, wird `ww` verwendet und `wawa` ignoriert.
 * `wmo_symbol`: Symbol der Meteorologen für den Wetterzustand
 * `wmo_symbol($width,color=$color)`: Symbol der Meteorologen für den 
   Wetterzustand mit Größenangabe und optionaler Farbangabe.
+* `n`: Wolkenbedeckung in Prozent (nur wenn nur `n` übergeben wurde)
+* `okta`: Wolkenbedeckung in Okta (nur wenn nur `n` übergeben wurde)
 
 Die Dateinamen werden zusammen mit dem HTML-Tag `<img>` verwendet,
 zum Beispiel:
@@ -527,7 +529,7 @@ Ebenso wird `wi_icon` direkt verwendet, zum Beispiel:
 $presentweather($ww,$n,$night).wi_icon
 ```
 
-[Beschreibung der Symbole](https://www.woellsdorf-wetter.de/info/presentweather.html)
+[Aussehen und Beschreibung der Symbole](https://www.woellsdorf-wetter.de/info/symbols.html)
 
 Beispiel: Belchertown-Icons
 Nebel | Nieselregen | Regen | Hagel | Schneeregen | Schnee | Gewitter | Wind | Tornado
