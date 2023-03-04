@@ -529,7 +529,10 @@ Ebenso wird `wi_icon` direkt verwendet, zum Beispiel:
 $presentweather($ww,$n,$night).wi_icon
 ```
 
-[Aussehen und Beschreibung der Symbole](https://www.woellsdorf-wetter.de/info/symbols.html)
+Weitere Informationen:
+* [Wiki-Artikel `$presentweather()`](https://github.com/roe-dl/weewx-DWD/wiki/$presentweather())
+* [Wiki-Artikel Wettersymbole (Icons)](https://github.com/roe-dl/weewx-DWD/wiki/Wettersymbole-(Icons))
+* [Aussehen und Beschreibung der Symbole](https://www.woellsdorf-wetter.de/info/symbols.html)
 
 Beispiel: Belchertown-Icons
 Nebel | Nieselregen | Regen | Hagel | Schneeregen | Schnee | Gewitter | Wind | Tornado
