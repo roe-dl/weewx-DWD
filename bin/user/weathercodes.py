@@ -120,6 +120,7 @@ if __name__ == "__main__":
     sys.path.append('/usr/share/weewx')
 try:
     from weewx.cheetahgenerator import SearchList
+    from weewx.units import ValueHelper, ValueTuple
     hasSearchList = True
 except ImportError:
     hasSearchList = False
@@ -665,44 +666,50 @@ WAWA_SYMBOLS = [
 
 OKTA_SYMBOLS = [
     # 0/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 0/8</desc> <circle cx="50" cy="50" r="45" fill="none"/> </svg>',
     # 1/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> <line x1="50" y1="5" x2="50" y2="95" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 1/8</desc> <circle cx="50" cy="50" r="45" fill="none"/> <line x1="50" y1="5" x2="50" y2="95" /> </svg>',
     # 2/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 95,50 L 50,50 L 50,5 A 45 45 0 0 1 95,50 Z" fill="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 2/8</desc> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 95,50 L 50,50 L 50,5 A 45 45 0 0 1 95,50 Z" fill="#000000" /> </svg>',
     # 3/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 95,50 L 50,50 L 50,5 A 45 45 0 0 1 95,50 Z" fill="#000000" /> <line x1="50" y1="5" x2="50" y2="95" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 3/8</desc> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 95,50 L 50,50 L 50,5 A 45 45 0 0 1 95,50 Z" fill="#000000" /> <line x1="50" y1="5" x2="50" y2="95" /> </svg>',
     # 4/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 50,95 L 50,5 A 45 45 0 0 1 50,95 Z" fill="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 4/8</desc> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 50,95 L 50,5 A 45 45 0 0 1 50,95 Z" fill="#000000" /> </svg>',
     # 5/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> <line x1="5" y1="50" x2="95" y2="50" /> <path d="M 50,95 L 50,5 A 45 45 0 0 1 50,95 Z" fill="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 5/8</desc> <circle cx="50" cy="50" r="45" fill="none"/> <line x1="5" y1="50" x2="95" y2="50" /> <path d="M 50,95 L 50,5 A 45 45 0 0 1 50,95 Z" fill="#000000" /> </svg>',
     # 6/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 5,50 L 50,50 L 50,5 A 45 45 0 1 1 5,50 Z" fill="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 6/8</desc> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 5,50 L 50,50 L 50,5 A 45 45 0 1 1 5,50 Z" fill="#000000" /> </svg>',
     # 7/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 60,93.87482193696061 L 60,6.12517806303939 A 45 45 0 0 1 60,93.87482193696061 Z M 40,6.12517806303939 L 40,93.87482193696061 A 45 45 0 0 1 40,6.12517806303939 Z" fill="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 7/8</desc> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 60,93.87482193696061 L 60,6.12517806303939 A 45 45 0 0 1 60,93.87482193696061 Z M 40,6.12517806303939 L 40,93.87482193696061 A 45 45 0 0 1 40,6.12517806303939 Z" fill="#000000" /> </svg>',
     # 8/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 8/8</desc> <circle cx="50" cy="50" r="45" /> </svg>',
     # 9/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> <line x1="18.180194846605361" y1="18.180194846605361" x2="81.819805153394639" y2="81.819805153394639" /> <line x1="18.180194846605361" y1="81.819805153394639" x2="81.819805153394639" y2="18.180194846605361" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 9/8</desc> <circle cx="50" cy="50" r="45" fill="none"/> <line x1="18.180194846605361" y1="18.180194846605361" x2="81.819805153394639" y2="81.819805153394639" /> <line x1="18.180194846605361" y1="81.819805153394639" x2="81.819805153394639" y2="18.180194846605361" /> </svg>',
     # no data
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <circle cx="50" cy="50" r="45" fill="none"/> <line x1="5" y1="50" x2="95" y2="50" /> <line x1="50" y1="5" x2="50" y2="95" /> </svg>'
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N no data</desc> <circle cx="50" cy="50" r="45" fill="none"/> <line x1="5" y1="50" x2="95" y2="50" /> <line x1="50" y1="5" x2="50" y2="95" /> </svg>'
 ]
 
 OKTA_TEXTS = {
     'de':['wolkenlos','sonnig','heiter','leicht bewölkt','wolkig','bewölkt','stark bewölkt','fast bedeckt','bedeckt','nicht sichtbar','keine Daten'],
     'en':[
-        'clear',        # 0/8
-        'fair',         # 1/8
-        'mostly sunny', # 2/8
-        'partly cloudy', # 3/8
-        'partly cloudy', # 4/8
-        'partly cloudy', # 5/8
-        'mostly cloudy', # 6/8
-        'cloudy',        # 7/8
-        'overcast',      # 8/8
-        'not visible',   # 9/8
-        'no data'
+        'clear',           # 0/8 fine
+        'fair',            # 1/8 fine
+        'mostly sunny',    # 2/8 fine
+        'partly cloudy',   # 3/8 partly cloudy
+        'partly cloudy',   # 4/8 partly cloudy
+        'partly cloudy',   # 5/8 partly cloudy
+        'mostly cloudy',   # 6/8 cloudy
+        'cloudy',          # 7/8 cloudy
+        'overcast',        # 8/8 overcast
+        'sky not visible', # 9/8 sky not visible due to meteorological conditions
+        'no data'          # no data received or no observation made
     ]
+}
+
+WMO_TABLES = {
+  2700: OKTA_SYMBOLS,
+  4677: WW_SYMBOLS,
+  4680: WAWA_SYMBOLS
 }
 
 
@@ -839,8 +846,16 @@ def write_svg_files_ww(image_path='.'):
             file.write(sym)
 
 def write_svg_files_wawa(image_path='.'):
-    for ww,sym in enumerate(WAWA_SYMBOLS):
-        fn = os.path.join(image_path,'wmo4680_wawa%02d.svg' % ww)
+    for wawa,sym in enumerate(WAWA_SYMBOLS):
+        fn = os.path.join(image_path,'wmo4680_wawa%02d.svg' % wawa)
+        if sym:
+            with open(fn,'w') as file:
+                file.write(WW_XML)
+                file.write(sym)
+
+def write_svg_files_n(image_path='.'):
+    for n,sym in enumerate(OKTA_SYMBOLS):
+        fn = os.path.join(image_path,'wmo2700_n%02d.svg' % n)
         if sym:
             with open(fn,'w') as file:
                 file.write(WW_XML)
@@ -851,6 +866,14 @@ if hasSearchList:
     class PresentWeatherBinder(object):
     
         def __init__(self, wwl=None, n=None, night=False, lang='en', ww_texts=None, wawal=None):
+            # We need the raw values.
+            if isinstance(wwl,ValueHelper):
+                wwl = wwl.raw
+            if isinstance(n,ValueHelper):
+                n = n.raw
+            if isinstance(wawal,ValueHelper):
+                wawal = wawal.raw
+            # convert to list if it is not
             if (wwl is None) or isinstance(wwl,list):
                 self.ww_list = wwl
             else:
@@ -859,6 +882,7 @@ if hasSearchList:
             self.night = night
             self.lang = lang
             self.ww_texts = ww_texts
+            # convert to list if it is not
             if (wawal is None) or isinstance(wawal,list):
                 self.wawa_list = wawal
             else:
@@ -935,7 +959,7 @@ if hasSearchList:
                 if attr=='dwd_icon':
                     return n[2]
                 if attr=='aeris_icon':
-                    night = 'n' if self.night else ''
+                    night = 'n' if self.night and n[4]!='na' else ''
                     return n[4]+night+'.png'
                 if attr=='wi_icon':
                     night = 6 if self.night else 5
@@ -944,20 +968,13 @@ if hasSearchList:
 
     class WMOSymbolBinder(object):
     
-        def __init__(self, ww, code_table):
-            self.ww = ww
+        def __init__(self, code, code_table):
+            self.ww = code
             self.code_table = code_table
             try:
-                if code_table==2700:
-                    self.wmosymbol = OKTA_SYMBOLS[ww]
-                elif code_table==4677:
-                    self.wmosymbol = WW_SYMBOLS[ww%100]
-                elif code_table==4680:
-                    self.wmosymbol = WAWA_SYMBOLS[ww%100]
-                else:
-                    raise ValueError('unknown code table %s' % code_table)
+                self.wmosymbol = WMO_TABLES[code_table][code]
             except (LookupError,TypeError,ValueError,ArithmeticError):
-                self.wmosymbol = str(ww)
+                self.wmosymbol = str(ww)+':'+str(ww)
             
         def __str__(self):
             return self.wmosymbol
@@ -1028,6 +1045,7 @@ Direct call is for testing only."""
             pth = '.'
         write_svg_files_ww(pth)
         write_svg_files_wawa(pth)
+        write_svg_files_n(pth)
     elif options.searchlist:
         class Generator(object):
             skin_dict = configobj.ConfigObj()

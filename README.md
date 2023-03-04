@@ -531,6 +531,7 @@ $presentweather($ww,$n,$night).wi_icon
 
 Weitere Informationen:
 * [Wiki-Artikel `$presentweather()`](https://github.com/roe-dl/weewx-DWD/wiki/$presentweather())
+  mit Verwendungsbeispiel
 * [Wiki-Artikel Wettersymbole (Icons)](https://github.com/roe-dl/weewx-DWD/wiki/Wettersymbole-(Icons))
 * [Aussehen und Beschreibung der Symbole](https://www.woellsdorf-wetter.de/info/symbols.html)
 
