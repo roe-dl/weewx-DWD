@@ -838,6 +838,25 @@ def print_wawa_tab(image_path='.', color=None):
     s += '</table>\n'
     return s
 
+def print_n_tab(image_path='.', color=None):
+    s = '<table cellspacing="0">\n'
+    s += '<tr>\n  <th style="margin:0px;border:1px solid black;padding:5px;background-color:#E0E0E0">&nbsp;N&nbsp;</th>\n'
+    for i in range(10):
+        s += '  <th style="margin:0px;border-top:1px solid black;border-right:1px solid black;border-bottom:1px solid black;padding:5px;background-color:#E0E0E0">%1d</th>\n' % i
+    s += '  <th style="margin:0px;border-top:1px solid black;border-right:1px solid black;border-bottom:1px solid black;padding:5px;background-color:#E0E0E0">/</th>\n' 
+    s += '</tr>\n'
+    s += '<tr>\n  <th style="margin:0px;border-left:1px solid black;border-right:1px solid black;border-bottom:1px solid black;padding:5px;background-color:#E0E0E0"></th>\n' 
+    for n,sym in enumerate(OKTA_SYMBOLS):
+        s += '  <td style="margin:0px;border-right:1px solid black;border-bottom:1px solid black;padding:5px;text-align:center">'
+        if sym is not None:
+            s += decolor_ww(sym,color).replace('width="50"','width="40"').replace('height="50"','height="40"')
+        else:
+            s += 'res.'
+        s += '</td>\n'
+    s += '</tr>\n'
+    s += '</table>\n'
+    return s
+
 def write_svg_files_ww(image_path='.'):
     for ww,sym in enumerate(WW_SYMBOLS):
         fn = os.path.join(image_path,'wmo4677_ww%02d.svg' % ww)
@@ -1020,6 +1039,8 @@ Direct call is for testing only."""
                       help="Print ww table")
     parser.add_option("--print-wawa-tab", dest="printwawatab", action="store_true",
                       help="Print wawa table")
+    parser.add_option("--print-n-tab", dest="printntab", action="store_true",
+                      help="Print cloud cover table (N)")
     parser.add_option("--write-svg", dest="writesvg", action="store_true",
                       help="Create a set of SVG files")
     parser.add_option("--test-searchlist", dest="searchlist", action="store_true",
@@ -1038,6 +1059,8 @@ Direct call is for testing only."""
         print(print_ww_tab(color=None))
     elif options.printwawatab:
         print(print_wawa_tab(color=None))
+    elif options.printntab:
+        print(print_n_tab(color=None))
     elif options.writesvg:
         if len(args)>0:
             pth = args[0]
