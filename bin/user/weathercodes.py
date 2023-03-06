@@ -279,11 +279,17 @@ WW_LIST = [
 ]
 
 N_ICON_LIST = [
-    ('clear-day.png','clear-night.png','0-8.png','CL','clear','wi-day-sunny','wi-night-clear'),
-    ('mostly-clear-day.png','mostly-clear-night.png','2-8.png','FW','fair','wi-day-sunny-overcast','wi-night-alt-partly-cloudy'),
-    ('partly-cloudy-day.png','partly-cloudy-night.png','5-8.png','SC','pcloudy','wi-day-cloudy','wi-night-cloudy'),
-    ('mostly-cloudy-day.png','mostly-cloudy-night.png','5-8.png','BK','mcloudy','wi-day-cloudy','wi-night-cloudy'),
-    ('cloudy.png','cloudy.png','8-8.png','OV','cloudy','wi-cloudy','wi-cloudy')
+    # Belchertown day, night, DWD, Aeris coded weather, Aeris, E. Flowers day, night
+    # 0...7%     0/8
+    ('clear-day.png','clear-night.png','0-8.png','::CL','clear','wi-day-sunny','wi-night-clear'),
+    # 7...32%    1/8 2/8
+    ('mostly-clear-day.png','mostly-clear-night.png','2-8.png','::FW','fair','wi-day-sunny-overcast','wi-night-alt-partly-cloudy'),
+    # 32...70%   3/8 4/8 5/8
+    ('partly-cloudy-day.png','partly-cloudy-night.png','5-8.png','::SC','pcloudy','wi-day-cloudy','wi-night-cloudy'),
+    # 70...95%   6/8 7/8
+    ('mostly-cloudy-day.png','mostly-cloudy-night.png','5-8.png','::BK','mcloudy','wi-day-cloudy','wi-night-cloudy'),
+    # 95...100%  8/8
+    ('cloudy.png','cloudy.png','8-8.png','::OV','cloudy','wi-cloudy','wi-cloudy')
 ]
 
 WW_SECTIONS = {
@@ -759,6 +765,12 @@ def get_ww(ww,n,night):
     return wwcode
 
 def get_cloudcover(n):
+    """ get cloud cover symbols
+    
+        n : cloud cover in percent
+        
+        returns: set of icons
+    """
     if n is None: return None
     if n<7:
         icon = N_ICON_LIST[0]
@@ -771,7 +783,7 @@ def get_cloudcover(n):
     elif n<106.25:
         icon = N_ICON_LIST[4]
     elif n<118.75:
-        icon = ('fog.png','fog.png','40.png','::','fog','wi-fog','wi-fog')
+        icon = ('fog.png','fog.png','40.png','::BR','fog','wi-fog','wi-fog')
     else:
         icon = ('unknown.png','unknown.png','','::','na','wi-na','wi-na')
     return icon
