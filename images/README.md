@@ -46,3 +46,8 @@ by myself.
 In non-commercial domain the symbols can be freely used. What you create
 using these symbols is not required to be subject to the GPL (fonts
 exclusion). However, the GPL applies to editing the symbols themselves.
+
+## Danksagungen / Credits
+
+* Pat O'Brien for the [Belchertown skin icons](https://github.com/poblabs/weewx-belchertown)
+* National Oceanic and Atmospheric Administration for creating the WMO symbol files and releasing them to the public domain
