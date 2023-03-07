@@ -587,7 +587,8 @@ class DwdMosmix(object):
             self.forecast_api_id = ew.get('forecast_api_id',es.get('forecast_api_id'))
             self.forecast_api_secret = ew.get('forecast_api_secret',es.get('forecast_api_secret'))
         except LookupError as e:
-            logerr("Belchertown config %s %s" % (e.__class__.__name__,e))
+            if 'Belchertown' in config_dict['WeatherServices']:
+                logerr("Belchertown config %s %s" % (e.__class__.__name__,e))
             belchertown_section = configobj.ConfigObj()
             self.belchertown_html_root = None
             self.belchertown_warning = None
