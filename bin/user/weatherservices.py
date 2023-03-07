@@ -931,9 +931,9 @@ class DWDPOIthread(BaseThread):
                 night = is_night(y, log_success=(self.log_success or self.debug > 0),
                                     log_failure=(self.log_failure or self.debug > 0))
                 if night != "N/A":
-                    y['day'] = (0 if night else 1,None,None)
+                    y['day'] = (0 if night else 1,'count','group_count')
                 else:
-                    y['day'] = (None,None,None)
+                    y['day'] = (None,'count','group_count')
                     night = False
                     if self.log_failure or self.debug > 0:
                         logerr("thread '%s': Determining day or night was not possible." % self.name)
@@ -2023,9 +2023,9 @@ class OPENMETEOthread(BaseThread):
         night = is_night(y, log_success=(self.log_success or self.debug > 0),
                          log_failure=(self.log_failure or self.debug > 0))
         if night != "N/A":
-            y['day'] = (0 if night else 1,None,None)
+            y['day'] = (0 if night else 1,'count','group_count')
         else:
-            y['day'] = (None,None,None)
+            y['day'] = (None,'count','group_count')
             night = False
             if self.log_failure or self.debug > 0:
                 logerr("thread '%s': Determining day or night was not possible." % self.name)
@@ -2409,6 +2409,13 @@ class BRIGHTSKYthread(BaseThread):
         if condition is not None:
             y['icon'] = (condition[self.iconset], None, None)
             y['icontitle'] = (condition[0], None, None)
+
+        night = is_night(y, log_success=(self.log_success or self.debug > 0),
+                         log_failure=(self.log_failure or self.debug > 0))
+        if night != "N/A":
+            y['day'] = (0 if night else 1,'count','group_count')
+        else:
+            y['day'] = (None,'count','group_count')
 
         x.append(y)
 
