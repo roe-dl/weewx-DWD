@@ -837,7 +837,8 @@ class DWDPOIthread(BaseThread):
     def to_float(x):
         """ convert value out of the CSV file to float """
         try:
-            if x[0:1]=='--': raise ValueError('no number')
+            if '--' in x:
+                return None
             if ',' in x:
                 return float(x.replace(',','.'))
             if '.' in x:
@@ -859,8 +860,9 @@ class DWDPOIthread(BaseThread):
         try:
             x = DWDPOIthread.WEATHER[present_weather]
         except (LookupError,TypeError):
-            x = ('Wetterzustand nicht gemeldet','unknown.png','','')
-        if present_weather and present_weather<5:
+            x = (None,'Wetterzustand nicht gemeldet','',0,'unknown.png','unknown.png','unknown.png')
+            return x
+        if present_weather and present_weather>0 and present_weather<5:
             # clouds only, nothing more
             night = 1 if night else 0
             idx = (0,0,1,3,4)[present_weather]
@@ -916,10 +918,14 @@ class DWDPOIthread(BaseThread):
                             grp = 'group_percent'
                         else:
                             grp = weewx.units.obs_group_dict.get(col)
-                        if col and val is not None:
-                            y[col] = (DWDPOIthread.to_float(val),
-                                      unit,
-                                      grp)
+                        val_f = None
+                        if val is not None:
+                            val_f = DWDPOIthread.to_float(val)
+                        if col == 'presentWeather' and val_f is None:
+                            val_f = 0
+                            if self.debug >= 3:
+                                logdbg("thread '%s': presentWeather from None to 0 corrected." % self.name)
+                        y[col] = (val_f, unit, grp)
 
                 if self.lat is not None:
                     y['latitude'] = (self.lat,'degree_compass','group_coordinate')
