@@ -485,8 +485,8 @@ Die Parameter sind:
    der "schlimmste" verwendet wird
 * `n`: die Wolkenbedeckung in Prozent (nur bei $ww<4 nötig)
 * `night`: `True`, wenn das Nachtsymbol verwendet werden soll
-* `wawa`: der Wettercode wawa oder eine Liste von Wettercodes, von denen
-   der "schlimmste" verwendet wird
+* `wawa`: der Wettercode w<sub>a</sub>w<sub>a</sub> oder eine Liste von 
+   Wettercodes, von denen der "schlimmste" verwendet wird
 
 Alle Parameter sind optional. Wenigstens einer von den Parametern
 `ww`, `n` und `wawa` muß ungleich `None` sein. Wenn sowohl `ww` als
@@ -503,6 +503,8 @@ auch `wawa` vorhanden sind, wird `ww` verwendet und `wawa` ignoriert.
 * `wmo_symbol`: Symbol der Meteorologen für den Wetterzustand
 * `wmo_symbol($width,color=$color)`: Symbol der Meteorologen für den 
   Wetterzustand mit Größenangabe und optionaler Farbangabe.
+* `n`: Wolkenbedeckung in Prozent (nur wenn nur `n` übergeben wurde)
+* `okta`: Wolkenbedeckung in Okta (nur wenn nur `n` übergeben wurde)
 
 Die Dateinamen werden zusammen mit dem HTML-Tag `<img>` verwendet,
 zum Beispiel:
@@ -527,7 +529,11 @@ Ebenso wird `wi_icon` direkt verwendet, zum Beispiel:
 $presentweather($ww,$n,$night).wi_icon
 ```
 
-[Beschreibung der Symbole](https://www.woellsdorf-wetter.de/info/presentweather.html)
+Weitere Informationen:
+* [Wiki-Artikel `$presentweather()`](https://github.com/roe-dl/weewx-DWD/wiki/$presentweather())
+  mit Verwendungsbeispiel
+* [Wiki-Artikel Wettersymbole (Icons)](https://github.com/roe-dl/weewx-DWD/wiki/Wettersymbole-(Icons))
+* [Aussehen und Beschreibung der Symbole](https://www.woellsdorf-wetter.de/info/symbols.html)
 
 Beispiel: Belchertown-Icons
 Nebel | Nieselregen | Regen | Hagel | Schneeregen | Schnee | Gewitter | Wind | Tornado
@@ -535,7 +541,7 @@ Nebel | Nieselregen | Regen | Hagel | Schneeregen | Schnee | Gewitter | Wind | T
 <img src="https://www.woellsdorf-wetter.de/images/fog.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/drizzle.png" width="50px" /> |<img src="https://www.woellsdorf-wetter.de/images/rain.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/hail.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/sleet.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/snow.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/thunderstorm.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/wind.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/tornado.png" width="50px" />
 
 WMO-Symbole
-WMO-Code-Tabelle 4677 ww | WMO-Code-Tabelle 4680 wawa
+WMO-Code-Tabelle 4677 ww | WMO-Code-Tabelle 4680 w<sub>a</sub>w<sub>a</sub>
 -------------------------|---------------------------
 ![WMO-Code-Tabelle 4677](images/WMO-code-table-4677-colored.png) | ![WMO-Code-Tabelle 4680](images/WMO-code-table-4680-colored.png)
 
