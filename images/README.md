@@ -26,6 +26,8 @@ WMO 2700 N | WMO 2700 N
 -----------|--------------
 ![Code-Tabelle 2700](WMO-code-table-2700.png) | ![Code-Tabelle 2700](WMO-code-table-2700.png)
 
+Icons nach dem Vorbild der Belchertown-Icons aber im SVG-Format / Icons like the Belchertown icons but in SVG format
+
 klar / clear | schön / fair
 -------------|---------------
 ![clear day](weathericons/clear-day.svg) | ![mostly clear day](weathericons/mostly-clear-day.svg)
