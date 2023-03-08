@@ -3,6 +3,10 @@
 [English Version](https://github.com/roe-dl/weewx-DWD/blob/master/README-en.md) 
 (Work in Progress)
 
+Icons und Symbole im SVG-Vektorgraphikformat siehe [images](images)
+
+Icons and symbols in SVG vector graphic format see [images](images)
+
 Wetter- und Warndaten herunterladen und für WeeWX und Web-Darstellung aufbereiten
 
 <p align="center"><img src="Wettervorhersage-Warnungen-Fichtelberg.png" width="600px" /></p>
