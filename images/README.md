@@ -33,9 +33,9 @@ klar / clear | heiter / fair | wolkig / partly cloudy | stark bewölkt / mostly 
 ![clear day](weathericons/clear-day.svg) | ![mostly clear day](weathericons/mostly-clear-day.svg) | ![partly cloudy day](weathericons/partly-cloudy-day.svg) | ![mostly cloudy day](weathericons/mostly-cloudy-day.svg) | ![cloudy](weathericons/cloudy.svg)
 ![clear night](weathericons/clear-night.svg) | ![mostly clear night](weathericons/mostly-clear-night.svg) | ![partly cloudy night](weathericons/partly-cloudy-night.svg) | ![mostly cloudy night](weathericons/mostly-cloudy-night.svg) | wie Tag / like day
 
-Nebel / fog | Schneeflocke / snowflake |
-------------|--------------------------|
-![fog](weathericons/fog.svg) | ![snowflake](weathericons/snowflake.svg)
+Nebel / fog | Schneeflocke / snowflake | keine Daten / no data
+------------|--------------------------|-----------------------
+![fog](weathericons/fog.svg) | ![snowflake](weathericons/snowflake.svg) | ![no data](weathericons/unknown.svg)
 
 Niesel / drizzle | Regen / rain | Wetterleuchten / lightning | Gewitter / thunderstorm
 -----------------|--------------|----------------------------|-------------------------
