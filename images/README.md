@@ -18,9 +18,29 @@ python3 /usr/share/weewx/user/weathercodes.py --write-svg Zielverzeichnis
 
 ----------------------------------------------------------------------------
 
-WMO 4677 ww | WMO 4680 wawa
+WMO 4677 ww | WMO 4680 w<sub>a</sub>w<sub>a</sub>
 ------------|----------------
-![Code-Tabelle](WMO-code-table-4677-colored.png)  | ![Code-Tabelle](WMO-code-table-4680-colored.png)
+![Code-Tabelle 4677](WMO-code-table-4677-colored.png)  | ![Code-Tabelle 4680](WMO-code-table-4680-colored.png)
+
+WMO 2700 N | WMO 2700 N
+-----------|--------------
+![Code-Tabelle 2700](WMO-code-table-2700.png) | ![Code-Tabelle 2700](WMO-code-table-2700.png)
+
+Icons nach dem Vorbild der Belchertown-Icons aber im SVG-Format / Icons like the Belchertown icons but in SVG format
+
+-->    | klar / clear | heiter / fair | wolkig / partly cloudy | stark bewölkt / mostly cloudy | bedeckt / overcast
+----|-------------|--------------|-------------------------|-------------------------------|---------------------
+Tag /day | ![clear day](weathericons/clear-day.svg) | ![mostly clear day](weathericons/mostly-clear-day.svg) | ![partly cloudy day](weathericons/partly-cloudy-day.svg) | ![mostly cloudy day](weathericons/mostly-cloudy-day.svg) | ![cloudy](weathericons/cloudy.svg)
+Nacht / night |![clear night](weathericons/clear-night.svg) | ![mostly clear night](weathericons/mostly-clear-night.svg) | ![partly cloudy night](weathericons/partly-cloudy-night.svg) | ![mostly cloudy night](weathericons/mostly-cloudy-night.svg) | wie Tag / like day
+N | 0/8 | 1/8, 2/8 | 3/8, 4/8, 5/8 | 6/8, 7/8 | 8/8
+
+Nebel / fog | Schneeflocke / snowflake | keine Daten / no data
+------------|--------------------------|-----------------------
+![fog](weathericons/fog.svg) | ![snowflake](weathericons/snowflake.svg) | ![no data](weathericons/unknown.svg)
+
+Niesel / drizzle | Regen / rain | Wetterleuchten / lightning | Gewitter / thunderstorm
+-----------------|--------------|----------------------------|-------------------------
+![drizzle](weathericons/drizzle.svg) | ![rain](weathericons/rain.svg) | ![lightning](weathericons/lightning.svg) | ![thunderstorm with rain](weathericons/thunderstorm.svg)
 
 ----------------------------------------------------------------------------
 
