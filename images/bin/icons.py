@@ -252,6 +252,10 @@ def nebel():
     s += '" />'
     return s
 
+def wind():
+    s = '<path stroke-width="6" stroke="#404040" fill="none" d="M-45,-15 h40 a12,12 0 1 0 -12,-12 M-45,0 h75 a12,12 0 1 0 -12,-12 M-45,15 h57.5 a12,12 0 1 1 -12,12" />'
+    return s
+
 
 N_ICON_LIST = [
     (0,True,False,'clear-day'),
@@ -278,7 +282,8 @@ WW_ICON_LIST = [
     ('snow',schneefall(False)),
     ('snow2',schneefall(True)),
     ('sleet',schneeregen(False)),
-    ('hail',hagel())
+    ('hail',hagel()),
+    ('wind',wind())
 ]
   
 if True:
