@@ -38,9 +38,13 @@ Nebel / fog | Schneeflocke / snowflake | keine Daten / no data
 ------------|--------------------------|-----------------------
 ![fog](weathericons/fog.svg) | ![snowflake](weathericons/snowflake.svg) ![snowflake](weathericons/snowflake2.svg) | ![no data](weathericons/unknown.svg)
 
-Niesel / drizzle | Regen / rain | Wetterleuchten / lightning | Gewitter / thunderstorm | Schneefall / snow
------------------|--------------|----------------------------|-------------------------|-------------------
-![drizzle](weathericons/drizzle.svg) | ![rain](weathericons/rain.svg) | ![lightning](weathericons/lightning.svg) | ![thunderstorm with rain](weathericons/thunderstorm.svg) | ![snow](weathericons/snow.svg) ![snow2](weathericons/snow2.svg)
+Niesel / drizzle | Regen / rain | Schneeregen / sleet | Hagel / hail | Schneefall / snow
+-----------------|--------------|---------------------|--------------|-------------------
+![drizzle](weathericons/drizzle.svg) | ![rain](weathericons/rain.svg) | ![sleet](weathericons/sleet.svg) | ![hail](weatherimages/hail.svg) | ![snow](weathericons/snow.svg) ![snow2](weathericons/snow2.svg)
+
+Wetterleuchten / lightning | Gewitter / thunderstorm | 
+---------------------------|-------------------------|
+ ![lightning](weathericons/lightning.svg) | ![thunderstorm with rain](weathericons/thunderstorm.svg) |
 
 ----------------------------------------------------------------------------
 
