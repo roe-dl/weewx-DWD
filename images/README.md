@@ -18,9 +18,18 @@ python3 /usr/share/weewx/user/weathercodes.py --write-svg Zielverzeichnis
 
 ----------------------------------------------------------------------------
 
-WMO 4677 ww | WMO 4680 wawa
+WMO 4677 ww | WMO 4680 w<sub>a</sub>w<sub>a</sub>
 ------------|----------------
-![Code-Tabelle](WMO-code-table-4677-colored.png)  | ![Code-Tabelle](WMO-code-table-4680-colored.png)
+![Code-Tabelle 4677](WMO-code-table-4677-colored.png)  | ![Code-Tabelle 4680](WMO-code-table-4680-colored.png)
+
+WMO 2700 N | WMO 2700 N
+-----------|--------------
+![Code-Tabelle 2700](WMO-code-table-2700.png) | ![Code-Tabelle 2700](WMO-code-table-2700.png)
+
+klar / clear | schön / fair
+-------------|---------------
+![clear day](weathericons/clear-day.svg) | ![mostly clear day](weathericons/mostly-clear-day.svg)
+![clear night](weathericons/clear-night.svg) | ![mostly clear night](weathericons/mostly-clear-night.svg)
 
 ----------------------------------------------------------------------------
 
