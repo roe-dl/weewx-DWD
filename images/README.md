@@ -28,10 +28,10 @@ WMO 2700 N | WMO 2700 N
 
 Icons nach dem Vorbild der Belchertown-Icons aber im SVG-Format / Icons like the Belchertown icons but in SVG format
 
-klar / clear | schön / fair
--------------|---------------
-![clear day](weathericons/clear-day.svg) | ![mostly clear day](weathericons/mostly-clear-day.svg)
-![clear night](weathericons/clear-night.svg) | ![mostly clear night](weathericons/mostly-clear-night.svg)
+klar / clear | heiter / fair | wolkig / partly cloudy | stark bewölkt / mostly cloudy | bedeckt / overcast
+-------------|--------------|-------------------------|-------------------------------|---------------------
+![clear day](weathericons/clear-day.svg) | ![mostly clear day](weathericons/mostly-clear-day.svg) | ![partly cloudy day](weathericons/partly-cloudy-day.svg) | ![mostly cloudy day](weathericons/mostly-cloudy-day.svg) | ![cloudy](weathericons/cloudy.svg)
+![clear night](weathericons/clear-night.svg) | ![mostly clear night](weathericons/mostly-clear-night.svg) | ![partly cloudy night](weathericons/partly-cloudy-night.svg) | ![mostly cloudy night](weathericons/mostly-cloudy-night.svg) | wie Tag / like day
 
 ----------------------------------------------------------------------------
 
