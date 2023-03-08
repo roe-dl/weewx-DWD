@@ -40,7 +40,7 @@ Nebel / fog | Schneeflocke / snowflake | keine Daten / no data
 
 Niesel / drizzle | Regen / rain | Schneeregen / sleet | Hagel / hail | Schneefall / snow
 -----------------|--------------|---------------------|--------------|-------------------
-![drizzle](weathericons/drizzle.svg) | ![rain](weathericons/rain.svg) | ![sleet](weathericons/sleet.svg) | ![hail](weatherimages/hail.svg) | ![snow](weathericons/snow.svg) ![snow2](weathericons/snow2.svg)
+![drizzle](weathericons/drizzle.svg) | ![rain](weathericons/rain.svg) | ![sleet](weathericons/sleet.svg) | ![hail](weathericons/hail.svg) | ![snow](weathericons/snow.svg) ![snow2](weathericons/snow2.svg)
 
 Wetterleuchten / lightning | Gewitter / thunderstorm | 
 ---------------------------|-------------------------|
