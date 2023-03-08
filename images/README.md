@@ -36,11 +36,11 @@ N | 0/8 | 1/8, 2/8 | 3/8, 4/8, 5/8 | 6/8, 7/8 | 8/8
 
 Nebel / fog | Schneeflocke / snowflake | keine Daten / no data
 ------------|--------------------------|-----------------------
-![fog](weathericons/fog.svg) | ![snowflake](weathericons/snowflake.svg) | ![no data](weathericons/unknown.svg)
+![fog](weathericons/fog.svg) | ![snowflake](weathericons/snowflake.svg) ![snowflake](weathericons/snowflake2.svg) | ![no data](weathericons/unknown.svg)
 
-Niesel / drizzle | Regen / rain | Wetterleuchten / lightning | Gewitter / thunderstorm
------------------|--------------|----------------------------|-------------------------
-![drizzle](weathericons/drizzle.svg) | ![rain](weathericons/rain.svg) | ![lightning](weathericons/lightning.svg) | ![thunderstorm with rain](weathericons/thunderstorm.svg)
+Niesel / drizzle | Regen / rain | Wetterleuchten / lightning | Gewitter / thunderstorm | Schneefall / snow
+-----------------|--------------|----------------------------|-------------------------|-------------------
+![drizzle](weathericons/drizzle.svg) | ![rain](weathericons/rain.svg) | ![lightning](weathericons/lightning.svg) | ![thunderstorm with rain](weathericons/thunderstorm.svg) | ![snow](weathericons/snow.svg)
 
 ----------------------------------------------------------------------------
 
