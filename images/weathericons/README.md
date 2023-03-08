@@ -21,21 +21,21 @@ from them.
 
 -->    | klar / clear | heiter / fair | wolkig / partly cloudy | stark bewölkt / mostly cloudy | bedeckt / overcast
 ----|-------------|--------------|-------------------------|-------------------------------|---------------------
-Tag /day | ![clear day](weathericons/clear-day.svg) | ![mostly clear day](weathericons/mostly-clear-day.svg) | ![partly cloudy day](weathericons/partly-cloudy-day.svg) | ![mostly cloudy day](weathericons/mostly-cloudy-day.svg) | ![cloudy](weathericons/cloudy.svg)
-Nacht / night |![clear night](weathericons/clear-night.svg) | ![mostly clear night](weathericons/mostly-clear-night.svg) | ![partly cloudy night](weathericons/partly-cloudy-night.svg) | ![mostly cloudy night](weathericons/mostly-cloudy-night.svg) | wie Tag / like day
+Tag /day | ![clear day](clear-day.svg) | ![mostly clear day](mostly-clear-day.svg) | ![partly cloudy day](partly-cloudy-day.svg) | ![mostly cloudy day](mostly-cloudy-day.svg) | ![cloudy](cloudy.svg)
+Nacht / night |![clear night](clear-night.svg) | ![mostly clear night](mostly-clear-night.svg) | ![partly cloudy night](partly-cloudy-night.svg) | ![mostly cloudy night](mostly-cloudy-night.svg) | wie Tag / like day
 N | 0/8 | 1/8, 2/8 | 3/8, 4/8, 5/8 | 6/8, 7/8 | 8/8
 
 Nebel / fog | Schneeflocke / snowflake | keine Daten / no data
 ------------|--------------------------|-----------------------
-![fog](weathericons/fog.svg) | ![snowflake](weathericons/snowflake.svg) ![snowflake](weathericons/snowflake2.svg) | ![no data](weathericons/unknown.svg)
+![fog](fog.svg) | ![snowflake](snowflake.svg) ![snowflake](snowflake2.svg) | ![no data](unknown.svg)
 
 Niesel / drizzle | Regen / rain | Schneeregen / sleet | Hagel / hail | Schneefall / snow
 -----------------|--------------|---------------------|--------------|-------------------
-![drizzle](weathericons/drizzle.svg) | ![rain](weathericons/rain.svg) | ![sleet](weathericons/sleet.svg) | ![hail](weathericons/hail.svg) | ![snow](weathericons/snow.svg) ![snow2](weathericons/snow2.svg)
+![drizzle](drizzle.svg) | ![rain](rain.svg) | ![sleet](sleet.svg) | ![hail](hail.svg) | ![snow](snow.svg) ![snow2](snow2.svg)
 
 Wetterleuchten / lightning | Gewitter / thunderstorm | 
 ---------------------------|-------------------------|
- ![lightning](weathericons/lightning.svg) | ![thunderstorm with rain](weathericons/thunderstorm.svg) |
+ ![lightning](lightning.svg) | ![thunderstorm with rain](thunderstorm.svg) |
 
 
 ## Lizenz und Nutzungsrechte
