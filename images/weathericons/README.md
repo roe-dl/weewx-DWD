@@ -27,7 +27,7 @@ N | 0/8 | 1/8, 2/8 | 3/8, 4/8, 5/8 | 6/8, 7/8 | 8/8
 
 Nebel / fog | Schneeflocke / snowflake | keine Daten / no data | Wind / wind
 ------------|--------------------------|-----------------------|------------
-![fog](fog.svg) | ![snowflake](snowflake.svg) ![snowflake](snowflake2.svg) | ![no data](unknown.svg) | [wind](wind.svg)
+![fog](fog.svg) | ![snowflake](snowflake.svg) ![snowflake](snowflake2.svg) | ![no data](unknown.svg) | ![wind](wind.svg)
 
 Niesel / drizzle | Regen / rain | Schneeregen / sleet | Hagel / hail | Schneefall / snow
 -----------------|--------------|---------------------|--------------|-------------------
