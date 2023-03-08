@@ -141,6 +141,15 @@ def schneeregen(innen=True):
     s += schneeflocke(-13,33,10,innen)
     s += niesel(-10,10,3)
     return s
+
+def hagel():
+    s = wolke_grosz(-31,22,offen=4)
+    s += '<g stroke="none" fill="#66a1ba">'
+    s += '<circle cx="-15" cy="37" r="4" />'
+    s += '<circle cx="-6" cy="19" r="4" />'
+    s += '<circle cx="11" cy="30" r="4" />'
+    s += '</g>'
+    return s
     
 def unknown():
     #s = '<path stroke="#828487" fill="none" d="M -31,28 a 20,20 0 0 1 0,-40 h 5 a 24,24 0 0 1 43,-9 h 2 a 16.25,16.25 0 0 1 15,10 a 20,20 0 0 1 -6.244997998398398,39 z " />'
@@ -268,7 +277,8 @@ WW_ICON_LIST = [
     ('snowflake2',schneeflocke(0,0,40,True)),
     ('snow',schneefall(False)),
     ('snow2',schneefall(True)),
-    ('sleet',schneeregen(False))
+    ('sleet',schneeregen(False)),
+    ('hail',hagel())
 ]
   
 if True:
