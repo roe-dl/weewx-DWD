@@ -34,9 +34,9 @@ Tag /day | ![clear day](weathericons/clear-day.svg) | ![mostly clear day](weathe
 Nacht / night |![clear night](weathericons/clear-night.svg) | ![mostly clear night](weathericons/mostly-clear-night.svg) | ![partly cloudy night](weathericons/partly-cloudy-night.svg) | ![mostly cloudy night](weathericons/mostly-cloudy-night.svg) | wie Tag / like day
 N | 0/8 | 1/8, 2/8 | 3/8, 4/8, 5/8 | 6/8, 7/8 | 8/8
 
-Nebel / fog | Schneeflocke / snowflake | keine Daten / no data
-------------|--------------------------|-----------------------
-![fog](weathericons/fog.svg) | ![snowflake](weathericons/snowflake.svg) ![snowflake](weathericons/snowflake2.svg) | ![no data](weathericons/unknown.svg)
+Nebel / fog | Schneeflocke / snowflake | keine Daten / no data | Wind / wind
+------------|--------------------------|-----------------------|--------------
+![fog](weathericons/fog.svg) | ![snowflake](weathericons/snowflake.svg) ![snowflake](weathericons/snowflake2.svg) | ![no data](weathericons/unknown.svg) | ![wind](weathericons/wind.svg)
 
 Niesel / drizzle | Regen / rain | Schneeregen / sleet | Hagel / hail | Schneefall / snow
 -----------------|--------------|---------------------|--------------|-------------------
