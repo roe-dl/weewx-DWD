@@ -153,8 +153,8 @@ def hagel():
     
 def unknown():
     #s = '<path stroke="#828487" fill="none" d="M -31,28 a 20,20 0 0 1 0,-40 h 5 a 24,24 0 0 1 43,-9 h 2 a 16.25,16.25 0 0 1 15,10 a 20,20 0 0 1 -6.244997998398398,39 z " />'
-    s = '<path stroke="#828487" fill="none" d="M -31,28 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39 z " />' 
-    s += '<text x="-18" y="18" fill="#828487" style="font-family:sans-serif;font-size:50;font-weight:normal;text-align:center">?</text>'
+    s = wolke_grosz(-31,28)
+    s += '<text x="-18" y="18" fill="#828487" style="font-family:sans-serif;font-size:50px;font-weight:normal;text-align:center">?</text>'
     return s
 
 def bewoelkt(wolke=1,mit_sonne=False,mit_mond=False):
@@ -285,7 +285,22 @@ WW_ICON_LIST = [
     ('hail',hagel()),
     ('wind',wind())
 ]
-  
+
+ICON_WW = {
+   9:'SVG_ICON_WIND',
+  10:'SVG_ICON_FOG',
+  11:'SVG_ICON_FOG',
+  12:'SVG_ICON_FOG',
+  13:wetterleuchten(),
+  17:wetterleuchten(),
+  18:'SVG_ICON_WIND',
+  19:'SVG_ICON_TORNADO',
+  91:'SVG_ICON_RAIN',
+  92:'SVG_ICON_RAIN',
+  93:'SVG_ICON_SNOW',
+  94:'SVG_ICON_SNOW',
+}
+
 if True:
 
     for idx,val in enumerate(N_ICON_LIST):
@@ -303,7 +318,7 @@ if True:
             file.write(WW_SVG2)
 
 
-if False:
+if True:
 
     s = "SVG_ICON_START = '%s'\n" % WW_SVG1
     s += "SVG_ICON_END = '%s'\n" % WW_SVG2
@@ -337,4 +352,18 @@ if False:
     s += '            SVG_ICON_END)\n'
     s += '    except (ArithmeticError,LookupError,TypeError,ValuError):\n'
     s += '        return ""\n\n'
+    s += 'SVG_ICON_WW = [\n'
+    for idx in range(100):
+        if idx<20 or idx>=50:
+            if idx in ICON_WW:
+                s += '    # %02d\n    %s\n' % (idx,ICON_WW[idx])
+            else:
+                s += '    # %02d\n    None,\n' % idx
+        elif idx<30:
+            s += '    # %02d\n    None,\n' % idx
+        elif idx<40:
+            s += '    # %02d\n    SVG_ICON_WIND,\n' % idx
+        else:
+            s += '    # %02d\n    SVG_ICON_FOG,\n' % idx
+    s += ']\n\n'
     print(s)
