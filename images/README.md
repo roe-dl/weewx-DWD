@@ -44,7 +44,7 @@ Niesel / drizzle | Regen / rain | Schneeregen / sleet | Hagel / hail | Schneefal
 
 Wetterleuchten / lightning | Gewitter / thunderstorm | 
 ---------------------------|-------------------------|
- ![lightning](weathericons/lightning.svg) | ![thunderstorm with rain](weathericons/thunderstorm.svg) |
+![lightning](weathericons/lightning.svg) ![lightning](weathericons/lightning2.svg) | ![thunderstorm with rain](weathericons/thunderstorm.svg) |
 
 ----------------------------------------------------------------------------
 
