@@ -16,14 +16,15 @@
 
 
 import math
+import optparse
 
 WW_XML = '<?xml version="1.0" encoding="UTF-8" standalone="no"?> <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"> '
 WW_SVG1 = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="%s" height="%s" viewBox="-64 -50 128 100"><g stroke-width="3">'
 WW_SVG2 = '</g></svg>'
 
-def sonne():
+def sonne(fill="none"):
     s = '<g stroke="#f6bc68">'
-    s += '<circle cx="0" cy="0" r="18" fill="none" />'
+    s += '<circle cx="0" cy="0" r="18" fill="%s" />' % fill
     s += '<path d="'
     for i in range(8):
         w = math.pi*i/4
@@ -34,8 +35,8 @@ def sonne():
     s += '</g>'
     return s
 
-def mond():
-    s = '<path stroke="#da4935" fill="none" d="M 0,-24 a 26,26 0 0 1 -22,39 a 24,24 0 1 0 22,-39 z" />'
+def mond(x=0, y=-24, fill="none"):
+    s = '<path stroke="#da4935" fill="%s" d="M %s,%s a 26,26 0 0 1 -22,39 a 24,24 0 1 0 22,-39 z" />' % (fill,x,y)
     return s
 
 def wolke_grosz(x,y,offen=0,color="#828487",fill="none"):
@@ -56,7 +57,7 @@ def wolke_klein(x,y,color="#828487",fill="none"):
     return s
 
 def blitz(x,y):
-    s= '<path stroke="none" fill="#f6bc68" d="M %s,%s l 7.93687345,-20.67626223 l -12.84686959,3.44230833 l 6.81974614,-17.76604611 h -4.30643568 l -5.54018777,20.67626223 l 12.68569967,-3.39912298 z" />' % (x,y)
+    #s= '<path stroke="none" fill="#f6bc68" d="M %s,%s l 7.93687345,-20.67626223 l -12.84686959,3.44230833 l 6.81974614,-17.76604611 h -4.30643568 l -5.54018777,20.67626223 l 12.68569967,-3.39912298 z" />' % (x,y)
     s= '<path stroke="none" fill="#f6bc68" d="M %s,%s l 8.03418996,-20.9297804 l -12.4943457,3.34784984 l 6.68617042,-17.41806944 h -5.42818409 l -4.83202054,20.9297804 l 12.02652853,-3.22249861 z" />' % (x,y)
     return s
 
@@ -112,47 +113,47 @@ def schneeflocke(x, y, r, innen=True):
     s += '" />'
     return s
     
-def wetterleuchten():
-    s = wolke_grosz(-31,28)
+def wetterleuchten(gefuellt=False):
+    s = wolke_grosz(-31,28,fill="#828487" if gefuellt else "none")
     s += blitz(-4,16)
     return s
 
-def wetterleuchten2():
-    s = wolke_klein(-20,0)
+def wetterleuchten2(gefuellt=False):
+    s = wolke_klein(-20,0,fill="#828487" if gefuellt else "none")
     s += blitz(-4,38)
     return s
 
-def gewitter():
-    s = wolke_grosz(-31,22,offen=4)
+def gewitter(gefuellt=False):
+    s = wolke_grosz(-31,22,offen=4,fill="#828487" if gefuellt else "none")
     s += blitz(-4,6)
     s += regen()
     return s
 
-def regen_gesamt():
-    s = wolke_grosz(-31,22,offen=4)
+def regen_gesamt(gefuellt=False):
+    s = wolke_grosz(-31,22,offen=4,fill="#828487" if gefuellt else "none")
     s += regen()
     return s
 
-def niesel_gesamt():
-    s = wolke_grosz(-31,22,offen=4)
+def niesel_gesamt(gefuellt=False):
+    s = wolke_grosz(-31,22,offen=4,fill="#828487" if gefuellt else "none")
     s += niesel()
     return s
 
-def schneefall(innen=True):
-    s = wolke_grosz(-31,22,offen=4)
+def schneefall(gefuellt=False,innen=True):
+    s = wolke_grosz(-31,22,offen=4,fill="#828487" if gefuellt else "none")
     s += schneeflocke(-13,17,10,innen)
     s += schneeflocke(12,10,10,innen)
     s += schneeflocke(5,33,10,innen)
     return s
 
-def schneeregen(innen=True):
-    s = wolke_grosz(-31,22,offen=4)
+def schneeregen(gefuellt=False,innen=True):
+    s = wolke_grosz(-31,22,offen=4,fill="#828487" if gefuellt else "none")
     s += schneeflocke(-13,33,10,innen)
     s += niesel(-10,10,3)
     return s
 
-def hagel():
-    s = wolke_grosz(-31,22,offen=4)
+def hagel(gefuellt=False):
+    s = wolke_grosz(-31,22,offen=4,fill="#828487" if gefuellt else "none")
     s += '<g stroke="none" fill="#66a1ba">'
     s += '<circle cx="-15" cy="37" r="4" />'
     s += '<circle cx="-6" cy="19" r="4" />'
@@ -166,7 +167,7 @@ def unknown():
     s += '<text x="-18" y="18" fill="#828487" style="font-family:sans-serif;font-size:50px;font-weight:normal;text-align:center">?</text>'
     return s
 
-def bewoelkt(wolke=1,mit_sonne=False,mit_mond=False):
+def bewoelkt(wolke=1,mit_sonne=False,mit_mond=False,gefuellt=False):
     """
         wolke = 0 --> sun or moon
                 1 --> sun or moon and small cloud
@@ -176,9 +177,9 @@ def bewoelkt(wolke=1,mit_sonne=False,mit_mond=False):
     """
     if wolke==0:
         if mit_sonne:
-            return sonne()
+            return sonne(fill="#f6bc68" if gefuellt else "none")
         if mit_mond:
-            return mond()
+            return mond(fill="#da4935" if gefuellt else "none")
     s = ""
     xy = (-31,28)
     if mit_sonne and wolke<4:
@@ -215,8 +216,8 @@ def bewoelkt(wolke=1,mit_sonne=False,mit_mond=False):
             arc = (17.40699560,-2.41780574,1,-5.26007294,10.21428571)
             strahlen = (3,4,5,6,7,0)
         s += '<g stroke="#f6bc68">'
-        if not arc:
-            s += '<circle cx="%s" cy="%s" r="%s" fill="none" />' % (cx,cy,r)
+        if not arc or gefuellt:
+            s += '<circle cx="%s" cy="%s" r="%s" fill="%s" />' % (cx,cy,r,"#f6bc68" if gefuellt else "none")
         s += '<path fill="none" d="'
         if arc:
             s += 'M %s,%s A %s,%s 0 %s 0 %s,%s ' % (arc[0:2]+(r,r)+arc[2:])
@@ -228,22 +229,31 @@ def bewoelkt(wolke=1,mit_sonne=False,mit_mond=False):
         s += '</g>'
     if mit_mond and wolke<4:
         if wolke==1:
-            s += '<path stroke="#da4935" fill="none" d="M 19.97705974,-2.12865019 a 24,24 0 0 0 -19.97705974,-28.87134981 a 26,26 0 0 1 -22,39 a 24,24 0 0 0 11.27165715,7.62388061" />'
+            if gefuellt:
+                s += mond(fill="#da4935" if gefuellt else "none")
+            else:
+                s += '<path stroke="#da4935" fill="none" d="M 19.97705974,-2.12865019 a 24,24 0 0 0 -19.97705974,-28.87134981 a 26,26 0 0 1 -22,39 a 24,24 0 0 0 11.27165715,7.62388061" />'
         elif wolke>=2:
             #s += '<path stroke="#da4935" fill="none" d="M -34,-43 a 26,26 0 0 1 -22,39 a 24,24 0 1 0 22,-39 z" />'
-            s += '<path stroke="#da4935" fill="none" d="M -13.88,-23.64 a 24,24 0 0 0 -20.12,-19.36 a 26,26 0 0 1 -22,39 a 24,24 0 0 0 11.44,7.68 m 30.68,-27.32 a 24,24 0 0 0 -20.12,-19.36 " />'
+            if gefuellt:
+                s += mond(-34,-43,fill="#da4935" if gefuellt else "none")
+            else:
+                s += '<path stroke="#da4935" fill="none" d="M -13.88,-23.64 a 24,24 0 0 0 -20.12,-19.36 a 26,26 0 0 1 -22,39 a 24,24 0 0 0 11.44,7.68 m 30.68,-27.32 a 24,24 0 0 0 -20.12,-19.36 " />'
             xy = (-25,28)
-    if wolke>=2:
-        ##s += '<path stroke="#828487" fill="none" d="M %s,%s a 20,20 0 0 1 0,-40 h 5 a 24,24 0 0 1 43,-9 h 2 a 16.25,16.25 0 0 1 15,10 a 20,20 0 0 1 -6.244997998398398,39 z " />' % xy
-        ##s += '<path stroke="#828487" fill="none" d="M %s,%s a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39 z " />' % xy
-        s += wolke_grosz(xy[0],xy[1])
     if wolke>=3:
         w3 = (5,-30)
         if mit_mond and wolke==3: w3 = (11,-30)
-        s += '<path stroke="#828487" stroke-width="1.8" fill="none" d="M %s,%s a 14.4,14.4 0 0 1 25.8,-5.4 h 2 a 9.75,9.75 0 0 1 9,6 a 12,12 0 0 1 0.3,22.68" />' % w3
+        if gefuellt:
+            s += wolke_klein(w3[0]+5,w3[1]+20,fill="#A2A4A7" if gefuellt else "none")
+        else:
+            s += '<path stroke="#828487" stroke-width="1.8" fill="none" d="M %s,%s a 14.4,14.4 0 0 1 25.8,-5.4 h 2 a 9.75,9.75 0 0 1 9,6 a 12,12 0 0 1 0.3,22.68" />' % w3
     if wolke==1:
         #s += '<path stroke="#828487" stroke-width="1.8" fill="none" d="M 0,33 a 12,12 0 1 1 2.92816105,-23.63726226 a 14.4,14.4 0 0 1 25.92035627,-5.69450347 a 9.75,9.75 0 0 1 10.15148268,5.93176573 a 12,12 0 0 1 -3.7469988,23.4 z " />' 
-        s += wolke_klein(0,33)
+        s += wolke_klein(0,33,fill="#A2A4A7" if gefuellt else "none")
+    if wolke>=2:
+        ##s += '<path stroke="#828487" fill="none" d="M %s,%s a 20,20 0 0 1 0,-40 h 5 a 24,24 0 0 1 43,-9 h 2 a 16.25,16.25 0 0 1 15,10 a 20,20 0 0 1 -6.244997998398398,39 z " />' % xy
+        ##s += '<path stroke="#828487" fill="none" d="M %s,%s a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39 z " />' % xy
+        s += wolke_grosz(xy[0],xy[1],fill="#828487" if gefuellt else "none")
     return s
 
 def nebel():
@@ -271,23 +281,6 @@ N_ICON_LIST = [
     (4,False,True,'cloudy-night')
 ]
 
-WW_ICON_LIST = [
-    ('unknown',unknown()),
-    ('fog',nebel()),
-    ('lightning',wetterleuchten2()),
-    ('lightning2',wetterleuchten()),
-    ('thunderstorm',gewitter()),
-    ('rain',regen_gesamt()),
-    ('drizzle',niesel_gesamt()),
-    ('snowflake',schneeflocke(0,0,40,False)),
-    ('snowflake2',schneeflocke(0,0,40,True)),
-    ('snow',schneefall(False)),
-    ('snow2',schneefall(True)),
-    ('sleet',schneeregen(False)),
-    ('hail',hagel()),
-    ('wind',wind())
-]
-
 ICON_WW = {
    9:'SVG_ICON_WIND',
   10:'SVG_ICON_FOG',
@@ -305,8 +298,47 @@ ICON_WW = {
 
 if True:
 
+    usage = "Usage: %prog [options] [warning_region]"
+    epilog = None
+
+    # Create a command line parser:
+    parser = optparse.OptionParser(usage=usage, epilog=epilog)
+
+    # options
+    parser.add_option("--write-svg", dest="writesvg", action="store_true",
+                      default=False,
+                      help="write SVG files")
+    parser.add_option("--write-py", dest="writepy", action="store_true",
+                      default=False,
+                      help="write Python script")
+    parser.add_option("--filled", action="store_true",
+                      default=False,
+                      help="filled icons")
+
+    (options, args) = parser.parse_args()
+
+
+if options.writesvg:
+
+    gefuellt = options.filled
+    WW_ICON_LIST = [
+        ('unknown',unknown()),
+        ('fog',nebel()),
+        ('lightning',wetterleuchten2(gefuellt)),
+        ('lightning2',wetterleuchten(gefuellt)),
+        ('thunderstorm',gewitter(gefuellt)),
+        ('rain',regen_gesamt(gefuellt)),
+        ('drizzle',niesel_gesamt(gefuellt)),
+        ('snowflake',schneeflocke(0,0,40,False)),
+        ('snowflake2',schneeflocke(0,0,40,True)),
+        ('snow',schneefall(gefuellt=gefuellt,innen=False)),
+        ('snow2',schneefall(gefuellt=gefuellt,innen=True)),
+        ('sleet',schneeregen(gefuellt=gefuellt,innen=False)),
+        ('hail',hagel(gefuellt)),
+        ('wind',wind())
+    ]
     for idx,val in enumerate(N_ICON_LIST):
-        s = bewoelkt(val[0],val[1],val[2])
+        s = bewoelkt(val[0],val[1],val[2],gefuellt=gefuellt)
         with open(val[3]+'.svg','w') as file:
             file.write(WW_XML)
             file.write(WW_SVG1 % (128,100))
@@ -320,7 +352,7 @@ if True:
             file.write(WW_SVG2)
 
 
-if True:
+if options.writepy:
 
     s = "SVG_ICON_START = '%s'\n" % WW_SVG1
     s += "SVG_ICON_END = '%s'\n" % WW_SVG2
