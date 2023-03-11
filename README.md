@@ -2,8 +2,8 @@
 
 * [English Version](https://github.com/roe-dl/weewx-DWD/blob/master/README-en.md) 
 (Work in Progress)
-* Icons und Symbole im SVG-Vektorgraphikformat siehe [images](images)
-* Icons and symbols in SVG vector graphic format see [images](images)
+* Icons und Symbole im SVG-Vektorgraphikformat siehe [images](https://github.com/roe-dl/weathericons)
+* Icons and symbols in SVG vector graphic format see [images](https://github.com/roe-dl/weathericons)
 
 Wetter- und Warndaten herunterladen und für WeeWX und Web-Darstellung aufbereiten
 
