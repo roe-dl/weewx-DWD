@@ -443,9 +443,9 @@ fog | drizzle | rain | hail | sleet | snow | thunderstorm | wind | tornado
 <img src="https://www.woellsdorf-wetter.de/images/fog.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/drizzle.png" width="50px" /> |<img src="https://www.woellsdorf-wetter.de/images/rain.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/hail.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/sleet.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/snow.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/thunderstorm.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/wind.png" width="50px" /> | <img src="https://www.woellsdorf-wetter.de/images/tornado.png" width="50px" />
 
 WMO symbols
-WMO code table  4677 ww | WMO code table 4680 wawa
+WMO code table  4677 ww | WMO code table 4680 w<sub>a</sub>w<sub>a</sub>
 -------------------------|---------------------------
-![WMO-Code-Tabelle 4677](images/WMO-code-table-4677-colored.png) | ![WMO-Code-Tabelle 4680](images/WMO-code-table-4680-colored.png)
+![WMO-Code-Tabelle 4677](https://raw.githubusercontent.com/roe-dl/weathericons/master/WMO-code-table-4677-colored.png) | ![WMO-Code-Tabelle 4680](https://raw.githubusercontent.com/roe-dl/weathericons/master/WMO-code-table-4680-colored.png)
 
 With
 ```
