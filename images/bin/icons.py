@@ -129,6 +129,16 @@ def gewitter(gefuellt=False):
     s += regen()
     return s
 
+def hagelgewitter(gefuellt=False):
+    s = wolke_grosz(-31,16 if gefuellt else 22,offen=4,fill="#828487" if gefuellt else "none")
+    s += blitz(-4,6)
+    s += '<g stroke="none" fill="#66a1ba">'
+    s += '<circle cx="-15" cy="%s" r="4" />' % (42 if gefuellt else 37)
+    s += '<circle cx="-6" cy="%s" r="4" />' % (25 if gefuellt else 19)
+    s += '<circle cx="11" cy="%s" r="4" />' % (36 if gefuellt else 30)
+    s += '</g>'
+    return s
+
 def regen_gesamt(gefuellt=False):
     s = wolke_grosz(-31,22,offen=4,fill="#828487" if gefuellt else "none")
     s += regen()
@@ -290,10 +300,23 @@ ICON_WW = {
   17:wetterleuchten(),
   18:'SVG_ICON_WIND',
   19:'SVG_ICON_TORNADO',
+  60:'SVG_ICON_RAIN',
+  61:'SVG_ICON_RAIN',
+  62:'SVG_ICON_RAIN',
+  63:'SVG_ICON_RAIN',
+  64:'SVG_ICON_RAIN',
+  65:'SVG_ICON_RAIN',
+  68:schneeregen(),
+  69:schneeregen(),
   91:'SVG_ICON_RAIN',
   92:'SVG_ICON_RAIN',
   93:'SVG_ICON_SNOW',
   94:'SVG_ICON_SNOW',
+  95:gewitter(),
+  96:hagelgewitter(),
+  97:gewitter(),
+  98:wetterleuchten(),
+  99:hagelgewitter()
 }
 
 if True:
@@ -327,6 +350,7 @@ if options.writesvg:
         ('lightning',wetterleuchten2(gefuellt)),
         ('lightning2',wetterleuchten(gefuellt)),
         ('thunderstorm',gewitter(gefuellt)),
+        ('thunderstorm-hail',hagelgewitter(gefuellt)),
         ('rain',regen_gesamt(gefuellt)),
         ('drizzle',niesel_gesamt(gefuellt)),
         ('snowflake',schneeflocke(0,0,40,False)),
@@ -359,6 +383,9 @@ if options.writepy:
     s += "SVG_ICON_UNKNOWN = '%s'\n" % unknown()
     s += "SVG_ICON_CLOUDY = '%s'\n" % bewoelkt(4)
     s += "SVG_ICON_FOG = '%s'\n" % nebel()
+    s += "SVG_ICON_WIND = '%s'\n" % wind()
+    s += "SVG_ICON_RAIN = '%s'\n" % regen()
+    s += "SVG_ICON_SNOW = '%s'\n" % schneefall()
     s += "SVG_ICON_N = [\n"
     for idx,val in enumerate(N_ICON_LIST):
         if idx==4: break
@@ -390,7 +417,7 @@ if options.writepy:
     for idx in range(100):
         if idx<20 or idx>=50:
             if idx in ICON_WW:
-                s += '    # %02d\n    %s\n' % (idx,ICON_WW[idx])
+                s += "    # %02d\n    '%s',\n" % (idx,ICON_WW[idx])
             else:
                 s += '    # %02d\n    None,\n' % idx
         elif idx<30:
@@ -400,4 +427,12 @@ if options.writepy:
         else:
             s += '    # %02d\n    SVG_ICON_FOG,\n' % idx
     s += ']\n\n'
+    s += 'def svg_icon_ww(ww, width=128):\n'
+    s += '    try:\n'
+    s += '        height = width * 0.78125\n'
+    s += '        return ((SVG_ICON_START % (width,height))+\n'
+    s += '            SVG_ICON_WW[ww]+\n'
+    s += '            SVG_ICON_END)\n'
+    s += '    except (ArithmeticError,LookupError,TypeError,ValuError):\n'
+    s += '        return ""\n\n'
     print(s)

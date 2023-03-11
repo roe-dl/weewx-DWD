@@ -42,9 +42,9 @@ Niesel / drizzle | Regen / rain | Schneeregen / sleet | Hagel / hail | Schneefal
 -----------------|--------------|---------------------|--------------|-------------------
 ![drizzle](weathericons/drizzle.svg) | ![rain](weathericons/rain.svg) | ![sleet](weathericons/sleet.svg) | ![hail](weathericons/hail.svg) | ![snow](weathericons/snow.svg) ![snow2](weathericons/snow2.svg)
 
-Wetterleuchten / lightning | Gewitter / thunderstorm | 
----------------------------|-------------------------|
-![lightning](weathericons/lightning.svg) ![lightning](weathericons/lightning2.svg) | ![thunderstorm with rain](weathericons/thunderstorm.svg) |
+Wetterleuchten / lightning | Gewitter / thunderstorm | Hagelgewitter / thunderstorm with hail
+---------------------------|-------------------------|---------------------------------------
+![lightning](weathericons/lightning.svg) ![lightning](weathericons/lightning2.svg) | ![thunderstorm with rain](weathericons/thunderstorm.svg) | ![thunderstorm with hail](weathericions/thunderstorm-hail.svg)
 
 ----------------------------------------------------------------------------
 
