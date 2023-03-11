@@ -545,7 +545,7 @@ Nebel | Nieselregen | Regen | Hagel | Schneeregen | Schnee | Gewitter | Wind | T
 WMO-Symbole
 WMO-Code-Tabelle 4677 ww | WMO-Code-Tabelle 4680 w<sub>a</sub>w<sub>a</sub>
 -------------------------|---------------------------
-![WMO-Code-Tabelle 4677](images/WMO-code-table-4677-colored.png) | ![WMO-Code-Tabelle 4680](images/WMO-code-table-4680-colored.png)
+![WMO-Code-Tabelle 4677](https://raw.githubusercontent.com/roe-dl/weathericons/master/WMO-code-table-4677-colored.png) | ![WMO-Code-Tabelle 4680](https://raw.githubusercontent.com/roe-dl/weathericons/master/WMO-code-table-4680-colored.png)
 
 Mittels
 ```
