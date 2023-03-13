@@ -406,6 +406,7 @@ than 4.
 * `dwd_icon`: the file name of the icon from the DWD set
 * `aeris_icon`: the file name of the icon from the Aeris set
 * `wi_icon`: icon of the icon set from Erik Flowers
+* `svg_icon`: weather icon in SVG format
 * `wmo_symbol`: the meteorological symbol as defined by the WMO
 * `wmo_symbol($width,color=$color)`: the meteorological symbol as defined
   by the WMO, formatted
@@ -419,7 +420,7 @@ Example:
 <img src="$relative_url/images/$presentweather($ww,$n,$night).belchertown_icon" />
 ```
 
-In contrast, `wmo_symbol` is used directly:
+In contrast, `wmo_symbol` and `svg_icon` are used directly:
 
 ```
 $presentweather($ww,$n,$night).wmo_symbol(30)
