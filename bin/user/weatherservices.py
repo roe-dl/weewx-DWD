@@ -740,7 +740,7 @@ class DWDPOIthread(BaseThread):
         ,'hPa': 'hPa'
         ,'CODE_TABLE': 'count'
     }
-    
+    # TODO: Aeris Icons
     WEATHER = (
         ('unbekannt','unknown.png','unknown.png'), # 0
         ('wolkenlos','clear-day.png','0-8.png'), # 1
@@ -859,7 +859,7 @@ class DWDPOIthread(BaseThread):
         try:
             x = DWDPOIthread.WEATHER[present_weather]
         except (LookupError,TypeError):
-            x = ('Wetterzustand nicht gemeldet','unknown.png','','')
+            x = ('Wetterzustand nicht gemeldet','unknown.png','','na')
         if present_weather and present_weather<5:
             # clouds only, nothing more
             night = 1 if night else 0
@@ -2275,7 +2275,7 @@ class BRIGHTSKYthread(BaseThread):
         try:
             x = BRIGHTSKYthread.CONDITIONS[icon]
         except (LookupError, TypeError) as e:
-            x = ('unbekannte Wetterbedingungen', 'unknown conditions', '', '', 'unknown.png', 'unknown.png', 'unknown')
+            x = ('unbekannte Wetterbedingungen', 'unknown conditions', '', '', 'unknown.png', 'unknown.png', 'na')
             if self.log_failure or self.debug > 0:
                 logerr("thread '%s': icon=%s mapping %s - %s" % (self.name, icon, e.__class__.__name__, e))
         return x
