@@ -1457,26 +1457,26 @@ class OPENMETEOthread(BaseThread):
     WEATHERMODELS = {
         # option: (country, weather service, model, API endpoint, exclude list)
         'best_match':('', '', '', 'forecast',['snowfall_height'])
-        ,'dwd-icon':('DE', 'DWD', 'ICON', 'dwd-icon',['visibility'])
-        ,'ecmwf':('EU', 'ECMWF', 'open IFS', 'ecmwf',['apparent_temperature', 'dewpoint_2m', 'diffuse_radiation_instant', 'evapotranspiration', 'freezinglevel_height', 'rain', 'relativehumidity_2m', 'shortwave_radiation_instant', 'showers', 'snow_depth', 'snowfall_height', 'visibility', 'windgusts_10m'])
+        ,'dwd-icon':('DE', 'DWD', 'ICON', 'dwd-icon',['precipitation_probability', 'visibility'])
+        ,'ecmwf':('EU', 'ECMWF', 'open IFS', 'ecmwf',['apparent_temperature', 'dewpoint_2m', 'diffuse_radiation_instant', 'evapotranspiration', 'freezinglevel_height', 'precipitation_probability', 'rain', 'relativehumidity_2m', 'shortwave_radiation_instant', 'showers', 'snow_depth', 'snowfall_height', 'visibility', 'windgusts_10m'])
         ,'ecmwf_ifs04':('EU', 'ECMWF', 'IFS', 'forecast',['snowfall_height'])
-        ,'gem':('CA', 'MSC-CMC', 'GEM+HRDPS', 'gem',['evapotranspiration', 'freezinglevel_height', 'snow_depth', 'snowfall_height', 'visibility'])
+        ,'gem':('CA', 'MSC-CMC', 'GEM+HRDPS', 'gem',['evapotranspiration', 'freezinglevel_height', 'precipitation_probability', 'snow_depth', 'snowfall_height', 'visibility'])
         ,'gem_global':('CA', 'MSC-CMC', 'GEM', 'forecast',['snowfall_height'])
-        ,'gem_hrdps_continental':('CA', 'MSC-CMC', 'GEM-HRDPS', 'forecast',['snowfall_height'])
+        ,'gem_hrdps_continental':('CA', 'MSC-CMC', 'GEM-HRDPS', 'forecast',['precipitation_probability', 'snowfall_height'])
         ,'gem_regional':('CA', 'MSC-CMC', 'GEM', 'forecast',['snowfall_height'])
         ,'gem_seamless':('CA', 'MSC-CMC', 'GEM', 'forecast',['snowfall_height'])
         ,'gfs':('US', 'NOAA', 'GFS', 'gfs',['snowfall_height'])
         ,'gfs_global':('US', 'NOAA', 'GFS Global', 'forecast',['snowfall_height'])
-        ,'gfs_hrrr':('US', 'NOAA', 'GFS HRRR', 'forecast',['snowfall_height'])
+        ,'gfs_hrrr':('US', 'NOAA', 'GFS HRRR', 'forecast',['precipitation_probability', 'snowfall_height'])
         ,'gfs_seamless':('US', 'NOAA', 'GFS Seamless', 'forecast',['snowfall_height'])
         ,'icon_d2':('DE', 'DWD', 'ICON D2', 'forecast',['snowfall_height'])
         ,'icon_eu':('DE', 'DWD', 'ICON EU', 'forecast',['snowfall_height'])
         ,'icon_global':('DE', 'DWD', 'ICON Global', 'forecast',['snowfall_height'])
         ,'icon_seamless':('DE', 'DWD', 'ICON Seamless', 'forecast',['snowfall_height'])
-        ,'jma':('JP', 'JMA', 'GSM+MSM', 'jma',['evapotranspiration', 'freezinglevel_height', 'rain', 'showers', 'snow_depth', 'snowfall_height', 'visibility', 'windgusts_10m'])
-        ,'meteofrance':('FR', 'MeteoFrance', 'Arpege+Arome', 'meteofrance',['evapotranspiration', 'freezinglevel_height', 'rain', 'showers', 'snow_depth', 'snowfall_height', 'visibility'])
-        ,'metno':('NO', 'MET Norway', 'Nordic', 'metno',['evapotranspiration', 'freezinglevel_height', 'rain', 'showers', 'snow_depth', 'snowfall_height', 'visibility'])
-        ,'metno_nordic':('NO', 'MET Norway', 'Nordic', 'forecast',['snowfall_height'])
+        ,'jma':('JP', 'JMA', 'GSM+MSM', 'jma',['evapotranspiration', 'freezinglevel_height', 'precipitation_probability', 'rain', 'showers', 'snow_depth', 'snowfall_height', 'visibility', 'windgusts_10m'])
+        ,'meteofrance':('FR', 'MeteoFrance', 'Arpege+Arome', 'meteofrance',['evapotranspiration', 'freezinglevel_height', 'precipitation_probability', 'rain', 'showers', 'snow_depth', 'snowfall_height', 'visibility'])
+        ,'metno':('NO', 'MET Norway', 'Nordic', 'metno',['evapotranspiration', 'freezinglevel_height', 'precipitation_probability', 'rain', 'showers', 'snow_depth', 'snowfall_height', 'visibility'])
+        ,'metno_nordic':('NO', 'MET Norway', 'Nordic', 'forecast',['precipitation_probability', 'snowfall_height'])
         # TODO remove 'test' in stable release?
         ,'test':('', '', '', '',[])
     }
@@ -1499,6 +1499,7 @@ class OPENMETEOthread(BaseThread):
         ,'cloudcover': 'cloudcover'
         ,'evapotranspiration': 'et'
         ,'precipitation': 'precipitation'
+        ,'precipitation_probability': 'precipitationProbability'
         ,'rain': 'rain'
         ,'showers': 'shower'
         ,'snowfall':'snow'
@@ -1722,6 +1723,8 @@ class OPENMETEOthread(BaseThread):
             obsgroup = None
             if obsweewx=='precipitation':
                 obsgroup = 'group_rain'
+            elif obsweewx=='precipitationProbability':
+                obsgroup = 'group_percent'
             elif obsweewx=='shower':
                 obsgroup = 'group_rain'
             elif obsweewx=='freezinglevelHeight':
