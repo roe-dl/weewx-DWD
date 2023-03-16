@@ -2,8 +2,8 @@
 
 * [English Version](https://github.com/roe-dl/weewx-DWD/blob/master/README-en.md) 
 (Work in Progress)
-* Icons und Symbole im SVG-Vektorgraphikformat siehe [images](images)
-* Icons and symbols in SVG vector graphic format see [images](images)
+* Icons und Symbole im SVG-Vektorgraphikformat siehe [images](https://github.com/roe-dl/weathericons)
+* Icons and symbols in SVG vector graphic format see [images](https://github.com/roe-dl/weathericons)
 
 Wetter- und Warndaten herunterladen und für WeeWX und Web-Darstellung aufbereiten
 
@@ -502,6 +502,7 @@ auch `wawa` vorhanden sind, wird `ww` verwendet und `wawa` ignoriert.
 * `dwd_icon`: Dateiname des Icons aus dem DWD-Icon-Satz
 * `aeris_icon`: Dateiname des Icons aus dem Aeris-Icon-Satz
 * `wi_icon`: Icon aus dem Icon-Satz von Erik Flowers
+* `svg_icon`: Wetter-Icon im SVG-Format
 * `wmo_symbol`: Symbol der Meteorologen für den Wetterzustand
 * `wmo_symbol($width,color=$color)`: Symbol der Meteorologen für den 
   Wetterzustand mit Größenangabe und optionaler Farbangabe.
@@ -515,7 +516,7 @@ zum Beispiel:
 <img src="$relative_url/images/$presentweather($ww,$n,$night).belchertown_icon" />
 ```
 
-`wmo_symbol` wird dagegen direkt verwendet, zum Beispiel:
+`wmo_symbol` und `svg_icon` werden dagegen direkt verwendet, zum Beispiel:
 
 ```
 $presentweather($ww,$n,$night).wmo_symbol(30)
@@ -545,7 +546,7 @@ Nebel | Nieselregen | Regen | Hagel | Schneeregen | Schnee | Gewitter | Wind | T
 WMO-Symbole
 WMO-Code-Tabelle 4677 ww | WMO-Code-Tabelle 4680 w<sub>a</sub>w<sub>a</sub>
 -------------------------|---------------------------
-![WMO-Code-Tabelle 4677](images/WMO-code-table-4677-colored.png) | ![WMO-Code-Tabelle 4680](images/WMO-code-table-4680-colored.png)
+![WMO-Code-Tabelle 4677](https://raw.githubusercontent.com/roe-dl/weathericons/master/WMO-code-table-4677-colored.png) | ![WMO-Code-Tabelle 4680](https://raw.githubusercontent.com/roe-dl/weathericons/master/WMO-code-table-4680-colored.png)
 
 Mittels
 ```
