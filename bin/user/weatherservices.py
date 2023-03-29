@@ -537,9 +537,8 @@ for group in weewx.units.std_groups:
 # DS_10 - 10min-sum of diffuse solar radiation - unit J/cm^2
 # GS_10 - 10min-sum of solar incoming radiation - unit J/cm^2
 # LS_10 - 10min-sum of longwave downward radiation - unit J/cm^2
-if weewx.units.conversionDict.get('joule_per_cm_squared_10minutes') is None:
-    weewx.units.conversionDict.setdefault('joule_per_cm_squared_10minutes',{})
-if weewx.units.conversionDict['joule_per_cm_squared_10minutes'].get('watt_per_meter_squared') is None:
+weewx.units.conversionDict.setdefault('joule_per_cm_squared_10minutes',{})
+if 'watt_per_meter_squared' not in weewx.units.conversionDict['joule_per_cm_squared_10minutes']:
     weewx.units.conversionDict['joule_per_cm_squared_10minutes']['watt_per_meter_squared'] = lambda x : (x * 10000) / 600
 
 # Cloud cover icons
