@@ -725,19 +725,19 @@ class DWDPOIthread(BaseThread):
         'maximum_wind_speed_last_hour':'windGust'}
     
     UNIT = {
-        'Grad C': 'degree_C'
-        ,'Grad': 'degree_compass'
-        ,'W/m2': 'watt_per_meter_squared'
-        ,'km/h': 'km_per_hour'
-        ,'h': 'hour'
-        ,'min': 'minute'
-        ,'%': 'percent'
-        ,'km': 'km'
-        ,'m': 'meter'
-        ,'cm': 'cm'
-        ,'mm': 'mm'
-        ,'hPa': 'hPa'
-        ,'CODE_TABLE': 'count'
+        'Grad C': 'degree_C',
+        'Grad': 'degree_compass',
+        'W/m2': 'watt_per_meter_squared',
+        'km/h': 'km_per_hour',
+        'h': 'hour',
+        'min': 'minute',
+        '%': 'percent',
+        'km': 'km',
+        'm': 'meter',
+        'cm': 'cm',
+        'mm': 'mm',
+        'hPa': 'hPa',
+        'CODE_TABLE': 'count'
     }
     # TODO: Aeris Icons
     WEATHER = (
@@ -1454,29 +1454,29 @@ class OPENMETEOthread(BaseThread):
 
     WEATHERMODELS = {
         # option: (country, weather service, model, API endpoint, exclude list)
-        'best_match':('', '', '', 'forecast',['snowfall_height'])
-        ,'dwd-icon':('DE', 'DWD', 'ICON', 'dwd-icon',['precipitation_probability', 'visibility'])
-        ,'ecmwf':('EU', 'ECMWF', 'open IFS', 'ecmwf',['apparent_temperature', 'dewpoint_2m', 'diffuse_radiation_instant', 'evapotranspiration', 'freezinglevel_height', 'precipitation_probability', 'rain', 'relativehumidity_2m', 'shortwave_radiation_instant', 'showers', 'snow_depth', 'snowfall_height', 'surface_pressure', 'visibility', 'windgusts_10m'])
-        ,'ecmwf_ifs04':('EU', 'ECMWF', 'IFS', 'forecast',['snowfall_height'])
-        ,'gem':('CA', 'MSC-CMC', 'GEM+HRDPS', 'gem',['evapotranspiration', 'freezinglevel_height', 'precipitation_probability', 'snow_depth', 'snowfall_height', 'visibility'])
-        ,'gem_global':('CA', 'MSC-CMC', 'GEM', 'forecast',['snowfall_height'])
-        ,'gem_hrdps_continental':('CA', 'MSC-CMC', 'GEM-HRDPS', 'forecast',['precipitation_probability', 'snowfall_height', 'surface_pressure'])
-        ,'gem_regional':('CA', 'MSC-CMC', 'GEM', 'forecast',['snowfall_height', 'surface_pressure'])
-        ,'gem_seamless':('CA', 'MSC-CMC', 'GEM', 'forecast',['snowfall_height'])
-        ,'gfs':('US', 'NOAA', 'GFS', 'gfs',['snowfall_height'])
-        ,'gfs_global':('US', 'NOAA', 'GFS Global', 'forecast',['snowfall_height'])
-        ,'gfs_hrrr':('US', 'NOAA', 'GFS HRRR', 'forecast',['precipitation_probability', 'snowfall_height', 'surface_pressure'])
-        ,'gfs_seamless':('US', 'NOAA', 'GFS Seamless', 'forecast',['snowfall_height'])
-        ,'icon_d2':('DE', 'DWD', 'ICON D2', 'forecast',['snowfall_height'])
-        ,'icon_eu':('DE', 'DWD', 'ICON EU', 'forecast',['snowfall_height'])
-        ,'icon_global':('DE', 'DWD', 'ICON Global', 'forecast',['snowfall_height'])
-        ,'icon_seamless':('DE', 'DWD', 'ICON Seamless', 'forecast',['snowfall_height'])
-        ,'jma':('JP', 'JMA', 'GSM+MSM', 'jma',['evapotranspiration', 'freezinglevel_height', 'precipitation_probability', 'rain', 'showers', 'snow_depth', 'snowfall_height', 'visibility', 'windgusts_10m'])
-        ,'meteofrance':('FR', 'MeteoFrance', 'Arpege+Arome', 'meteofrance',['evapotranspiration', 'freezinglevel_height', 'precipitation_probability', 'rain', 'showers', 'snow_depth', 'snowfall_height', 'visibility'])
-        ,'metno':('NO', 'MET Norway', 'Nordic', 'metno',['evapotranspiration', 'freezinglevel_height', 'precipitation_probability', 'rain', 'showers', 'snow_depth', 'snowfall_height', 'visibility'])
-        ,'metno_nordic':('NO', 'MET Norway', 'Nordic', 'forecast',['precipitation_probability', 'snowfall_height', 'surface_pressure'])
+        'best_match':('', '', '', 'forecast',['snowfall_height']),
+        'dwd-icon':('DE', 'DWD', 'ICON', 'dwd-icon',['precipitation_probability', 'visibility']),
+        'ecmwf':('EU', 'ECMWF', 'open IFS', 'ecmwf',['apparent_temperature', 'dewpoint_2m', 'diffuse_radiation_instant', 'evapotranspiration', 'freezinglevel_height', 'precipitation_probability', 'rain', 'relativehumidity_2m', 'shortwave_radiation_instant', 'showers', 'snow_depth', 'snowfall_height', 'surface_pressure', 'visibility', 'windgusts_10m']),
+        'ecmwf_ifs04':('EU', 'ECMWF', 'IFS', 'forecast',['snowfall_height']),
+        'gem':('CA', 'MSC-CMC', 'GEM+HRDPS', 'gem',['evapotranspiration', 'freezinglevel_height', 'precipitation_probability', 'snow_depth', 'snowfall_height', 'visibility']),
+        'gem_global':('CA', 'MSC-CMC', 'GEM', 'forecast',['snowfall_height']),
+        'gem_hrdps_continental':('CA', 'MSC-CMC', 'GEM-HRDPS', 'forecast',['precipitation_probability', 'snowfall_height', 'surface_pressure']),
+        'gem_regional':('CA', 'MSC-CMC', 'GEM', 'forecast',['snowfall_height', 'surface_pressure']),
+        'gem_seamless':('CA', 'MSC-CMC', 'GEM', 'forecast',['snowfall_height']),
+        'gfs':('US', 'NOAA', 'GFS', 'gfs',['snowfall_height']),
+        'gfs_global':('US', 'NOAA', 'GFS Global', 'forecast',['snowfall_height']),
+        'gfs_hrrr':('US', 'NOAA', 'GFS HRRR', 'forecast',['precipitation_probability', 'snowfall_height', 'surface_pressure']),
+        'gfs_seamless':('US', 'NOAA', 'GFS Seamless', 'forecast',['snowfall_height']),
+        'icon_d2':('DE', 'DWD', 'ICON D2', 'forecast',['snowfall_height']),
+        'icon_eu':('DE', 'DWD', 'ICON EU', 'forecast',['snowfall_height']),
+        'icon_global':('DE', 'DWD', 'ICON Global', 'forecast',['snowfall_height']),
+        'icon_seamless':('DE', 'DWD', 'ICON Seamless', 'forecast',['snowfall_height']),
+        'jma':('JP', 'JMA', 'GSM+MSM', 'jma',['evapotranspiration', 'freezinglevel_height', 'precipitation_probability', 'rain', 'showers', 'snow_depth', 'snowfall_height', 'visibility', 'windgusts_10m']),
+        'meteofrance':('FR', 'MeteoFrance', 'Arpege+Arome', 'meteofrance',['evapotranspiration', 'freezinglevel_height', 'precipitation_probability', 'rain', 'showers', 'snow_depth', 'snowfall_height', 'visibility']),
+        'metno':('NO', 'MET Norway', 'Nordic', 'metno',['evapotranspiration', 'freezinglevel_height', 'precipitation_probability', 'rain', 'showers', 'snow_depth', 'snowfall_height', 'visibility']),
+        'metno_nordic':('NO', 'MET Norway', 'Nordic', 'forecast',['precipitation_probability', 'snowfall_height', 'surface_pressure']),
         # TODO remove 'test' in stable release?
-        ,'test':('', '', '', '',[])
+        'test':('', '', '', '',[])
     }
     
     # https://open-meteo.com/en/docs
@@ -1485,63 +1485,63 @@ class OPENMETEOthread(BaseThread):
     # Attention, not all fields available in each model
     # Mapping API field forecast and dwd-icon endpoint -> WeeWX field
     HOURLYOBS = {
-        'temperature_2m': 'outTemp'
-        ,'apparent_temperature': 'appTemp'
-        ,'dewpoint_2m': 'dewpoint' # not available in forecast model ecmwf
-        ,'pressure_msl': 'barometer'
-        ,'surface_pressure': 'pressure'
-        ,'relativehumidity_2m': 'outHumidity' # not available in forecast model ecmwf
-        ,'winddirection_10m': 'windDir'
-        ,'windspeed_10m': 'windSpeed'
-        ,'windgusts_10m': 'windGust' # not available in forecast model ecmwf
-        ,'cloudcover': 'cloudcover'
-        ,'evapotranspiration': 'et'
-        ,'precipitation': 'precipitation'
-        ,'precipitation_probability': 'precipitationProbability'
-        ,'rain': 'rain'
-        ,'showers': 'shower'
-        ,'snowfall':'snow'
-        ,'freezinglevel_height':'freezinglevelHeight'
-        ,'weathercode':'weathercode'
-        ,'snow_depth':'snowDepth'
-        ,'shortwave_radiation_instant':'radiation'
-        ,'diffuse_radiation_instant':'solarRad'
-        ,'visibility':'visibility' # only available by the American weather models.
-        ,'snowfall_height':'snowfallHeight' # Europe only
+        'temperature_2m': 'outTemp',
+        'apparent_temperature': 'appTemp',
+        'dewpoint_2m': 'dewpoint', # not available in forecast model ecmwf
+        'pressure_msl': 'barometer',
+        'surface_pressure': 'pressure',
+        'relativehumidity_2m': 'outHumidity', # not available in forecast model ecmwf
+        'winddirection_10m': 'windDir',
+        'windspeed_10m': 'windSpeed',
+        'windgusts_10m': 'windGust', # not available in forecast model ecmwf
+        'cloudcover': 'cloudcover',
+        'evapotranspiration': 'et',
+        'precipitation': 'precipitation',
+        'precipitation_probability': 'precipitationProbability',
+        'rain': 'rain',
+        'showers': 'shower',
+        'snowfall':'snow',
+        'freezinglevel_height':'freezinglevelHeight',
+        'weathercode':'weathercode',
+        'snow_depth':'snowDepth',
+        'shortwave_radiation_instant':'radiation',
+        'diffuse_radiation_instant':'solarRad',
+        'visibility':'visibility', # only available by the American weather models.
+        'snowfall_height':'snowfallHeight' # Europe only
     }
 
     # Mapping API field -> WeeWX field
     CURRENTOBS = {
-        'temperature': 'outTemp'
-        ,'windspeed': 'windSpeed'
-        ,'winddirection': 'windDir'
-        ,'weathercode': 'weathercode'
+        'temperature': 'outTemp',
+        'windspeed': 'windSpeed',
+        'winddirection': 'windDir',
+        'weathercode': 'weathercode'
     }
 
     # API result contain no units for current_weather
     # Mapping API current_weather unit -> WeeWX unit
     CURRENTUNIT = {
-        'temperature': u'°C'
-        ,'windspeed': 'km/h'
-        ,'winddirection': u'°'
-        ,'weathercode': 'wmo code'
-        ,'time': 'unixtime'
+        'temperature': u'°C',
+        'windspeed': 'km/h',
+        'winddirection': u'°',
+        'weathercode': 'wmo code',
+        'time': 'unixtime'
     }
 
     # Mapping API hourly unit -> WeeWX unit
     UNIT = {
-        u'°': 'degree_compass'
-        ,u'°C': 'degree_C'
-        ,'mm': 'mm'
-        ,'cm': 'cm'
-        ,'m': 'meter'
-        ,'hPa': 'hPa'
-        ,'kPa': 'kPa'
-        ,u'W/m²': 'watt_per_meter_squared'
-        ,'km/h': 'km_per_hour'
-        ,'%': 'percent'
-        ,'wmo code': 'count'
-        ,'unixtime': 'unix_epoch'
+        u'°': 'degree_compass',
+        u'°C': 'degree_C',
+        'mm': 'mm',
+        'cm': 'cm',
+        'm': 'meter',
+        'hPa': 'hPa',
+        'kPa': 'kPa',
+        u'W/m²': 'watt_per_meter_squared',
+        'km/h': 'km_per_hour',
+        '%': 'percent',
+        'wmo code': 'count',
+        'unixtime': 'unix_epoch'
     }
 
     # https://open-meteo.com/en/docs/dwd-api
@@ -1566,37 +1566,37 @@ class OPENMETEOthread(BaseThread):
     #              0       1      2     3          4              5          6
     # WMO Key: [german, english, None, None, Belchertown Icon, DWD Icon, Aeris Icon]
     WEATHER = {
-        -1:['unbekannte Wetterbedingungen', 'unknown conditions', '', '', 'unknown.png', 'unknown.png', 'na']
+        -1:['unbekannte Wetterbedingungen', 'unknown conditions', '', '', 'unknown.png', 'unknown.png', 'na'],
         # 0-3 using N_ICON_LIST, here only Documentation
-        ,0:['wolkenlos', 'clear sky', '', '', 'clear-day.png', '0-8.png', 'clear']
-        ,1:['heiter', 'mainly clear', '', '','mostly-clear-day.png', '2-8.png', 'fair']
-        ,2:['bewölkt', 'partly cloudy', '', '','mostly-cloudy-day.png', '5-8.png', 'pcloudy']
-        ,3:['bedeckt', 'overcast', '', '','cloudy.png', '8-8.png', 'cloudy']
+        0:['wolkenlos', 'clear sky', '', '', 'clear-day.png', '0-8.png', 'clear'],
+        1:['heiter', 'mainly clear', '', '','mostly-clear-day.png', '2-8.png', 'fair'],
+        2:['bewölkt', 'partly cloudy', '', '','mostly-cloudy-day.png', '5-8.png', 'pcloudy'],
+        3:['bedeckt', 'overcast', '', '','cloudy.png', '8-8.png', 'cloudy'],
         # from here on we evaluate
-        ,45:['Nebel', 'fog', '', '','fog.png', '40.png', 'fog']
-        ,48:['gefrierender Nebel', 'depositing rime fog', '', '','fog.png', '48.png', '']
-        ,51:['leichter Nieselregen', 'light drizzle', '', '','rain.png', '7.png', 'drizzle']
-        ,53:['Nieselregen', 'moderate drizzle', '', '','rain.png', '8.png', 'drizzle']
-        ,55:['starker Nieselregen', 'dense drizzle', '', '','rain.png', '9.png', 'drizzle']
-        ,56:['gefrierender Nieselregen', 'light freezing drizzle', '', '','sleet.png', '66.png', 'freezingrain']
-        ,57:['kräftiger gefrierender Nieselregen', 'dense freezing drizzle', '', '','sleet.png', '67.png', 'freezingrain']
-        ,61:['leichter Regen', 'slight rain', '', '','rain.png', '7.png', 'rain']
-        ,63:['Regen', 'moderate rain', '', '','rain.png', '8.png', 'rain']
-        ,65:['starker Regen', 'heavy rain', '', '','rain.png', '9.png', 'rain']
-        ,66:['gefrierender Regen', 'light freezing rain', '', '','sleet.png', '66.png', 'freezingrain']
-        ,67:['starker gefrierender Regen', 'heavy freezing rain', '', '','sleet.png', '67.png', 'freezingrain']
-        ,71:['leichter Schneefall', 'slight snow fall', '', '','snow.png', '14.png', 'snow']
-        ,73:['Schneefall', 'moderate snow fall', '', '','snow.png', '15.png', 'snow']
-        ,75:['starker Schneefall', 'heavy snow fall', '', '','snow.png', '16.png', 'snow']
-        ,77:['Eiskörner', 'snow grains' , '', '','snow.png', '17.png', 'sleet']
-        ,80:['leichter Regenschauer', 'slight rain showers', '', '','rain.png', '80.png', 'showers']
-        ,81:['Regenschauer', 'moderate rain showers', '', '','rain.png', '80.png', 'showers']
-        ,82:['starker Regenschauer', 'heavy rain showers', '', '','rain.png', '82.png', 'showers']
-        ,85:['Schneeregen', 'slight snow showers', '', '','sleet.png', '12.png', 'rainandsnow']
-        ,86:['starker Schneeregen', 'heavy snow showers', '', '', 'sleet.png', '13.png', 'rainandsnow']
-        ,95:['Gewitter', 'thunderstorm', '', '', 'thunderstorm.png', '27.png', 'tstorm']
-        ,96:['Gewitter mit Hagel', 'thunderstorm with slight hail', '', '', 'thunderstorm.png', '29.png', 'tstorm']
-        ,99:['starkes Gewitter mit Hagel', 'thunderstorm with slight hail', '', '', 'thunderstrom.png', '30.png', 'tstorm']
+        45:['Nebel', 'fog', '', '','fog.png', '40.png', 'fog'],
+        48:['gefrierender Nebel', 'depositing rime fog', '', '','fog.png', '48.png', ''],
+        51:['leichter Nieselregen', 'light drizzle', '', '','rain.png', '7.png', 'drizzle'],
+        53:['Nieselregen', 'moderate drizzle', '', '','rain.png', '8.png', 'drizzle'],
+        55:['starker Nieselregen', 'dense drizzle', '', '','rain.png', '9.png', 'drizzle'],
+        56:['gefrierender Nieselregen', 'light freezing drizzle', '', '','sleet.png', '66.png', 'freezingrain'],
+        57:['kräftiger gefrierender Nieselregen', 'dense freezing drizzle', '', '','sleet.png', '67.png', 'freezingrain'],
+        61:['leichter Regen', 'slight rain', '', '','rain.png', '7.png', 'rain'],
+        63:['Regen', 'moderate rain', '', '','rain.png', '8.png', 'rain'],
+        65:['starker Regen', 'heavy rain', '', '','rain.png', '9.png', 'rain'],
+        66:['gefrierender Regen', 'light freezing rain', '', '','sleet.png', '66.png', 'freezingrain'],
+        67:['starker gefrierender Regen', 'heavy freezing rain', '', '','sleet.png', '67.png', 'freezingrain'],
+        71:['leichter Schneefall', 'slight snow fall', '', '','snow.png', '14.png', 'snow'],
+        73:['Schneefall', 'moderate snow fall', '', '','snow.png', '15.png', 'snow'],
+        75:['starker Schneefall', 'heavy snow fall', '', '','snow.png', '16.png', 'snow'],
+        77:['Eiskörner', 'snow grains' , '', '','snow.png', '17.png', 'sleet'],
+        80:['leichter Regenschauer', 'slight rain showers', '', '','rain.png', '80.png', 'showers'],
+        81:['Regenschauer', 'moderate rain showers', '', '','rain.png', '80.png', 'showers'],
+        82:['starker Regenschauer', 'heavy rain showers', '', '','rain.png', '82.png', 'showers'],
+        85:['Schneeregen', 'slight snow showers', '', '','sleet.png', '12.png', 'rainandsnow'],
+        86:['starker Schneeregen', 'heavy snow showers', '', '', 'sleet.png', '13.png', 'rainandsnow'],
+        95:['Gewitter', 'thunderstorm', '', '', 'thunderstorm.png', '27.png', 'tstorm'],
+        96:['Gewitter mit Hagel', 'thunderstorm with slight hail', '', '', 'thunderstorm.png', '29.png', 'tstorm'],
+        99:['starkes Gewitter mit Hagel', 'thunderstorm with slight hail', '', '', 'thunderstrom.png', '30.png', 'tstorm']
     }
     
     def get_current_obs(self):
@@ -2067,64 +2067,64 @@ class BRIGHTSKYthread(BaseThread):
     # Attention, no capital letters for WeeWX fields. Otherwise the WeeWX field "ET"/"UV" will be formed if no prefix is used!
     # Mapping API observation fields -> WeeWX field, unit, group
     OBS = {
-        'timestamp': ('dateTime', 'unix_epoch', 'group_time')
-        ,'condition': ('APIcondition', None, None)
-        ,'icon': ('APIicon', None, None)
-        ,'temperature': ('outTemp', 'degree_C', 'group_temperature')
-        ,'dew_point': ('dewpoint', 'degree_C', 'group_temperature')
-        ,'pressure_msl': ('barometer', 'hPa', 'group_pressure')
-        ,'relative_humidity': ('outHumidity', 'percent', 'group_percent')
-        ,'wind_speed_10': ('windSpeed10', 'km_per_hour', 'group_speed')
-        ,'wind_speed_30': ('windSpeed30', 'km_per_hour', 'group_speed')
-        ,'wind_speed_60': ('windSpeed60', 'km_per_hour', 'group_speed')
-        ,'wind_direction_10': ('windDir10', 'degree_compass', 'group_direction')
-        ,'wind_direction_30': ('windDir30', 'degree_compass', 'group_direction')
-        ,'wind_direction_60': ('windDir60', 'degree_compass', 'group_direction')
-        ,'wind_gust_speed_10': ('windGust10', 'km_per_hour', 'group_speed')
-        ,'wind_gust_speed_30': ('windGust30', 'km_per_hour', 'group_speed')
-        ,'wind_gust_speed_60': ('windGust60', 'km_per_hour', 'group_speed')
-        ,'wind_gust_direction_10': ('windGustDir10', 'degree_compass', 'group_direction')
-        ,'wind_gust_direction_30': ('windGustDir30', 'degree_compass', 'group_direction')
-        ,'wind_gust_direction_60': ('windGustDir60', 'degree_compass', 'group_direction')
-        ,'cloud_cover': ('cloudcover', 'percent', 'group_percent')
-        ,'precipitation_10': ('precipitation10', 'mm', 'group_rain')
-        ,'precipitation_30': ('precipitation30', 'mm', 'group_rain')
-        ,'precipitation_60': ('precipitation60', 'mm', 'group_rain')
-        ,'sunshine_10': ('sunshineDur10', 'minute', 'group_deltatime')
-        ,'sunshine_30': ('sunshineDur30', 'minute', 'group_deltatime')
-        ,'sunshine_60': ('sunshineDur60', 'minute', 'group_deltatime')
-        ,'visibility': ('visibility', 'meter', 'group_distance')
+        'timestamp': ('dateTime', 'unix_epoch', 'group_time'),
+        'condition': ('APIcondition', None, None),
+        'icon': ('APIicon', None, None),
+        'temperature': ('outTemp', 'degree_C', 'group_temperature'),
+        'dew_point': ('dewpoint', 'degree_C', 'group_temperature'),
+        'pressure_msl': ('barometer', 'hPa', 'group_pressure'),
+        'relative_humidity': ('outHumidity', 'percent', 'group_percent'),
+        'wind_speed_10': ('windSpeed10', 'km_per_hour', 'group_speed'),
+        'wind_speed_30': ('windSpeed30', 'km_per_hour', 'group_speed'),
+        'wind_speed_60': ('windSpeed60', 'km_per_hour', 'group_speed'),
+        'wind_direction_10': ('windDir10', 'degree_compass', 'group_direction'),
+        'wind_direction_30': ('windDir30', 'degree_compass', 'group_direction'),
+        'wind_direction_60': ('windDir60', 'degree_compass', 'group_direction'),
+        'wind_gust_speed_10': ('windGust10', 'km_per_hour', 'group_speed'),
+        'wind_gust_speed_30': ('windGust30', 'km_per_hour', 'group_speed'),
+        'wind_gust_speed_60': ('windGust60', 'km_per_hour', 'group_speed'),
+        'wind_gust_direction_10': ('windGustDir10', 'degree_compass', 'group_direction'),
+        'wind_gust_direction_30': ('windGustDir30', 'degree_compass', 'group_direction'),
+        'wind_gust_direction_60': ('windGustDir60', 'degree_compass', 'group_direction'),
+        'cloud_cover': ('cloudcover', 'percent', 'group_percent'),
+        'precipitation_10': ('precipitation10', 'mm', 'group_rain'),
+        'precipitation_30': ('precipitation30', 'mm', 'group_rain'),
+        'precipitation_60': ('precipitation60', 'mm', 'group_rain'),
+        'sunshine_10': ('sunshineDur10', 'minute', 'group_deltatime'),
+        'sunshine_30': ('sunshineDur30', 'minute', 'group_deltatime'),
+        'sunshine_60': ('sunshineDur60', 'minute', 'group_deltatime'),
+        'visibility': ('visibility', 'meter', 'group_distance')
     }
 
     # Mapping API primary source fields -> WeeWX field, unit, group
     SOURCES = {
-        'id': ('APIstationId', None, None)
-        ,'dwd_station_id': ('DWDstationId', None, None)
-        ,'wmo_station_id': ('WMOstationId', None, None)
-        ,'observation_type': ('observationType', None, None)
-        ,'lat': ('latitude', 'degree_compass', 'group_coordinate')
-        ,'lon': ('longitude', 'degree_compass', 'group_coordinate')
-        ,'height': ('altitude', 'meter', 'group_altitude')
-        ,'distance': ('distance', 'meter', 'group_distance')
-        ,'station_name': ('stationName', None, None)
+        'id': ('APIstationId', None, None),
+        'dwd_station_id': ('DWDstationId', None, None),
+        'wmo_station_id': ('WMOstationId', None, None),
+        'observation_type': ('observationType', None, None),
+        'lat': ('latitude', 'degree_compass', 'group_coordinate'),
+        'lon': ('longitude', 'degree_compass', 'group_coordinate'),
+        'height': ('altitude', 'meter', 'group_altitude'),
+        'distance': ('distance', 'meter', 'group_distance'),
+        'station_name': ('stationName', None, None)
     }
 
     # Mapping API icon field to internal icon fields
     CONDITIONS = {
         #                     0       1      2     3          4              5          6
         # BRIGHTSKY Icon: [german, english, None, None, Belchertown Icon, DWD Icon, Aeris Icon]
-        'clear-day': ('wolkenlos', 'clear sky', '', '', 'clear-day.png', '0-8.png', 'clear')
-        ,'clear-night': ('wolkenlos', 'clear sky', '', '', 'clear-night.png', '0-8.png', 'clearn')
-        ,'partly-cloudy-day': ('bewölkt', 'partly cloudy', '', '', 'mostly-cloudy-day.png', '5-8.png', 'pcloudy')
-        ,'partly-cloudy-night': ('bewölkt', 'partly cloudy', '', '', 'mostly-cloudy-night.png', '5-8.png', 'pcloudyn')
-        ,'cloudy': ('bedeckt', 'overcast', '', '', 'cloudy.png', '8-8.png', 'cloudy')
-        ,'hail': ('Hagel', 'hail', '', '', 'hail.png', '13.png', 'freezingrain')
-        ,'snow': ('Schneefall', 'snow fall', '', '', 'snow.png', '15.png', 'snow')
-        ,'sleet': ('Schneeregen', 'snow showers', '', '', 'sleet.png', '13.png', 'rainandsnow')
-        ,'rain': ('Regen', 'rain', '', '', 'rain.png', '8.png', 'rain')
-        ,'wind': ('Wind', 'wind', '', '', 'wind.png', '18.png', 'wind')
-        ,'fog': ('Nebel', 'fog', '', '', 'fog.png', '40.png', 'fog')
-        ,'thunderstorm': ('Gewitter', 'thunderstorm', '', '', 'thunderstorm.png', '27.png', 'tstorm')
+        'clear-day': ('wolkenlos', 'clear sky', '', '', 'clear-day.png', '0-8.png', 'clear'),
+        'clear-night': ('wolkenlos', 'clear sky', '', '', 'clear-night.png', '0-8.png', 'clearn'),
+        'partly-cloudy-day': ('bewölkt', 'partly cloudy', '', '', 'mostly-cloudy-day.png', '5-8.png', 'pcloudy'),
+        'partly-cloudy-night': ('bewölkt', 'partly cloudy', '', '', 'mostly-cloudy-night.png', '5-8.png', 'pcloudyn'),
+        'cloudy': ('bedeckt', 'overcast', '', '', 'cloudy.png', '8-8.png', 'cloudy'),
+        'hail': ('Hagel', 'hail', '', '', 'hail.png', '13.png', 'freezingrain'),
+        'snow': ('Schneefall', 'snow fall', '', '', 'snow.png', '15.png', 'snow'),
+        'sleet': ('Schneeregen', 'snow showers', '', '', 'sleet.png', '13.png', 'rainandsnow'),
+        'rain': ('Regen', 'rain', '', '', 'rain.png', '8.png', 'rain'),
+        'wind': ('Wind', 'wind', '', '', 'wind.png', '18.png', 'wind'),
+        'fog': ('Nebel', 'fog', '', '', 'fog.png', '40.png', 'fog'),
+        'thunderstorm': ('Gewitter', 'thunderstorm', '', '', 'thunderstorm.png', '27.png', 'tstorm')
     }
 
     def get_current_obs(self):
