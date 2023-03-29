@@ -616,7 +616,7 @@ def is_night(record,log_success=False,log_failure=True):
     except LookupError as e:
         if log_failure:
             logerr("thread '%s': is_night %s - %s" % (self.name, e.__class__.__name__, e))
-        return "N/A"
+        return None
 
     # Almanac object gives more accurate results if current temp and
     # pressure are provided. Initialise some defaults.
@@ -929,11 +929,10 @@ class DWDPOIthread(BaseThread):
 
                 night = is_night(y, log_success=(self.log_success or self.debug > 0),
                                     log_failure=(self.log_failure or self.debug > 0))
-                if night != "N/A":
+                if night is not None:
                     y['day'] = (0 if night else 1,'count','group_count')
                 else:
                     y['day'] = (None,'count','group_count')
-                    night = False
                     if self.log_failure or self.debug > 0:
                         logerr("thread '%s': Determining day or night was not possible." % self.name)
 
@@ -2024,11 +2023,10 @@ class OPENMETEOthread(BaseThread):
 
         night = is_night(y, log_success=(self.log_success or self.debug > 0),
                          log_failure=(self.log_failure or self.debug > 0))
-        if night != "N/A":
+        if night is not None:
             y['day'] = (0 if night else 1,'count','group_count')
         else:
             y['day'] = (None,'count','group_count')
-            night = False
             if self.log_failure or self.debug > 0:
                 logerr("thread '%s': Determining day or night was not possible." % self.name)
 
@@ -2414,7 +2412,7 @@ class BRIGHTSKYthread(BaseThread):
 
         night = is_night(y, log_success=(self.log_success or self.debug > 0),
                          log_failure=(self.log_failure or self.debug > 0))
-        if night != "N/A":
+        if night is not None:
             y['day'] = (0 if night else 1,'count','group_count')
         else:
             y['day'] = (None,'count','group_count')
