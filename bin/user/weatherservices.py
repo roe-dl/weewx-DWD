@@ -1016,7 +1016,7 @@ class DWDCDCthread(BaseThread):
         self.last_get_ts = 0
 
         observations = cdc_dict.get('observations')
-        if observations is not None:
+        if observations:
             observations = weeutil.weeutil.option_as_list(observations)
         else:
             observations = ('air','wind','gust','precipitation','solar')
@@ -1302,7 +1302,7 @@ class ZAMGthread(BaseThread):
         self.get_meta_data()
         
         observations = zamg_dict.get('observations')
-        if observations is not None:
+        if observations:
             observations = weeutil.weeutil.option_as_list(observations)
         else:
             observations = ('air','wind','gust','precipitation','solar')
