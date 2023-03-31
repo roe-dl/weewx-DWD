@@ -2469,6 +2469,7 @@ class DWDservice(StdService):
                 if iconset=='belchertown': station_dict['iconset'] = 4
                 if iconset=='dwd': station_dict['iconset'] = 5
                 if iconset=='aeris': station_dict['iconset'] = 6
+            station_dict['station'] = station
             self._create_poi_thread(station, station_dict)
 
         # deprecated, use section [WeatherServices][[forecast]]
@@ -2484,6 +2485,7 @@ class DWDservice(StdService):
                 if iconset=='belchertown': station_dict['iconset'] = 4
                 if iconset=='dwd': station_dict['iconset'] = 5
                 if iconset=='aeris': station_dict['iconset'] = 6
+            station_dict['station'] = station
             self._create_cdc_thread(station, station_dict)
 
         # deprecated, use section [WeatherServices][[forecast]]
@@ -2498,6 +2500,7 @@ class DWDservice(StdService):
                 if iconset=='belchertown': station_dict['iconset'] = 4
                 if iconset=='dwd': station_dict['iconset'] = 5
                 if iconset=='aeris': station_dict['iconset'] = 6
+            station_dict['station'] = station
             self._create_zamg_thread(station, station_dict)
 
         # General interface
