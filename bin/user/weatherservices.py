@@ -818,21 +818,19 @@ class DWDPOIthread(BaseThread):
                                       unit,
                                       grp)
 
-                if self.lat is not None:
+                if self.lat is not None and self.lon is not None:
                     y['latitude'] = (self.lat,'degree_compass','group_coordinate')
-                if self.lon is not None:
                     y['longitude'] = (self.lon,'degree_compass','group_coordinate')
+                    night = is_night(y, log_success=(self.log_success or self.debug > 0),
+                                     log_failure=(self.log_failure or self.debug > 0))
+                else:
+                    night = None
+
                 if self.alt is not None:
                     y['altitude'] = (self.alt,'meter','group_altitude')
 
-                night = is_night(y, log_success=(self.log_success or self.debug > 0),
-                                    log_failure=(self.log_failure or self.debug > 0))
                 if night is not None:
                     y['day'] = (0 if night else 1,'count','group_count')
-                else:
-                    y['day'] = (None,'count','group_count')
-                    if self.log_failure or self.debug > 0:
-                        logerr("thread '%s': Determining day or night was not possible." % self.name)
 
                 wwcode = DWDPOIthread.get_ww(y['presentWeather'][0], night)
                 if wwcode:
@@ -1920,7 +1918,6 @@ class OPENMETEOthread(BaseThread):
         if night is not None:
             y['day'] = (0 if night else 1,'count','group_count')
         else:
-            y['day'] = (None,'count','group_count')
             if self.log_failure or self.debug > 0:
                 logerr("thread '%s': Determining day or night was not possible." % self.name)
 
