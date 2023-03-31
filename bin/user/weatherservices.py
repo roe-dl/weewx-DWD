@@ -615,7 +615,7 @@ def is_night(record,log_success=False,log_failure=True):
         altitude = record['altitude'][0]
     except LookupError as e:
         if log_failure:
-            logerr("thread '%s': is_night %s - %s" % (self.name, e.__class__.__name__, e))
+            logerr("Error is_night: %s - %s" % (e.__class__.__name__, e))
         return None
 
     # Almanac object gives more accurate results if current temp and
