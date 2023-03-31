@@ -2056,7 +2056,7 @@ class DWDservice(StdService):
 
             # check required station 
             station = station_dict.get('station')
-            if (provider == 'dwd' or provider == 'ZAMG') and station is None:
+            if provider in ('dwd', 'zamg') and station is None:
                 if self.log_failure or self.debug > 0:
                     logerr("Section '%s' weather service provider '%s' - station is not valid. Skip section." % (section, provider))
                 continue
