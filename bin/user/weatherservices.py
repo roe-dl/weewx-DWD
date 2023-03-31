@@ -785,7 +785,7 @@ class DWDPOIthread(BaseThread):
         self.debug = weeutil.weeutil.to_int(poi_dict.get('debug', 0))
         self.lang = poi_dict.get('lang', 'de')
 
-        self.station = poi_dict.get('station')
+        self.location = poi_dict.get('station')
         self.iconset = weeutil.weeutil.to_int(poi_dict.get('iconset', 4))
         self.lat = weeutil.weeutil.to_float(poi_dict.get('latitude'))
         self.lon = weeutil.weeutil.to_float(poi_dict.get('longitude'))
@@ -869,7 +869,7 @@ class DWDPOIthread(BaseThread):
     
     def getRecord(self):
         """ download and process POI weather data """
-        url = 'https://opendata.dwd.de/weather/weather_reports/poi/'+self.station+'-BEOB.csv'
+        url = 'https://opendata.dwd.de/weather/weather_reports/poi/'+self.location+'-BEOB.csv'
         try:
             reply = wget(url,
                      log_success=self.log_success,
@@ -2605,15 +2605,15 @@ class DWDservice(StdService):
             self.bind(weewx.NEW_ARCHIVE_RECORD, self.new_archive_record)
 
 
-    def _create_poi_thread(self, thread_name, station_dict):
-        prefix = station_dict.get('prefix','id'+thread_name)
+    def _create_poi_thread(self, thread_name, location_dict):
+        prefix = location_dict.get('prefix','id'+thread_name)
         self.threads[thread_name] = dict()
         self.threads[thread_name]['datasource'] = 'POI'
         self.threads[thread_name]['prefix'] = prefix
         self.threads[thread_name]['thread'] = DWDPOIthread(thread_name,
-                    station_dict,
-                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',self.log_success)) or self.verbose,
-                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',self.log_failure)) or self.verbose)
+                    location_dict,
+                    log_success=weeutil.weeutil.to_bool(location_dict.get('log_success',self.log_success)) or self.verbose,
+                    log_failure=weeutil.weeutil.to_bool(location_dict.get('log_failure',self.log_failure)) or self.verbose)
         self.threads[thread_name]['thread'].start()
     
     
