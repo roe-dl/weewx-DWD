@@ -2434,7 +2434,10 @@ class DWDservice(StdService):
     def __init__(self, engine, config_dict):
         super(DWDservice,self).__init__(engine, config_dict)
         
-        site_dict = weeutil.config.accumulateLeaves(config_dict.get('WeatherServices',configobj.ConfigObj()))
+        if 'WeatherServices' in config_dict:
+            site_dict = weeutil.config.accumulateLeaves(config_dict.get('WeatherServices',configobj.ConfigObj()))
+        else:
+            site_dict = weeutil.config.accumulateLeaves(config_dict.get('DeutscherWetterdienst',configobj.ConfigObj()))
         self.log_success = weeutil.weeutil.to_bool(site_dict.get('log_success', True))
         self.log_failure = weeutil.weeutil.to_bool(site_dict.get('log_failure', True))
         self.debug = weeutil.weeutil.to_int(site_dict.get('debug', 0))
@@ -2443,17 +2446,61 @@ class DWDservice(StdService):
             self.log_failure = True
 
         self.threads = dict()
-        
+
         try:
             iconset = config_dict['WeatherServices']['forecast']['icon_set']
             self.lang = config_dict['WeatherServices']['forecast']['lang']
         except LookupError:
-            iconset = config_dict.get('WeatherServices',site_dict).get('forecast',site_dict).get('icon_set','belchertown').lower()
+            iconset = config_dict.get('DeutscherWetterdienst',site_dict).get('forecast',site_dict).get('icon_set','belchertown').lower()
             self.lang = 'de'
         self.iconset = 4
         if iconset=='dwd': self.iconset = 5
         if iconset=='aeris': self.iconset = 6
-        
+
+        # deprecated, use section [WeatherServices][[forecast]]
+        poi_dict = config_dict.get('DeutscherWetterdienst',config_dict).get('POI',site_dict)
+        stations = poi_dict.get('stations',site_dict)
+        for station in stations.sections:
+            station_dict = weeutil.config.accumulateLeaves(stations[station])
+            station_dict['iconset'] = self.iconset
+            iconset = station_dict.get('icon_set')
+            if iconset is not None:
+                station_dict['iconset'] = self.iconset
+                if iconset=='belchertown': station_dict['iconset'] = 4
+                if iconset=='dwd': station_dict['iconset'] = 5
+                if iconset=='aeris': station_dict['iconset'] = 6
+            self._create_poi_thread(station, station_dict)
+
+        # deprecated, use section [WeatherServices][[forecast]]
+        # https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/
+        cdc_dict = config_dict.get('DeutscherWetterdienst',config_dict).get('CDC',site_dict)
+        stations = cdc_dict.get('stations',site_dict)
+        for station in stations.sections:
+            station_dict = weeutil.config.accumulateLeaves(stations[station])
+            station_dict['iconset'] = self.iconset
+            iconset = station_dict.get('icon_set')
+            if iconset is not None:
+                station_dict['iconset'] = self.iconset
+                if iconset=='belchertown': station_dict['iconset'] = 4
+                if iconset=='dwd': station_dict['iconset'] = 5
+                if iconset=='aeris': station_dict['iconset'] = 6
+            self._create_cdc_thread(station, station_dict)
+
+        # deprecated, use section [WeatherServices][[forecast]]
+        zamg_dict = config_dict.get('ZAMG',configobj.ConfigObj()).get('current',configobj.ConfigObj())
+        stations = zamg_dict.get('stations',site_dict)
+        for station in stations.sections:
+            station_dict = weeutil.config.accumulateLeaves(stations[station])
+            station_dict['iconset'] = self.iconset
+            iconset = station_dict.get('icon_set')
+            if iconset is not None:
+                station_dict['iconset'] = self.iconset
+                if iconset=='belchertown': station_dict['iconset'] = 4
+                if iconset=='dwd': station_dict['iconset'] = 5
+                if iconset=='aeris': station_dict['iconset'] = 6
+            self._create_zamg_thread(station, station_dict)
+
+        # General interface
         site_dict = config_dict.get('WeatherServices',configobj.ConfigObj()).get('current',configobj.ConfigObj())
         for section in site_dict.sections:
             station_dict = weeutil.config.accumulateLeaves(site_dict[section])
