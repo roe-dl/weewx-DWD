@@ -511,7 +511,6 @@ def is_night(record,log_success=False,log_failure=True):
         dateTime = record['dateTime'][0]
         latitude = record['latitude'][0]
         longitude = record['longitude'][0]
-        altitude = record['altitude'][0]
     except LookupError as e:
         if log_failure:
             logerr("Error is_night: %s - %s" % (e.__class__.__name__, e))
@@ -521,20 +520,23 @@ def is_night(record,log_success=False,log_failure=True):
     # pressure are provided. Initialise some defaults.
     temperature_c = 15.0
     pressure_mbar = 1010.0
+    altitude_m = 0.0 # Default is 0 (sea level)
     # Record:
     # 'dateTime': (1676905200, 'unix_epoch', 'group_time')
     # 'outTemp': (10.2, 'degree_C', 'group_temperature')
     # 'barometer': (1021.0, 'hPa', 'group_pressure')
     if 'outTemp' in record:
-        temperature_c = weewx.units.convert(record['outTemp'], "degree_C")[0]
+        temperature_c = weewx.units.convert(record['outTemp'], 'degree_C')[0]
     if 'barometer' in record:
-        pressure_mbar = weewx.units.convert(record['barometer'], "mbar")[0]
+        pressure_mbar = weewx.units.convert(record['barometer'], 'mbar')[0]
+    if 'altitude' in record:
+         altitude_m = weewx.units.convert(record['altitude'], 'meter')[0]
 
     # get our almanac object
     almanac = weewx.almanac.Almanac(dateTime,
                                     latitude,
                                     longitude,
-                                    altitude,
+                                    altitude_m,
                                     temperature_c,
                                     pressure_mbar)
     # work out sunrise and sunset timestamp so we can determine if it is
@@ -818,6 +820,9 @@ class DWDPOIthread(BaseThread):
                                       unit,
                                       grp)
 
+                if self.alt is not None:
+                    y['altitude'] = (self.alt,'meter','group_altitude')
+
                 if self.lat is not None and self.lon is not None:
                     y['latitude'] = (self.lat,'degree_compass','group_coordinate')
                     y['longitude'] = (self.lon,'degree_compass','group_coordinate')
@@ -825,9 +830,6 @@ class DWDPOIthread(BaseThread):
                                      log_failure=(self.log_failure or self.debug > 0))
                 else:
                     night = None
-
-                if self.alt is not None:
-                    y['altitude'] = (self.alt,'meter','group_altitude')
 
                 if night is not None:
                     y['day'] = (0 if night else 1,'count','group_count')
@@ -1901,25 +1903,25 @@ class OPENMETEOthread(BaseThread):
             if self.debug >= 3:
                 logdbg("thread '%s': hourly: weewx=%s result=%s" % (self.name, str(obsweewx), str(y[obsweewx])))
 
+        if altitude is not None:
+            y['altitude'] = (altitude,'meter','group_altitude')
+
         if latitude is not None and longitude is not None:
             y['latitude'] = (latitude,'degree_compass','group_coordinate')
             y['longitude'] = (longitude,'degree_compass','group_coordinate')
-        if altitude is not None:
-            y['altitude'] = (altitude,'meter','group_altitude')
+            night = is_night(y, log_success=(self.log_success or self.debug > 0),
+                             log_failure=(self.log_failure or self.debug > 0))
+        else:
+            night = None
+
+        if night is not None:
+            y['day'] = (0 if night else 1,'count','group_count')
 
         wwcode = y.get('weathercode')
         if wwcode is not None:
             wwcode = int(wwcode[0])
         else:
             wwcode = -1
-
-        night = is_night(y, log_success=(self.log_success or self.debug > 0),
-                         log_failure=(self.log_failure or self.debug > 0))
-        if night is not None:
-            y['day'] = (0 if night else 1,'count','group_count')
-        else:
-            if self.log_failure or self.debug > 0:
-                logerr("thread '%s': Determining day or night was not possible." % self.name)
 
         wwcode = OPENMETEOthread.get_ww(wwcode, night)
         if wwcode:
