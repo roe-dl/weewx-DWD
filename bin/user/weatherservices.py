@@ -2069,11 +2069,7 @@ class DWDservice(StdService):
                 if iconset=='dwd': station_dict['iconset'] = 5
                 if iconset=='aeris': station_dict['iconset'] = 6
 
-            # set default station if not selected
-            if station is None:
-                station = 'thisStation'
-
-            # possible station coordinates
+            # possible station altitude
             altitude = station_dict.get('altitude')
             if altitude is not None:
                 altitude_t = weeutil.weeutil.option_as_list(altitude)
@@ -2091,6 +2087,11 @@ class DWDservice(StdService):
                     if self.log_failure or self.debug > 0:
                         logerr("Configured altitude '%s' in section '%s' is not valid, altitude will be ignored." % (altitude, section))
 
+            # set default station if not selected and lat or lon is None
+            if station is None and (station_dict.get('latitude') is None or station_dict.get('longitude') is None):
+                station = 'thisStation'
+
+            # using lat/lon/alt from weewx.conf
             if station.lower() in ('thisstation', 'here'):
                 if station_dict.get('latitude') is None or station_dict.get('longitude') is None:
                     station_dict['latitude'] = station_dict.get('latitude', engine.stn_info.latitude_f)
