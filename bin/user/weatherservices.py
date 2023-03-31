@@ -807,7 +807,6 @@ class DWDPOIthread(BaseThread):
             else:
                 obsgroup = weewx.units.obs_group_dict.get(obstype)
             if obsgroup:
-                weewx.units.obs_group_dict.setdefault(obstype, obsgroup)
                 weewx.units.obs_group_dict.setdefault(prefix+obstype[0].upper()+obstype[1:],obsgroup)
 
 
@@ -1037,7 +1036,6 @@ class DWDCDCthread(BaseThread):
             obstype = obs[0]
             obsgroup = obs[2]
             if obsgroup:
-                weewx.units.obs_group_dict.setdefault(obstype, obsgroup)
                 weewx.units.obs_group_dict.setdefault(prefix+obstype[0].upper()+obstype[1:],obsgroup)
         weewx.units.obs_group_dict.setdefault(prefix+'Barometer','group_pressure')
         weewx.units.obs_group_dict.setdefault(prefix+'Altimeter','group_pressure')
@@ -1321,7 +1319,6 @@ class ZAMGthread(BaseThread):
             obstype = obs[0]
             obsgroup = obs[2]
             if obsgroup:
-                weewx.units.obs_group_dict.setdefault(obstype, obsgroup)
                 weewx.units.obs_group_dict.setdefault(prefix+obstype[0].upper()+obstype[1:],obsgroup)
         weewx.units.obs_group_dict.setdefault(prefix+'Barometer','group_pressure')
         weewx.units.obs_group_dict.setdefault(prefix+'Altimeter','group_pressure')
@@ -1711,7 +1708,6 @@ class OPENMETEOthread(BaseThread):
             else:
                 obsgroup = weewx.units.obs_group_dict.get(obsweewx)
             if obsgroup is not None:
-                weewx.units.obs_group_dict.setdefault(obsweewx, obsgroup)
                 weewx.units.obs_group_dict.setdefault(self.prefix+obsweewx[0].upper()+obsweewx[1:],obsgroup)
 
         for opsapi, obsweewx in self.hourly_obs.items():
@@ -1736,7 +1732,6 @@ class OPENMETEOthread(BaseThread):
             else:
                 obsgroup = weewx.units.obs_group_dict.get(obsweewx)
             if obsgroup is not None:
-                weewx.units.obs_group_dict.setdefault(obsweewx, obsgroup)
                 weewx.units.obs_group_dict.setdefault(self.prefix+obsweewx[0].upper()+obsweewx[1:],obsgroup)
 
     def get_data(self):
@@ -2238,14 +2233,12 @@ class BRIGHTSKYthread(BaseThread):
             obs = obsweewx[0]
             group = obsweewx[2]
             if group is not None:
-                weewx.units.obs_group_dict.setdefault(obs, group)
                 weewx.units.obs_group_dict.setdefault(self.prefix + obs[0].upper() + obs[1:], group)
 
         for opsapi, obsweewx in self.sources_obs.items():
             obs = obsweewx[0]
             group = obsweewx[2]
             if group is not None:
-                weewx.units.obs_group_dict.setdefault(obs, group)
                 weewx.units.obs_group_dict.setdefault(self.prefix + obs[0].upper() + obs[1:], group)
 
     def get_data(self):
