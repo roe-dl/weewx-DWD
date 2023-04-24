@@ -923,27 +923,27 @@ WAWA_SYMBOLS = [
 
 OKTA_SYMBOLS = [
     # 0/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 0/8</desc> <circle cx="50" cy="50" r="45" fill="none"/> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 0/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none"/> </svg>',
     # 1/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 1/8</desc> <circle cx="50" cy="50" r="45" fill="none"/> <line x1="50" y1="5" x2="50" y2="95" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 1/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none"/> <line x1="50" y1="5" x2="50" y2="95" stroke-width="8" stroke="#000000" /> </svg>',
     # 2/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 2/8</desc> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 95,50 L 50,50 L 50,5 A 45 45 0 0 1 95,50 Z" fill="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 2/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none"/> <path d="M 95,50 L 50,50 L 50,5 A 45 45 0 0 1 95,50 Z" stroke="none" fill="#000000" /> </svg>',
     # 3/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 3/8</desc> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 95,50 L 50,50 L 50,5 A 45 45 0 0 1 95,50 Z" fill="#000000" /> <line x1="50" y1="5" x2="50" y2="95" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 3/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none"/> <path d="M 95,50 L 50,50 L 50,5 A 45 45 0 0 1 95,50 Z" stroke="none" fill="#000000" /> <line x1="50" y1="5" x2="50" y2="95" stroke-width="8" stroke="#000000" /> </svg>',
     # 4/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 4/8</desc> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 50,95 L 50,5 A 45 45 0 0 1 50,95 Z" fill="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 4/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none"/> <path d="M 50,95 L 50,5 A 45 45 0 0 1 50,95 Z" stroke="none" fill="#000000" /> </svg>',
     # 5/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 5/8</desc> <circle cx="50" cy="50" r="45" fill="none"/> <line x1="5" y1="50" x2="95" y2="50" /> <path d="M 50,95 L 50,5 A 45 45 0 0 1 50,95 Z" fill="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 5/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none"/> <line x1="5" y1="50" x2="95" y2="50" stroke-width="8" stroke="#000000" /> <path d="M 50,95 L 50,5 A 45 45 0 0 1 50,95 Z" stroke="none" fill="#000000" /> </svg>',
     # 6/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 6/8</desc> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 5,50 L 50,50 L 50,5 A 45 45 0 1 1 5,50 Z" fill="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 6/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none"/> <path d="M 5,50 L 50,50 L 50,5 A 45 45 0 1 1 5,50 Z" stroke="none" fill="#000000" /> </svg>',
     # 7/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 7/8</desc> <circle cx="50" cy="50" r="45" fill="none"/> <path d="M 60,93.87482193696061 L 60,6.12517806303939 A 45 45 0 0 1 60,93.87482193696061 Z M 40,6.12517806303939 L 40,93.87482193696061 A 45 45 0 0 1 40,6.12517806303939 Z" fill="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 7/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none"/> <path d="M 60,93.87482193696061 L 60,6.12517806303939 A 45 45 0 0 1 60,93.87482193696061 Z M 40,6.12517806303939 L 40,93.87482193696061 A 45 45 0 0 1 40,6.12517806303939 Z" stroke-width="8" stroke="#000000" fill="#000000" /> </svg>',
     # 8/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 8/8</desc> <circle cx="50" cy="50" r="45" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 8/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="#000000" /> </svg>',
     # 9/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N 9/8</desc> <circle cx="50" cy="50" r="45" fill="none"/> <line x1="18.180194846605361" y1="18.180194846605361" x2="81.819805153394639" y2="81.819805153394639" /> <line x1="18.180194846605361" y1="81.819805153394639" x2="81.819805153394639" y2="18.180194846605361" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 9/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none" /> <line x1="18.180194846605361" y1="18.180194846605361" x2="81.819805153394639" y2="81.819805153394639" stroke-width="8" stroke="#000000" /> <line x1="18.180194846605361" y1="81.819805153394639" x2="81.819805153394639" y2="18.180194846605361" stroke-width="8" stroke="#000000" /> </svg>',
     # no data
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100" stroke-width="8" stroke="#000000"> <desc>WMO 2700 N no data</desc> <circle cx="50" cy="50" r="45" fill="none"/> <line x1="5" y1="50" x2="95" y2="50" /> <line x1="50" y1="5" x2="50" y2="95" /> </svg>'
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N no data</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none" /> <line x1="5" y1="50" x2="95" y2="50" stroke-width="8" stroke="#000000" /> <line x1="50" y1="5" x2="50" y2="95" stroke-width="8" stroke="#000000" /> </svg>'
 ]
 
 OKTA_TEXTS = {
