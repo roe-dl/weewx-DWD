@@ -125,6 +125,8 @@ try:
 except ImportError:
     hasSearchList = False
 
+import weeutil.weeutil
+
 SVG_ICON_START = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="%s" height="%s" viewBox="-64 -50 128 100"><g stroke-width="3">'
 SVG_ICON_END = '</g></svg>'
 SVG_ICON_UNKNOWN = '<path stroke="#828487" fill="none" d="M -31,28 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39z" /><text x="-18" y="18" fill="#828487" style="font-family:sans-serif;font-size:50px;font-weight:normal;text-align:center">?</text>'
@@ -947,7 +949,19 @@ OKTA_SYMBOLS = [
 ]
 
 OKTA_TEXTS = {
-    'de':['wolkenlos','sonnig','heiter','leicht bewölkt','wolkig','bewölkt','stark bewölkt','fast bedeckt','bedeckt','nicht sichtbar','keine Daten'],
+    'de':[
+        ('wolkenlos','klar'),        # 0/8
+        ('sonnig','fast klar'),      # 1/8
+        ('heiter','leicht bewölkt'), # 2/8
+        'leicht bewölkt',            # 3/8
+        'wolkig',                    # 4/8
+        'bewölkt',                   # 5/8
+        'stark bewölkt',             # 6/8
+        'fast bedeckt',              # 7/8
+        'bedeckt',                   # 8/8
+        'nicht sichtbar',            # 9/8
+        'keine Daten'                # no data
+    ],
     'en':[
         'clear',           # 0/8 fine
         'fair',            # 1/8 fine
@@ -1159,7 +1173,7 @@ if hasSearchList:
             if (wwl is None) or isinstance(wwl,list):
                 self.ww_list = wwl
             else:
-                self.ww_list = [wwl]
+                self.ww_list = [weeutil.weeutil.to_int(wwl)]
             self.nn = n
             self.night = night
             self.lang = lang
@@ -1168,7 +1182,7 @@ if hasSearchList:
             if (wawal is None) or isinstance(wawal,list):
                 self.wawa_list = wawal
             else:
-                self.wawa_list = [wawal]
+                self.wawa_list = [weeutil.weeutil.to_int(wawal)]
             
         def __getattr__(self, attr):
             if self.ww_list is not None:
@@ -1240,7 +1254,10 @@ if hasSearchList:
                 if attr=='text':
                     try:
                         if self.lang in OKTA_TEXTS:
-                            return OKTA_TEXTS[self.lang][int(round(self.nn/100*8,0))]
+                            txt = OKTA_TEXTS[self.lang][int(round(self.nn/100*8,0))]
+                            if isinstance(txt,tuple):
+                                txt = txt[1] if self.night else txt[0]
+                            return txt
                         return '%s%%' % self.nn
                     except (LookupError,TypeError,ValueError):
                         return str(self.nn)
@@ -1266,17 +1283,20 @@ if hasSearchList:
             try:
                 self.wmosymbol = WMO_TABLES[code_table][code]
             except (LookupError,TypeError,ValueError,ArithmeticError):
-                self.wmosymbol = str(ww)+':'+str(ww)
+                self.wmosymbol = str(code_table)+':'+str(code)
             
         def __str__(self):
             return self.wmosymbol
             
         def __call__(self, width=40, color=None):
             sym = self.wmosymbol
-            if width:
-                sym = sym.replace('width="50"','width="%s"' % width).replace('height="50"','height="%s"' % width)
-            if color is not None:
-                sym = decolor_ww(sym,color)
+            if sym is None:
+                sym = "N/A"
+            else:
+                if width:
+                    sym = sym.replace('width="50"','width="%s"' % width).replace('height="50"','height="%s"' % width)
+                if color is not None:
+                    sym = decolor_ww(sym,color)
             return sym
     
     class WeatherSearchList(SearchList):
