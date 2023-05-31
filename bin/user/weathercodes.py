@@ -112,6 +112,7 @@ from __future__ import with_statement
 import json
 import copy
 import configobj
+import math
 if __name__ == "__main__":
     import optparse
     import os.path
@@ -120,7 +121,8 @@ if __name__ == "__main__":
     sys.path.append('/usr/share/weewx')
 try:
     from weewx.cheetahgenerator import SearchList
-    from weewx.units import ValueHelper, ValueTuple
+    from weewx.units import ValueHelper, ValueTuple, kph_to_knot
+    from weewx.tags import ObservationBinder, AggTypeBinder
     hasSearchList = True
 except ImportError:
     hasSearchList = False
@@ -923,6 +925,32 @@ WAWA_SYMBOLS = [
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4680 wawa 99</desc> <path fill="none" stroke-width="3" stroke="#000000" d="M -7.5,18.5 v -28.5 l -6,-8.5 M 7.5,18.5 v -28.5 l 6,-8.5 M 15,-1.9749371855331 A 18,9 0 1 0 15,7.9749371855331" /> <g transform="translate(12,9.708203933),rotate(-30)" > <path fill="#000000" d="M 15,0 l -15,4.5 v -9 z" />  </g> </svg>'
 ]
 
+# code table 4561 W W1 W2
+W_SYMBOLS = [
+    # 0 Cloud covering 1/2 or less of the sky throughout the appropriate period
+    None,
+    # 1 Cloud covering more than 1/2 of the sky during part of the appropriate period and covering 1/2 or less
+    None,
+    # 2 Cloud covering more than 1/2 of the sky throughout the appropriate period
+    None,
+    # 3 Sandstorm, duststorm or blowing snow
+    # or WAWA_SYMBOLS[27]
+    WW_SYMBOLS[38],
+    # 4 Fog or ice fog or thick haze
+    WW_SYMBOLS[45],
+    # 5 Drizzle
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-20 -20 40 40"> <desc>WMO 4561 W 5</desc> <circle r="5.5" fill="#00d700" /> <path style="fill:none; stroke:#00d700; stroke-width:3; stroke-linecap:round;" d="M 4,0 C 4,3.7 1.9,7.1 -1,9.2" /> </svg> ',
+    # 6 Rain
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-20 -20 40 40"> <desc>WMO 4561 W 6</desc> <circle r="5.5" fill="#00d700" /> </svg> ',
+    # 7 Snow, or rain and snow mixed
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-20 -20 40 40"> <desc>WMO 4561 W 7</desc> <path d="M 0,0 m -5.5,0 h 11 m -2.75,-4.763139720814413 l -5.5,9.526279441628825 m 5.5,0 l -5.5,-9.526279441628825" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /></svg> ',
+    # 8 Shower(s)
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-20 -20 40 40"> <desc>WMO 4680 W 8</desc> <g> <path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> </svg> ',
+    # 9 Thunderstorm(s) with or without precipitation
+    WW_SYMBOLS[17]
+]
+
+# code table 2700 n
 OKTA_SYMBOLS = [
     # 0/8
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 0/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none"/> </svg>',
@@ -979,6 +1007,7 @@ OKTA_TEXTS = {
 
 WMO_TABLES = {
   2700: OKTA_SYMBOLS,
+  4561: W_SYMBOLS,
   4677: WW_SYMBOLS,
   4680: WAWA_SYMBOLS
 }
@@ -987,9 +1016,14 @@ WMO_TABLES = {
 def get_ww(ww,n,night):
     """ get icon and description for the current weather 
     
-        ww    : list of present weather codes
-        n     : cloud cover percentage
-        night : use night icon
+        Args:
+            ww (iterable)   : list of present weather codes
+                              The most important one is used.
+            n (int)         : cloud cover percentage
+            night (boolean) : use night icon
+        
+        Returns:
+            tuple: icons and description of the current weather
     """
     # If weather code ww is within the list of WW_LIST (which means
     # it is important over cloud coverage), get the data from that
@@ -1032,9 +1066,11 @@ def get_ww(ww,n,night):
 def get_cloudcover(n):
     """ get cloud cover symbols
     
-        n : cloud cover in percent
+        Args:
+            n (int): cloud cover in percent
         
-        returns: set of icons
+        Returns: 
+            tuple: set of icons
     """
     if n is None: return None
     if n<7:
@@ -1053,11 +1089,127 @@ def get_cloudcover(n):
         icon = ('unknown.png','unknown.png','','::','na','wi-na','wi-na')
     return icon
 
+def visibility_code(visibility):
+    """ visibility code according to WMO table 4377 
+    
+        Args:
+            visibility (float): visibility in meters
+            
+        Returns:
+            str: visibility code
+    """
+    vv = int(round(visibility*0.01,0))
+    if vv<=50:
+        return '%02d' % vv
+    if vv<=55:
+        return '50'
+    vv = round(visibility,0)
+    if vv<=30:
+        return '%02d' % vv+50
+    vv = round(visibility/5 ,0)
+    if vv<=14:
+        return '%02d' % vv+74
+    return '89'
+
+def pressure_tendency(p_list):
+    """ calculate pressure tendency code according to WMO code table 0200
+    
+        I guess, when the pressure tendency code was defined, 
+        meteorologists read the pressure gauge once an hour. So they
+        had 3 readings available to determine the code. And the
+        symbol reflects that situation.
+        
+        Args:
+            p_list (list): list of time-pressure tuples of the last 3 hours
+            
+        Returns:
+            int: pressure tendendy code
+    """
+    # extract values from the list
+    p0h = p_list[-1][1]
+    p3h = p_list[0][1]
+    p0htime = p_list[-1][0]
+    p3htime = p_list[0][0]
+    p_list.sort(key=lambda x:x[1])
+    pmax = p_list[-1][1]
+    pmin = p_list[0][1]
+    pmaxtime = (p_list[-1][0]-p3htime)/(p0htime-p3htime)
+    pmintime = (p_list[0][0]-p3htime)/(p0htime-p3htime)
+    if p3h is not None and p0h is not None:
+        p3h = round(p3h,1)
+        p0h = round(p0h,1)
+        if p3h==p0h:
+            # no matter what pressure was in between
+            return 4
+        if pmin is not None and pmax is not None:
+            pmin = round(pmin,1)
+            pmax = round(pmax,1)
+            if pmin==p3h and pmax==p0h:
+                return 2
+            if pmin==p0h and pmax==p3h:
+                return 7
+            if p0h>p3h and pmin<=p0h:
+                return 3
+            if p0h<=p3h and pmin<p0h:
+                return 5
+            if p0h<p3h and pmax>=p3h:
+                return 8
+            if p0h<p3h and pmin==p0h:
+                return 6
+            if p0h>p3h and pmax==p0h:
+                return 1
+    return None
+
+def pressure_tendency_svg_path(x, y, width, a):
+    hl = width*0.75
+    hk = hl*0.3
+    bl = hl*0.577350269189626
+    bk = hk*0.577350269189626
+    if a==0:
+        d = 'M %f,%f l %f,%f l %f,%f' % (x-bk/2-bl/2,y+hl/2,bl,-hl,bk,hk)
+    elif a==1:
+        d = 'M %f,%f l %f,%f h %f' % (x-hk/2-bl/2,y+hl/2,bl,-hl,hk)
+    elif a==2:
+        d = 'M %f,%f l %f,%f' % (x-bl/2,y+hl/2,bl,-hl)
+    elif a==3:
+        d = 'M %f,%f l %f,%f l %f,%f' % (x-bk/2-bl/2,y+hl/2-hk,bk,hk,bl,-hl)
+    elif a==4:
+        b = bl+bk
+        d = 'M %f,%f h %f' % (x-b/2,y,b)
+    elif a==5:
+        d = 'M %f,%f l %f,%f l %f,%f' % (x-bl/2-bk/2,y-hl/2,bl,hl,bk,-hk)
+    elif a==6:
+        d = 'M %f,%f l %f,%f h %f' % (x-bl/2-hk/2,y-hl/2,bl,hl,hk)
+    elif a==7:
+        d = 'M %f,%f l %f,%f' % (x-bl/2,y-hl/2,bl,hl)
+    elif a==8:
+        d = 'M %f,%f l %f,%f l %f,%f' % (x-bl/2-bk/2,y-hl/2+hk,bk,-hk,bl,hl)
+    else:
+        return ''
+    return '<path stroke="#000000" stroke-width="%.1f" fill="none" d="%s" />' % (width*0.05,d)
+
 def decolor_ww(ww_symbol, color):
+    """ convert colored symbols to black or white 
+    
+        Args:
+            ww_symbol (str): SVG of the symbol to remove color
+            color (str): target color, normally #000000 or #ffffff
+        
+        Returns:
+            str: SVG with changed colors
+    """
     if color is None: return ww_symbol
     return ww_symbol.replace('#ffc83f',color).replace('#ed1c24',color).replace('#00d700',color).replace('#ac00ff',color).replace('#000000',color).replace('black',color)
 
 def print_ww_list(image_path='.'):
+    """ create a HTML table of present weather symbols and descriptions
+    
+        Args:
+            image_path (str): path to the symbols
+            
+        Returns:
+            str: table in HTML
+    """
     x = copy.copy(WW_LIST)
     x.sort(key=lambda x:x[0])
     s = '<table>\n'
@@ -1081,6 +1233,15 @@ def print_ww_list(image_path='.'):
     return s
     
 def print_ww_tab(image_path='.', color=None):
+    """ create the wellknown table of present weather codes for manned stations
+    
+        Args:
+            image_path (str): path to the symbols
+            color (str): use this color instead of the original colors
+            
+        Returns:
+            str: table in HTML
+    """
     s = '<table cellspacing="0">\n'
     s += '<tr>\n  <th style="margin:0px;border:1px solid black;padding:5px;background-color:#E0E0E0">ww</th>\n'
     for i in range(10):
@@ -1096,6 +1257,15 @@ def print_ww_tab(image_path='.', color=None):
     return s
 
 def print_wawa_tab(image_path='.', color=None):
+    """ create the wellknown table of present weather codes for unmanned stations
+    
+        Args:
+            image_path (str): path to the symbols
+            color (str): use this color instead of the original colors
+            
+        Returns:
+            str: table in HTML
+    """
     s = '<table cellspacing="0">\n'
     s += '<tr>\n  <th style="margin:0px;border:1px solid black;padding:5px;background-color:#E0E0E0">w<sub>a</sub>w<sub>a</sub></th>\n'
     for i in range(10):
@@ -1116,6 +1286,7 @@ def print_wawa_tab(image_path='.', color=None):
     return s
 
 def print_n_tab(image_path='.', color=None):
+    """ create a table of cloud cover symbols """
     s = '<table cellspacing="0">\n'
     s += '<tr>\n  <th style="margin:0px;border:1px solid black;padding:5px;background-color:#E0E0E0">&nbsp;N&nbsp;</th>\n'
     for i in range(10):
@@ -1149,6 +1320,14 @@ def write_svg_files_wawa(image_path='.'):
                 file.write(WW_XML)
                 file.write(sym)
 
+def write_svg_files_W(image_path='.'):
+    for w,sym in enumerate(W_SYMBOLS):
+        fn = os.path.join(image_path,'wmo4561_W%01d.svg' % w)
+        if sym:
+            with open(fn,'w') as file:
+                file.write(WW_XML)
+                file.write(sym)
+
 def write_svg_files_n(image_path='.'):
     for n,sym in enumerate(OKTA_SYMBOLS):
         fn = os.path.join(image_path,'wmo2700_n%02d.svg' % n)
@@ -1157,25 +1336,44 @@ def write_svg_files_n(image_path='.'):
                 file.write(WW_XML)
                 file.write(sym)
 
+def write_svg_files_a(image_path='.'):
+    for a in range(9):
+        fn = os.path.join(image_path,'wmo0200_a%01d.svg' % a)
+        with open(fn,'w') as file:
+            file.write(WW_XML+'\n')
+            file.write('<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50">\n')
+            file.write('<desc>WMO 0200 a %01d</desc>\n' % a)
+            file.write(pressure_tendency_svg_path(0,0,50,a)+'\n')
+            file.write('</svg>\n')
+
 if hasSearchList:
 
     class PresentWeatherBinder(object):
+        """ class for $presentweather """
     
-        def __init__(self, wwl=None, n=None, night=False, lang='en', ww_texts=None, wawal=None):
+        def __init__(self, wwl=None, n=None, night=False, lang='en', ww_texts=None, wawal=None, **kwargs):
             # We need the raw values.
-            if isinstance(wwl,ValueHelper):
-                wwl = wwl.raw
-            if isinstance(n,ValueHelper):
+            if isinstance(wwl,ValueHelper) or isinstance(wwl,AggTypeBinder):
+                if wwl.value_t[2]=='group_wmo_wawa':
+                    wawal = wwl.raw
+                    wwl = None
+                else:
+                    wwl = wwl.raw
+            if isinstance(n,ValueHelper) or isinstance(n,AggTypeBinder):
                 n = n.raw
-            if isinstance(wawal,ValueHelper):
-                wawal = wawal.raw
+            if isinstance(wawal,ValueHelper) or isinstance(wawal,AggTypeBinder):
+                if wawal.value_t[2]=='group_wmo_ww':
+                    wwl = wawal.raw
+                    wawal = None
+                else:
+                    wawal = wawal.raw
             # convert to list if it is not
             if (wwl is None) or isinstance(wwl,list):
                 self.ww_list = wwl
             else:
                 self.ww_list = [weeutil.weeutil.to_int(wwl)]
-            self.nn = n
-            self.night = night
+            self.nn = weeutil.weeutil.to_int(n)
+            self.night = weeutil.weeutil.to_bool(night)
             self.lang = lang
             self.ww_texts = ww_texts
             # convert to list if it is not
@@ -1183,6 +1381,8 @@ if hasSearchList:
                 self.wawa_list = wawal
             else:
                 self.wawa_list = [weeutil.weeutil.to_int(wawal)]
+            # remember kwargs
+            self.kwargs = kwargs
             
         def __getattr__(self, attr):
             if self.ww_list is not None:
@@ -1223,11 +1423,15 @@ if hasSearchList:
                             return ""
                     if attr=='wmo_symbol':
                         return WMOSymbolBinder(wwcode[0],4677)
+                    if attr=='station':
+                        return StationBinder(ww=wwcode[0],n=self.nn,**self.kwargs)
             elif self.wawa_list is not None:
                 if attr=='wi_icon':
                     return '<i class="wi wi-wmo4680-%02d"></i>' % max(self.wawa_list)
                 if attr=='wmo_symbol':
                     return WMOSymbolBinder(max(self.wawa_list),4680)
+                if attr=='station':
+                    return StationBinder(wawa=max(self.wawa_list),n=self.nn,**self.kwargs)
             elif self.nn is not None:
                 if attr=='n':
                     if self.nn>106.25:
@@ -1251,6 +1455,8 @@ if hasSearchList:
                         return WMOSymbolBinder(int(round(self.nn/100*8,0)),2700)
                     except (LookupError,TypeError,ValueError):
                         return WMOSymbolBinder(None,2700)
+                if attr=='station':
+                    return StationBinder(n=self.nn,**self.kwargs)
                 if attr=='text':
                     try:
                         if self.lang in OKTA_TEXTS:
@@ -1276,6 +1482,7 @@ if hasSearchList:
             return super(PresentWeatherBinder,self).__getattr__(attr)
 
     class WMOSymbolBinder(object):
+        """ Helper class for $presentweather(...).wmo_symbol """
     
         def __init__(self, code, code_table):
             self.ww = code
@@ -1299,7 +1506,430 @@ if hasSearchList:
                     sym = decolor_ww(sym,color)
             return sym
     
+    class StationBinder(object):
+        """ Helper class for station model """
+    
+        # relative position of the weather elements within the station
+        # model
+        # x0,y0,x1,y1 --> surrounding rectangle
+        # x,y         --> position of the symbol or text
+        # size        --> size factor 
+        # all values in respect to the parameter "width" 
+        FORMAT = {
+            'WMO': {
+                #        x0 y0 x1 y1 x    y    size
+                'n':    ( 0, 0, 1, 1, 0.0, 0.0,1.0),
+                'ww':   (-1, 0, 0, 1,-1.0, 0.0,1.0),
+                'TTT':  (-1,-1, 0, 0,-0.5,-0.5,0.4),
+                'Td':   (-1, 1, 0, 2,-0.5, 1.5,0.4),
+                'PPPP': ( 1,-1, 2, 0, 1.5,-0.5,0.4),
+                'ppp':  ( 0, 1, 2, 1, 1.5, 0.5,0.4),
+                'a':    ( 2, 0, 3, 1, 2.5, 0.5,1.0),
+                'VV':   (-2, 0,-1, 1,-1.5, 0.5,0.4),
+                'W1':   ( 1, 1, 2, 2, 1.00, 1.25,0.5),
+                'W2':   ( 1, 1, 2, 2, 1.50, 1.25,0.5),
+            },
+            'DWD': {
+                #        x0 y0 x1 y1 x     y     size
+                'n':    ( 0, 0, 1, 1, 0.00, 0.00,1.0),
+                'ww':   (-1, 0, 0, 1,-1.00, 0.00,1.0),
+                'TTT':  (-1,-1, 0, 0,-0.50,-0.75,0.4),
+                'Td':   (-1, 1, 0, 2,-0.50, 1.25,0.4),
+                'PPPP': ( 1,-1, 2, 0, 1.50,-0.75,0.4),
+                'ppp':  ( 1,-1, 2, 0, 1.50,-0.25,0.4),
+                'a':    ( 1, 0, 2, 1, 1.50, 0.50,1.0),
+                'VV':   (-1, 0,-1, 1,-0.50,-0.25,0.4),
+                'W1':   ( 1, 1, 2, 2, 1.00, 1.00,0.5),
+                'W2':   ( 1, 1, 2, 2, 1.50, 1.00,0.5),
+            }
+        }
+
+        def __init__(self, ww=None, wawa=None, n=None, **kwargs):
+            self.ww = ww
+            self.wawa = wawa
+            self.nn = n
+            self.kwargs = kwargs
+            
+        def to_celsius(self, x, round=None):
+            """ convert temperature value to text 
+            
+                Args:
+                    x (any type): value to convert
+                    round (boolean): round to integer
+                    
+                Returns:
+                    str: value in degrees Celsius
+            """
+            if x is None:
+                return ''
+            if isinstance(x,ValueHelper) or isinstance(x,AggTypeBinder):
+                t = x.degree_C.raw
+            elif isinstance(x,ValueTuple):
+                t = weewx.units.convert(x,'degree_C')[0]
+            else:
+                t = weeutil.weeutil.to_float(x)
+            if round: return '%.0f' % t
+            return '%.1f' % t
+        
+        def to_mbar(self, x):
+            """ convert barometer to millibar 
+            
+                Args:
+                    x (any type): value to convert
+                    
+                Returns:
+                    float: value in millibar
+            """
+            if x is None:
+                return None
+            if isinstance(x,ValueHelper) or isinstance(x,AggTypeBinder):
+                p = x.mbar.raw
+            elif isinstance(x,ValueTuple):
+                p = weewx.units.convert(x,'mbar')[0]
+            else:
+                p = weeutil.weeutil.to_float(x)
+            return p
+            
+        def to_coded_mbar(self, x):
+            """ convert barometer to the encrypted text used in weather maps
+            
+                If x represents a single value, this value is converted
+                and returned as coded barometer. If x represents a timespan
+                of barometer values, both the coded barometer and the
+                coded pressure tendency are returned.
+                
+                By convention the pressure tendency is the difference 
+                between the first and the last value of the timespan.
+                No regression analysis is done.
+                
+                Args:
+                    x (any type): value to convert
+                    
+                Returns:
+                    tuple: coded barometer value and coded pressure tendency
+            """
+            # get the raw values
+            if isinstance(x,ObservationBinder):
+                # something like $span(hour_delta=3).barometer
+                p = x.last.mbar.raw
+                pdiff = x.diff.mbar.raw
+            else:
+                # all other possible data types
+                p = self.to_mbar(x)
+                pdiff = None
+            # do coding of the barometer value
+            if p is None: 
+                p = ''
+            else:
+                p = int(round(p*10.0,0))
+                if p>=10000: p -= 10000
+                p = '%s' % p
+            # do coding of the pressure tendency value
+            if pdiff is None:
+                pdiff = ''
+            else:
+                pdiff = '%02d' % (pdiff*10)
+            # return results
+            return p, pdiff
+            
+        def pressure_tendency_symbol(self, x, y, width, a):
+            """ SVG path element of pressure tendency symbol
+            
+                according to WMO code table 0200
+                
+                Args:
+                    x: x coordinate of the center of the symbol
+                    y: y coordinate of the center of the symbol
+                    width: size of the symbol
+                    a: characteristic of the pressure tendency code
+                    
+                Returns:
+                    SVG path
+                
+            """
+            if isinstance(a,ObservationBinder):
+                # something like $span(hour_delta=3).barometer
+                try:
+                    if -0.1<a.diff.mbar.raw<0.1:
+                        # no matter what is in between
+                        a = 4
+                    else:
+                        # calculate pressure tendency code
+                        p_list = []
+                        p0 = None
+                        t0 = None
+                        for start, stop, data in a.series():
+                            p1 = self.to_mbar(data)
+                            if p0:
+                                p_list.append((
+                                    (t0+stop.unix_epoch.raw)/2.0,
+                                    (p0+p1)/2.0))
+                            p0 = p1
+                            t0 = start.unix_epoch.raw
+                        a = pressure_tendency(p_list)
+                except (LookupError,ValueError,TypeError,ArithmeticError,AttributeError) as e:
+                    return '<text x="%s" y="%s">%s %s</text>' % (x,y,e.__class__.__name__,e)
+            elif isinstance(a,ValueHelper):
+                # something like $current.pressureTrend
+                a = a.raw
+            elif isinstance(a,ValueTuple):
+                a = a[0]
+            else:
+                a = weeutil.weeutil.to_int(a)
+            return pressure_tendency_svg_path(x, y, width, a)
+            
+        def wind(self, windspeed, winddir, width):
+            if isinstance(windspeed,ValueHelper):
+                windspeed = windspeed.km_per_hour.raw
+            elif isinstance(windspeed,ValueTuple):
+                windspeed = weewx.units.convert(windspeed,'km_per_hour')[0]
+            else:
+                windspeed = weeutil.weeutil.to_float(windspeed)
+            if windspeed is None:
+                # no wind speed data available
+                return ''
+            kn = int(round(kph_to_knot(windspeed)/5,0))
+            if kn==0:
+                # no wind
+                return ''
+            if isinstance(winddir,ValueHelper):
+                winddir = winddir.raw
+            elif isinstance(winddir,ValueTuple):
+                winddir = winddir.value
+            else:
+                winddir = weeutil.weeutil.to_float(winddir)
+            if winddir is None:
+                # no wind direction available
+                return ''
+            winddir_rad = -winddir/180.0*math.pi 
+            x = 0.5*width*math.cos(winddir_rad)+width/2
+            y = -0.5*width*math.sin(winddir_rad)+width/2
+            b = width*math.sin(winddir_rad)
+            h = width*math.cos(winddir_rad)
+            bb = 0.1*width*math.cos(winddir_rad+0.286)
+            hh = -0.1*width*math.sin(winddir_rad+0.286)
+            #s = '<circle fill="red" cx="%f" cy="%f" r="3" />' % (x-b/2,y-h/2)
+            s = ''
+            d = 'M%f,%f l%f,%f ' % (x-b/2,y-h/2,b,h)
+            if kn>=10:
+                s += '<path stroke="#000000" stroke-width="%.1f" fill="#000000" d="M%f,%f l%f,%f l%f,%f z" />' % (width*0.05,x-b/2,y-h/2,0.13*width*math.cos(winddir_rad-0.286),-0.13*width*math.sin(winddir_rad-0.286),-1.3*bb,-1.3*hh)
+                kn2 = (kn-9)//2
+                ii0 = 1.8
+            else:
+                kn2 = (kn+1)//2
+                ii0 = 0
+            for ii in range(kn2):
+                if ii==(kn2-1) and (kn%2)!=0:
+                    bbi = bb
+                    hhi = hh
+                else:
+                    bbi = 2*bb
+                    hhi = 2*hh
+                if kn==1:
+                    jj = 1
+                else:
+                    jj = ii+ii0
+                d += 'M%f,%f l%f,%f ' % (x-b/2+b*0.1*jj,y-h/2+h*0.1*jj,bbi,hhi)
+            s += '<path stroke="#000000" stroke-width="%.2f" fill="none" d="%s" />' % (width*0.05,d)
+            #s += self.svg_text(x-b/2,y-h/2,width*0.5,'wind','%s' % kn)
+            return s
+
+        def svg_text(self, x, y, size, id, text, title=None):
+            """ SVG text element """
+            if title:
+                title = ' title="station_%s"' % title
+            else:
+                title = ''
+            return '<text id="%s" dominant-baseline="middle" text-anchor="middle" x="%.2f" y="%.2f" color="#000000" font-family="sans-serif" font-size="%d" font-weight="normal"%s>%s</text>' % (id,x,y,size,title,text)
+            
+        def station(self, format='WMO', width=None, color=None, round_temp=None):
+            """ SVG of station model
+            
+                Args:
+                    format:     'WMO', 'DWD'
+                    width:      width of the cloud cover symbol
+                    color:
+                    round_temp: round temperature to whole degrees
+                
+                Returns:
+                    str: SVG of the station model
+            """
+            if not width: width = 50
+            format = format.upper()
+            if format=='DWD' and round_temp is None:
+                round_temp = True
+            format = StationBinder.FORMAT.get(format,StationBinder.FORMAT['WMO'])
+            els = []
+            # cloud cover symbol (mandatory)
+            obsfmt = format['n']
+            x0, y0 = obsfmt[0]*width, obsfmt[1]*width
+            x1, y1 = obsfmt[2]*width, obsfmt[3]*width
+            try:
+                st = WMO_TABLES[2700][int(round(self.nn/100*8,0))]
+            except (LookupError,TypeError,ValueError,ArithmeticError):
+                st = WMO_TABLES[2700][10]
+            if width:
+                st = st.replace('width="50"','width="%d"' % width).replace('height="50"','height="%d"' % width)
+            if color:
+                st = decolor_ww(st,color)
+            st = st.replace('<svg ','<svg x="%.2f" y="%.2f" ' % (obsfmt[4]*width,obsfmt[5]*width))
+            els.append(st)
+            # present weather symbol
+            try:
+                if self.ww is not None:
+                    ww = WMO_TABLES[4677][self.ww]
+                elif self.wawa is not None:
+                    ww = WMO_TABLES[4680][self.wawa]
+                else: 
+                    ww = None
+                if ww:
+                    if width:
+                        ww = ww.replace('width="50"','width="%d"' % (format['ww'][6]*width)).replace('height="50"','height="%d"' % (format['ww'][6]*width))
+                    if color:
+                        ww = decolor_ww(ww,color)
+                    ww = ww.replace('<svg ','<svg x="%.2f" y="%.2f" ' % (format['ww'][4]*width,format['ww'][5]*width))
+                    x0 = min(x0,format['ww'][0]*width)
+                    y0 = min(y0,format['ww'][1]*width)
+                    x1 = max(x1,format['ww'][2]*width)
+                    y1 = max(y1,format['ww'][3]*width)
+                    els.append(ww)
+            except (LookupError,TypeError,ValueError,ArithmeticError):
+                pass
+            # wind
+            if 'windDir' in self.kwargs and 'windSpeed' in self.kwargs:
+                x = self.wind(self.kwargs['windSpeed'],self.kwargs['windDir'],width)
+                if x:
+                    els.append(x)
+                    x0 = min(x0,-15)
+                    y0 = min(y0,-15)
+                    x1 = max(x1,width+15)
+                    y1 = max(y1,width+15)
+            # barometer
+            if 'a' in self.kwargs:
+                obsfmt = format['a']
+                if self.kwargs['a'] is not None:
+                    x0 = min(x0,obsfmt[0]*width)
+                    y0 = min(y0,obsfmt[1]*width)
+                    x1 = max(x1,obsfmt[2]*width)
+                    y1 = max(y1,obsfmt[3]*width)
+                    els.append(self.pressure_tendency_symbol(obsfmt[4]*width,obsfmt[5]*width,obsfmt[6]*width,self.kwargs['a']))
+            # text 
+            for obs,val in self.kwargs.items():
+                if obs in ('outTemp','TTT','TT'):
+                    obsfmt = format['TTT']
+                    t = self.to_celsius(val,round_temp)
+                    els.append(self.svg_text(obsfmt[4]*width,obsfmt[5]*width,width*0.4,obs,t,title='TTT'))
+                    #els.append('<circle cx="%d" cy="%d" r="3" fill="red" />' % (-width/2,-width/2))
+                elif obs in ('dewpoint','TdTdTd','Td'):
+                    obsfmt = format['Td']
+                    td = self.to_celsius(val,round_temp)
+                    els.append(self.svg_text(obsfmt[4]*width,obsfmt[5]*width,width*0.4,obs,td,title='Td'))
+                    #els.append('<circle cx="%d" cy="%d" r="3" fill="red" />' % (-width/2,width*1.5))
+                elif obs in ('barometer','PPPP'):
+                    # barometer, barometer trend, pressure tendency symbol
+                    # Note: If val is of type ObservationBinder like in
+                    #       $span.barometer the barometer trend is derived
+                    #       from the timespan supplied, and the barometer
+                    #       readings within that timespan are used to
+                    #       determine the pressure tendency symbol. The
+                    #       barometer reading displayed is the last 
+                    #       reading within the timespan. If val is of
+                    #       another type, the barometer value is displayed
+                    #       only.
+                    p, pdiff = self.to_coded_mbar(val)
+                    if p:
+                        obsfmt = format['PPPP']
+                        x0 = min(x0,obsfmt[0]*width)
+                        y0 = min(y0,obsfmt[1]*width)
+                        x1 = max(x1,obsfmt[2]*width)
+                        y1 = max(y1,obsfmt[3]*width)
+                        els.append(self.svg_text(obsfmt[4]*width,obsfmt[5]*width,width*0.4,obs,p,title='PPPP'))
+                    if pdiff:
+                        obsfmt = format['ppp']
+                        x0 = min(x0,obsfmt[0]*width)
+                        y0 = min(y0,obsfmt[1]*width)
+                        x1 = max(x1,obsfmt[2]*width)
+                        y1 = max(y1,obsfmt[3]*width)
+                        els.append(self.svg_text(obsfmt[4]*width,obsfmt[5]*width,width*0.4,'ppp',pdiff,title='ppp'))
+                    if (isinstance(val,ObservationBinder) and 
+                        'a' not in self.kwargs):
+                        obsfmt = format['a']
+                        x0 = min(x0,obsfmt[0]*width)
+                        y0 = min(y0,obsfmt[1]*width)
+                        x1 = max(x1,obsfmt[2]*width)
+                        y1 = max(y1,obsfmt[3]*width)
+                        els.append(self.pressure_tendency_symbol(obsfmt[4]*width,obsfmt[5]*width,obsfmt[6]*width,val))
+                elif obs=='visibility':
+                    obsfmt = format['VV']
+                    if isinstance(val,ValueHelper):
+                        vv = val.meter.raw
+                    else:
+                        vv = weeutil.weeutil.to_float(val)
+                    els.append(self.svg_text(obsfmt[4]*width,obsfmt[5]*width,width*0.4,obs,visibility_code(vv),title='VV'))
+                elif obs in ('W1','W2','W1W2'):
+                    obsfmt = format[obs]
+                    if isinstance(val,ObservationBinder):
+                        ww = val.max.value_t
+                    elif isinstance(val,AggTypeBinder):
+                        ww = val.value_t
+                    elif isinstance(val,ValueTuple):
+                        ww = val
+                    else:
+                        ww = ValueTuple(weeutil.weeutil.to_int(val),None,None)
+                    if ww[2]=='group_wmo_ww':
+                        if 30<=ww[0]<36:
+                            ww = WAW_SYMBOLS[27]
+                        elif 36<=ww[0]<40:
+                            ww = WW_SYMBOLS[38]
+                        elif ww[0]==90:
+                            ww = W_SYMBOLS[8]
+                        elif ww[0]>=40:
+                            ww = W_SYMBOLS[int(ww[0])//10]
+                        else:
+                            ww = None
+                    elif ww[2]=='group_wmo_wawa':
+                        if 27<=ww[0]<30:
+                            ww = WAWA_SYMBOLS[27]
+                        elif 30<=ww[0]<=35:
+                            ww = WAWA_SYMBOLS[33]
+                        elif 40<=ww[0]<50:
+                            ww = WAWA_SYMBOLS[40]
+                        elif ww[0]>=50:
+                            ww = W_SYMBOLS[int(ww[0])//10]
+                        else:
+                            ww = None
+                    else:
+                        ww = W_SYMBOLS[int(ww[0])]
+                    if ww:
+                        if width:
+                            ww = ww.replace('width="50"','width="%d"' % (obsfmt[6]*width)).replace('height="50"','height="%d"' % (obsfmt[6]*width))
+                        if color:
+                            ww = decolor_ww(ww,color)
+                        ww = ww.replace('<svg ','<svg x="%d" y="%d" ' % (obsfmt[4]*width,obsfmt[5]*width))
+                        els.append(ww)
+                else:
+                    obsfmt = None
+                if obsfmt:
+                    x0 = min(x0,obsfmt[0]*width)
+                    y0 = min(y0,obsfmt[1]*width)
+                    x1 = max(x1,obsfmt[2]*width)
+                    y1 = max(y1,obsfmt[3]*width)
+            b = x1-x0
+            h = y1-y0
+            s = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="%d" height="%d" viewBox="%d %d %d %d">\n' % (b,h,x0,y0,b,h)
+            for el in els:
+                s += el+'\n'
+            s += '</svg>\n'
+            return s
+            
+        def __str__(self):
+            return self.station()
+            
+        def __call__(self, format='WMO', width=40, color=None, round_temp=None):
+            return self.station(format,width,color,round_temp)
+            
     class WeatherSearchList(SearchList):
+        """ Search list extension to provide $presentweather """
     
         def __init__(self, generator):
             """Create an instance of the class"""
@@ -1310,8 +1940,11 @@ if hasSearchList:
             
         def get_extension_list(self, timespan, db_lookup):
         
-            def presentweather(ww=None, n=None, night=False, wawa=None):
-                return PresentWeatherBinder(wwl=ww, n=n, night=night, lang=self.lang, ww_texts=self.ww_texts, wawal=wawa)
+            def presentweather(ww=None, n=None, night=False, wawa=None, **kwargs):
+                for ii in ('wwl','n','night','lang','texts','wawal'):
+                    if ii in kwargs:
+                        kwargs.pop(ii)
+                return PresentWeatherBinder(wwl=ww, n=n, night=night, lang=self.lang, ww_texts=self.ww_texts, wawal=wawa, **kwargs)
                 
             return [{'presentweather':presentweather}]
             
@@ -1338,6 +1971,8 @@ Direct call is for testing only."""
                       help="Create a set of SVG files")
     parser.add_option("--test-searchlist", dest="searchlist", action="store_true",
                       help="Test search list extension")
+    parser.add_option("--station", dest="station", action="store_true",
+                      help="Station symbol")
 
     (options, args) = parser.parse_args()
 
@@ -1361,7 +1996,37 @@ Direct call is for testing only."""
             pth = '.'
         write_svg_files_ww(pth)
         write_svg_files_wawa(pth)
+        write_svg_files_W(pth)
         write_svg_files_n(pth)
+        write_svg_files_a(pth)
+    elif options.station:
+        # --station
+        kwargs = dict()
+        for ii in args:
+            x = ii.split('=')
+            kwargs[x[0]] = x[1]
+        if 'n' in kwargs:
+            n = kwargs.pop('n')
+        else:
+            n = None
+        if 'ww' in kwargs:
+            ww = kwargs.pop('ww')
+        else:
+            ww = None
+        if 'wawa' in kwargs:
+            wawa = kwargs.pop('wawa')
+        else:
+            wawa = None
+        if 'format' in kwargs:
+            format = kwargs.pop('format')
+        else:
+            format = 'WMO'
+        if 'width' in kwargs:
+            width = kwargs.pop('width')
+        else:
+            width = 50
+        print(PresentWeatherBinder(wwl=ww,wawal=wawa,n=n,**kwargs).station(format=format,width=width))
+        #print(StationBinder(ww=ww,wawa=wawa,n=n,**kwargs))
     elif options.searchlist:
         class Generator(object):
             skin_dict = configobj.ConfigObj()

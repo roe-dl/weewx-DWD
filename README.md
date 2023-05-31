@@ -479,7 +479,7 @@ mit Komma getrennt anzufügen.
 Anschließend steht ein neues Tag zur Verfügung:
 
 ```
-$presentweather(ww=$ww, n=$n, night=$night, wawa=$wawa).attr
+$presentweather(ww=$ww, n=$n, night=$night, wawa=$wawa, ...).attr
 ```
 
 Die Parameter sind:
@@ -489,6 +489,9 @@ Die Parameter sind:
 * `night`: `True`, wenn das Nachtsymbol verwendet werden soll
 * `wawa`: der Wettercode w<sub>a</sub>w<sub>a</sub> oder eine Liste von 
    Wettercodes, von denen der "schlimmste" verwendet wird
+* Im Falle von `station` als `attr` können weitere Parameter
+  hinzugefügt werden, die Meßgrößen bestimmen, die mit in die
+  Darstellung aufgenommen werden sollen.
 
 Alle Parameter sind optional. Wenigstens einer von den Parametern
 `ww`, `n` und `wawa` muß ungleich `None` sein. Wenn sowohl `ww` als
@@ -508,6 +511,8 @@ auch `wawa` vorhanden sind, wird `ww` verwendet und `wawa` ignoriert.
   Wetterzustand mit Größenangabe und optionaler Farbangabe.
 * `n`: Wolkenbedeckung in Prozent (nur wenn nur `n` übergeben wurde)
 * `okta`: Wolkenbedeckung in Okta (nur wenn nur `n` übergeben wurde)
+* `station`: Erzeugung des Stationsmodells für Wetterkarten als
+  SVG-Graphik
 
 Die Dateinamen werden zusammen mit dem HTML-Tag `<img>` verwendet,
 zum Beispiel:
@@ -516,7 +521,7 @@ zum Beispiel:
 <img src="$relative_url/images/$presentweather($ww,$n,$night).belchertown_icon" />
 ```
 
-`wmo_symbol` und `svg_icon` werden dagegen direkt verwendet, zum Beispiel:
+`wmo_symbol`, `svg_icon` und `station`werden dagegen direkt verwendet, zum Beispiel:
 
 ```
 $presentweather($ww,$n,$night).wmo_symbol(30)
@@ -535,6 +540,7 @@ $presentweather($ww,$n,$night).wi_icon
 Weitere Informationen:
 * [Wiki-Artikel `$presentweather()`](https://github.com/roe-dl/weewx-DWD/wiki/$presentweather())
   mit Verwendungsbeispiel
+* [Wiki-Artikel Stationsmodell](https://github.com/roe-dl/weewx-DWD/wiki/Stationsmodell)
 * [Wiki-Artikel Wettersymbole (Icons)](https://github.com/roe-dl/weewx-DWD/wiki/Wettersymbole-(Icons))
 * [Aussehen und Beschreibung der Symbole](https://www.woellsdorf-wetter.de/info/symbols.html)
 

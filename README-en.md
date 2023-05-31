@@ -383,7 +383,7 @@ value at the end of the line, separeted by a komma.
 After that you can use an additional tag:
 
 ```
-$presentweather(ww=$ww, n=$n, night=$night, wawa=$wawa).attr
+$presentweather(ww=$ww, n=$n, night=$night, wawa=$wawa, ...).attr
 ```
 
 The parameters are:
@@ -392,6 +392,8 @@ The parameters are:
 * `n`: cloud cover in precent (necessary for `ww`&lt;4 only)
 * `night`: `True` if the night time symbol is to be used.
 * `wawa`: the wawa weather code or a list of such weather codes
+* In case of `station` as value of `attr` additional parameters
+  can be used to define readings to present in the station model.
 
 All the parameters are optional. At least one of `ww`, `n`, or `wawa`
 is necessary. If both `ww` and `wawa` are present, `ww` ist used and
@@ -412,6 +414,7 @@ than 4.
   by the WMO, formatted
 * `n`: cloud cover in percent (if parameter `n` is given only)
 * `okta`: cloud cover in Okta (if parameter `n` is given only)
+* `station`: station model as used in weather maps in SVG format
 
 The file name are for use with the `<img>` tag. 
 
