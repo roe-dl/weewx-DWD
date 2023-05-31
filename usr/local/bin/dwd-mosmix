@@ -215,7 +215,8 @@ WEEKDAY = {
     'en':['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
     'fr':['lu','ma','me','je','ve','sa','di'],
     'it':['lun.','mar.','mer.','gio.','ven.','sab.','dom.'],
-    'cz':['Po','Út','St','Čt','Pá','So','Ne']
+    'cz':['Po','Út','St','Čt','Pá','So','Ne'],
+    'pl':['pon.','wt.','śr.','czw.','pt.','sob.','niedz.']
 }
 
 # compass directions
