@@ -107,6 +107,29 @@ from __future__ import with_statement
     https://www.meteopool.org/en/encyclopedia-wmo-ww-wx-code-id2
     https://www.meteopool.org/de/encyclopedia-wmo-ww-wx-code-id2
     
+    Calculation of pressure tendency code according to DWD
+    BUFR 0 10 063:
+    
+    dSP  = p(now) - p(-3h)
+    dSP3 = p(now) - p(-1h)
+    dSP1 = p(-2h) - p(-3h)
+    
+    dSP  |  dSP3-dSP1  |  dSP3  |  code
+    -----|-------------|--------|------
+    >0   |  >0         |  any   |  3
+    >0   |  =0         |  any   |  2
+    >0   |  <0         |  >0    |  1
+    >0   |  <0         |  =0    |  1
+    >0   |  <0         |  <0    |  0
+    =0   |  >0         |  any   |  5
+    =0   |  =0         |  any   |  4
+    =0   |  <0         |  any   |  0
+    <0   |  >0         |  >0    |  5
+    <0   |  >0         |  =0    |  6
+    <0   |  >0         |  <0    |  6
+    <0   |  =0         |  any   |  7
+    <0   |  <0         |  any   |  8
+    
 """
 
 import json
@@ -562,30 +585,30 @@ WW_SECTIONS = {
     91:('Gewitter während der letzten Stunde, jetzt nur noch Niederschläge','thunderstorm during the preceding hour but not at the time of observation'),
     95:('Gewitter jetzt','thunderstorm at the time of observation')
 }
-WW_XML = '<?xml version="1.0" encoding="UTF-8" standalone="no"?> <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"> '
+WW_XML = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n'
 WW_SYMBOLS = [
     # 00 https://upload.wikimedia.org/wikipedia/commons/a/ab/Symbol_code_ww_00.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 00 	Description: Cloud development NOT observed or NOT observable during past hour (not plotted) </desc> <g id="ww_00" fill="none" stroke-width="3" stroke="#000000" > 	<circle r="17"/> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 00 	Description: Cloud development NOT observed or NOT observable during past hour (not plotted) </desc> <g id="ww_00" fill="none" stroke-width="3" stroke="currentColor" > 	<circle r="17"/> </g> </svg> ',
     # 01 https://upload.wikimedia.org/wikipedia/commons/7/7d/Symbol_code_ww_01.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 01 	Description: Clouds generally dissolving or becoming less developed during past hour (not plotted) </desc> <g id="ww_01" fill="none" stroke-width="3" stroke="#000000" > 	<circle r="17"/> 	<path d="M 0,17 v 8"/> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 01 	Description: Clouds generally dissolving or becoming less developed during past hour (not plotted) </desc> <g id="ww_01" fill="none" stroke-width="3" stroke="currentColor" > 	<circle r="17"/> 	<path d="M 0,17 v 8"/> </g> </svg> ',
     # 02 https://upload.wikimedia.org/wikipedia/commons/f/f1/Symbol_code_ww_02.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 02 	Description: State of sky on the whole unchanged during past hour (not plotted) </desc> <g id="ww_02" fill="none" stroke-width="3" stroke="#000000" > 	<circle r="17"/> 	<path d="M 17,0 h 8"/> 	<path d="M -17,0 h -8"/> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 02 	Description: State of sky on the whole unchanged during past hour (not plotted) </desc> <g id="ww_02" fill="none" stroke-width="3" stroke="currentColor" > 	<circle r="17"/> 	<path d="M 17,0 h 8"/> 	<path d="M -17,0 h -8"/> </g> </svg> ',
     # 03 https://upload.wikimedia.org/wikipedia/commons/9/99/Symbol_code_ww_03.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 03 	Description: Clouds generally forming or developing during past hour (not plotted) </desc> <g id="ww_03" fill="none" stroke-width="3" stroke="#000000" > 	<circle r="17"/> 	<path d="M 0,-17 v -8"/> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 03 	Description: Clouds generally forming or developing during past hour (not plotted) </desc> <g id="ww_03" fill="none" stroke-width="3" stroke="currentColor" > 	<circle r="17"/> 	<path d="M 0,-17 v -8"/> </g> </svg> ',
     # 04 https://upload.wikimedia.org/wikipedia/commons/e/e3/Symbol_code_ww_04.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 04 	Description: Visibility reduced by smoke </desc> <g id="ww_04" fill="none" stroke-width="3" stroke="#000000" > 	<path d="M -19.5,22.5 v -39 a 4.5,4.5 0 0,1 9,0 a 4.5,4.5 0 0,0 9,0 a 4.5,4.5 0 0,1 9,0 a 4.5,4.5 0 0,0 9,0 a 4.5,4.5 0 0,1 4.5,-4.5"/> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 04 	Description: Visibility reduced by smoke </desc> <g id="ww_04" fill="none" stroke-width="3" stroke="currentColor" > 	<path d="M -19.5,22.5 v -39 a 4.5,4.5 0 0,1 9,0 a 4.5,4.5 0 0,0 9,0 a 4.5,4.5 0 0,1 9,0 a 4.5,4.5 0 0,0 9,0 a 4.5,4.5 0 0,1 4.5,-4.5"/> </g> </svg> ',
     # 05 Haze
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4677 ww 05</desc> <path fill="none" stroke-width="3" stroke="#000000" d="M 0,0 a 17.705691893392046,34 0 0 1 -12,9 a 9,9 0 0 1 0,-18 a 17.705691893392046,34 0 0 1 12,9 a 17.705691893392046,34 0 0 0 12,9 a 9,9 0 0 0 0,-18 a 17.705691893392046,34 0 0 0 -12,9 z" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4677 ww 05</desc> <path fill="none" stroke-width="3" stroke="currentColor" d="M 0,0 a 17.705691893392046,34 0 0 1 -12,9 a 9,9 0 0 1 0,-18 a 17.705691893392046,34 0 0 1 12,9 a 17.705691893392046,34 0 0 0 12,9 a 9,9 0 0 0 0,-18 a 17.705691893392046,34 0 0 0 -12,9 z" /> </svg>',
     # 06 https://upload.wikimedia.org/wikipedia/commons/8/8d/Symbol_code_ww_06.svg
-    ##'<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 06 	Description: Widespread dust in suspension in the air, not raised by wind at or near the station at the time of observation </desc> <g id="ww_06" fill="none" stroke-width="3" stroke="#000000" > 	<path d="M 12,-12 a 12,12 0 0,0 -24,0 a 12,12 0 0,0 12,12 a 12,12 0 0,1 12,12 a 12,12 0 0,1 -24,0"/> </g> </svg> ',
+    ##'<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 06 	Description: Widespread dust in suspension in the air, not raised by wind at or near the station at the time of observation </desc> <g id="ww_06" fill="none" stroke-width="3" stroke="currentColor" > 	<path d="M 12,-12 a 12,12 0 0,0 -24,0 a 12,12 0 0,0 12,12 a 12,12 0 0,1 12,12 a 12,12 0 0,1 -24,0"/> </g> </svg> ',
     # 06 Widespread dust in suspension in the air, not raised by wind at or near the station at the time of observation
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4677 ww 06</desc> <path fill="none" stroke-width="3" stroke="#000000" d="M 0,0 m 9,-12 a 9,9 0 0 0 -18,0 a 34,17.705691893392046 0 0 0 9,12 a 34,17.705691893392046 0 0 1 9,12 a 9,9 0 0 1 -18,0" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4677 ww 06</desc> <path fill="none" stroke-width="3" stroke="currentColor" d="M 0,0 m 9,-12 a 9,9 0 0 0 -18,0 a 34,17.705691893392046 0 0 0 9,12 a 34,17.705691893392046 0 0 1 9,12 a 9,9 0 0 1 -18,0" /> </svg>',
     # 07 https://upload.wikimedia.org/wikipedia/commons/5/53/Symbol_code_ww_07.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 07 	Description: Dust or sand raised by the wind at or near the station at the time of the observation, but no well-developed dust whirl(s), and no sandstorm seen: or, in the case of ships, blowing spray at the station </desc> <g id="ww_07" fill="none" stroke-width="3" stroke="#000000" > 	<path d="M 9.5,-9.5 a 9.5,9.5 0 0,0 -19,0 a 9.5,9.5 0 0,0 9.5,9.5 a 9.5,9.5 0 0,1 9.5,9.5 a 9.5,9.5 0 0,1 -19,0"/> 	<path d="M 0,-24 v 48"/> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 07 	Description: Dust or sand raised by the wind at or near the station at the time of the observation, but no well-developed dust whirl(s), and no sandstorm seen: or, in the case of ships, blowing spray at the station </desc> <g id="ww_07" fill="none" stroke-width="3" stroke="currentColor" > 	<path d="M 9.5,-9.5 a 9.5,9.5 0 0,0 -19,0 a 9.5,9.5 0 0,0 9.5,9.5 a 9.5,9.5 0 0,1 9.5,9.5 a 9.5,9.5 0 0,1 -19,0"/> 	<path d="M 0,-24 v 48"/> </g> </svg> ',
     # 08 https://upload.wikimedia.org/wikipedia/commons/9/96/Symbol_code_ww_08.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 08 	Description: Well developed dust whirl(s) or sand whirl(s) seen at or near the station during the preceding hour or at the time of observation, but no duststorm or sandstorm </desc> <g id="ww_08" fill="none" stroke-width="3" stroke="#000000"> <path d="M 9,-18.75 C 7.5,-22 -10.5,-22 -10.5,-12.5 C -10.5,0 9,0 9,-6.25 C 9,-12.5 -10.5,-12.5 -10.5,0 C -10.5,12.5 9,12.5 9,6.25 C 9,0 -10.5,0 -10.5,12.5 C -10.5,22 6.5,22 9,18.75"/> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 08 	Description: Well developed dust whirl(s) or sand whirl(s) seen at or near the station during the preceding hour or at the time of observation, but no duststorm or sandstorm </desc> <g id="ww_08" fill="none" stroke-width="3" stroke="currentColor"> <path d="M 9,-18.75 C 7.5,-22 -10.5,-22 -10.5,-12.5 C -10.5,0 9,0 9,-6.25 C 9,-12.5 -10.5,-12.5 -10.5,0 C -10.5,12.5 9,12.5 9,6.25 C 9,0 -10.5,0 -10.5,12.5 C -10.5,22 6.5,22 9,18.75"/> </g> </svg> ',
     # 09 https://upload.wikimedia.org/wikipedia/commons/f/f2/Symbol_code_ww_09.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 09 	Description: Duststorm or sandstorm within sight at the time of observation, or at the station during the preceding hour </desc> <g id="ww_o9" fill="none" stroke="black" stroke-width="3"> 	<path d="M 9,-9 a 9,9 0 1,0 -9,9 a 9,9 0 1,1 -9,9" /> 	<path d="M 16,0 l -1.5,-1 v2 l 1.5,-1 z h -32.5" /> 	<path d="M 14,-19.5 a 25,25 0 0,1 0,39 M -14,19.5 a 25,25 0 0,1 0,-39"/> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 00-09 General Group: No precipitation, fog, duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 during the preceeding hour. 	Code: 09 	Description: Duststorm or sandstorm within sight at the time of observation, or at the station during the preceding hour </desc> <g id="ww_o9" fill="none" stroke="currentColor" stroke-width="3"> 	<path d="M 9,-9 a 9,9 0 1,0 -9,9 a 9,9 0 1,1 -9,9" /> 	<path d="M 16,0 l -1.5,-1 v2 l 1.5,-1 z h -32.5" /> 	<path d="M 14,-19.5 a 25,25 0 0,1 0,39 M -14,19.5 a 25,25 0 0,1 0,-39"/> </g> </svg> ',
     # 10 https://upload.wikimedia.org/wikipedia/commons/2/29/Symbol_code_ww_10.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 10 	Description: Mist </desc> <g id="ww_10" fill="none" stroke-width="3" stroke="#ffc83f"> 	<path d="M -17.5,-4.5 h 35 M -17.5,4.5 h 35" /> </g> </svg> ',
     # 11 https://upload.wikimedia.org/wikipedia/commons/f/f7/Symbol_code_ww_11.svg
@@ -595,73 +618,73 @@ WW_SYMBOLS = [
     # 13 https://upload.wikimedia.org/wikipedia/commons/8/82/Symbol_code_ww_13.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 13 	Description: Lighting visible, no thunder heard </desc> <g id="ww_13" fill="none" stroke-width="3" stroke="#ed1c24" > 	<path d="M -16.5,-17.5 m 24,0 l-14,19.5 l 14.5,14.5"/> 	<path d="M 7,16.5 h1 v-1 z"/> </g> </svg> ',
     # 14 https://upload.wikimedia.org/wikipedia/commons/8/8e/Symbol_code_ww_14.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 14 	Description: Precipitation within sight, but NOT reaching the ground </desc> <g id="ww_14"> <circle r="5.5" cy="-4.5" fill="#00d700" /> <path d="M 18.5,1 a 25,25 0 0,1 -37,0" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 14 	Description: Precipitation within sight, but NOT reaching the ground </desc> <g id="ww_14"> <circle r="5.5" cy="-4.5" fill="#00d700" /> <path d="M 18.5,1 a 25,25 0 0,1 -37,0" fill="none" stroke-width="3" stroke="currentColor" /> </g> </svg> ',
     # 15 https://upload.wikimedia.org/wikipedia/commons/4/49/Symbol_code_ww_15.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 15 	Description: Precipitation within sight, reaching ground or the surface of the sea, but distant, i.e. estimated to be more than 3 miles from the station </desc> <g id="ww_15"> <circle r="5.5" fill="#00d700" /> <path d="M -18.5,-18.5 a 25,25 0 0,1 0,37 M 18.5,-18.5 a 25,25 0 0,0 0,37" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 15 	Description: Precipitation within sight, reaching ground or the surface of the sea, but distant, i.e. estimated to be more than 3 miles from the station </desc> <g id="ww_15"> <circle r="5.5" fill="#00d700" /> <path d="M -18.5,-18.5 a 25,25 0 0,1 0,37 M 18.5,-18.5 a 25,25 0 0,0 0,37" fill="none" stroke-width="3" stroke="currentColor" /> </g> </svg> ',
     # 16 https://upload.wikimedia.org/wikipedia/commons/7/7b/Symbol_code_ww_16.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 16 	Description: Precipitation within sight, reaching the ground or the surface of the sea, near to (within 3 miles), but not at the station </desc> <g id="ww_16"> <circle r="5.5" fill="#00d700" /> <path d="M -5.5,-18.5 a 25,25 0 0,0 0,37 M 5.5,-18.5 a 25,25 0 0,1 0,37" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 16 	Description: Precipitation within sight, reaching the ground or the surface of the sea, near to (within 3 miles), but not at the station </desc> <g id="ww_16"> <circle r="5.5" fill="#00d700" /> <path d="M -5.5,-18.5 a 25,25 0 0,0 0,37 M 5.5,-18.5 a 25,25 0 0,1 0,37" fill="none" stroke-width="3" stroke="currentColor" /> </g> </svg> ',
     # 17 https://upload.wikimedia.org/wikipedia/commons/7/7b/Symbol_code_ww_17.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 17 	Description: Thunder heard, but no precipitation at the station </desc> <g id="ww_17" fill="none" stroke-width="3" stroke="#ed1c24" > 	<path d="M -14.5,-17.5 h 24 l-14,19.5 l 14.5,14.5"/> 	<path d="M -10.5,-17.5 v 37"/> 	<path d="M 9,16.5 h1 v-1 z"/> </g> </svg> ',
     # 18 https://upload.wikimedia.org/wikipedia/commons/7/74/Symbol_code_ww_18.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 18 	Description: Squall(s) within sight during past hour </desc> <g id="ww_18" fill="none" stroke-width="3" stroke="#000000" stroke-miterlimit="2.5" > 	<path d="M 0,-11 l 16,-7.5 l -16,36 l -16,-36 l 16,7.5 z"/> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 18 	Description: Squall(s) within sight during past hour </desc> <g id="ww_18" fill="none" stroke-width="3" stroke="currentColor" stroke-miterlimit="2.5" > 	<path d="M 0,-11 l 16,-7.5 l -16,36 l -16,-36 l 16,7.5 z"/> </g> </svg> ',
     # 19 https://upload.wikimedia.org/wikipedia/commons/9/9c/Symbol_code_ww_19.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 19 	Description: Funnel cloud(s) / Tornado(s) during the preceding hour or at time of observation </desc> <g id="ww_19" fill="none" stroke-width="3" stroke="#000000" > 	<path d="M -11.5,-20.5 l 8,7 v 27 l -8,7 M 11.5,-20.5 l -8,7 v 27 l 8,7"/> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 10-19 General Group: No precipitation at the station at the time of observation or, except 17, during the preceeding hour. 	Code: 19 	Description: Funnel cloud(s) / Tornado(s) during the preceding hour or at time of observation </desc> <g id="ww_19" fill="none" stroke-width="3" stroke="currentColor" > 	<path d="M -11.5,-20.5 l 8,7 v 27 l -8,7 M 11.5,-20.5 l -8,7 v 27 l 8,7"/> </g> </svg> ',
     # 20 https://upload.wikimedia.org/wikipedia/commons/d/da/Symbol_code_ww_20.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 20 	Description: Drizzle (not freezing) or snow grains not falling as shower(s) ended in the past hour </desc> <g id="ww_20"> <circle r="5.5" cx="-4" fill="#00d700" /> <path style="fill:none; stroke:#00d700; stroke-width:3; stroke-linecap:round;" d="M 0,0 C 0,3.7 -2.1,7.1 -5,9.2" /> <path d="M 1,-21 h 7 v42 h-7" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 20 	Description: Drizzle (not freezing) or snow grains not falling as shower(s) ended in the past hour </desc> <g id="ww_20"> <circle r="5.5" cx="-4" fill="#00d700" /> <path style="fill:none; stroke:#00d700; stroke-width:3; stroke-linecap:round;" d="M 0,0 C 0,3.7 -2.1,7.1 -5,9.2" /> <path d="M 1,-21 h 7 v42 h-7" fill="none" stroke-width="3" stroke="currentColor" /> </g> </svg> ',
     # 21 https://upload.wikimedia.org/wikipedia/commons/c/c3/Symbol_code_ww_21.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 21 	Description: Rain (not freezing) not falling as shower(s) ended in the past hour </desc> <g id="ww_21"> <circle r="5.5" cx="-4" fill="#00d700" /> <path d="M 1,-21 h 7 v42 h-7" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 21 	Description: Rain (not freezing) not falling as shower(s) ended in the past hour </desc> <g id="ww_21"> <circle r="5.5" cx="-4" fill="#00d700" /> <path d="M 1,-21 h 7 v42 h-7" fill="none" stroke-width="3" stroke="currentColor" /> </g> </svg> ',
     # 22 https://upload.wikimedia.org/wikipedia/commons/a/ae/Symbol_code_ww_22.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 22 	Description: Snow not falling as shower(s) ended in the past hour </desc> <g id="ww_22"> <g id="ww_22" transform="translate(-4,0)"> 	<path id="ww22arm" d="M -5.5,0 h11" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /> 	<use xlink:href="#ww22arm" transform="rotate(60)" /> 	<use xlink:href="#ww22arm" transform="rotate(120)" /> </g> <path d="M 1,-21 h 7 v42 h-7" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 22 	Description: Snow not falling as shower(s) ended in the past hour </desc> <g id="ww_22"> <g id="ww_22" transform="translate(-4,0)"> 	<path id="ww22arm" d="M -5.5,0 h11" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /> 	<use xlink:href="#ww22arm" transform="rotate(60)" /> 	<use xlink:href="#ww22arm" transform="rotate(120)" /> </g> <path d="M 1,-21 h 7 v42 h-7" fill="none" stroke-width="3" stroke="currentColor" /> </g> </svg> ',
     # 23 https://upload.wikimedia.org/wikipedia/commons/f/fc/Symbol_code_ww_23.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 23 	Description: Rain and snow or ice pellets not falling as shower(s) ended in the past hour </desc> <g> <g transform="translate(-4,7)"> 	<path id="ww23arm" d="M -5.5,0 h11" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /> 	<use xlink:href="#ww23arm" transform="rotate(60)" /> 	<use xlink:href="#ww23arm" transform="rotate(120)" /> </g> <circle r="5.5" cy="-7" cx="-4" fill="#00d700" /> <path d="M 1,-21 h 7 v42 h-7" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 23 	Description: Rain and snow or ice pellets not falling as shower(s) ended in the past hour </desc> <g> <g transform="translate(-4,7)"> 	<path id="ww23arm" d="M -5.5,0 h11" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /> 	<use xlink:href="#ww23arm" transform="rotate(60)" /> 	<use xlink:href="#ww23arm" transform="rotate(120)" /> </g> <circle r="5.5" cy="-7" cx="-4" fill="#00d700" /> <path d="M 1,-21 h 7 v42 h-7" fill="none" stroke-width="3" stroke="currentColor" /> </g> </svg> ',
     # 24 https://upload.wikimedia.org/wikipedia/commons/c/cc/Symbol_code_ww_24.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 24 	Description: Freezing drizzle or freezing rain not falling as shower(s) ended in the past hour </desc> <g id="ww_24"> <g fill="none" stroke="black" stroke-linecap="round" stroke-width="3" transform="translate(-2,0)"> <path id="arc24" d="M 0,0 a7,7 0 0,0 14,0 v-1" fill="none" stroke="#ed1c24" stroke-linecap="round" stroke-width="3" /> <use xlink:href="#arc24" transform="scale(-1,-1)"/> </g> <path d="M 11.5,-23 h 7 v46 h-7" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 24 	Description: Freezing drizzle or freezing rain not falling as shower(s) ended in the past hour </desc> <g id="ww_24"> <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="3" transform="translate(-2,0)"> <path id="arc24" d="M 0,0 a7,7 0 0,0 14,0 v-1" fill="none" stroke="#ed1c24" stroke-linecap="round" stroke-width="3" /> <use xlink:href="#arc24" transform="scale(-1,-1)"/> </g> <path d="M 11.5,-23 h 7 v46 h-7" fill="none" stroke-width="3" stroke="currentColor" /> </g> </svg> ',
     # 25 https://upload.wikimedia.org/wikipedia/commons/6/69/Symbol_code_ww_25.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 25 	Description: Shower(s) of rain ended in the past hour </desc> <g id="ww_25"> <g id="ww_80" transform="translate(-4,3)"> 	<circle r="5.5" cy="-15.5" fill="#00d700" /> 	<path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> <path d="M 6,-23 h 7 v46 h-7" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 25 	Description: Shower(s) of rain ended in the past hour </desc> <g id="ww_25"> <g id="ww_80" transform="translate(-4,3)"> 	<circle r="5.5" cy="-15.5" fill="#00d700" /> 	<path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> <path d="M 6,-23 h 7 v46 h-7" fill="none" stroke-width="3" stroke="currentColor" /> </g> </svg> ',
     # 26 https://upload.wikimedia.org/wikipedia/commons/e/e8/Symbol_code_ww_26.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 26 	Description: Shower(s) of snow, or of rain and snow ended in the past hour </desc> <g id="ww_26"> <g id="ww_85" transform="translate(-4,3)"> 	<g transform="translate(0,-15.5)"> 	<path id="ww26arm" d="M -5.5,0 h11" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /> 	<use xlink:href="#ww26arm" transform="rotate(60)" /> 	<use xlink:href="#ww26arm" transform="rotate(120)" /> 	</g> 	<path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#ac00ff" /> </g> <path d="M 6,-23 h 7 v46 h-7" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 26 	Description: Shower(s) of snow, or of rain and snow ended in the past hour </desc> <g id="ww_26"> <g id="ww_85" transform="translate(-4,3)"> 	<g transform="translate(0,-15.5)"> 	<path id="ww26arm" d="M -5.5,0 h11" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /> 	<use xlink:href="#ww26arm" transform="rotate(60)" /> 	<use xlink:href="#ww26arm" transform="rotate(120)" /> 	</g> 	<path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#ac00ff" /> </g> <path d="M 6,-23 h 7 v46 h-7" fill="none" stroke-width="3" stroke="currentColor" /> </g> </svg> ',
     # 27 https://upload.wikimedia.org/wikipedia/commons/f/f0/Symbol_code_ww_27.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 27 	Description: Shower(s) of hail, or of rain and hail ended in the past hour </desc> <g id="ww_27"> <g id="ww_87" transform="translate(-4,0)"> 	<path d="M -6,-8.5 h 12 l -6,-10.4 z" style="fill:none; stroke-width:3; stroke:#000000" /> 	<path d="M 0,-2.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> <path d="M 6,-23 h 7 v46 h-7" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 27 	Description: Shower(s) of hail, or of rain and hail ended in the past hour </desc> <g id="ww_27"> <g id="ww_87" transform="translate(-4,0)"> 	<path d="M -6,-8.5 h 12 l -6,-10.4 z" style="fill:none; stroke-width:3; stroke:#000000" /> 	<path d="M 0,-2.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> <path d="M 6,-23 h 7 v46 h-7" fill="none" stroke-width="3" stroke="currentColor" /> </g> </svg> ',
     # 28 https://upload.wikimedia.org/wikipedia/commons/5/5b/Symbol_code_ww_28.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 28 	Description: Fog or ice fog ended in the past hour </desc> <g id="ww_28"> 	<path d="M -19.5,-9.5 h 35 M -19.5,0 h 35 M -19.5,9.5 h 35" fill="none" stroke-width="3" stroke="#ffc83f" /> 	<path d="M 13.5,-23 h 7 v46 h-7" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 28 	Description: Fog or ice fog ended in the past hour </desc> <g id="ww_28"> 	<path d="M -19.5,-9.5 h 35 M -19.5,0 h 35 M -19.5,9.5 h 35" fill="none" stroke-width="3" stroke="#ffc83f" /> 	<path d="M 13.5,-23 h 7 v46 h-7" fill="none" stroke-width="3" stroke="currentColor" /> </g> </svg> ',
     # 29 https://upload.wikimedia.org/wikipedia/commons/d/da/Symbol_code_ww_29.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 29 	Description: Thunderstorm (with or without precipitation) ended in the past hour </desc> <g id="ww_29" fill="none" stroke-width="3" stroke="#ed1c24"><path d="M -14.5,-17.5 h 24 l-14,19.5 l 14.5,14.5"/><path d="M -10.5,-17.5 v 37"/><path d="M 9,16.5 h1 v-1 z"/></g> <g fill="none" stroke-width="3" stroke="#000000"><path d="M 9.5,-23 h 7 v 46 h-7"/></g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 20-29 General Group: Precipitation, fog, ice fog, or thunderstorm at the station during the preceeding hour but not at the time of observation. 	Code: 29 	Description: Thunderstorm (with or without precipitation) ended in the past hour </desc> <g id="ww_29" fill="none" stroke-width="3" stroke="#ed1c24"><path d="M -14.5,-17.5 h 24 l-14,19.5 l 14.5,14.5"/><path d="M -10.5,-17.5 v 37"/><path d="M 9,16.5 h1 v-1 z"/></g> <g fill="none" stroke-width="3" stroke="currentColor"><path d="M 9.5,-23 h 7 v 46 h-7"/></g> </svg> ',
     # 30 https://upload.wikimedia.org/wikipedia/commons/9/9a/Symbol_code_ww_30.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 30 	Description: Slight or moderate duststorm or sandstorm (has decreased during the preceding hour) </desc> <g fill="none" stroke="black" stroke-width="3"> 	<path id="arc" d="M -2,0 a 9,9 0 1,1 9,-9" /> 	<path id="arc2" d="M -2,0 a 9,9 0 1,1 -9,9" /> </g> <path d="M 20,-20 v 40" fill="none" stroke="black" stroke-width="3" /> <path d="M 14,0 l -1.5,-1 v2 l 1.5,-1 z h -32.5" fill="none" stroke="black" stroke-width="3" /> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 30 	Description: Slight or moderate duststorm or sandstorm (has decreased during the preceding hour) </desc> <g fill="none" stroke="currentColor" stroke-width="3"> 	<path id="arc" d="M -2,0 a 9,9 0 1,1 9,-9" /> 	<path id="arc2" d="M -2,0 a 9,9 0 1,1 -9,9" /> </g> <path d="M 20,-20 v 40" fill="none" stroke="currentColor" stroke-width="3" /> <path d="M 14,0 l -1.5,-1 v2 l 1.5,-1 z h -32.5" fill="none" stroke="currentColor" stroke-width="3" /> </svg> ',
     # 31 https://upload.wikimedia.org/wikipedia/commons/1/15/Symbol_code_ww_31.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 31 	Description: Slight or moderate duststorm or sandstorm (no appreciable change during the preceding hour) </desc> <g fill="none" stroke="black" stroke-width="3"> 	<path id="arc" d="M 0,0 a 9,9 0 1,1 9,-9" /> 	<path id="arc2" d="M 0,0 a 9,9 0 1,1 -9,9" /> </g> <path d="M 16,0 l -1.5,-1 v2 l 1.5,-1 z h -32.5" fill="none" stroke="black" stroke-width="3" /> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 31 	Description: Slight or moderate duststorm or sandstorm (no appreciable change during the preceding hour) </desc> <g fill="none" stroke="currentColor" stroke-width="3"> 	<path id="arc" d="M 0,0 a 9,9 0 1,1 9,-9" /> 	<path id="arc2" d="M 0,0 a 9,9 0 1,1 -9,9" /> </g> <path d="M 16,0 l -1.5,-1 v2 l 1.5,-1 z h -32.5" fill="none" stroke="currentColor" stroke-width="3" /> </svg> ',
     # 32 https://upload.wikimedia.org/wikipedia/commons/1/12/Symbol_code_ww_32.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 32 	Description: Slight or moderate duststorm or sandstorm (has begun or increased during the preceding hour) </desc> <g fill="none" stroke="black" stroke-width="3"> 	<path id="arc" d="M 2,0 a 9,9 0 1,1 9,-9" /> 	<path id="arc2" d="M 2,0 a 9,9 0 1,1 -9,9" /> </g> <path d="M -20,-20 v 40" fill="none" stroke="black" stroke-width="3" /> <path d="M 18,0 l -1.5,-1 v2 l 1.5,-1 z h -32.5" fill="none" stroke="black" stroke-width="3" /> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 32 	Description: Slight or moderate duststorm or sandstorm (has begun or increased during the preceding hour) </desc> <g fill="none" stroke="currentColor" stroke-width="3"> 	<path id="arc" d="M 2,0 a 9,9 0 1,1 9,-9" /> 	<path id="arc2" d="M 2,0 a 9,9 0 1,1 -9,9" /> </g> <path d="M -20,-20 v 40" fill="none" stroke="currentColor" stroke-width="3" /> <path d="M 18,0 l -1.5,-1 v2 l 1.5,-1 z h -32.5" fill="none" stroke="currentColor" stroke-width="3" /> </svg> ',
     # 33 https://upload.wikimedia.org/wikipedia/commons/7/76/Symbol_code_ww_33.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 33 	Description: Severe duststorm or sandstorm has decreased during the preceding hour </desc> <g fill="none" stroke="black" stroke-width="3"> 	<path id="arc" d="M -2,0 a 9,9 0 1,1 9,-9" /> 	<path id="arc2" d="M -2,0 a 9,9 0 1,1 -9,9" /> </g> <path d="M 20,-20 v 40" fill="none" stroke="black" stroke-width="3" /> <path d="M 13,2.8 h -32 M 13,-2.8 h -32 M 17,0 m -8,-6 l 8,6 l -8,6" fill="none" stroke="black" stroke-width="1" /> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 33 	Description: Severe duststorm or sandstorm has decreased during the preceding hour </desc> <g fill="none" stroke="currentColor" stroke-width="3"> 	<path id="arc" d="M -2,0 a 9,9 0 1,1 9,-9" /> 	<path id="arc2" d="M -2,0 a 9,9 0 1,1 -9,9" /> </g> <path d="M 20,-20 v 40" fill="none" stroke="currentColor" stroke-width="3" /> <path d="M 13,2.8 h -32 M 13,-2.8 h -32 M 17,0 m -8,-6 l 8,6 l -8,6" fill="none" stroke="currentColor" stroke-width="1" /> </svg> ',
     # 34 https://upload.wikimedia.org/wikipedia/commons/6/64/Symbol_code_ww_34.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 34 	Description: Severe duststorm or sandstorm has no appreciable change during the preceding hour </desc> <g fill="none" stroke="black" stroke-width="3"> 	<path id="arc" d="M 0,0 a 9,9 0 1,1 9,-9" /> 	<path id="arc2" d="M 0,0 a 9,9 0 1,1 -9,9" /> </g> <path d="M 15,2.8 h -32 M 15,-2.8 h -32 M 19,0 m -8,-6 l 8,6 l -8,6" fill="none" stroke="black" stroke-width="1" /> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 34 	Description: Severe duststorm or sandstorm has no appreciable change during the preceding hour </desc> <g fill="none" stroke="currentColor" stroke-width="3"> 	<path id="arc" d="M 0,0 a 9,9 0 1,1 9,-9" /> 	<path id="arc2" d="M 0,0 a 9,9 0 1,1 -9,9" /> </g> <path d="M 15,2.8 h -32 M 15,-2.8 h -32 M 19,0 m -8,-6 l 8,6 l -8,6" fill="none" stroke="currentColor" stroke-width="1" /> </svg> ',
     # 35 https://upload.wikimedia.org/wikipedia/commons/c/c8/Symbol_code_ww_35.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 35 	Description: Severe duststorm or sandstorm has begun or increased during the preceding hour </desc> <g fill="none" stroke="black" stroke-width="3"> 	<path id="arc" d="M 2,0 a 9,9 0 1,1 9,-9" /> 	<path id="arc2" d="M 2,0 a 9,9 0 1,1 -9,9" /> </g> <path fill="none" stroke="black" stroke-width="3" d="M -20,-20 v 40" /> <path d="M 17,2.8 h -32 M 17,-2.8 h -32 M 21,0 m -8,-6 l 8,6 l -8,6" fill="none" stroke="black" stroke-width="1"/> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 35 	Description: Severe duststorm or sandstorm has begun or increased during the preceding hour </desc> <g fill="none" stroke="currentColor" stroke-width="3"> 	<path id="arc" d="M 2,0 a 9,9 0 1,1 9,-9" /> 	<path id="arc2" d="M 2,0 a 9,9 0 1,1 -9,9" /> </g> <path fill="none" stroke="currentColor" stroke-width="3" d="M -20,-20 v 40" /> <path d="M 17,2.8 h -32 M 17,-2.8 h -32 M 21,0 m -8,-6 l 8,6 l -8,6" fill="none" stroke="currentColor" stroke-width="1"/> </svg> ',
     # 36 https://upload.wikimedia.org/wikipedia/commons/1/11/Symbol_code_ww_36.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 36 	Description: Slight or moderate drifting snow (generally below eye level) </desc> <path d="M 16,0 l -1.5,-1 v2 l 1.5,-1 z h -32.5" fill="none" stroke="black" stroke-width="3"/> <path d="M 0,16 l -1,-1.5 h2 l -1,1.5 z v -32.5" fill="none" stroke="black" stroke-width="3"/> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 36 	Description: Slight or moderate drifting snow (generally below eye level) </desc> <path d="M 16,0 l -1.5,-1 v2 l 1.5,-1 z h -32.5" fill="none" stroke="currentColor" stroke-width="3"/> <path d="M 0,16 l -1,-1.5 h2 l -1,1.5 z v -32.5" fill="none" stroke="currentColor" stroke-width="3"/> </svg> ',
     # 37 https://upload.wikimedia.org/wikipedia/commons/7/73/Symbol_code_ww_37.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 37 	Description: Heavy drifting snow (generally below eye level) </desc> <path d="M 0,16 l -1,-1.5 h2 l -1,1.5 z v -32.5" fill="none" stroke="black" stroke-width="3"/> <path d="M 15,2.8 h -32 M 15,-2.8 h -32 M 19,0 m -8,-6 l 8,6 l -8,6" fill="none" stroke="black" stroke-width="1"/> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 37 	Description: Heavy drifting snow (generally below eye level) </desc> <path d="M 0,16 l -1,-1.5 h2 l -1,1.5 z v -32.5" fill="none" stroke="currentColor" stroke-width="3"/> <path d="M 15,2.8 h -32 M 15,-2.8 h -32 M 19,0 m -8,-6 l 8,6 l -8,6" fill="none" stroke="currentColor" stroke-width="1"/> </svg> ',
     # 38 https://upload.wikimedia.org/wikipedia/commons/1/16/Symbol_code_ww_38.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 38 	Description: Slight or moderate blowing snow (generally above eye level) </desc> <path d="M 16,0 l -1.5,-1 v2 l 1.5,-1 z h -32.5" fill="none" stroke="black" stroke-width="3"/> <path d="M 0,-16 l 1,1.5 h-2 l 1,-1.5 z v 32.5" fill="none" stroke="black" stroke-width="3"/> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 38 	Description: Slight or moderate blowing snow (generally above eye level) </desc> <path d="M 16,0 l -1.5,-1 v2 l 1.5,-1 z h -32.5" fill="none" stroke="currentColor" stroke-width="3"/> <path d="M 0,-16 l 1,1.5 h-2 l 1,-1.5 z v 32.5" fill="none" stroke="currentColor" stroke-width="3"/> </svg> ',
     # 39 https://upload.wikimedia.org/wikipedia/commons/1/1e/Symbol_code_ww_39.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 39 	Description: Heavy drifting snow (generally above eye level) </desc> <path d="M 0,-16 l 1,1.5 h-2 l 1,-1.5 z v 32.5" fill="none" stroke="black" stroke-width="3"/> <path d="M 15,2.8 h -32 M 15,-2.8 h -32 M 19,0 m -8,-6 l 8,6 l -8,6" fill="none" stroke="black" stroke-width="1"/> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 30-39 General Group: Duststorm, sandstorm, drifting or blowing snow. 	Code: 39 	Description: Heavy drifting snow (generally above eye level) </desc> <path d="M 0,-16 l 1,1.5 h-2 l 1,-1.5 z v 32.5" fill="none" stroke="currentColor" stroke-width="3"/> <path d="M 15,2.8 h -32 M 15,-2.8 h -32 M 19,0 m -8,-6 l 8,6 l -8,6" fill="none" stroke="currentColor" stroke-width="1"/> </svg> ',
     # 40 https://upload.wikimedia.org/wikipedia/commons/b/ba/Symbol_code_ww_40.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 40 	Description: Fog at a distance at the time of observation, but not at the station during the preceding hour, the fog or ice fog extending to a level above that of the observer </desc> <g id="ww_40"> 	<path d="M -17.5,-9.5 h 35 M -17.5,0 h 35 M -17.5,9.5 h 35" style="fill:none; stroke-width:3; stroke:#ffc83f" /><path d="M -15,-18.5 a 25,25 0 0,0 0,37 M 15,18.5 a 25,25 0 0,0 0,-37" stroke="#000000" style="fill:none; stroke-width:3" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 40 	Description: Fog at a distance at the time of observation, but not at the station during the preceding hour, the fog or ice fog extending to a level above that of the observer </desc> <g id="ww_40"> 	<path d="M -17.5,-9.5 h 35 M -17.5,0 h 35 M -17.5,9.5 h 35" style="fill:none; stroke-width:3; stroke:#ffc83f" /><path d="M -15,-18.5 a 25,25 0 0,0 0,37 M 15,18.5 a 25,25 0 0,0 0,-37" stroke="currentColor" style="fill:none; stroke-width:3" /> </g> </svg> ',
     # 41 https://upload.wikimedia.org/wikipedia/commons/9/99/Symbol_code_ww_41.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 41 	Description: Fog in patches </desc> <g id="ww_41"> 	<path d="M -17.5,-9.5 h 14.5 M 17.5,-9.5 h -14.5 M -17.5,0 h 35 M -17.5,9.5 h 14.5 M 17.5,9.5 h -14.5" fill="none" stroke-width="3" stroke="#ffc83f" /> </g> </svg> ',
     # 42 https://upload.wikimedia.org/wikipedia/commons/a/ab/Symbol_code_ww_42.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 42 	Description: Fog sky visible (has become thinner during preceding hour) </desc> <g id="ww_42"> 	<path d="M -20,-9.5 h 14 M 14,-9.5 h -14 M -20,0 h 34 M -20,9.5 h 34" fill="none" stroke-width="3" stroke="#ffc83f" /> <path d="M 18.5,-11 v 22" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 42 	Description: Fog sky visible (has become thinner during preceding hour) </desc> <g id="ww_42"> 	<path d="M -20,-9.5 h 14 M 14,-9.5 h -14 M -20,0 h 34 M -20,9.5 h 34" fill="none" stroke-width="3" stroke="#ffc83f" /> <path d="M 18.5,-11 v 22" fill="none" stroke-width="3" stroke="currentColor" /> </g> </svg> ',
     # 43 https://upload.wikimedia.org/wikipedia/commons/8/80/Symbol_code_ww_43.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 43 	Description: Fog sky obscured (has become thinner during preceding hour) </desc> <g id="ww_43"> 	<path d="M -20,-9.5 h 34 M -20,0 h 34 M -20,9.5 h 34"fill="none" stroke-width="3" stroke="#ffc83f" /> <path d="M 18.5,-11 v 22" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 43 	Description: Fog sky obscured (has become thinner during preceding hour) </desc> <g id="ww_43"> 	<path d="M -20,-9.5 h 34 M -20,0 h 34 M -20,9.5 h 34" fill="none" stroke-width="3" stroke="#ffc83f" /> <path d="M 18.5,-11 v 22" fill="none" stroke-width="3" stroke="currentColor" /> </g> </svg> ',
     # 44 https://upload.wikimedia.org/wikipedia/commons/3/38/Symbol_code_ww_44.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 44 	Description: Fog sky visible (no appreciable change during the preceding hour) </desc> <g id="ww_44"> 	<path d="M -17.5,-9.5 h 14.5 M 17.5,-9.5 h -14.5 M -17.5,0 h 35 M -17.5,9.5 h 35" fill="none" stroke-width="3" stroke="#ffc83f" /> </g> </svg> ',
     # 45 https://upload.wikimedia.org/wikipedia/commons/5/5b/Symbol_code_ww_45.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 45 	Description: Fog sky obscured (no appreciable change during the preceding hour) </desc> <g id="ww_45"> 	<path d="M -17.5,-9.5 h 35 M -17.5,0 h 35 M -17.5,9.5 h 35" fill="none" stroke-width="3" stroke="#ffc83f" /> </g> </svg> ',
     # 46 https://upload.wikimedia.org/wikipedia/commons/4/45/Symbol_code_ww_46.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 46 	Description: Fog sky visible (has begun or has become thicker during the preceding hour) </desc> <g id="ww_46"> 	<path d="M -14,-9.5 h 14 M 20,-9.5 h -14 M -14,0 h 34 M -14,9.5 h 34" fill="none" stroke-width="3" stroke="#ffc83f" /> <path d="M -18.5,-11 v 22" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 46 	Description: Fog sky visible (has begun or has become thicker during the preceding hour) </desc> <g id="ww_46"> 	<path d="M -14,-9.5 h 14 M 20,-9.5 h -14 M -14,0 h 34 M -14,9.5 h 34" fill="none" stroke-width="3" stroke="#ffc83f" /> <path d="M -18.5,-11 v 22" fill="none" stroke-width="3" stroke="currentColor" /> </g> </svg> ',
     # 47 https://upload.wikimedia.org/wikipedia/commons/0/02/Symbol_code_ww_47.svg
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 47 	Description: Fog sky obscured (has begun or has become thicker during the preceding hour) </desc> <g id="ww_47"> 	<path d="M -14,-9.5 h 34 M -14,0 h 34 M -14,9.5 h 34" fill="none" stroke-width="3" stroke="#ffc83f" /> <path d="M -18.5,-11 v 22" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 47 	Description: Fog sky obscured (has begun or has become thicker during the preceding hour) </desc> <g id="ww_47"> 	<path d="M -14,-9.5 h 34 M -14,0 h 34 M -14,9.5 h 34" fill="none" stroke-width="3" stroke="#ffc83f" /> <path d="M -18.5,-11 v 22" fill="none" stroke-width="3" stroke="currentColor" /> </g> </svg> ',
     # 48 https://upload.wikimedia.org/wikipedia/commons/7/77/Symbol_code_ww_48.svg
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc id="en"> 	Codes 40-49 General Group: Fog at the time of observation. 	Code: 48 	Description: Fog, depositing rime ice, sky visible </desc> <g id="ww_48"> 	<path d="M -2,0 L 0,4 L 2,0" fill="none" stroke-width="3" stroke="#ffc83f" stroke-linejoin="miter" /> 	<path d="M -17.5,-9.5 L -8.5,-9.5 L 0,7.5 L 8.5,-9.5 L 17.5,-9.5 M -17.5,0 h 35 M -17.5,9.5 h 35" fill="none" stroke-width="3" stroke="#ffc83f" stroke-linejoin="miter" /> </g> </svg> ',
     # 49 https://upload.wikimedia.org/wikipedia/commons/6/64/Symbol_code_ww_49.svg
@@ -778,9 +801,9 @@ WAWA_SYMBOLS = [
     # 03 Clouds generally forming or developing during the past hour
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> </svg>',
     # 04 Haze or smoke, or dust in suspension in the air, visibility equal to, or greater than, 1 km
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4680 wawa 04</desc> <path fill="none" stroke-width="3" stroke="#000000" d="M 0,0 a 34,17.705691893392046 0 0 0 9,-12 a 9,9 0 0 0 -18,0 a 34,17.705691893392046 0 0 0 9,12 a 34,17.705691893392046 0 0 1 9,12 a 9,9 0 0 1 -18,0 a 34,17.705691893392046 0 0 1 9,-12 z" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4680 wawa 04</desc> <path fill="none" stroke-width="3" stroke="currentColor" d="M 0,0 a 34,17.705691893392046 0 0 0 9,-12 a 9,9 0 0 0 -18,0 a 34,17.705691893392046 0 0 0 9,12 a 34,17.705691893392046 0 0 1 9,12 a 9,9 0 0 1 -18,0 a 34,17.705691893392046 0 0 1 9,-12 z" /> </svg>',
     # 05 Haze or smoke, or dust in suspension in the air, visibility less than 1 km
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4680 wawa 05</desc> <path fill="none" stroke-width="3" stroke="#000000"  d="M 0,0 a 34,17.705691893392046 0 0 0 9,-12 a 9,9 0 0 0 -18,0 a 34,17.705691893392046 0 0 0 9,12 a 34,17.705691893392046 0 0 1 9,12 a 9,9 0 0 1 -18,0 a 34,17.705691893392046 0 0 1 9,-12 z" /> <path fill="#000000" d="M 0,0 a 34,17.705691893392046 0 0 1 9,12 a 9,9 0 0 1 -18,0 a 34,17.705691893392046 0 0 1 9,-12 z" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4680 wawa 05</desc> <path fill="none" stroke-width="3" stroke="currentColor"  d="M 0,0 a 34,17.705691893392046 0 0 0 9,-12 a 9,9 0 0 0 -18,0 a 34,17.705691893392046 0 0 0 9,12 a 34,17.705691893392046 0 0 1 9,12 a 9,9 0 0 1 -18,0 a 34,17.705691893392046 0 0 1 9,-12 z" /> <path fill="currentColor" d="M 0,0 a 34,17.705691893392046 0 0 1 9,12 a 9,9 0 0 1 -18,0 a 34,17.705691893392046 0 0 1 9,-12 z" /> </svg>',
     # 06...09 reserved
     None,None,None,None,
     # 10 Mist
@@ -799,7 +822,7 @@ WAWA_SYMBOLS = [
     # 20 Fog
     WW_SYMBOLS[28],
     # 21 PRECIPITATION
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4680 wawa 21</desc> <g> <path d="M -13.5,0 A 9 9 0 0 1 4.5 0" fill="none" stroke="#00d700" stroke-linecap="round" stroke-width="3" /> <path d="M 6,-21 h 7 v42 h-7" fill="none" stroke-width="3" stroke="#000000" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4680 wawa 21</desc> <g> <path d="M -13.5,0 A 9 9 0 0 1 4.5 0" fill="none" stroke="#00d700" stroke-linecap="round" stroke-width="3" /> <path d="M 6,-21 h 7 v42 h-7" fill="none" stroke-width="3" stroke="currentColor" /> </g> </svg> ',
     # 22 Drizzle (not freezing) or snow grains
     WW_SYMBOLS[20],
     # 23 Rain (not freezing)
@@ -811,11 +834,11 @@ WAWA_SYMBOLS = [
     # 26 Thunderstorm (with or without precipitation)
     WW_SYMBOLS[29],
     # 27 BLOWING OR DRIFTING SNOW OR SAND
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4680 wawa 27</desc> <g stroke="#000000" stroke-width="3" fill="none"> <path d="M -3.5,-10   a 7,7 0 0 0 -14,0   a 28,15.118578920369089 0 0 0 7,10   a 28,15.118578920369089 0 0 1 7,10   a 7,7 0 0 1 -14,0   M 6,-18.5 v 37" /> <path stroke-linecap="round" d="M -9,0 h 20.5" /> </g> <path fill="#000000" d="M18.5,0 l -7,3 v -6 z" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4680 wawa 27</desc> <g stroke="currentColor" stroke-width="3" fill="none"> <path d="M -3.5,-10   a 7,7 0 0 0 -14,0   a 28,15.118578920369089 0 0 0 7,10   a 28,15.118578920369089 0 0 1 7,10   a 7,7 0 0 1 -14,0   M 6,-18.5 v 37" /> <path stroke-linecap="round" d="M -9,0 h 20.5" /> </g> <path fill="currentColor" d="M18.5,0 l -7,3 v -6 z" /> </svg>',
     # 28 Blowing or drifting snow or sand, visibility equal to, or greater than, 1 km
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4680 wawa 28</desc> <g stroke="#000000" stroke-width="3" fill="none"> <path d="M -8.5,-18.5 v 37   M 6,-18.5 v 37   M -8.5,0 h 21" /> </g> <path fill="#000000" d="M18.5,0 l -7,3 v -6 z" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4680 wawa 28</desc> <g stroke="currentColor" stroke-width="3" fill="none"> <path d="M -8.5,-18.5 v 37   M 6,-18.5 v 37   M -8.5,0 h 21" /> </g> <path fill="currentColor" d="M18.5,0 l -7,3 v -6 z" /> </svg>',
     # 29 Blowing or drifting snow or sand, visibility less than 1 km
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4680 wawa 29</desc> <g stroke="#000000" stroke-width="3" fill="none"> <path d="M -20,-18.5 v 37   M -5.5,-18.5 v 37   M 9,-18.5 v 37   M -20,0 h 34.5" /> </g> <path fill="#000000" d="M21.5,0 l -7,3 v -6 z" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4680 wawa 29</desc> <g stroke="currentColor" stroke-width="3" fill="none"> <path d="M -20,-18.5 v 37   M -5.5,-18.5 v 37   M 9,-18.5 v 37   M -20,0 h 34.5" /> </g> <path fill="currentColor" d="M21.5,0 l -7,3 v -6 z" /> </svg>',
     # 30...39 FOG
     # 30 FOG
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <path d="M -17.5,14.25 h 35 M -17.5,-14.25 h 35 M -17.5,4.75 h 14 M -17.5,-4.75 h 14 M 17.5,-4.75 h -14 M 17.5,4.75 h -14" fill="none" stroke-width="3" stroke="#ffc83f" stroke-linejoin="miter" /> </svg>',
@@ -904,7 +927,7 @@ WAWA_SYMBOLS = [
     # 88 reserved
     None,
     # 89 Hail
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4680 wawa 89</desc> <g stroke="#000000" fill="#000000" style="stroke-width:3; stroke-linejoin:miter"> <path d="M 0,-8 l 8.7,14.6 h-17.4 z" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4680 wawa 89</desc> <g stroke="currentColor" fill="currentColor" style="stroke-width:3; stroke-linejoin:miter"> <path d="M 0,-8 l 8.7,14.6 h-17.4 z" /> </g> </svg> ',
     # 90 THUNDERSTORM
     WW_SYMBOLS[17],
     # 91 Thunderstorm, slight or moderate, with no precipitation
@@ -922,7 +945,7 @@ WAWA_SYMBOLS = [
     # 97...98 reserved
     None,None,
     # 99 Tornado
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4680 wawa 99</desc> <path fill="none" stroke-width="3" stroke="#000000" d="M -7.5,18.5 v -28.5 l -6,-8.5 M 7.5,18.5 v -28.5 l 6,-8.5 M 15,-1.9749371855331 A 18,9 0 1 0 15,7.9749371855331" /> <g transform="translate(12,9.708203933),rotate(-30)" > <path fill="#000000" d="M 15,0 l -15,4.5 v -9 z" />  </g> </svg>'
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-25 -25 50 50"> <desc>WMO 4680 wawa 99</desc> <path fill="none" stroke-width="3" stroke="currentColor" d="M -7.5,18.5 v -28.5 l -6,-8.5 M 7.5,18.5 v -28.5 l 6,-8.5 M 15,-1.9749371855331 A 18,9 0 1 0 15,7.9749371855331" /> <g transform="translate(12,9.708203933),rotate(-30)" > <path fill="currentColor" d="M 15,0 l -15,4.5 v -9 z" />  </g> </svg>'
 ]
 
 # code table 4561 W W1 W2
@@ -950,30 +973,54 @@ W_SYMBOLS = [
     WW_SYMBOLS[17]
 ]
 
+# code table 4531 Wa Wa1 Wa2
+WA_SYMBOLS = [
+    # 0 No significant weather observed
+    WAWA_SYMBOLS[0],
+    # 1 VISIBILITY REDUCED
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-20 -20 40 40"> <desc>WMO 4531 Wa 1</desc> <path d="M-9.5,-14v28 M0,-14v28 M9.5,-14v28" fill="none" stroke-width="3" stroke="#ffc83f" /> </svg>',
+    # 2 Blowing phenomena, visibility reduced
+    W_SYMBOLS[3],
+    # 3 FOG
+    W_SYMBOLS[4],
+    # 4 PRECIPITATION
+    WAWA_SYMBOLS[40],
+    # 5 Drizzle
+    W_SYMBOLS[5],
+    # 6 Rain
+    W_SYMBOLS[6],
+    # 7 Snow or ice pellets
+    W_SYMBOLS[7],
+    # 8 Snow shower(s) or intermittent precipitation
+    W_SYMBOLS[8],
+    # 9 Thunderstorm
+    WW_SYMBOLS[17]
+]
+
 # code table 2700 n
 OKTA_SYMBOLS = [
     # 0/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 0/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none"/> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 0/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="currentColor" fill="none"/> </svg>',
     # 1/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 1/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none"/> <line x1="50" y1="5" x2="50" y2="95" stroke-width="8" stroke="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 1/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="currentColor" fill="none"/> <line x1="50" y1="5" x2="50" y2="95" stroke-width="8" stroke="currentColor" /> </svg>',
     # 2/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 2/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none"/> <path d="M 95,50 L 50,50 L 50,5 A 45 45 0 0 1 95,50 Z" stroke="none" fill="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 2/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="currentColor" fill="none"/> <path d="M 95,50 L 50,50 L 50,5 A 45 45 0 0 1 95,50 Z" stroke="none" fill="currentColor" /> </svg>',
     # 3/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 3/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none"/> <path d="M 95,50 L 50,50 L 50,5 A 45 45 0 0 1 95,50 Z" stroke="none" fill="#000000" /> <line x1="50" y1="5" x2="50" y2="95" stroke-width="8" stroke="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 3/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="currentColor" fill="none"/> <path d="M 95,50 L 50,50 L 50,5 A 45 45 0 0 1 95,50 Z" stroke="none" fill="currentColor" /> <line x1="50" y1="5" x2="50" y2="95" stroke-width="8" stroke="currentColor" /> </svg>',
     # 4/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 4/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none"/> <path d="M 50,95 L 50,5 A 45 45 0 0 1 50,95 Z" stroke="none" fill="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 4/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="currentColor" fill="none"/> <path d="M 50,95 L 50,5 A 45 45 0 0 1 50,95 Z" stroke="none" fill="currentColor" /> </svg>',
     # 5/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 5/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none"/> <line x1="5" y1="50" x2="95" y2="50" stroke-width="8" stroke="#000000" /> <path d="M 50,95 L 50,5 A 45 45 0 0 1 50,95 Z" stroke="none" fill="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 5/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="currentColor" fill="none"/> <line x1="5" y1="50" x2="95" y2="50" stroke-width="8" stroke="currentColor" /> <path d="M 50,95 L 50,5 A 45 45 0 0 1 50,95 Z" stroke="none" fill="currentColor" /> </svg>',
     # 6/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 6/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none"/> <path d="M 5,50 L 50,50 L 50,5 A 45 45 0 1 1 5,50 Z" stroke="none" fill="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 6/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="currentColor" fill="none"/> <path d="M 5,50 L 50,50 L 50,5 A 45 45 0 1 1 5,50 Z" stroke="none" fill="currentColor" /> </svg>',
     # 7/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 7/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none"/> <path d="M 60,93.87482193696061 L 60,6.12517806303939 A 45 45 0 0 1 60,93.87482193696061 Z M 40,6.12517806303939 L 40,93.87482193696061 A 45 45 0 0 1 40,6.12517806303939 Z" stroke-width="8" stroke="#000000" fill="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 7/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="currentColor" fill="none"/> <path d="M 60,93.87482193696061 L 60,6.12517806303939 A 45 45 0 0 1 60,93.87482193696061 Z M 40,6.12517806303939 L 40,93.87482193696061 A 45 45 0 0 1 40,6.12517806303939 Z" stroke-width="8" stroke="currentColor" fill="currentColor" /> </svg>',
     # 8/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 8/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 8/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="currentColor" fill="currentColor" /> </svg>',
     # 9/8
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 9/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none" /> <line x1="18.180194846605361" y1="18.180194846605361" x2="81.819805153394639" y2="81.819805153394639" stroke-width="8" stroke="#000000" /> <line x1="18.180194846605361" y1="81.819805153394639" x2="81.819805153394639" y2="18.180194846605361" stroke-width="8" stroke="#000000" /> </svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N 9/8</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="currentColor" fill="none" /> <line x1="18.180194846605361" y1="18.180194846605361" x2="81.819805153394639" y2="81.819805153394639" stroke-width="8" stroke="currentColor" /> <line x1="18.180194846605361" y1="81.819805153394639" x2="81.819805153394639" y2="18.180194846605361" stroke-width="8" stroke="currentColor" /> </svg>',
     # no data
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N no data</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="#000000" fill="none" /> <line x1="5" y1="50" x2="95" y2="50" stroke-width="8" stroke="#000000" /> <line x1="50" y1="5" x2="50" y2="95" stroke-width="8" stroke="#000000" /> </svg>'
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="0 0 100 100"> <desc>WMO 2700 N no data</desc> <circle cx="50" cy="50" r="45" stroke-width="8" stroke="currentColor" fill="none" /> <line x1="5" y1="50" x2="95" y2="50" stroke-width="8" stroke="currentColor" /> <line x1="50" y1="5" x2="50" y2="95" stroke-width="8" stroke="currentColor" /> </svg>'
 ]
 
 OKTA_TEXTS = {
@@ -1008,6 +1055,7 @@ OKTA_TEXTS = {
 WMO_TABLES = {
   2700: OKTA_SYMBOLS,
   4561: W_SYMBOLS,
+  4531: WA_SYMBOLS,
   4677: WW_SYMBOLS,
   4680: WAWA_SYMBOLS
 }
@@ -1160,6 +1208,64 @@ def pressure_tendency(p_list):
                 return 1
     return None
 
+def pressure_tendency_bufr(p3, p2, p1, p0):
+    """ pressure tendency according to the algorithm defined in BUFR
+    
+        Args:
+            p3 (float): barometer 3 hours ago
+            p2 (float): barometer 2 hours ago
+            p1 (float): barometer 1 hour ago
+            p0 (float): barometer now
+            
+        Returns:
+            int: pressure tendency code a according to table 0200
+    """
+    A = {
+        ( 1, 1, 1):3,
+        ( 1, 1, 0):3,
+        ( 1, 1,-1):3,
+        ( 1, 0, 1):2,
+        ( 1, 0, 0):2,
+        ( 1, 0,-1):2,
+        ( 1,-1, 1):1,
+        ( 1,-1, 0):1,
+        ( 1,-1,-1):0,
+        ( 0, 1, 1):5,
+        ( 0, 1, 0):5,
+        ( 0, 1,-1):5,
+        ( 0, 0, 1):4,
+        ( 0, 0, 0):4,
+        ( 0, 0,-1):4,
+        ( 0,-1, 1):0,
+        ( 0,-1, 0):0,
+        ( 0,-1,-1):0,
+        (-1, 1, 1):5,
+        (-1, 1, 0):6,
+        (-1, 1,-1):6,
+        (-1, 0, 1):7,
+        (-1, 0, 0):7,
+        (-1, 0,-1):7,
+        (-1,-1, 1):8,
+        (-1,-1, 0):8,
+        (-1,-1,-1):8
+    }
+    def sign(x):
+        if x>0: return 1
+        if x<0: return -1
+        return 0
+    try:
+        # barometer difference
+        diff_all   = p0-p3 # over all
+        diff_third = p0-p1 # of the 3rd hour
+        diff_first = p2-p3 # of the 1st hour
+        # table lookup
+        return A.get((sign(diff_all),
+                      sign(diff_third-diff_first),
+                      sign(diff_third)))
+    except TypeError:
+        return None
+    
+    
 def pressure_tendency_svg_path(x, y, width, a):
     hl = width*0.75
     hk = hl*0.3
@@ -1186,7 +1292,7 @@ def pressure_tendency_svg_path(x, y, width, a):
         d = 'M %f,%f l %f,%f l %f,%f' % (x-bl/2-bk/2,y-hl/2+hk,bk,-hk,bl,hl)
     else:
         return ''
-    return '<path stroke="#000000" stroke-width="%.1f" fill="none" d="%s" />' % (width*0.05,d)
+    return '<path stroke="currentColor" stroke-width="%.1f" fill="none" d="%s" />' % (width*0.05,d)
 
 def decolor_ww(ww_symbol, color):
     """ convert colored symbols to black or white 
@@ -1199,7 +1305,7 @@ def decolor_ww(ww_symbol, color):
             str: SVG with changed colors
     """
     if color is None: return ww_symbol
-    return ww_symbol.replace('#ffc83f',color).replace('#ed1c24',color).replace('#00d700',color).replace('#ac00ff',color).replace('#000000',color).replace('black',color)
+    return ww_symbol.replace('#ffc83f',color).replace('#ed1c24',color).replace('#00d700',color).replace('#ac00ff',color).replace('#000000',color).replace('black',color).replace('currentColor',color)
 
 def print_ww_list(image_path='.'):
     """ create a HTML table of present weather symbols and descriptions
@@ -1305,6 +1411,25 @@ def print_n_tab(image_path='.', color=None):
     s += '</table>\n'
     return s
 
+def print_W1W2_tab(image_path='.', color=None):
+    """ create a table of cloud cover symbols """
+    s = '<table cellspacing="0">\n'
+    s += '<tr>\n  <th style="margin:0px;border:1px solid black;padding:5px;background-color:#E0E0E0">&nbsp;W&nbsp;</th>\n'
+    for i in range(10):
+        s += '  <th style="margin:0px;border-top:1px solid black;border-right:1px solid black;border-bottom:1px solid black;padding:5px;background-color:#E0E0E0">%1d</th>\n' % i
+    s += '</tr>\n'
+    s += '<tr>\n  <th style="margin:0px;border-left:1px solid black;border-right:1px solid black;border-bottom:1px solid black;padding:5px;background-color:#E0E0E0"></th>\n' 
+    for n,sym in enumerate(W_SYMBOLS):
+        s += '  <td style="margin:0px;border-right:1px solid black;border-bottom:1px solid black;padding:5px;text-align:center">'
+        if sym is not None:
+            s += decolor_ww(sym,color).replace('width="50"','width="40"').replace('height="50"','height="40"')
+        else:
+            s += WAWA_SYMBOLS[0].replace('width="50"','width="40"').replace('height="50"','height="40"')
+        s += '</td>\n'
+    s += '</tr>\n'
+    s += '</table>\n'
+    return s
+
 def write_svg_files_ww(image_path='.'):
     for ww,sym in enumerate(WW_SYMBOLS):
         fn = os.path.join(image_path,'wmo4677_ww%02d.svg' % ww)
@@ -1354,7 +1479,7 @@ if hasSearchList:
         def __init__(self, wwl=None, n=None, night=False, lang='en', ww_texts=None, wawal=None, **kwargs):
             # We need the raw values.
             if isinstance(wwl,ValueHelper) or isinstance(wwl,AggTypeBinder):
-                if wwl.value_t[2]=='group_wmo_wawa':
+                if isinstance(wwl.value_t,ValueTuple) and wwl.value_t[2]=='group_wmo_wawa':
                     wawal = wwl.raw
                     wwl = None
                 else:
@@ -1362,7 +1487,7 @@ if hasSearchList:
             if isinstance(n,ValueHelper) or isinstance(n,AggTypeBinder):
                 n = n.raw
             if isinstance(wawal,ValueHelper) or isinstance(wawal,AggTypeBinder):
-                if wawal.value_t[2]=='group_wmo_ww':
+                if isinstance(wawal.value_t,ValueTuple) and wawal.value_t[2]=='group_wmo_ww':
                     wwl = wawal.raw
                     wawal = None
                 else:
@@ -1522,12 +1647,14 @@ if hasSearchList:
                 'ww':   (-1, 0, 0, 1,-1.0, 0.0,1.0),
                 'TTT':  (-1,-1, 0, 0,-0.5,-0.5,0.4),
                 'Td':   (-1, 1, 0, 2,-0.5, 1.5,0.4),
+                'Tw':   (-1, 2, 0, 3,-0.5, 2.5,0.4),
                 'PPPP': ( 1,-1, 2, 0, 1.5,-0.5,0.4),
                 'ppp':  ( 0, 1, 2, 1, 1.5, 0.5,0.4),
                 'a':    ( 2, 0, 3, 1, 2.5, 0.5,1.0),
                 'VV':   (-2, 0,-1, 1,-1.5, 0.5,0.4),
                 'W1':   ( 1, 1, 2, 2, 1.00, 1.25,0.5),
                 'W2':   ( 1, 1, 2, 2, 1.50, 1.25,0.5),
+                'RRR':  ( 1, 2, 2, 3, 1.50, 2.25,0.4),
             },
             'DWD': {
                 #        x0 y0 x1 y1 x     y     size
@@ -1535,12 +1662,14 @@ if hasSearchList:
                 'ww':   (-1, 0, 0, 1,-1.00, 0.00,1.0),
                 'TTT':  (-1,-1, 0, 0,-0.50,-0.75,0.4),
                 'Td':   (-1, 1, 0, 2,-0.50, 1.25,0.4),
+                'Tw':   (-1, 1, 0, 2,-0.50, 1.75,0.4),
                 'PPPP': ( 1,-1, 2, 0, 1.50,-0.75,0.4),
                 'ppp':  ( 1,-1, 2, 0, 1.50,-0.25,0.4),
                 'a':    ( 1, 0, 2, 1, 1.50, 0.50,1.0),
                 'VV':   (-1, 0,-1, 1,-0.50,-0.25,0.4),
                 'W1':   ( 1, 1, 2, 2, 1.00, 1.00,0.5),
                 'W2':   ( 1, 1, 2, 2, 1.50, 1.00,0.5),
+                'RRR':  ( 1, 1, 2, 2, 1.50, 1.75,0.4),
             }
         }
 
@@ -1676,9 +1805,9 @@ if hasSearchList:
                 a = a[0]
             else:
                 a = weeutil.weeutil.to_int(a)
-            return pressure_tendency_svg_path(x, y, width, a)
+            return '<g id="station_a">'+pressure_tendency_svg_path(x, y, width, a)+'<title>a</title></g>'
             
-        def wind(self, windspeed, winddir, width):
+        def wind(self, windspeed, winddir, width, id):
             if isinstance(windspeed,ValueHelper):
                 windspeed = windspeed.km_per_hour.raw
             elif isinstance(windspeed,ValueTuple):
@@ -1709,10 +1838,10 @@ if hasSearchList:
             bb = 0.1*width*math.cos(winddir_rad+0.286)
             hh = -0.1*width*math.sin(winddir_rad+0.286)
             #s = '<circle fill="red" cx="%f" cy="%f" r="3" />' % (x-b/2,y-h/2)
-            s = ''
+            s = '<g id="%s">' % id
             d = 'M%f,%f l%f,%f ' % (x-b/2,y-h/2,b,h)
             if kn>=10:
-                s += '<path stroke="#000000" stroke-width="%.1f" fill="#000000" d="M%f,%f l%f,%f l%f,%f z" />' % (width*0.05,x-b/2,y-h/2,0.13*width*math.cos(winddir_rad-0.286),-0.13*width*math.sin(winddir_rad-0.286),-1.3*bb,-1.3*hh)
+                s += '<path stroke="currentColor" stroke-width="%.1f" fill="currentColor" d="M%f,%f l%f,%f l%f,%f z" />' % (width*0.05,x-b/2,y-h/2,0.13*width*math.cos(winddir_rad-0.286),-0.13*width*math.sin(winddir_rad-0.286),-1.3*bb,-1.3*hh)
                 kn2 = (kn-9)//2
                 ii0 = 1.8
             else:
@@ -1730,19 +1859,20 @@ if hasSearchList:
                 else:
                     jj = ii+ii0
                 d += 'M%f,%f l%f,%f ' % (x-b/2+b*0.1*jj,y-h/2+h*0.1*jj,bbi,hhi)
-            s += '<path stroke="#000000" stroke-width="%.2f" fill="none" d="%s" />' % (width*0.05,d)
+            s += '<path stroke="currentColor" stroke-width="%.2f" fill="none" d="%s" />' % (width*0.05,d)
             #s += self.svg_text(x-b/2,y-h/2,width*0.5,'wind','%s' % kn)
+            s += '</g>'
             return s
 
         def svg_text(self, x, y, size, id, text, title=None):
             """ SVG text element """
             if title:
-                title = ' title="station_%s"' % title
+                title = '<title>%s</title>' % title
             else:
                 title = ''
-            return '<text id="%s" dominant-baseline="middle" text-anchor="middle" x="%.2f" y="%.2f" color="#000000" font-family="sans-serif" font-size="%d" font-weight="normal"%s>%s</text>' % (id,x,y,size,title,text)
+            return '<g><text id="%s" dominant-baseline="middle" text-anchor="middle" x="%.2f" y="%.2f" fill="currentColor" stroke="none" font-family="sans-serif" font-size="%d" font-weight="normal">%s</text>%s</g>' % (id,x,y,size,text,title)
             
-        def station(self, format='WMO', width=None, color=None, round_temp=None):
+        def station(self, format='WMO', width=None, color=None, round_temp=None, id_prefix='station'):
             """ SVG of station model
             
                 Args:
@@ -1750,6 +1880,7 @@ if hasSearchList:
                     width:      width of the cloud cover symbol
                     color:
                     round_temp: round temperature to whole degrees
+                    id_prefix (str): SVG element id prefix
                 
                 Returns:
                     str: SVG of the station model
@@ -1797,7 +1928,7 @@ if hasSearchList:
                 pass
             # wind
             if 'windDir' in self.kwargs and 'windSpeed' in self.kwargs:
-                x = self.wind(self.kwargs['windSpeed'],self.kwargs['windDir'],width)
+                x = self.wind(self.kwargs['windSpeed'],self.kwargs['windDir'],width,id_prefix+'_'+'wind')
                 if x:
                     els.append(x)
                     x0 = min(x0,-15)
@@ -1818,12 +1949,12 @@ if hasSearchList:
                 if obs in ('outTemp','TTT','TT'):
                     obsfmt = format['TTT']
                     t = self.to_celsius(val,round_temp)
-                    els.append(self.svg_text(obsfmt[4]*width,obsfmt[5]*width,width*0.4,obs,t,title='TTT'))
+                    els.append(self.svg_text(obsfmt[4]*width,obsfmt[5]*width,width*0.4,id_prefix+'_'+obs,t,title='TTT'))
                     #els.append('<circle cx="%d" cy="%d" r="3" fill="red" />' % (-width/2,-width/2))
                 elif obs in ('dewpoint','TdTdTd','Td'):
                     obsfmt = format['Td']
                     td = self.to_celsius(val,round_temp)
-                    els.append(self.svg_text(obsfmt[4]*width,obsfmt[5]*width,width*0.4,obs,td,title='Td'))
+                    els.append(self.svg_text(obsfmt[4]*width,obsfmt[5]*width,width*0.4,id_prefix+'_'+obs,td,title='Td'))
                     #els.append('<circle cx="%d" cy="%d" r="3" fill="red" />' % (-width/2,width*1.5))
                 elif obs in ('barometer','PPPP'):
                     # barometer, barometer trend, pressure tendency symbol
@@ -1843,14 +1974,14 @@ if hasSearchList:
                         y0 = min(y0,obsfmt[1]*width)
                         x1 = max(x1,obsfmt[2]*width)
                         y1 = max(y1,obsfmt[3]*width)
-                        els.append(self.svg_text(obsfmt[4]*width,obsfmt[5]*width,width*0.4,obs,p,title='PPPP'))
+                        els.append(self.svg_text(obsfmt[4]*width,obsfmt[5]*width,width*0.4,id_prefix+'_'+'PPPP',p,title='PPPP'))
                     if pdiff:
                         obsfmt = format['ppp']
                         x0 = min(x0,obsfmt[0]*width)
                         y0 = min(y0,obsfmt[1]*width)
                         x1 = max(x1,obsfmt[2]*width)
                         y1 = max(y1,obsfmt[3]*width)
-                        els.append(self.svg_text(obsfmt[4]*width,obsfmt[5]*width,width*0.4,'ppp',pdiff,title='ppp'))
+                        els.append(self.svg_text(obsfmt[4]*width,obsfmt[5]*width,width*0.4,id_prefix+'_'+'ppp',pdiff,title='ppp'))
                     if (isinstance(val,ObservationBinder) and 
                         'a' not in self.kwargs):
                         obsfmt = format['a']
@@ -1865,7 +1996,7 @@ if hasSearchList:
                         vv = val.meter.raw
                     else:
                         vv = weeutil.weeutil.to_float(val)
-                    els.append(self.svg_text(obsfmt[4]*width,obsfmt[5]*width,width*0.4,obs,visibility_code(vv),title='VV'))
+                    els.append(self.svg_text(obsfmt[4]*width,obsfmt[5]*width,width*0.4,id_prefix+'_'+'VV',visibility_code(vv),title='VV'))
                 elif obs in ('W1','W2','W1W2'):
                     obsfmt = format[obs]
                     if isinstance(val,ObservationBinder):
@@ -1878,7 +2009,7 @@ if hasSearchList:
                         ww = ValueTuple(weeutil.weeutil.to_int(val),None,None)
                     if ww[2]=='group_wmo_ww':
                         if 30<=ww[0]<36:
-                            ww = WAW_SYMBOLS[27]
+                            ww = WAWA_SYMBOLS[27]
                         elif 36<=ww[0]<40:
                             ww = WW_SYMBOLS[38]
                         elif ww[0]==90:
@@ -1925,8 +2056,8 @@ if hasSearchList:
         def __str__(self):
             return self.station()
             
-        def __call__(self, format='WMO', width=40, color=None, round_temp=None):
-            return self.station(format,width,color,round_temp)
+        def __call__(self, format='WMO', width=40, color=None, round_temp=None,id_prefix='station'):
+            return self.station(format,width,color,round_temp,id_prefix)
             
     class WeatherSearchList(SearchList):
         """ Search list extension to provide $presentweather """
@@ -1967,6 +2098,8 @@ Direct call is for testing only."""
                       help="Print wawa table")
     parser.add_option("--print-n-tab", dest="printntab", action="store_true",
                       help="Print cloud cover table (N)")
+    parser.add_option("--print-W1W2-tab", dest="printW1W2tab", action="store_true",
+                      help="Print past weather table (W1W2)")
     parser.add_option("--write-svg", dest="writesvg", action="store_true",
                       help="Create a set of SVG files")
     parser.add_option("--test-searchlist", dest="searchlist", action="store_true",
@@ -1989,6 +2122,8 @@ Direct call is for testing only."""
         print(print_wawa_tab(color=None))
     elif options.printntab:
         print(print_n_tab(color=None))
+    elif options.printW1W2tab:
+        print(print_W1W2_tab(color=None))
     elif options.writesvg:
         if len(args)>0:
             pth = args[0]
