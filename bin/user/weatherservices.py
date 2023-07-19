@@ -584,6 +584,7 @@ class DWDCDCthread(BaseThread):
                 weewx.units.obs_group_dict.setdefault(prefix+obstype[0].upper()+obstype[1:],obsgroup)
         weewx.units.obs_group_dict.setdefault(prefix+'Barometer','group_pressure')
         weewx.units.obs_group_dict.setdefault(prefix+'Altimeter','group_pressure')
+        weewx.units.obs_group_dict.setdefault(prefix+'Altitude','group_altitude')
 
 
     def get_data(self):
@@ -847,6 +848,7 @@ class ZAMGthread(BaseThread):
                 weewx.units.obs_group_dict.setdefault(prefix+obstype[0].upper()+obstype[1:],obsgroup)
         weewx.units.obs_group_dict.setdefault(prefix+'Barometer','group_pressure')
         weewx.units.obs_group_dict.setdefault(prefix+'Altimeter','group_pressure')
+        weewx.units.obs_group_dict.setdefault(prefix+'Altitude','group_altitude')
 
 
     def get_data(self):
@@ -1128,6 +1130,12 @@ class DWDOPENMETEOthread(BaseThread):
             if obsgroup is not None:
                 weewx.units.obs_group_dict.setdefault(self.prefix+obsweewx[0].upper()+obsweewx[1:],obsgroup)
 
+    def shutDown(self):
+        """ request thread shutdown """
+        self.running = False
+        self.evt.set()
+        if self.debug > 0:
+            logdbg("thread '%s': shutdown requested" % self.name)
 
     def get_data(self):
         """ get buffered data """
@@ -1560,8 +1568,8 @@ class DWDservice(StdService):
                     location,
                     prefix,
                     iconset=station_dict.get('iconset',4),
-                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',False)) or self.verbose,
-                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',True)) or self.verbose)
+                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',False)),
+                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',True)))
         self.threads[thread_name]['thread'].start()
     
     
@@ -1575,8 +1583,8 @@ class DWDservice(StdService):
                     prefix,
                     iconset=station_dict.get('iconset',4),
                     observations=station_dict.get('observations'),
-                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',False)) or self.verbose,
-                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',True)) or self.verbose)
+                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',False)),
+                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',True)))
         self.threads[thread_name]['thread'].start()
     
     
@@ -1591,8 +1599,8 @@ class DWDservice(StdService):
                     iconset=station_dict.get('iconset',4),
                     observations=station_dict.get('observations'),
                     user=user,passwd=passwd,
-                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',False)) or self.verbose,
-                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',True)) or self.verbose)
+                    log_success=weeutil.weeutil.to_bool(station_dict.get('log_success',False)),
+                    log_failure=weeutil.weeutil.to_bool(station_dict.get('log_failure',True)))
         self.threads[thread_name]['thread'].start()
     
     
@@ -1603,8 +1611,8 @@ class DWDservice(StdService):
         self.threads[thread_name]['prefix'] = prefix
         self.threads[thread_name]['thread'] = DWDOPENMETEOthread(thread_name,
                     openmeteo_dict,
-                    log_success=weeutil.weeutil.to_bool(openmeteo_dict.get('log_success',False)) or self.verbose,
-                    log_failure=weeutil.weeutil.to_bool(openmeteo_dict.get('log_failure',True)) or self.verbose)
+                    log_success=weeutil.weeutil.to_bool(openmeteo_dict.get('log_success',False)),
+                    log_failure=weeutil.weeutil.to_bool(openmeteo_dict.get('log_failure',True)))
         self.threads[thread_name]['thread'].start()
     
     
