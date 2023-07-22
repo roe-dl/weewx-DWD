@@ -1264,7 +1264,7 @@ class BBK(CAP):
         if self.verbose:
             print('BBK.warnings() areas',[ id for id in areas])
             for id in areas:
-                print('BBK.warnings() areas[]',id,[ii['id'] for ii in areas[id]])
+                print('BBK.warnings() areas[] id',id,[ii['id'] for ii in areas[id]])
         # go through messages
         for id in areas:
             # download warning
@@ -1324,7 +1324,8 @@ class BBK(CAP):
                 for ii in val:
                   # 'ii' is one of the regions with one Regionalschlüssel
                   ars = ii['BBK_ARS']
-                  if Germany.compareARS(ars,warnverwaltungsbereiche):
+                  if (ars in BBK.WARNING_SOURCES or
+                      Germany.compareARS(ars,warnverwaltungsbereiche)):
                       try:
                           bundesland = Germany.AGS_STATES[ars[0:2]]
                       except (LookupError,TypeError):
