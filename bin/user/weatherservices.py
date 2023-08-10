@@ -217,6 +217,13 @@ import weeutil.weeutil
 import weewx.accum
 import weewx.units
 import weewx.wxformulas
+from user.weatherservicesutil import wget, BaseThread
+
+try:
+    import user.wildfire
+    has_wildfire = True
+except ImportError:
+    has_wildfire = False
 
 for group in weewx.units.std_groups:
     weewx.units.std_groups[group].setdefault('group_coordinate','degree_compass')
@@ -244,68 +251,6 @@ def get_cloudcover(n):
     else:
         icon = N_ICON_LIST[4]
     return icon
-
-
-def wget(url,log_success=False,log_failure=True):
-    """ download  """
-    headers={'User-Agent':'weewx-DWD'}
-    reply = requests.get(url,headers=headers)
-
-    if reply.status_code==200:
-        if log_success:
-            loginf('successfully downloaded %s' % reply.url)
-        return reply.content
-    else:
-        if log_failure:
-            loginf('error downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
-        return None
-
-
-class BaseThread(threading.Thread):
-
-    def __init__(self, name, log_success=False, log_failure=True):
-        super(BaseThread,self).__init__(name=name)
-        self.log_success = log_success
-        self.log_failure = log_failure
-        self.evt = threading.Event()
-        self.running = True
-        self.query_interval = 300
-
-
-    def shutDown(self):
-        """ request thread shutdown """
-        self.running = False
-        loginf("thread '%s': shutdown requested" % self.name)
-        self.evt.set()
-
-
-    def get_data(self):
-        raise NotImplementedError
-        
-        
-    def getRecord(self):
-        raise NotImplementedError
-
-
-    def run(self):
-        """ thread loop """
-        loginf("thread '%s' starting" % self.name)
-        try:
-            while self.running:
-                # download and process data
-                self.getRecord()
-                # time to to the next interval
-                waiting = self.query_interval-time.time()%self.query_interval
-                if waiting<=60: waiting += self.query_interval
-                # do a little bit of load balancing
-                waiting -= random.random()*60
-                # wait
-                logdbg ("thread '%s': wait %s s" % (self.name,waiting))
-                self.evt.wait(waiting)
-        except Exception as e:
-            logerr("thread '%s': main loop %s - %s" % (self.name,e.__class__.__name__,e))
-        finally:
-            loginf("thread '%s' stopped" % self.name)
 
 
 class DWDPOIthread(BaseThread):
@@ -392,7 +337,7 @@ class DWDPOIthread(BaseThread):
                 weewx.units.obs_group_dict.setdefault(prefix+obstype[0].upper()+obstype[1:],obsgroup)
 
 
-    def get_data(self):
+    def get_data(self, ts):
         """ get buffered data """
         try:
             self.lock.acquire()
@@ -587,7 +532,7 @@ class DWDCDCthread(BaseThread):
         weewx.units.obs_group_dict.setdefault(prefix+'Altitude','group_altitude')
 
 
-    def get_data(self):
+    def get_data(self, ts):
         """ get buffered data  """
         try:
             self.lock.acquire()
@@ -851,7 +796,7 @@ class ZAMGthread(BaseThread):
         weewx.units.obs_group_dict.setdefault(prefix+'Altitude','group_altitude')
 
 
-    def get_data(self):
+    def get_data(self, ts):
         try:
             self.lock.acquire()
             x = self.data
@@ -1137,7 +1082,7 @@ class DWDOPENMETEOthread(BaseThread):
         if self.debug > 0:
             logdbg("thread '%s': shutdown requested" % self.name)
 
-    def get_data(self):
+    def get_data(self, ts):
         """ get buffered data """
         try:
             self.lock.acquire()
@@ -1454,6 +1399,7 @@ class DWDservice(StdService):
         if self.debug>0:
             self.log_success = True
             self.log_failure = True
+        archive_interval = 300 # engine.archive_interval
 
         self.threads = dict()
         
@@ -1522,7 +1468,6 @@ class DWDservice(StdService):
             # Station 
             # Note: Latitude and Longitude (if needed) are already in dict()
             station = location_dict.get('station',location)
-            print(station)
             if station.lower() in ('here','thisstation'):
                 location_dict['latitude'] = engine.stn_info.latitude_f
                 location_dict['longitude'] = engine.stn_info.longitude_f
@@ -1553,6 +1498,19 @@ class DWDservice(StdService):
                 else:
                     logerr("unknown weather service provider '%s'" % provider)
         
+        site_dict = config_dict.get('WeatherServices',configobj.ConfigObj()).get('forecast',configobj.ConfigObj())
+        for location in site_dict.sections:
+            location_dict = weeutil.config.accumulateLeaves(site_dict[location])
+            provider = location_dict.get('provider')
+            if has_wildfire:
+                if provider in user.wildfire.providers_dict:
+                    try:
+                        thread = user.wildfire.create_thread(location,location_dict,archive_interval)
+                        if thread:
+                            self.threads[location] = thread
+                    except (LookupError,ValueError,TypeError,ArithmeticError) as e:
+                        logerr("error creating forecast thread '%s': %s %s" % (location,e.__class__.__name__,e))
+                    continue
         
         if  __name__!='__main__':
             self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
@@ -1631,20 +1589,25 @@ class DWDservice(StdService):
             
     
     def new_archive_record(self, event):
+        ts = event.record.get('dateTime',time.time())
         for thread_name in self.threads:
             # get collected data
             datasource = self.threads[thread_name]['datasource']
             if datasource=='POI':
-                data,interval = self.threads[thread_name]['thread'].get_data()
+                data,interval = self.threads[thread_name]['thread'].get_data(ts)
                 if data: data = data[0]
             elif datasource=='CDC':
-                data,interval,maxtime = self.threads[thread_name]['thread'].get_data()
+                data,interval,maxtime = self.threads[thread_name]['thread'].get_data(ts)
                 if data: data = data[maxtime]
             elif datasource=='ZAMG':
-                data,interval = self.threads[thread_name]['thread'].get_data()
+                data,interval = self.threads[thread_name]['thread'].get_data(ts)
             elif datasource=='OPENMETEO':
-                data,interval = self.threads[thread_name]['thread'].get_data()
+                data,interval = self.threads[thread_name]['thread'].get_data(ts)
                 if data: data = data[0]
+            elif datasource=='WBS':
+                data,interval = self.threads[thread_name]['thread'].get_data(ts)
+            else:
+                data = None
             #print(thread_name,data,interval)
             if data:
                 x = self._to_weewx(thread_name,data,event.record['usUnits'])
@@ -1692,7 +1655,7 @@ if __name__ == '__main__':
 
         try:
             while True:
-                x = t.get_data()
+                x = t.get_data(time.time())
                 print(x)
                 time.sleep(10)
         except (Exception,KeyboardInterrupt):
