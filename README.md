@@ -31,6 +31,8 @@ Diese Daten können mit den Programmen bezogen werden:
   * Warnmeldungen (`bbk-warnings`)
 * von Meteorological Service Canada (MSC)
   * Warnmeldungen (`msc-warnings`)
+* vom Staatsbetrieb Sachsenforst
+  * Waldbrandgefahrenstufe (`user.weatherservices.DWDservice`)
 
 Die Daten werden aufbereitet als:
 * HTML-Dateien (`*.inc`) zum Einbinden in Skins mittels `#include`
@@ -378,6 +380,16 @@ dann ein Wettermodell oder Produkt von diesem Anbieter.
   [Open-Meteo](https://open-meteo.com/) stellt ein API zum Abruf von
   Wetterdaten aus den Wettermodellen der großen Wetterdienste bereit. 
   Der gewünschte Ort ist in Form von Koordinaten anzugeben.
+
+* Staatsbetrieb Sachsenforst
+
+  ```
+            provider = Sachsenforst
+  ```
+
+  Für die Nutzung der Werte ist ein Vertrag mit dem Staatsbetrieb
+  Sachsenforst erforderlich. Es werden keine Kosten erhoben,
+  aber Auflagen erteilt.
 
 ## Einbinden in WeeWX
 
@@ -829,6 +841,25 @@ wäre das `custom.css`:
 Beispiel für eine Wettervorhersage:
 
 <img src="MOSMIX-Vorhersage.png" width="700px"/>
+
+## Waldbrandgefahrenstufe
+
+Wenn `file = XX` gesetzt ist:
+
+Layout Wert mit Verhaltenshinweisen:
+
+```
+    #include raw "dwd/wbs-XX.inc"
+```
+
+Layout Wert mit Link zu modalem Fenster mit Verhaltenshinweisen:
+
+```
+    #include raw "dwd/wbs-XX-link.inc"
+    #include raw "dwd/wbs-XX-modal.inc"
+```
+
+Das modale Fenster ist für das Bootstrap-Framework vorbereitet.
 
 ## DWD-Wettervorhersage in der Belchertown-Skin
 
