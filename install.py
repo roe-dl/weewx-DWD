@@ -60,7 +60,14 @@ class DWDInstaller(ExtensionInstaller):
                     }
                 }
             },
-            files=[('bin/user', ['bin/user/weatherservices.py','bin/user/weathercodes.py','bin/user/capwarnings.py','usr/local/bin/html2ent.ansi','usr/local/bin/wget-dwd']),]
+            files=[('bin/user', [
+                'bin/user/weatherservices.py',
+                'bin/user/weatherservicesutil.py',
+                'bin/user/weathercodes.py',
+                'bin/user/wildfire.py',
+                'bin/user/capwarnings.py',
+                'usr/local/bin/html2ent.ansi',
+                'usr/local/bin/wget-dwd']),]
             )
       
     def configure(self, engine):
