@@ -424,7 +424,7 @@ Belchertown-Skin.
 Folgende Meßgrößen sind definiert, aber nicht immer verfügbar:
 * immer: 
   * `dateTime`: Zeitstempel der Messung 
-  * `interval`: Meßinterval (1h bei POI, 10min. bei CDC)
+  * `interval`: Meßinterval (1h bei POI, 1/2h bei CDC)
 * Sensorgruppe `air`: 
   * `pressure`: Stationsluftdruck QFE
   * `barometer`: auf Meeresniveau umgerechneter Luftdruck
@@ -461,6 +461,10 @@ Folgende Meßgrößen sind definiert, aber nicht immer verfügbar:
   * `station_id`
   * `MESS_DATUM_ENDE`
   * `quality_level`
+* außer POI:
+  * `latitude`: geographische Breite der Station
+  * `longitude`: geographische Länge der Station
+  * `altitude`: Höhe der Station
 
 `icon`, `icontitle`, `station_id` und `MESS_DATUM_ENDE` sind 
 Textfelder, die nur mit `.raw` benutzt werden können.

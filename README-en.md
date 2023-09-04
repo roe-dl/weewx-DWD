@@ -353,6 +353,10 @@ Belchertown skin.
   * `station_id`
   * `MESS_DATUM_ENDE`
   * `quality_level`
+* other than POI:
+  * `latitude`: latitude of the station
+  * `longitude`: longitude of the station
+  * `altitude': altitude of the station
 
 `icon`, `icontitle`, `station_id` and 'MESS_DATUM_ENDE` are string values,
 that require `.raw` to use them.
