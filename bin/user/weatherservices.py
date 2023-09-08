@@ -1591,27 +1591,35 @@ class DWDservice(StdService):
     def new_archive_record(self, event):
         ts = event.record.get('dateTime',time.time())
         for thread_name in self.threads:
-            # get collected data
-            datasource = self.threads[thread_name]['datasource']
-            if datasource=='POI':
-                data,interval = self.threads[thread_name]['thread'].get_data(ts)
-                if data: data = data[0]
-            elif datasource=='CDC':
-                data,interval,maxtime = self.threads[thread_name]['thread'].get_data(ts)
-                if data: data = data[maxtime]
-            elif datasource=='ZAMG':
-                data,interval = self.threads[thread_name]['thread'].get_data(ts)
-            elif datasource=='OPENMETEO':
-                data,interval = self.threads[thread_name]['thread'].get_data(ts)
-                if data: data = data[0]
-            elif datasource=='WBS':
-                data,interval = self.threads[thread_name]['thread'].get_data(ts)
-            else:
-                data = None
-            #print(thread_name,data,interval)
-            if data:
-                x = self._to_weewx(thread_name,data,event.record['usUnits'])
-                event.record.update(x)
+            try:
+                # get collected data
+                datasource = self.threads[thread_name]['datasource']
+                if datasource=='POI':
+                    data,interval = self.threads[thread_name]['thread'].get_data(ts)
+                    if data: data = data[0]
+                elif datasource=='CDC':
+                    data,interval,maxtime = self.threads[thread_name]['thread'].get_data(ts)
+                    if data: data = data[maxtime]
+                elif datasource=='ZAMG':
+                    data,interval = self.threads[thread_name]['thread'].get_data(ts)
+                elif datasource=='OPENMETEO':
+                    data,interval = self.threads[thread_name]['thread'].get_data(ts)
+                    if data: data = data[0]
+                elif datasource=='WBS':
+                    data,interval = self.threads[thread_name]['thread'].get_data(ts)
+                else:
+                    data = None
+                #print(thread_name,data,interval)
+                if data:
+                    if data.get('dateTime',(ts,'unixepoch','group_time'))[0]<(ts-10800):
+                        # no recent readings found
+                        for key in data:
+                            if key not in ('interval','latitude','longitude','altitude'):
+                                data[key] = None
+                    x = self._to_weewx(thread_name,data,event.record['usUnits'])
+                    event.record.update(x)
+            except (LookupError,TypeError,ValueError,ArithmeticError,OSError) as e:
+                logerr("error processing data of thread '%s' for the new archive record: %s %s" % (thread_name,e.__class__.__name__,e))
 
 
     def _to_weewx(self, thread_name, reply, usUnits):
