@@ -63,6 +63,7 @@ class DWDInstaller(ExtensionInstaller):
             files=[('bin/user', [
                 'bin/user/weatherservices.py',
                 'bin/user/weatherservicesutil.py',
+                'bin/user/weatherservicesdb.py',
                 'bin/user/weathercodes.py',
                 'bin/user/wildfire.py',
                 'bin/user/capwarnings.py',
