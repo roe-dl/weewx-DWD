@@ -90,6 +90,10 @@ except ImportError:
     # noinspection PyUnresolvedReferences
     import Queue as queue
 
+def sqlstr(x):
+    if x is None: return 'NULL'
+    return str(x)
+
 class DatabaseThread(threading.Thread):
 
     def __init__(self, name, db_queue, db_pth, log_success, log_failure):
@@ -143,11 +147,12 @@ class DatabaseThread(threading.Thread):
     def open_create_db(self, provider, interval):
         """ open or create the database for a given interval """
         if interval not in self.databases:
-            if provider.lower() in ('dwd','zamg','met'):
+            if provider.lower() in ('poi','cdc','zamg','openmeteo','met'):
                 file = 'weatherservices-readings-%s-%s.sdb' % (self.name,interval)
             else:
                 file = '%s.sdb' % provider
             file = os.path.join(self.db_pth, file)
+            logdbg("thread '%s': database file %s" % (self.name,file))
             try:
                 self.databases[interval] = sqlite3.connect(file)
                 self.filenames[interval] = file
@@ -169,7 +174,7 @@ class DatabaseThread(threading.Thread):
                     logerr("thread '%s': error closing database '%s' %s %s" % (self.name,self.filenames.get(interval,'N/A'),e.__class__.__name__,e))
 
 
-    def check_and_add_columns(self, con, data):
+    def check_and_add_columns(self, con, data, logtext):
         """ check if required columns exist """
         required_columns = [key for key in data[-1] if key not in ('dateTime','interval','usUnits')]
         logdbg("check_and_add_columns(): required_columns = %s" % required_columns)
@@ -187,14 +192,14 @@ class DatabaseThread(threading.Thread):
                 cur.execute('ALTER TABLE archive ADD COLUMN %s REAL' % column)
             con.commit()
             if self.log_success:
-                loginf("thread '%s': successfully added columns %s to database" % (self.name,new_columns))
+                loginf("thread '%s', %s: successfully added columns %s to database" % (self.name,logtext,new_columns))
             return True
         except sqlite3.Error as e:
             if self.log_failure:
-                logerr("thread '%s': error adding columns to database %s %s" % (self.name,e.__class__.__name__,e))
+                logerr("thread '%s', %s: error adding columns to database %s %s" % (self.name,logtext,e.__class__.__name__,e))
         return False
     
-    def update_data(self, con, data):
+    def update_data(self, con, data, logtext):
         """ insert or update 
         
             Args:
@@ -214,12 +219,12 @@ class DatabaseThread(threading.Thread):
                     reply = res.fetchone()
                     if reply and reply[0]:
                         # There is a row for that timestamp in the database.
-                        colvals = ','.join(['`%s`=%s' % (key,val) for key,val in el.items() if key not in ('dateTime','usUnits','interval')])
+                        colvals = ','.join(['`%s`=%s' % (key,sqlstr(val)) for key,val in el.items() if key not in ('dateTime','usUnits','interval',None)])
                         sql = 'UPDATE archive SET %s WHERE `dateTime`=%s' % (colvals,el['dateTime'])
                     else:
                         # There is no row for that timestamp in the database.
-                        cols = ','.join([key for key in el])
-                        vals = ','.join([str(el[key]) for key in el])
+                        cols = ','.join([key for key in el if key])
+                        vals = ','.join([sqlstr(el[key]) for key in el if key])
                         sql = 'INSERT INTO archive (%s) VALUES (%s)' % (cols,vals)
                     if __name__ == '__main__':
                         logdbg(sql)
@@ -231,15 +236,15 @@ class DatabaseThread(threading.Thread):
                             updated += 1
                     except sqlite3.Error as e:
                         if self.log_failure:
-                            logerr("thread '%s': error executing %s %s - %s" % (self.name,sql,e.__class__.__name__,e))
+                            logerr("thread '%s', %s: error executing %s %s - %s" % (self.name,logtext,sql,e.__class__.__name__,e))
             con.commit()
             if self.log_success:
-                loginf("thread '%s': Added %s record(s) and updated %s record(s)" % (self.name,inserted,updated))
+                loginf("thread '%s', %s: Added %s record%s and updated %s record%s" % (self.name,logtext,inserted,'' if inserted==1 else 's',updated,'' if updated==1 else 's'))
         except sqlite3.Error as e:
             if self.log_failure:
-                logerr("thread '%s': error updating data %s - %s" % (self.name,e.__class__.__name__,e))
+                logerr("thread '%s', %s: error updating data %s - %s" % (self.name,logtext,e.__class__.__name__,e))
     
-    def process_data(self, provider, prefix, data):
+    def process_data(self, datasource, prefix, data):
         """ process data
 
             Args:
@@ -250,10 +255,10 @@ class DatabaseThread(threading.Thread):
                 nothing
         """
         interval = weewx.units.convert(data[0].get('interval'),'minute')[0]
-        con = self.open_create_db(provider, interval)
+        con = self.open_create_db(datasource, interval)
         x = self.convert(prefix, data)
-        if con and self.check_and_add_columns(con, x):
-            self.update_data(con, x)
+        if con and self.check_and_add_columns(con, x, "prefix '%s'" % prefix):
+            self.update_data(con, x, "prefix '%s'" % prefix)
     
     def convert(self, prefix, data):
         """ convert data to the appropriate units and add prefix to the keys
@@ -268,16 +273,17 @@ class DatabaseThread(threading.Thread):
         new_data = []
         for el in data:
             x = {'usUnits':weewx.METRIC}
-            for key,val in el.items():
+            for key, val in el.items():
                 try:
                     if key!='usUnits':
                         new_val = weewx.units.convertStd(val,weewx.METRIC)[0]
                         if key in ('dateTime','interval'):
                             new_key = key
-                            new_val = int(new_val)
+                            new_val = weeutil.weeutil.to_int(new_val)
                         else:
                             new_key = prefix+key[0].upper()+key[1:]
-                            new_val = float(new_val)
+                            if val[1] and val[2]:
+                                new_val = weeutil.weeutil.to_float(new_val)
                         x[new_key] = new_val
                 except (AttributeError,TypeError,ValueError,LookupError) as e:
                     if self.log_failure:
@@ -302,17 +308,21 @@ def databasecreatethread(name, config_dict):
     sqlite_path = config_dict.get('DatabaseTypes',configobj.ConfigObj()).get('SQLite',configobj.ConfigObj()).get('SQLITE_ROOT','.')
     if weewx_path:
         sqlite_path = os.path.join(weewx_path,sqlite_path)
-    site_dict = weeutil.config.accumulateLeaves(config_dict.get('WeatherServices',configobj.ConfigObj()))
+    site_dict = weeutil.config.accumulateLeaves(config_dict.get('WeatherServices',configobj.ConfigObj()).get('current',configobj.ConfigObj()))
     log_success = weeutil.weeutil.to_bool(site_dict.get('log_success',True))
     log_failure = weeutil.weeutil.to_bool(site_dict.get('log_failure',True))
-
-    q = queue.Queue()
-    db = DatabaseThread(name,q,sqlite_path,log_success,log_failure)
-    db.start()
+    save = weeutil.weeutil.to_bool(site_dict.get('save',True))
+    if save:
+        q = queue.Queue()
+        db = DatabaseThread(name,q,sqlite_path,log_success,log_failure)
+        db.start()
+    else:
+        q = None
+        db = None
     return q, db
 
 
-def databaseput(q, provider, prefix, data):
+def databaseput(q, datasource, prefix, data):
     """ queue new data for saving
     
         Args:
@@ -323,18 +333,19 @@ def databaseput(q, provider, prefix, data):
         Returns:
             True in case of success, False otherwise
     """
-    try:
-        # data has to be a list of dicts
-        data[0].get('dateTime')
-        # append the new item to the queue
-        q.put((provider,prefix,data))
-        return True
-    except queue.Full:
-        # should not happen as long as the thread is alive
-        pass
-    except (AttributeError,TypeError,LookupError):
-        # one or more parameters are not appropriate
-        pass
+    if q:
+        try:
+            # data has to be a list of dicts
+            data[0].get('dateTime')
+            # append the new item to the queue
+            q.put((datasource, prefix, data))
+            return True
+        except queue.Full:
+            # should not happen as long as the thread is alive
+            pass
+        except (AttributeError,TypeError,LookupError):
+            # one or more parameters are not appropriate
+            pass
     return False
 
 
@@ -353,7 +364,7 @@ if __name__ == '__main__':
             })
             if len(x)>3:
                 del(x[0])
-            databaseput(q,'DWD','xx',x)
+            databaseput(q,'CDC','xx',x)
             print('---')
             time.sleep(5)
     except Exception as e:

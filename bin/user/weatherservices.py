@@ -225,6 +225,12 @@ try:
 except ImportError:
     has_wildfire = False
 
+try:
+    from user.weatherservicesdb import databasecreatethread, databaseput
+    has_db = True
+except ImportError:
+    has_db = False
+
 for group in weewx.units.std_groups:
     weewx.units.std_groups[group].setdefault('group_coordinate','degree_compass')
 
@@ -479,12 +485,12 @@ class DWDCDCthread(BaseThread):
         # precipitation
         'RWS_DAU_10':('rainDur','minute','group_deltatime'),
         'RWS_10':('rain','mm','group_rain'),
-        'RWS_IND_10':('rainIndex','',''),
+        'RWS_IND_10':('rainIndex',None,None),
         # solar
         'DS_10':('solarRad','J/cm^2','group_radiation'),
         'GS_10':('radiation','J/cm^2','group_radiation'),
         'SD_10':('sunshineDur','hour','group_deltatime'),
-        'LS_10':('LS_10','j/cm^2','group_radiation')}
+        'LS_10':('LS_10','J/cm^2','group_radiation')}
         
     DIRS = {
         'air':('air_temperature','10minutenwerte_TU_','_now.zip','Meta_Daten_zehn_min_tu_'),
@@ -590,6 +596,13 @@ class DWDCDCthread(BaseThread):
                             pass
                     if val!='eor':
                         col = DWDCDCthread.OBS.get(nm,(nm,None,None))
+                        if col[1]=='J/cm^2' and col[2]=='group_radiation':
+                            # energy during the last 10 minutes
+                            # As WeeWX uses power rather than energy, the
+                            # reading must be converted.
+                            if val is not None:
+                                val *= 16.6666666666666666666666666
+                            col = (col[0],'watt_per_meter_squared',col[2])
                         y[col[0]] = (val,col[1],col[2])
                 if 'windDir' in y:
                     y['windDir10'] = y['windDir']
@@ -1512,6 +1525,9 @@ class DWDservice(StdService):
                         logerr("error creating forecast thread '%s': %s %s" % (location,e.__class__.__name__,e))
                     continue
         
+        if has_db:
+            self.database_q, self.database_thread = databasecreatethread('DWDsave',config_dict)
+        
         if  __name__!='__main__':
             self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
             self.bind(weewx.NEW_ARCHIVE_RECORD, self.new_archive_record)
@@ -1576,6 +1592,8 @@ class DWDservice(StdService):
     
     def shutDown(self):
         """ shutdown threads """
+        if has_db:
+            self.database_thread.shutDown()
         for ii in self.threads:
             try:
                 self.threads[ii]['thread'].shutDown()
@@ -1598,8 +1616,11 @@ class DWDservice(StdService):
                     data,interval = self.threads[thread_name]['thread'].get_data(ts)
                     if data: data = data[0]
                 elif datasource=='CDC':
-                    data,interval,maxtime = self.threads[thread_name]['thread'].get_data(ts)
-                    if data: data = data[maxtime]
+                    data, interval, maxtime = self.threads[thread_name]['thread'].get_data(ts)
+                    if data:
+                        if has_db:
+                            databaseput(self.database_q,datasource,self.threads[thread_name]['prefix'],data) 
+                        data = data[maxtime]
                 elif datasource=='ZAMG':
                     data,interval = self.threads[thread_name]['thread'].get_data(ts)
                 elif datasource=='OPENMETEO':
