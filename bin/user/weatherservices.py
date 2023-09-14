@@ -165,6 +165,7 @@ import time
 import datetime
 import json
 import random
+import math
 
 if __name__ == '__main__':
 
@@ -233,6 +234,30 @@ except ImportError:
 
 for group in weewx.units.std_groups:
     weewx.units.std_groups[group].setdefault('group_coordinate','degree_compass')
+
+def barometer_DWD(p, temp_C, humidity, altitude_m):
+    """ calculate barometer out of pressure according to DWD formula
+    
+        Args:
+            p (float): station pressure
+            temp_C (float): outdoor temperature in degree Celsius
+            humidity (float): outdoor humidity in percent
+            altitude_m (float): station altitude in meters
+            
+        Returns:
+            float: barometer (same unit as p)
+    """
+    try:
+        # saturation vapor pressure
+        svp = 6.11213*math.exp(17.5043*temp_C/(241.2+temp_C))
+        # vapor pressure
+        vp = svp*humidity/100.0
+        # reduction factor
+        r = math.exp(9.80665/287.05*altitude_m/(273.15+temp_C+vp*0.12+0.0065*altitude_m/2))
+        # barometer
+        return p*r
+    except (TypeError,ValueError,LookupError,ArithmeticError):
+        return None
 
 # Cloud cover icons
 
@@ -618,6 +643,11 @@ class DWDCDCthread(BaseThread):
                         y['barometer'] = (weewx.wxformulas.sealevel_pressure_Metric(y['pressure'][0],self.alt,y['outTemp'][0]),'hPa','group_pressure')
                     except Exception as e:
                         logerr("thread '%s': barometer %s" % (self.name,e))
+                if 'pressure' in y and 'outTemp' in y and 'outHumidity' in y and self.alt is not None and 'barometerDWD' not in y:
+                    try:
+                        y['barometerDWD'] = (barometer_DWD(y['pressure'][0],y['outTemp'][0],y['outHumidity'][0],self.alt),'hPa','group_pressure')
+                    except Exception as e:
+                        logerr("thread '%s': barometerDWD %s" % (self.name,e))
                 x.append(y)
         return x
 
@@ -1531,6 +1561,12 @@ class DWDservice(StdService):
         if  __name__!='__main__':
             self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
             self.bind(weewx.NEW_ARCHIVE_RECORD, self.new_archive_record)
+        
+        # Initialization for calculating barometer according to DWD formula
+        self.station_altitude = weewx.units.convert(engine.stn_info.altitude_vt, 'meter')[0]
+        self.station_outTemp = None
+        self.station_outHumidity = None
+        weewx.units.obs_group_dict.setdefault('barometerDWD','group_pressure')
 
 
     def _create_poi_thread(self, thread_name, location, station_dict):
@@ -1599,10 +1635,29 @@ class DWDservice(StdService):
                 self.threads[ii]['thread'].shutDown()
             except Exception:
                 pass
+    
+    def remember(self, record):
+        try:
+            if 'outTemp' in record:
+                self.station_outTemp = weewx.units.convert(weewx.units.as_value_tuple(record, 'outTemp'), 'degree_C')[0]
+            if 'outHumidity' in record:
+                self.station_outHumidity = weewx.units.convert(weewx.units.as_value_tuple(record, 'outHumidity'), 'percent')[0]
+        except (LookupError,TypeError,ValueError,ArithmeticError,OSError):
+            pass
 
 
     def new_loop_packet(self, event):
-        for thread_name in self.threads:
+        #for thread_name in self.threads:
+        #    pass
+        # remember outTemp and outHumidty for later use
+        self.remember(event.packet)
+        # calculate barometer according to DWD formula
+        try:
+            if 'barometerDWD' not in event.packet and 'pressure' in event.packet:
+                p = weewx.units.convert(weewx.units.as_value_tuple(event.packet, 'pressure'), 'hPa')[0]
+                p_DWD = barometer_DWD(p,self.station_outTemp,self.station_outHumidity,self.station_altitude)
+                event.packet['barometerDWD'] = weewx.units.convertStd(weewx.units.ValueTuple(p_DWD,'hPa','group_pressure'),event.packet['usUnits'])[0]
+        except (LookupError,TypeError,ValueError,ArithmeticError,OSError):
             pass
             
     

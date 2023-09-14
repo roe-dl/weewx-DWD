@@ -424,12 +424,15 @@ Belchertown-Skin.
 Folgende Meßgrößen sind definiert, aber nicht immer verfügbar:
 * immer: 
   * `dateTime`: Zeitstempel der Messung 
-  * `interval`: Meßinterval (1h bei POI, 1/2h bei CDC)
+  * `interval`: Meßinterval (1h bei POI, 10min. bei CDC)
 * Sensorgruppe `air`: 
   * `pressure`: Stationsluftdruck QFE
   * `barometer`: auf Meeresniveau umgerechneter Luftdruck
     (bei POI im Datensatz enthalten, bei CDC berechnet,
     wenn `pressure` und `outTemp` verfügbar)
+  * `barometerDWD`: nach der Formel des DWD auf Meeresniveau 
+    umgerechneter Luftdruck (nur bei CDC und nur wenn
+    `pressure`, `outTemp` und `outHumidity` verfügbar)
   * `outTemp`: Lufttemperatur 2m über dem Boden 
   * `extraTemp1`: Lufttemperatur 5cm über dem Boden
   * `outHumidity`: relative Luftfeuchtigkeit

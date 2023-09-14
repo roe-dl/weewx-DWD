@@ -322,6 +322,9 @@ Belchertown skin.
   * `barometer`: barometer
     (bei POI im Datensatz enthalten, bei CDC berechnet,
     wenn `pressure` und `outTemp` verfügbar)
+  * `barometerDWD`: barometer according to the DWD formula
+    (CDC only, `pressure`, `outTemp`, and `outHumidity` 
+    required to calculate)
   * `outTemp`: air temperature at 2 m above the ground 
   * `extraTemp1`: air temperature at 5 cm above the ground
   * `outHumidity`: relative humidity
