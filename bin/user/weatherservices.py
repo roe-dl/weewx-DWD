@@ -284,6 +284,103 @@ def get_cloudcover(n):
     return icon
 
 
+class DWDXType(weewx.xtypes.XType):
+    """ derived types according to formulae used by the DWD """
+    
+    def __init__(self, altitude_vt):
+        self.altitude = weewx.units.convert(altitude_vt, 'meter')[0]
+        self.outTemp = None
+        self.outHumidity = None
+        self.outTemp_last_seen = 0
+        self.outHumidity_last_seen = 0
+        self.loop_seen = False
+    
+    
+    def get_scalar(self, obstype, record, dbmanager, **opt_dict):
+        if obstype=='barometerDWD':
+            return self.barometer(record)
+        else:
+            raise weewx.UnknownType(obstype)
+    
+    
+    def remember(self, record):
+        """ Remember outTemp and outHumidity for later use
+        
+            Use LOOP packets only. 
+        """
+        # Check if data available
+        if record is None: return
+        """
+        # Check if LOOP packet or ARCHIVE record
+        if 'interval' in record: 
+            # archive record
+            return
+        """
+        ts = record.get('dateTime',time.time())
+        # Check if temperature is in the record. If so, remember the reading.
+        try:
+            if 'outTemp' in record:
+                self.outTemp = weewx.units.convert(weewx.units.as_value_tuple(record, 'outTemp'), 'degree_C')[0]
+                self.outTemp_last_seen = ts
+                logdbg('barometerDWD outTemp %s' % self.outTemp)
+        except (LookupError,ValueError,TypeError,ArithmeticError):
+            pass
+        # Check if humidity is in the record. If so, remember the reading.
+        try:
+            if 'outHumidity' in record:
+                self.outHumidity = weewx.units.convert(weewx.units.as_value_tuple(record, 'outHumidity'), 'percent')[0]
+                self.outHumidity_last_seen = ts
+                logdbg('barometerDWD outHumidity %s' % self.outHumidity)
+        except (LookupError,ValueError,TypeError,ArithmeticError):
+            pass
+        # Check for outdated readings.
+        if self.outTemp_last_seen<(ts-300):
+            self.outTemp = None
+            logdbg('barometerDWD outTemp outdated')
+        if self.outHumidity_last_seen<(ts-300):
+            self.outHumidity = None
+            logdbg('barometerDWD outHumidity outdated')
+    
+    
+    def barometer(self, record):
+        """ barometer (relative air pressure) according to the DWD formula
+        
+            If `record` is an ARCHIVE record it should contain all the 
+            observation types necessary to calculate barometer. If not,
+            return `None`.
+            
+            If `record` is a LOOP packet, it may not contain all the 
+            required observation types. So calculate the value if there
+            is a `pressure` reading in the record and get temperature
+            and humidity out of previous LOOP packets if necessary.
+            if one of the required observation types is missing, raise
+            an `weewx.NoCalculate` exception, which means, that no
+            value is included in the LOOP packet. 
+        """
+        if record is None: 
+            raise weewx.CannotCalculate('barometerDWD')
+        try:
+            if 'interval' in record:
+                # archive record
+                p_abs = weewx.units.convert(weewx.units.as_value_tuple(record, 'pressure'), 'hPa')[0]
+                outTemp = weewx.units.convert(weewx.units.as_value_tuple(record, 'outTemp'), 'degree_C')[0]
+                outHumidity = weewx.units.convert(weewx.units.as_value_tuple(record, 'outHumidity'), 'percent')[0]
+                p_rel = barometer_DWD(p_abs,outTemp,outHumidity,self.altitude)
+                logdbg('barometerDWD ARCHIVE %s' % p_rel)
+            else:
+                # loop packet
+                if ('pressure' not in record or 
+                    self.outTemp is None or 
+                    self.outHumidity is None):
+                    raise weewx.NoCalculate('barometerDWD')
+                p_abs = weewx.units.convert(weewx.units.as_value_tuple(record, 'pressure'), 'hPa')[0]
+                p_rel = barometer_DWD(p_abs,self.outTemp,self.outHumidity,self.altitude)
+                logdbg('barometerDWD LOOP %s p_abs %s t %s rH %s alt %s' % (p_rel,p_abs,self.outTemp,self.outHumidity,self.altitude))
+            return weewx.units.convertStd(weewx.units.ValueTuple(p_rel,'hPa','group_pressure'), record['usUnits'])
+        except (LookupError,ValueError,TypeError,ArithmeticError):
+            raise weewx.CannotCalculate('barometerDWD')
+
+
 class DWDPOIthread(BaseThread):
 
     OBS = {
@@ -1564,8 +1661,9 @@ class DWDservice(StdService):
         
         # Initialization for calculating barometer according to DWD formula
         self.station_altitude = weewx.units.convert(engine.stn_info.altitude_vt, 'meter')[0]
-        self.station_outTemp = None
-        self.station_outHumidity = None
+        self.dwdxtype = DWDXType(engine.stn_info.altitude_vt)
+        if self.dwdxtype:
+            weewx.xtypes.xtypes.append(self.dwdxtype)
         weewx.units.obs_group_dict.setdefault('barometerDWD','group_pressure')
 
 
@@ -1628,6 +1726,8 @@ class DWDservice(StdService):
     
     def shutDown(self):
         """ shutdown threads """
+        if self.dwdxtype:
+            weewx.xtypes.xtypes.remove(self.dwdxtype)
         if has_db:
             self.database_thread.shutDown()
         for ii in self.threads:
@@ -1635,30 +1735,14 @@ class DWDservice(StdService):
                 self.threads[ii]['thread'].shutDown()
             except Exception:
                 pass
-    
-    def remember(self, record):
-        try:
-            if 'outTemp' in record:
-                self.station_outTemp = weewx.units.convert(weewx.units.as_value_tuple(record, 'outTemp'), 'degree_C')[0]
-            if 'outHumidity' in record:
-                self.station_outHumidity = weewx.units.convert(weewx.units.as_value_tuple(record, 'outHumidity'), 'percent')[0]
-        except (LookupError,TypeError,ValueError,ArithmeticError,OSError):
-            pass
 
 
     def new_loop_packet(self, event):
         #for thread_name in self.threads:
         #    pass
         # remember outTemp and outHumidty for later use
-        self.remember(event.packet)
-        # calculate barometer according to DWD formula
-        try:
-            if 'barometerDWD' not in event.packet and 'pressure' in event.packet:
-                p = weewx.units.convert(weewx.units.as_value_tuple(event.packet, 'pressure'), 'hPa')[0]
-                p_DWD = barometer_DWD(p,self.station_outTemp,self.station_outHumidity,self.station_altitude)
-                event.packet['barometerDWD'] = weewx.units.convertStd(weewx.units.ValueTuple(p_DWD,'hPa','group_pressure'),event.packet['usUnits'])[0]
-        except (LookupError,TypeError,ValueError,ArithmeticError,OSError):
-            pass
+        if self.dwdxtype:
+            self.dwdxtype.remember(event.packet)
             
     
     def new_archive_record(self, event):

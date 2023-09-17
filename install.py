@@ -34,11 +34,17 @@ class DWDInstaller(ExtensionInstaller):
             author_email="",
             data_services='user.weatherservices.DWDservice',
             config={
+                'StdWXCalculate': {
+                    'Calculations': {
+                        'barometerDWD':'software, loop'
+                    }
+                }
                 'DeutscherWetterdienst': {
                 }
                 'WeatherServices': {
                     'path': '/etc/weewx/skins/Belchertown/dwd',
                     'current': {
+                        'safe':'True'
                     },
                     'forecast': {
                         'icons':'replace_me',
