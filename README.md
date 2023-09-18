@@ -407,6 +407,18 @@ eingetragen werden:
 Zur Konfiguration, von welchen Stationen Daten abgerufen werden
 sollen, siehe Abschnitt "Konfiguration".
 
+Sollen Luftdruckwerte nach den Regeln des DWD mit den eigenen Meßwerten
+verglichen werden, kann die Größe `barometerDWD` auch für die eigene 
+Station aus `pressure`, `outTemp` und `outHumidity` berechnet werden.
+Dazu ist in `weewx.conf` einzutragen:
+
+```
+[StdWXCalculate]
+    [[Calculations]]
+        ...
+        barometerDWD = software, loop
+```
+
 ## Meßgrößen
 
 Die Namen der Meßgrößen entsprechen den Standardnamen, die WeeWX

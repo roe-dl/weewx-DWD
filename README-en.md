@@ -301,6 +301,18 @@ to `weewx.conf`:
 
 To specify the locations to get data for see section Configuration.
 
+If you want to compare barometer readings according to the DWD rules
+with your own measurements, you can have this extension calculate 
+`barometerDWD` out of `pressure`, `outTemp`, and `outHumidity` by
+adding the following line to `weewx.conf`:
+
+```
+[StdWXCalculate]
+    [[Calculations]]
+        ...
+        barometerDWD = software, loop
+```
+
 ### Observation types
 
 The observation types are named like the standard observation types of

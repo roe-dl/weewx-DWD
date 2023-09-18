@@ -235,8 +235,25 @@ except ImportError:
 for group in weewx.units.std_groups:
     weewx.units.std_groups[group].setdefault('group_coordinate','degree_compass')
 
+def saturation_vapor_pressure_DWD(temp_C):
+    """ Calculate saturation vapor pressure according to the DWD rules
+        
+        This function uses the Magnus formula with coefficients given in VuB2.
+        https://www.dwd.de/DE/leistungen/pbfb_verlag_vub/pdf_einzelbaende/vub_2_binaer_barrierefrei.pdf?__blob=publicationFile&v=4
+        
+        Args:
+            temp_C (float): temperature in degree Celsius
+        
+        Returns:
+            float: saturation vapor pressure in hPa
+    """
+    try:
+        return 6.11213*math.exp(17.5043*temp_C/(241.2+temp_C))
+    except (TypeError,ValueError,LookupError,ArithmeticError):
+        return None
+    
 def barometer_DWD(p, temp_C, humidity, altitude_m):
-    """ calculate barometer out of pressure according to DWD formula
+    """ Calculate barometer out of pressure according to DWD rules
     
         Args:
             p (float): station pressure
@@ -249,7 +266,7 @@ def barometer_DWD(p, temp_C, humidity, altitude_m):
     """
     try:
         # saturation vapor pressure
-        svp = 6.11213*math.exp(17.5043*temp_C/(241.2+temp_C))
+        svp = saturation_vapor_pressure_DWD(temp_C)
         # vapor pressure
         vp = svp*humidity/100.0
         # reduction factor
@@ -299,6 +316,8 @@ class DWDXType(weewx.xtypes.XType):
     def get_scalar(self, obstype, record, dbmanager, **opt_dict):
         if obstype=='barometerDWD':
             return self.barometer(record)
+        elif obstype=='outSVPDWD':
+            return self.saturationvaporpressure(record)
         else:
             raise weewx.UnknownType(obstype)
     
@@ -379,6 +398,19 @@ class DWDXType(weewx.xtypes.XType):
             return weewx.units.convertStd(weewx.units.ValueTuple(p_rel,'hPa','group_pressure'), record['usUnits'])
         except (LookupError,ValueError,TypeError,ArithmeticError):
             raise weewx.CannotCalculate('barometerDWD')
+    
+    def saturationvaporpressure(self, record):
+        if record is None: 
+            raise weewx.CannotCalculate('barometerDWD')
+        if 'outTemp' not in record:
+            raise weewx.NoCalculate('outSVPDWD')
+        try:
+            temp = weewx.units.convert(weewx.units.as_value_tuple(record, 'outTemp'), 'degree_C')[0]
+            svp = saturation_vapor_pressure_DWD(temp)
+            return weewx.units.convertStd(weewx.units.ValueTuple(svp,'hPa','group_pressure'), record['usUnits'])
+        except (LookupError,ValueError,TypeError,ArithmeticError):
+            raise weewx.CannotCalculate('barometerDWD')
+    
 
 
 class DWDPOIthread(BaseThread):
@@ -1665,6 +1697,7 @@ class DWDservice(StdService):
         if self.dwdxtype:
             weewx.xtypes.xtypes.append(self.dwdxtype)
         weewx.units.obs_group_dict.setdefault('barometerDWD','group_pressure')
+        weewx.units.obs_group_dict.setdefault('outSVPDWD','group_pressure')
 
 
     def _create_poi_thread(self, thread_name, location, station_dict):
