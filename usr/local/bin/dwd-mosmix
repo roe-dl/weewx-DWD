@@ -42,6 +42,7 @@ import urllib.parse
 from email.utils import formatdate
 import html.parser
 import zipfile
+import math
 
 # pyephem is used to determine night and day time for choosing the
 # appropriate weather icon
@@ -279,6 +280,7 @@ schema = [('dateTime','INTEGER NOT NULL PRIMARY KEY'),
           ('hour','INTEGER'),
           ('outTemp','REAL'),
           ('dewpoint','REAL'),
+          ('windchill','REAL'),
           ('windDir','REAL'),
           ('windSpeed','REAL'),
           ('windGust','REAL'),
@@ -305,7 +307,8 @@ dwd_schema_dict = {
     'DRR1':'rainDur',
     'SunD1':'sunshineDur',
     'VV':'visibility',
-    'ww':'ww'}
+    'ww':'ww',
+    'windchill':'windchill'}
 
 def dwd_obs_to_weewx_obs(x):
     if x is None: return None
@@ -777,6 +780,16 @@ class DwdMosmix(object):
             logerr('calculate_daynight: different array sizes')
         return daynights
         
+    def calculate_derived(self, placemark, timesteps):
+        """ calculate derived values """
+        windchill_C = []
+        try:
+            for idx,ts in enumerate(timesteps):
+                windchill_C.append(DwdMosmix.windchill(placemark['Forecast']['TTT'][idx],placemark['Forecast']['FF'][idx]))
+        except LookupError:
+            pass
+        placemark['Forecast']['windchill'] = windchill_C
+    
     @staticmethod
     def _temp_color(temp):
         """ temperature colors 
@@ -798,6 +811,24 @@ class DwdMosmix(object):
         if temp<=43.3:   return "rgba(255,104,104,1)"
         return "rgba(218,113,113,1)"
     
+    @staticmethod
+    def windchill(temp_C,windspeed_kmh):
+        """ Calculate windchill
+            
+            Source: https://de.wikipedia.org/wiki/Windchill
+            
+            Args:
+                temp_C (float): temperature in degrees Celsius
+                windspeed_kmh (float): wind speed in km/h
+            
+            Returns:
+                float: windchill in degrees Celsius
+        """
+        try:
+            return 13.12+0.6215*temp_C+(0.3965*temp_C-11.37)*math.pow(windspeed_kmh,0.16)
+        except (TypeError,ValueError,ArithmeticError):
+            return None
+        
     OBS_LABEL = {
         'ww':('','',''),
         'TTT':('<i class="wi wi-thermometer"></i>','Temperatur 2m','&deg;C'),
@@ -1914,7 +1945,7 @@ class DwdMosmix(object):
                     vals['ww3'] = get_ww(vals['ww'],0,None)
                 # which observations are available?
                 observations = []
-                for ii in ['PPPP','TTT','Td','T5cm','DD','FF','N','Neff','VV','R101']:
+                for ii in ['PPPP','TTT','Td','T5cm','DD','FF','N','Neff','VV','R101','windchill']:
                     if ii in placemark['Forecast']:
                         observations.append(ii)
                 if self.verbose:
@@ -1997,6 +2028,8 @@ class DwdMosmix(object):
                     'TTTmax':-273.15,
                     'Tdmin':1000.0,
                     'Tdmax':-273.15,
+                    'windchillmin':1000.0,
+                    'windchillmax':-273.15,
                     'count':0,
                     'SunD1':0.0,
                     'RR1c':0.0,
@@ -2010,12 +2043,19 @@ class DwdMosmix(object):
             days[day]['count'] += 1
             # min and max temperature
             ttt = vals.get('TTT')
-            if ttt and ttt>days[day]['TTTmax']: days[day]['TTTmax'] = ttt
-            if ttt and ttt<days[day]['TTTmin']: days[day]['TTTmin'] = ttt
+            if ttt is not None:
+                if ttt>days[day]['TTTmax']: days[day]['TTTmax'] = ttt
+                if ttt<days[day]['TTTmin']: days[day]['TTTmin'] = ttt
             # min and max dewpoint
             td = vals.get('Td')
-            if td and td>days[day]['Tdmax']: days[day]['Tdmax'] = td
-            if td and td<days[day]['Tdmin']: days[day]['Tdmin'] = td
+            if td is not None:
+                if td>days[day]['Tdmax']: days[day]['Tdmax'] = td
+                if td<days[day]['Tdmin']: days[day]['Tdmin'] = td
+            # min and max windchill
+            twc = vals.get('windchill')
+            if twc is not None:
+                if twc>days[day]['windchillmax']: days[day]['windchillmax'] = twc
+                if twc<days[day]['windchillmin']: days[day]['windchillmin'] = twc
             # max wind gust
             try:
                     fx1 = vals['FX1']
@@ -2117,6 +2157,7 @@ class DwdMosmix(object):
             loginf('process placemark id "%s" name "%s"' % (placemark.get('id'),placemark.get('description')))
         
         daynights = self.calculate_daynight(placemark,timesteps)
+        self.calculate_derived(placemark,timesteps)
 
         if ('daily' in output) or ('json' in output) or ('belchertown' in output):
             if self.verbose:
