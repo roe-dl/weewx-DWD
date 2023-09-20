@@ -2169,8 +2169,11 @@ class DwdMosmix(object):
                 for jj in placemark['Forecast']:
                     key = dwd_obs_to_weewx_obs(jj)
                     if key and key in self.dbm_columns():
-                        values[key] = placemark['Forecast'][jj][idx]
-                        if key=='rain': values[key] *= 0.1
+                        try:
+                            values[key] = placemark['Forecast'][jj][idx]
+                            if key=='rain': values[key] *= 0.1
+                        except LookupError:
+                            pass
                 try:
                     self.dbm_insert(cursor,values)
                 except sqlite3.Error as e:
