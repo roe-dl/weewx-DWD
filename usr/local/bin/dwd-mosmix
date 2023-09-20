@@ -814,6 +814,13 @@ class DwdMosmix(object):
     @staticmethod
     def windchill(temp_C,windspeed_kmh):
         """ Calculate windchill
+        
+            The windchill formula applies to temperatures below 10°C
+            and wind speeds above 5 km/h. Outside of that range even 
+            results above the air temperature are possible. Davis handles
+            this for their Vantage products by setting the windchill 
+            temperature to the air temperature if the formula gives a 
+            higher value. We do the same here.
             
             Source: https://de.wikipedia.org/wiki/Windchill
             
@@ -825,7 +832,28 @@ class DwdMosmix(object):
                 float: windchill in degrees Celsius
         """
         try:
-            return 13.12+0.6215*temp_C+(0.3965*temp_C-11.37)*math.pow(windspeed_kmh,0.16)
+            twc = 13.12+0.6215*temp_C+(0.3965*temp_C-11.37)*math.pow(windspeed_kmh,0.16)
+            return twc if twc<temp_C else temp_C
+        except (TypeError,ValueError,ArithmeticError):
+            return None
+    
+    @staticmethod
+    def heatindex(temp_C,hum):
+        """ Calculate heat index
+        
+            Source: https://de.wikipedia.org/wiki/Hitzeindex
+            
+            Args:
+                temp_C (float): temperature in degrees Celsius
+                hum (float): relative humidity in percent
+            
+            Returns:
+                float: heat index
+        """
+        try:
+            if temp_C<26.7 or hum<40:
+                raise ValueError('readings too low to calculate heat index')
+            return -8.784695+1.61139411*temp_C+2.338549*hum-0.14611605*temp_C*hum-1.2308094e-2*temp_C*temp_C-1.6424828e-2*hum*hum+2.211732e-3*temp_C*temp_C*hum+7.2546e-4*temp_C*hum*hum-3.582e-6*temp_C*temp_C*hum*hum
         except (TypeError,ValueError,ArithmeticError):
             return None
         
