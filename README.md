@@ -636,6 +636,17 @@ die tatsächlich genutzt werden, müssen die Abschnitte vorhanden sein.
 
 Beispiel:
 ```
+[StdWXCalculate]
+    [[Calculations]]
+        ...
+        barometerDWD = software, loop
+...
+[Engine]
+    [[Services]]
+        ...
+        data_services = ..., user.weatherservices.DWDservice
+        ...
+...
 [DeutscherWetterdienst]
     # Konfiguration für dwd-cap-warnings
     [[warning]]
@@ -1006,6 +1017,8 @@ weewx.units.obs_group_dict['rainDur'] = 'group_deltatime'
 Vorhersagegrößen:
 * `outTemp`: Lufttemperatur 2m
 * `dewpoint`: Taupunkt 2m
+* `windchill`: Windchill-Temperatur (aus `outTemp` und `windSpeed`
+  berechnet)
 * `windDir`: Windrichtung
 * `windSpeed`: Windgeschwindigkeit
 * `windGust`: Böengeschwindigkeit

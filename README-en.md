@@ -505,6 +505,17 @@ that directory.
 
 Example:
 ```
+[StdWXCalculate]
+    [[Calculations]]
+        ...
+        barometerDWD = software, loop
+...
+[Engine]
+    [[Services]]
+        ...
+        data_services = ..., user.weatherservices.DWDservice
+        ...
+...
 [DeutscherWetterdienst]
     # configuration for dwd-cap-warnings
     [[warning]]
@@ -793,6 +804,8 @@ weewx.units.obs_group_dict['rainDur'] = 'group_deltatime'
 Observation types in forecast:
 * `outTemp`: air temperature 2m above the ground
 * `dewpoint`: dewpoint 2m above the ground
+* `windchill`: windchill temperature (calculated out of `outTemp`
+  and `windSpeed`)
 * `windDir`: wind direction
 * `windSpeed`: wind speed
 * `windGust`: wind gust speed
