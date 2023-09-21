@@ -1019,6 +1019,10 @@ Vorhersagegrößen:
 * `dewpoint`: Taupunkt 2m
 * `windchill`: Windchill-Temperatur (aus `outTemp` und `windSpeed`
   berechnet)
+* `heatindex`: Hitzeindex (aus `outTemp` und `dewpoint` berechnet,
+  nur bei Temperaturen ab 26,7°C und Luftfeuchte ab 40%)
+* `outHumidity`: relative Luftfeuchte (aus `outTemp` und `dewpoint`
+  berechnet)
 * `windDir`: Windrichtung
 * `windSpeed`: Windgeschwindigkeit
 * `windGust`: Böengeschwindigkeit

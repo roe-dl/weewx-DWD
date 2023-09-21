@@ -280,7 +280,9 @@ schema = [('dateTime','INTEGER NOT NULL PRIMARY KEY'),
           ('hour','INTEGER'),
           ('outTemp','REAL'),
           ('dewpoint','REAL'),
+          ('outHumidity','REAL'),
           ('windchill','REAL'),
+          ('heatindex','REAL'),
           ('windDir','REAL'),
           ('windSpeed','REAL'),
           ('windGust','REAL'),
@@ -308,7 +310,12 @@ dwd_schema_dict = {
     'SunD1':'sunshineDur',
     'VV':'visibility',
     'ww':'ww',
-    'windchill':'windchill'}
+    # derived observation types
+    'windchill':'windchill',
+    'heatindex':'heatindex',
+    'spread':'outSpread',
+    'svp':'outSVP',
+    'humidity':'outHumidity'}
 
 def dwd_obs_to_weewx_obs(x):
     if x is None: return None
@@ -783,12 +790,48 @@ class DwdMosmix(object):
     def calculate_derived(self, placemark, timesteps):
         """ calculate derived values """
         windchill_C = []
+        spread_list = []
+        svp_list = []
+        rh_list = []
+        heatindex_list = []
         try:
+            suffix = ''
             for idx,ts in enumerate(timesteps):
-                windchill_C.append(DwdMosmix.windchill(placemark['Forecast']['TTT'][idx],placemark['Forecast']['FF'][idx]))
+                # air temperature
+                try:
+                    ttt = placemark['Forecast']['TTT'+suffix][idx]
+                except LookupError:
+                    ttt = None
+                # dewpoint
+                try:
+                    td = placemark['Forecast']['Td'+suffix][idx]
+                except LookupError:
+                    td = None
+                # wind speed
+                try:
+                    ff = placemark['Forecast']['FF'+suffix][idx]
+                except LookupError:
+                    ff = None
+                # calculate derived types
+                windchill_C.append(DwdMosmix.windchill(ttt,ff))
+                spread_list.append(DwdMosmix.spread(ttt,td))
+                svp_ttt = DwdMosmix.saturation_vapor_pressure_DWD(ttt)
+                svp_td = DwdMosmix.saturation_vapor_pressure_DWD(td)
+                # https://www.wetterochs.de/wetter/feuchte.html
+                try:
+                    rh = 100*svp_td/svp_ttt
+                except (TypeError,ValueError,ArithmeticError):
+                    rh = None
+                svp_list.append(svp_ttt)
+                rh_list.append(rh)
+                heatindex_list.append(DwdMosmix.heatindex(ttt,rh))
         except LookupError:
             pass
-        placemark['Forecast']['windchill'] = windchill_C
+        placemark['Forecast']['windchill'+suffix] = windchill_C
+        placemark['Forecast']['spread'+suffix] = spread_list
+        placemark['Forecast']['svp'+suffix] = svp_list
+        placemark['Forecast']['humidity'+suffix] = rh_list
+        placemark['Forecast']['heatindex'+suffix] = heatindex_list
     
     @staticmethod
     def _temp_color(temp):
@@ -810,6 +853,15 @@ class DwdMosmix(object):
         if temp<=35:     return "rgba(255,69,69,1)"
         if temp<=43.3:   return "rgba(255,104,104,1)"
         return "rgba(218,113,113,1)"
+    
+    @staticmethod
+    def _heatindex_color(heatindex):
+        if heatindex is None: return None
+        if heatindex>54.0: return "#FF0000"
+        if heatindex>40.0: return "#FFA500"
+        if heatindex>32.0: return "#FFD700"
+        if heatindex>27.0: return "#CEB862"
+        return None
     
     @staticmethod
     def windchill(temp_C,windspeed_kmh):
@@ -835,6 +887,31 @@ class DwdMosmix(object):
             twc = 13.12+0.6215*temp_C+(0.3965*temp_C-11.37)*math.pow(windspeed_kmh,0.16)
             return twc if twc<temp_C else temp_C
         except (TypeError,ValueError,ArithmeticError):
+            return None
+    
+    @staticmethod
+    def spread(temp_C,dewpoint_C):
+        try:
+            return temp_C-dewpoint_C
+        except (TypeError,ValueError,ArithmeticError):
+            return None
+
+    @staticmethod
+    def saturation_vapor_pressure_DWD(temp_C):
+        """ Calculate saturation vapor pressure according to the DWD rules
+        
+            This function uses the Magnus formula with coefficients given in VuB2.
+            https://www.dwd.de/DE/leistungen/pbfb_verlag_vub/pdf_einzelbaende/vub_2_binaer_barrierefrei.pdf?__blob=publicationFile&v=4
+        
+            Args:
+                temp_C (float): temperature in degree Celsius
+        
+            Returns:
+                float: saturation vapor pressure in hPa
+        """
+        try:
+            return 6.11213*math.exp(17.5043*temp_C/(241.2+temp_C))
+        except (TypeError,ValueError,LookupError,ArithmeticError):
             return None
     
     @staticmethod
@@ -885,7 +962,9 @@ class DwdMosmix(object):
         'RR1c':('<i class="wi wi-umbrella"></i>','Niederschlag','mm'),
         'Rd10':('<i class="wi wi-umbrella"></i>','Wahrscheinlichkeit','%'),
         'R101':('<i class="wi wi-umbrella"></i>','Wahrscheinlichkeit','%'),
-        'VV':('VV','Sichtweite','m')}
+        'VV':('VV','Sichtweite','m'),
+        'heatindex':('HI','Hitzeindex','&deg;C'),
+        'windchill':('WCT','Windchill','&deg;C')}
 
     def write_html(self, placemark, timesteps, daynights, obstypes, dryrun, range=None, lang='de'):
         """ create HTML hourly """
@@ -915,6 +994,24 @@ class DwdMosmix(object):
                     location.elevation = geo[2]
                 except Exception as e:
                     logerr('Observer: %s' % e)
+            """
+            has_heatindex = False
+            start_ct = 0
+            """
+            for idx,ts in enumerate(timesteps):
+                if ts<now or day_ct<start_day:
+                    start_ct += 1
+                    continue
+                if idx>=count+start_ct: 
+                    break
+                #TODO
+                #if day_ct>=end_day: 
+                #    break
+                try:
+                    if placemark['Forecast']['heatindex'][idx] is not None:
+                        has_heatindex = True
+                except LookupError:
+                    pass
             """
             s = ""
             if self.horizontal_table:
@@ -1134,6 +1231,13 @@ class DwdMosmix(object):
                 station_dict = self.stations_dict[placemark['id']]
             except Exception:
                  station_dict = configobj.ConfigObj()
+            has_windchill = False
+            has_heatindex = False
+            for day,item in days.items():
+                if item.get('heatindex') is not None:
+                    has_heatindex = True
+                if item.get('TTTmin') is not None and item['TTTmin']<=10 and item.get('windchill') is not None:
+                    has_windchill = True
             # HTML 
             s = ""
             if self.show_placemark:
@@ -1155,7 +1259,10 @@ class DwdMosmix(object):
                 elif 'observations_daily' in station_dict:
                     obs = station_dict['observations_daily']
                 else:
-                    obs = ['ww','TTTmax','TTTmin','FFavg','DDavg','RR1c','Rd10','PPPPavg','Neffavg','RSunD','Rad1hsum']
+                    obs = ['ww','TTTmax','TTTmin']
+                    if has_heatindex: obs += ['heatindex']
+                    if has_windchill: obs += ['windchill']
+                    obs += ['FFavg','DDavg','RR1c','Rd10','PPPPavg','Neffavg','RSunD','Rad1hsum']
                 for ii in obs:
                     if ii=='ww':
                         s += '<tr class="icons">'
@@ -1190,10 +1297,16 @@ class DwdMosmix(object):
                                 color = ''
                                 if ii[0:3]=='TTT': color = ' style="color:%s"' % DwdMosmix._temp_color(days[day][ii])
                                 if prec_color: color = ' style="color:%s"' % prec_color
+                                if ii=='heatindex' and days[day][ii] is not None and days[day][ii]>=27.0:
+                                    color = ' style="color:%s"' % DwdMosmix._heatindex_color(days[day][ii])
                                 val = ('%.*f' % (dp,days[day].get(ii,float("NaN")))).replace('.',',')
+                                if ii=='windchill' and days[day]['TTTmin']>10:
+                                    val = '&ndash;'
                                 s += '<td%s%s>%s</td>' % (htmlclass,color,val)
                         except (ValueError,TypeError):
-                            s += '<td>%s</td>' % days[day].get(ii,'')
+                            val = days[day].get(ii,'')
+                            if val is None: val = '&ndash;'
+                            s += '<td%s>%s</td>' % (htmlclass,val)
                     s += '</tr>\n'
                 # PV energy if configured
                 if 'pv_factor' in station_dict:
@@ -2056,8 +2169,8 @@ class DwdMosmix(object):
                     'TTTmax':-273.15,
                     'Tdmin':1000.0,
                     'Tdmax':-273.15,
-                    'windchillmin':1000.0,
-                    'windchillmax':-273.15,
+                    'windchill':1000.0,
+                    'heatindex':-273.15,
                     'count':0,
                     'SunD1':0.0,
                     'RR1c':0.0,
@@ -2079,11 +2192,14 @@ class DwdMosmix(object):
             if td is not None:
                 if td>days[day]['Tdmax']: days[day]['Tdmax'] = td
                 if td<days[day]['Tdmin']: days[day]['Tdmin'] = td
-            # min and max windchill
+            # min windchill
             twc = vals.get('windchill')
             if twc is not None:
-                if twc>days[day]['windchillmax']: days[day]['windchillmax'] = twc
-                if twc<days[day]['windchillmin']: days[day]['windchillmin'] = twc
+                if twc<days[day]['windchill']: days[day]['windchill'] = twc
+            # max heatindex
+            heatindex = vals.get('heatindex')
+            if heatindex is not None:
+                if heatindex>days[day]['heatindex']: days[day]['heatindex'] = heatindex
             # max wind gust
             try:
                     fx1 = vals['FX1']
@@ -2147,6 +2263,8 @@ class DwdMosmix(object):
             else:
                 days[day]['icon'] = self.icon_pth+'/'+wwcode[self.iconset]+('.png' if self.iconset==6 else '')
             days[day]['icontitle'] = wwcode[2] if lang=='en' else wwcode[1]
+            if days[day]['heatindex']==-273.15:
+                days[day]['heatindex'] = None
         return days
 
 

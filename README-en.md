@@ -806,6 +806,9 @@ Observation types in forecast:
 * `dewpoint`: dewpoint 2m above the ground
 * `windchill`: windchill temperature (calculated out of `outTemp`
   and `windSpeed`)
+* `heatindex`: heat index (calculated out of `outTemp` and `dewpoint`)
+* `outHumidity`: relative humidity ( calculated out of `outTemp` and
+  `dewpoint`)
 * `windDir`: wind direction
 * `windSpeed`: wind speed
 * `windGust`: wind gust speed
