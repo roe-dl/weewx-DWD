@@ -963,6 +963,7 @@ class DwdMosmix(object):
         'Rd10':('<i class="wi wi-umbrella"></i>','Wahrscheinlichkeit','%'),
         'R101':('<i class="wi wi-umbrella"></i>','Wahrscheinlichkeit','%'),
         'VV':('VV','Sichtweite','m'),
+        'humidity':('<i class="wi wi-humidity"></i>','Luftfeuchte','%'),
         'heatindex':('HI','Hitzeindex','&deg;C'),
         'windchill':('WCT','Windchill','&deg;C')}
 
@@ -2333,7 +2334,7 @@ class DwdMosmix(object):
             if 'hourly' in output:
                 if self.verbose:
                     loginf('output hourly forecast')
-                self.write_html(placemark,timesteps,daynights,['TTT','FF','DD','RR1c','R101','PPPP','Rad1h'],dryrun,range=11,lang=lang)
+                self.write_html(placemark,timesteps,daynights,['TTT','humidity','FF','DD','RR1c','R101','PPPP','Rad1h'],dryrun,range=11,lang=lang)
         
         if 'json' in output:
             if self.verbose:

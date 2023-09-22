@@ -64,7 +64,7 @@ sudo apt-get install python3-geopy
 Herunterladen des Paketes von Github:
 
 ```
-wget -O weewx-snmp.zip https://github.com/roe-dl/weewx-DWD/archive/master.zip
+wget -O weewx-dwd.zip https://github.com/roe-dl/weewx-DWD/archive/master.zip
 ```
 
 Packen Sie die ZIP-Datei aus.
