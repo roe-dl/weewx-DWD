@@ -1808,7 +1808,7 @@ class DWDservice(StdService):
                         # no recent readings found
                         for key in data:
                             if key not in ('interval','latitude','longitude','altitude'):
-                                data[key] = None
+                                data[key] = weewx.units.ValueTuple(None,data[key][1],data[key][2])
                     x = self._to_weewx(thread_name,data,event.record['usUnits'])
                     event.record.update(x)
             except (LookupError,TypeError,ValueError,ArithmeticError,OSError) as e:

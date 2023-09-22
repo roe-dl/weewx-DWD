@@ -287,7 +287,7 @@ class DatabaseThread(threading.Thread):
                         x[new_key] = new_val
                 except (AttributeError,TypeError,ValueError,LookupError) as e:
                     if self.log_failure:
-                        logerr("thread '%s': error converting %s %s - %s" % (self.name,key,e.__class__.__name__,e))
+                        logerr("thread '%s': error converting %s %s %s - %s" % (self.name,prefix,key,e.__class__.__name__,e))
             new_data.append(x)
         logdbg('convert(): %s' % new_data)
         return new_data
