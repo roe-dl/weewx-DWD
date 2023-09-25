@@ -191,6 +191,7 @@ Options:
   --lang=ISO639         Forecast language. Default 'de'
   --aqi-source=PROVIDER Provider for Belchertown AQI section
   --hide-placemark      No placemark caption over forecast table
+  --hours=COUNT         amount of hours in hourly forecast, default 11
   --open-meteo=MODEL    use Open-Meteo API instead of DWD MOSMIX
 
   Output and logging options:
@@ -841,8 +842,9 @@ Bitte "P0291" durch den gewünschten Stationscode ersetzen.
   </div>
 ```
 
+Das Aussehen der Vorhersagen kann mittels CSS beeinflußt werden.
 Dazu muß die Stylesheet-Datei ergänzt werden, bei der Belchertown-Skin
-wäre das `custom.css`:
+wäre das `custom.css`, beispielsweise wie folgt:
 ```
 .dwdforecasttable {
     line-height: 1.0;
@@ -866,11 +868,30 @@ wäre das `custom.css`:
 .dark .dwdforecasttable td.weekend {
     background-color: #333;
 }
+/* scrollbar for 48-hour hourly forecast */
+.dwdforecast-horizontal.dwdforecast-hourly48 {
+    /* prevent vertical scrollbar */
+    padding: 5px;
+    /* switch on horizontal scrollbar */
+    overflow-x: scroll;
+}
 ```
 
 Beispiel für eine Wettervorhersage:
 
 <img src="MOSMIX-Vorhersage.png" width="700px"/>
+
+Die folgende Tabelle richtet sich an Nutzer, die sich mit CSS auskennen
+und das Aussehen der Vorhersage damit gestalten wollen, und erklärt,
+welche CSS-Klassen gesetzt werden:
+
+CSS-Klasse | Verwendung 
+-----------|------------
+`.dwdforecasttable` | alle Tabellen, gesetzt für `<table>`
+`.dwdforecasttable-horizontal` | beim umschließenden `<div>` der horizontal ausgerichteten Tabellen (für PC)
+`.dwdforecasttable-vertical` | beim umschließenden `<div>` der vertikal ausgerichteten Tabellen (für Telefon)
+`.weekend` | bei der täglichen Vorhersage die Felder, die Wochenendtage betreffen
+`.dwdforecasttable-hourlyXX` | beim umschließenden `<div>` der stündlichen Vorhersage, wobei `XX` durch die Anzahl der Tage zu ersetzen ist, die die Vorhersage umfaßt
 
 ## Waldbrandgefahrenstufe
 

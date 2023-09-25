@@ -113,6 +113,7 @@ Options:
   --lang=ISO639         Forecast language. Default 'de'
   --aqi-source=PROVIDER Provider for Belchertown AQI section
   --hide-placemark      No placemark caption over forecast table
+  --hours=COUNT         amount of hours in hourly forecast, default 11
   --open-meteo=MODEL    use Open-Meteo API instead of DWD MOSMIX
 
   Output and logging options:
@@ -677,11 +678,29 @@ For the Belchertown skin that would be in `custom.css`
 .dark .dwdforecasttable td.weekend {
     background-color: #333;
 }
+/* scrollbar for 48-hour hourly forecast */
+.dwdforecast-horizontal.dwdforecast-hourly48 {
+    /* prevent vertical scrollbar */
+    padding: 5px;
+    /* switch on horizontal scrollbar */
+    overflow-x: scroll;
+}
 ```
 
 Example for a forecast:
 
 <img src="MOSMIX-Vorhersage.png" width="700px"/>
+
+The following table is intended for experienced users, who want to style
+the forecast using CSS:
+
+CSS class | Usage
+----------|------
+`.dwdforecasttable` | all forecast tables, set for `<table>`
+`.dwdforecasttable-horizontal` | at the surrounding `<div>` of horizontal oriented tables
+`.dwdforecasttable-vertical` | at the surrounding `<div>` of vertical oriented tables
+`.weekend` | for the daily forecast at fields describing data of weekend days
+`.dwdforecasttable-hourlyXX` | at the surrounding `<div>` of hourly forecasts, where `XX` is the amount of hours in the forecast
 
 ## Forecast in Belchertown skin
 

@@ -518,6 +518,7 @@ class DwdMosmix(object):
         self.show_obs_symbols = forecast_dict.get('show_obs_symbols',True)
         self.show_obs_description = forecast_dict.get('show_obs_description',False)
         self.show_placemark = forecast_dict.get('show_placemark',True)
+        self.hourly_hours = int(forecast_dict.get('hourly_hours',11))
         # orientation of the HTML table
         orientation = forecast_dict.get('orientation','h,v')
         if not isinstance(orientation,list):
@@ -528,9 +529,9 @@ class DwdMosmix(object):
         self.vertical_table = 'v' in orientation
         # classes to include in <table> and surroundng <div> tag
         self.horizontal_table_classes = 'dwdforecasttable'
-        self.horizontal_div_classes = None
+        self.horizontal_div_classes = 'dwdforecast-horizontal'
         self.vertical_table_classes = 'dwdforecasttable'
-        self.vertical_div_classes = None
+        self.vertical_div_classes = 'dwdforecast-vertical'
         # visibility according to viewport size
         class_hidden = 'hidden-xs'
         class_visible = 'visible-xs-block'
@@ -979,6 +980,10 @@ class DwdMosmix(object):
             end_day = 9999
             count = range if range else 9999
         now = time.time()*1000
+        if count<9999:
+            range_div_class = "dwdforecast-hourly%d" % count
+        else:
+            range_div_class = "dwdforecast-hourly"
         # config
         symbols = self.show_obs_symbols and obstypes
         desc = self.show_obs_description or not obstypes
@@ -1017,7 +1022,7 @@ class DwdMosmix(object):
             s = ""
             if self.horizontal_table:
                 if self.horizontal_div_classes:
-                    s += '<div class="%s">\n' % self.horizontal_div_classes
+                    s += '<div class="%s %s">\n' % (self.horizontal_div_classes,range_div_class)
                 s += '<table class="%s">' % self.horizontal_table_classes
                 start_ct = 0
                 old_wd = None
@@ -1122,7 +1127,7 @@ class DwdMosmix(object):
             # HTML for phones
             if self.vertical_table:
                 if self.vertical_div_classes:
-                    s += '<div class="%s">\n' % self.vertical_div_classes
+                    s += '<div class="%s %s">\n' % (self.vertical_div_classes,range_div_class)
                 s += '<table class="%s">' % self.vertical_table_classes
                 s += '<tr><th></th><th>ww</th>'
                 for ii in ['TTT','FF','RR1c','PPPP']:
@@ -2334,7 +2339,7 @@ class DwdMosmix(object):
             if 'hourly' in output:
                 if self.verbose:
                     loginf('output hourly forecast')
-                self.write_html(placemark,timesteps,daynights,['TTT','humidity','FF','DD','RR1c','R101','PPPP','Rad1h'],dryrun,range=11,lang=lang)
+                self.write_html(placemark,timesteps,daynights,['TTT','humidity','FF','DD','RR1c','R101','PPPP','Rad1h'],dryrun,range=self.hourly_hours,lang=lang)
         
         if 'json' in output:
             if self.verbose:
@@ -2650,6 +2655,9 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
                       action="store_true",
                       default=None,
                       help="no placemark caption over forecast table")
+    parser.add_option("--hours", dest="hours", type=int,
+                      default=None,
+                      help="count of hours in hourly forecast")
     parser.add_option("--open-meteo", dest="openmeteo",
                       metavar="MODEL",
                       default=None,
@@ -2747,6 +2755,8 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
         config['WeatherServices']['Belchertown']['aqi_source'] = options.aqisource
     if options.hideplacemark is not None:
         config[ws]['forecast']['show_placemark'] = not options.hideplacemark
+    if options.hours is not None:
+        config[ws]['forecast']['hourly_hours'] = int(options.hours)
 
     dwd = DwdMosmix(config,options.verbose)
 
