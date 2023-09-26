@@ -238,8 +238,9 @@ Dateien erzeugt werden sollen, den der Belchertown-Skin oder den
 des Deutschen Wetterdienstes.
 
 Die Spracheinstellung betrifft nur die Wochentage, bei Englisch auch
-die Tooltips der Wettersymbole. Verfügbar ist `de`, `en`, `fr`, `it`
-und `cz`.
+die Tooltips der Wettersymbole. Verfügbar ist `de` (Deutsch), 
+`en` (Englisch), `fr` (Französisch), `it` (Italienisch),
+`cz` (Tschechisch) und `pl` (Polnisch).
 
 Wenn die Daten von Open-Meteo anstelle vom DWD bezogen werden, stehen
 folgende Modelle zur Auswahl:
@@ -888,6 +889,9 @@ welche CSS-Klassen gesetzt werden:
 CSS-Klasse | Verwendung 
 -----------|------------
 `.dwdforecasttable` | alle Tabellen, gesetzt für `<table>`
+`.dwdforecasttable-symbol` | Tabellenkopffeld, das das Symbol des Wetterelements enthält
+`.dwdforecasttable-description` | Tabellenkopffeld, das die Benennung des Wetterelements enthält
+`.dwdforecasttable-unit` | Tabellenkopffeld, das die Maßeinheit enthält
 `.dwdforecasttable-horizontal` | beim umschließenden `<div>` der horizontal ausgerichteten Tabellen (für PC)
 `.dwdforecasttable-vertical` | beim umschließenden `<div>` der vertikal ausgerichteten Tabellen (für Telefon)
 `.weekend` | bei der täglichen Vorhersage die Felder, die Wochenendtage betreffen

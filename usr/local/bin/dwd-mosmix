@@ -532,6 +532,9 @@ class DwdMosmix(object):
         self.horizontal_div_classes = 'dwdforecast-horizontal'
         self.vertical_table_classes = 'dwdforecasttable'
         self.vertical_div_classes = 'dwdforecast-vertical'
+        self.symbols_td_classes = 'dwdforecast-symbol'
+        self.description_td_classes = 'dwdforecast-description'
+        self.unit_td_classes = 'dwdforecast-unit'
         # visibility according to viewport size
         class_hidden = 'hidden-xs'
         class_visible = 'visible-xs-block'
@@ -1027,9 +1030,12 @@ class DwdMosmix(object):
                 start_ct = 0
                 old_wd = None
                 # timestamp
-                s += '<tr><td></td>'
-                if symbols: s += '<td></td>'
-                if desc: s += '<td></td>'
+                s += '<tr>'
+                if symbols: 
+                    s += '<td class="%s"></td>' % self.symbols_td_classes
+                if desc: 
+                    s += '<td class="%s"></td>' % self.description_td_classes
+                s += '<td class="%s"></td>' % self.unit_td_classes
                 old_day_ct = -1
                 for idx,ii in enumerate(timesteps):
                     # day of week
@@ -1063,9 +1069,12 @@ class DwdMosmix(object):
                     old_day_ct = day_ct
                 s += '</tr>\n'
                 # weather icon
-                s += '<tr class="icons"><td></td>'
-                if symbols: s += '<td></td>'
-                if desc: s += '<td></td>'
+                s += '<tr class="icons">'
+                if symbols: 
+                    s += '<td class="%s"></td>' % self.symbols_td_classes
+                if desc: 
+                    s += '<td class="%s"></td>' % self.description_td_classes
+                s += '<td class="%s"></td>' % self.unit_td_classes
                 for idx,ii in enumerate(timesteps):
                     if idx<start_ct: continue
                     if idx>=count+start_ct: break
@@ -1094,16 +1103,16 @@ class DwdMosmix(object):
                         s += '<tr>'
                     # observation type symbol column
                     if symbols:
-                        s += '<td style="text-align:left%s" title="%s">%s</td>' % (color,self.OBS_LABEL.get(ii,('',ii,''))[1],self.OBS_LABEL.get(ii,(ii,'',''))[0])
+                        s += '<td class="%s" style="text-align:left%s" title="%s">%s</td>' % (self.symbols_td_classes,color,self.OBS_LABEL.get(ii,('',ii,''))[1],self.OBS_LABEL.get(ii,(ii,'',''))[0])
                     # observation type description column
                     if desc:
                         if obstypes:
-                            s += '<td>%s</td>' % self.OBS_LABEL.get(ii,('',ii,''))[1]
+                            s += '<td class="%s">%s</td>' % (self.description_td_classes,self.OBS_LABEL.get(ii,('',ii,''))[1])
                         else:
-                            s += '<td>%s</td>' % ii
+                            s += '<td class="%s">%s</td>' % (self.description_td_classes,ii)
                     # measuring unit column
                     color = ' style="color:%s"' % prec_color if prec_color else ''
-                    s += '<td%s>%s</td>' % (color,self.OBS_LABEL.get(ii,(ii,'',''))[2])
+                    s += '<td class="%s"%s>%s</td>' % (self.unit_td_classes,color,self.OBS_LABEL.get(ii,(ii,'',''))[2])
                     # values columns
                     for idx,jj in enumerate(placemark['Forecast'].get(ii,[])):
                         if idx<start_ct: continue
@@ -1129,10 +1138,10 @@ class DwdMosmix(object):
                 if self.vertical_div_classes:
                     s += '<div class="%s %s">\n' % (self.vertical_div_classes,range_div_class)
                 s += '<table class="%s">' % self.vertical_table_classes
-                s += '<tr><th></th><th>ww</th>'
+                s += '<tr><th></th><th class="%s">ww</th>' % self.symbols_td_classes
                 for ii in ['TTT','FF','RR1c','PPPP']:
                     color = ' style="color:#7cb5ec"' if ii=='RR1c' else ''
-                    s += '<th%s>%s</th>' % (color,self.OBS_LABEL[ii][0])
+                    s += '<th class="%s"%s>%s</th>' % (self.symbols_td_classes,color,self.OBS_LABEL.get(ii,(ii,'',''))[0])
                 s += '</tr>'
                 old_day_ct = -1
                 for idx,ii in enumerate(timesteps):
@@ -1253,9 +1262,12 @@ class DwdMosmix(object):
                 if self.horizontal_div_classes:
                     s += '<div class="%s">\n' % self.horizontal_div_classes
                 s += '<table class="%s">' % self.horizontal_table_classes
-                s += '<tr><td></td>'
-                if symbols: s += '<td></td>'
-                if desc: s += '<td></td>'
+                s += '<tr>'
+                if symbols:
+                    s += '<td class="%s"></td>' % self.symbols_td_classes
+                if desc:
+                    s += '<td class="%s"></td>' % self.description_td_classes
+                s += '<td class="%s"></td>' % self.unit_td_classes
                 for day in days:
                     htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
                     s += '<td%s><strong>%s</strong><br />%s</td>' % (htmlclass,WEEKDAY[lang][days[day]['weekday']],day)
@@ -1281,14 +1293,14 @@ class DwdMosmix(object):
                     if ii in ['Rad1hsum','SunD1','RSunD']: prec_color = '#ffc83f'
                     if prec_color: color = ';color:%s' % prec_color
                     if symbols:
-                        s += '<td style="text-align:left%s" title="%s">%s' % (color,self.OBS_LABEL.get(ii,('',ii,''))[1],self.OBS_LABEL.get(ii,('',ii,''))[0])
+                        s += '<td class="%s" style="text-align:left%s" title="%s">%s' % (self.symbols_td_classes,color,self.OBS_LABEL.get(ii,('',ii,''))[1],self.OBS_LABEL.get(ii,('',ii,''))[0])
                         if not desc and ii=='TTTmax': s+='&nbsp;max'
                         if not desc and ii=='TTTmin': s+='&nbsp;min'
                         s += '</td>'
                     if desc:
-                        s += '<td style="text-align:left%s">%s</td>' % (color,self.OBS_LABEL.get(ii,('',ii,''))[1])
+                        s += '<td class="%s" style="text-align:left%s">%s</td>' % (self.description_td_classes,color,self.OBS_LABEL.get(ii,('',ii,''))[1])
                     if prec_color: color = ' style="color:%s"' % prec_color
-                    s += '<td'+color+'>'+self.OBS_LABEL.get(ii,('',ii,''))[2]+'</td>'
+                    s += '<td class="'+self.unit_td_classes+'"'+color+'>'+self.OBS_LABEL.get(ii,('',ii,''))[2]+'</td>'
                     dp = 1 if ii in ['TTTmin','TTTmax','TTTavg','SunD1','Rad1hsum'] else 0
                     for day in days:
                         htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
@@ -1346,10 +1358,10 @@ class DwdMosmix(object):
                 s += '<table class="%s">' % self.vertical_table_classes
                 # header line
                 s += '<tr>'
-                s += '<th></th><th>ww</th>'
+                s += '<th></th><th class="%s">ww</th>' % self.symbols_td_classes
                 for ii in ['TTTmin','FFavg','RR1c','PPPPavg']:
                     color = ' style="color:#7cb5ec"' if ii=='RR1c' else ''
-                    s += '<th%s>%s</th>' % (color,self.OBS_LABEL[ii][0])
+                    s += '<th class="%s"%s>%s</th>' % (self.symbols_td_classes,color,self.OBS_LABEL[ii][0])
                 s += '</tr>\n'
                 for day in days:
                     htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''

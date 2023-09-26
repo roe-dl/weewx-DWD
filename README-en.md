@@ -156,8 +156,9 @@ The option `--icon-set` specifies the weather icon set to be used.
 Make sure to install the desired set to your website.
 
 The language option influences the weekday names only, for English
-and german the tool tips, too. `de`, `en`, `fr`, `it`, and `cz`
-are available.
+and german the tool tips, too. `de` (german), `en` (English), 
+`fr` (french), `it` (italian), `cz` (czech), and `pl` (polish) are 
+available.
 
 The get data by the Open-Meteo API instead of the DWD, use the 
 option `--open-meteo` and specify a weather model:
@@ -697,6 +698,9 @@ the forecast using CSS:
 CSS class | Usage
 ----------|------
 `.dwdforecasttable` | all forecast tables, set for `<table>`
+`.dwdforecasttable-symbol` | table header field containing the symbol of the observation type
+`.dwdforecasttable-description` | table header field containing the name of the observation type
+`.dwdforecasttable-unit` | table header field containing the unit
 `.dwdforecasttable-horizontal` | at the surrounding `<div>` of horizontal oriented tables
 `.dwdforecasttable-vertical` | at the surrounding `<div>` of vertical oriented tables
 `.weekend` | for the daily forecast at fields describing data of weekend days
