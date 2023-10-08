@@ -430,6 +430,8 @@ than 4.
 * `aeris_icon`: the file name of the icon from the Aeris set
 * `wi_icon`: icon of the icon set from Erik Flowers
 * `svg_icon`: weather icon in SVG format
+* `svg_icon($width=128,$x=None,$y=None,$with_tooltip=True)`: 
+  weather icon in SVG format, formatted
 * `wmo_symbol`: the meteorological symbol as defined by the WMO
 * `wmo_symbol($width,color=$color)`: the meteorological symbol as defined
   by the WMO, formatted

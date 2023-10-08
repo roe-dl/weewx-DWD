@@ -539,6 +539,9 @@ auch `wawa` vorhanden sind, wird `ww` verwendet und `wawa` ignoriert.
 * `aeris_icon`: Dateiname des Icons aus dem Aeris-Icon-Satz
 * `wi_icon`: Icon aus dem Icon-Satz von Erik Flowers
 * `svg_icon`: Wetter-Icon im SVG-Format
+* `svg_icon($width=128,$x=None,$y=None,$with_tooltip=True)`: 
+  Wetter-Icon im SVG-Format 
+  mit Größenangabe und Koordinaten
 * `wmo_symbol`: Symbol der Meteorologen für den Wetterzustand
 * `wmo_symbol($width,color=$color)`: Symbol der Meteorologen für den 
   Wetterzustand mit Größenangabe und optionaler Farbangabe.

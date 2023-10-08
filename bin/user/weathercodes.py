@@ -152,7 +152,7 @@ except ImportError:
 
 import weeutil.weeutil
 
-SVG_ICON_START = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="%s" height="%s" viewBox="-64 -50 128 100"><g stroke-width="3">'
+SVG_ICON_START = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" %s width="%s" height="%s" viewBox="-64 -50 128 100">%s<g stroke-width="3">'
 SVG_ICON_END = '</g></svg>'
 SVG_ICON_UNKNOWN = '<path stroke="#828487" fill="none" d="M -31,28 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39z" /><text x="-18" y="18" fill="#828487" style="font-family:sans-serif;font-size:50px;font-weight:normal;text-align:center">?</text>'
 SVG_ICON_CLOUDY = '<path stroke="#828487" stroke-width="1.8" fill="none" d="M 5,-30 a 14.4,14.4 0 0 1 25.8,-5.4 h 2 a 9.75,9.75 0 0 1 9,6 a 12,12 0 0 1 0.3,22.68" /><path stroke="#828487" fill="none" d="M -31,28 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39z" />'
@@ -170,20 +170,26 @@ SVG_ICON_N = [
      '<path stroke="#da4935" fill="none" d="M 0,-24 a 26,26 0 0 1 -22,39 a 24,24 0 1 0 22,-39 z" />'),
     ('<g stroke="#f6bc68"><path fill="none" d="M 17.4069956,-2.41780574 A 18,18 0 1 0 -5.26007294,10.21428571 M 24.0,-7.0 L 38.0,-7.0 M -16.97056274847714,9.970562748477139 L -26.8700576850888,19.87005768508881 M -24.0,-7.0 L -38.0,-7.0 M -16.97056274847714,-23.97056274847714 L -26.87005768508881,-33.870057685088796 M 0.0,-31.0 L -1e-14,-45.0 M 16.97056274847714,-23.97056274847714 L 26.8700576850888,-33.87005768508881 " /></g><path stroke="#828487" stroke-width="1.8" fill="none" d="M 0,33 a 12,12 0 1 1 2.92816105,-23.63726226 a 14.4,14.4 0 0 1 25.92035627,-5.69450347 a 9.75,9.75 0 0 1 10.15148268,5.93176573 a 12,12 0 0 1 -3.7469988,23.4 z " />',
      '<path stroke="#da4935" fill="none" d="M 19.97705974,-2.12865019 a 24,24 0 0 0 -19.97705974,-28.87134981 a 26,26 0 0 1 -22,39 a 24,24 0 0 0 11.27165715,7.62388061" /><path stroke="#828487" stroke-width="1.8" fill="none" d="M 0,33 a 12,12 0 1 1 2.92816105,-23.63726226 a 14.4,14.4 0 0 1 25.92035627,-5.69450347 a 9.75,9.75 0 0 1 10.15148268,5.93176573 a 12,12 0 0 1 -3.7469988,23.4 z " />'),
+    ('<g stroke="#f6bc68"><path fill="none" d="M -18.00252351,-17.73419552 A 14,14 0 1 0 -39.25615559,-6.02718888 M -45.4350288425444,-4.5649711574556004 L -53.21320343559642,3.21320343559643 M -51.0,-18.0 L -62.0,-18.0 M -45.43502884254441,-31.435028842544398 L -53.21320343559643,-39.21320343559642 M -32.0,-37.0 L -32.00000000000001,-48.0 M -18.564971157455602,-31.435028842544412 L -10.78679656440358,-39.21320343559643 " /></g><path stroke="#828487" fill="none" d="M -25,28 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39z" />',
+     '<path stroke="#da4935" fill="none" d="M -13.88,-23.64 a 24,24 0 0 0 -20.12,-19.36 a 26,26 0 0 1 -22,39 a 24,24 0 0 0 11.44,7.68 m 30.68,-27.32 a 24,24 0 0 0 -20.12,-19.36 " /><path stroke="#828487" fill="none" d="M -25,28 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39z" />'),
+    ('<g stroke="#f6bc68"><path fill="none" d="M -19.99475974,-23.48547467 A 14,14 0 0 0 -41.65782625,-8.92367394 M -47.0,-12.0 L -58.0,-12.0 M -41.43502884254441,-25.435028842544398 L -49.21320343559643,-33.21320343559642 M -28.0,-31.0 L -28.00000000000001,-42.0 " /></g><path stroke="#828487" stroke-width="1.8" fill="none" d="M 5,-30 a 14.4,14.4 0 0 1 25.8,-5.4 h 2 a 9.75,9.75 0 0 1 9,6 a 12,12 0 0 1 0.3,22.68" /><path stroke="#828487" fill="none" d="M -31,28 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39z" />',
+     '<path stroke="#da4935" fill="none" d="M -13.88,-23.64 a 24,24 0 0 0 -20.12,-19.36 a 26,26 0 0 1 -22,39 a 24,24 0 0 0 11.44,7.68 m 30.68,-27.32 a 24,24 0 0 0 -20.12,-19.36 " /><path stroke="#828487" stroke-width="1.8" fill="none" d="M 11,-30 a 14.4,14.4 0 0 1 25.8,-5.4 h 2 a 9.75,9.75 0 0 1 9,6 a 12,12 0 0 1 0.3,22.68" /><path stroke="#828487" fill="none" d="M -25,28 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39z" />'),
     (SVG_ICON_CLOUDY,SVG_ICON_CLOUDY),
     (SVG_ICON_FOG,SVG_ICON_FOG),
     (SVG_ICON_UNKNOWN,SVG_ICON_UNKNOWN)
 ]
 
-def svg_icon_n(okta, night=False, width=128):
+def svg_icon_n(okta, night=False, width=128, text=None, x=None, y=None):
     try:
         height = width * 0.78125
         night = 1 if night else 0
         idx = (0,1,1,2,2,2,3,3,4,5,6)[okta]
-        return ((SVG_ICON_START % (width,height))+
+        text = ('<title>%s</title><rect x="-64" y="-50" width="100%%" height="100%%" stroke="none" fill="#000000" fill-opacity="0" />' % text) if text else ''
+        coord = ('x="%s" y="%s"' % (x,y)) if x is not None and y is not None else ''
+        return ((SVG_ICON_START % (coord,width,height,text))+
             SVG_ICON_N[idx][night]+
             SVG_ICON_END)
-    except (ArithmeticError,LookupError,TypeError,ValuError):
+    except (ArithmeticError,LookupError,TypeError,ValueError):
         return ""
 
 SVG_ICON_WW = [
@@ -389,13 +395,15 @@ SVG_ICON_WW = [
     '<path stroke="#828487" fill="none" d="M -31,22 m 4,0 h -4 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39h -4" /><path stroke="none" fill="#f6bc68" d="M -4,6 l 8.03418996,-20.9297804 l -12.4943457,3.34784984 l 6.68617042,-17.41806944 h -5.42818409 l -4.83202054,20.9297804 l 12.02652853,-3.22249861 z" /><g stroke="none" fill="#66a1ba"><circle cx="-15" cy="37" r="4" /><circle cx="-6" cy="19" r="4" /><circle cx="11" cy="30" r="4" /></g>',
 ]
 
-def svg_icon_ww(ww, width=128):
+def svg_icon_ww(ww, width=128, text=None, x=None, y=None):
     try:
         height = width * 0.78125
-        return ((SVG_ICON_START % (width,height))+
+        text = ('<title>%s</title><rect x="-64" y="-50" width="100%%" height="100%%" stroke="none" fill="#000000" fill-opacity="0" />' % text) if text else ''
+        coord = ('x="%s" y="%s"' % (x,y)) if x is not None and y is not None else ''
+        return ((SVG_ICON_START % (coord,width,height,text))+
             SVG_ICON_WW[ww]+
             SVG_ICON_END)
-    except (ArithmeticError,LookupError,TypeError,ValuError):
+    except (ArithmeticError,LookupError,TypeError,ValueError):
         return ""
 
 
@@ -1508,7 +1516,16 @@ if hasSearchList:
                 self.wawa_list = [weeutil.weeutil.to_int(wawal)]
             # remember kwargs
             self.kwargs = kwargs
-            
+        
+        def _get_ww_text(self, wwcode):
+            ww_str = '%02d' % wwcode[0]
+            if self.ww_texts and ww_str in self.ww_texts:
+                return self.ww_texts[ww_str]
+            elif self.lang=='de':
+                return wwcode[1]
+            else:
+                return wwcode[2]
+        
         def __getattr__(self, attr):
             if self.ww_list is not None:
                 wwcode = get_ww(self.ww_list,self.nn,self.night)
@@ -1516,13 +1533,7 @@ if hasSearchList:
                     if attr=='ww':
                         return wwcode[0]
                     if attr=='text':
-                        ww_str = '%02d' % wwcode[0]
-                        if self.ww_texts and ww_str in self.ww_texts:
-                            return self.ww_texts[ww_str]
-                        elif self.lang=='de':
-                            return wwcode[1]
-                        else:
-                            return wwcode[2]
+                        return self._get_ww_text(wwcode)
                     if attr=='mosmix_priority':
                         return wwcode[3]
                     if attr=='belchertown_icon':
@@ -1543,7 +1554,7 @@ if hasSearchList:
                         return '<i class="wi %s"></i>' % icon
                     if attr=='svg_icon':
                         try:
-                            return svg_icon_ww(wwcode[0])
+                            return SVGIconBinder(wwcode[0],n=self.nn,night=self.night,text=self._get_ww_text(wwcode))
                         except (LookupError,ArithmeticError,TypeError,ValueError):
                             return ""
                     if attr=='wmo_symbol':
@@ -1605,6 +1616,41 @@ if hasSearchList:
                     night = 6 if self.night else 5
                     return '<i class="wi %s"></i>' % n[night]
             return super(PresentWeatherBinder,self).__getattr__(attr)
+
+    class SVGIconBinder(object):
+        """ Helper class for $presentweather(...).svg_icon """
+        
+        def __init__(self, ww, n=None, night=None, text=None):
+            self.ww = ww
+            self.nn = n
+            self.night = night
+            self.text = text
+        
+        def __str__(self):
+            try:
+                if self.nn is not None:
+                    if self.ww is None or self.ww<=3 or (self.ww>=20 and self.ww<30) or self.ww in (14,15,16):
+                        return svg_icon_n(int(round(float(self.nn)/100.0*8.0,0)),night=self.night,text=self.text)
+                return svg_icon_ww(self.ww,text=self.text)
+            except (LookupError,ArithmeticError,TypeError,ValueError):
+                return ""
+        
+        def __call__(self, width=128, x=None, y=None, with_tooltip=True):
+            try:
+                if self.nn is not None:
+                    if self.ww is None or self.ww<=3 or (self.ww>=20 and self.ww<30) or self.ww in (14,15,16):
+                        return svg_icon_n(
+                                   int(round(float(self.nn)/100.0*8.0,0)),
+                                   night=self.night,
+                                   width=width,
+                                   text=self.text if with_tooltip else None,
+                                   x=x,y=y)
+                return svg_icon_ww(self.ww,
+                                   width=width,
+                                   text=self.text if with_tooltip else None,
+                                   x=x,y=y)
+            except (LookupError,ArithmeticError,TypeError,ValueError):
+                return ""
 
     class WMOSymbolBinder(object):
         """ Helper class for $presentweather(...).wmo_symbol """
