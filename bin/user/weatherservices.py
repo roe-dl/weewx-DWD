@@ -166,6 +166,7 @@ import datetime
 import json
 import random
 import math
+import traceback
 
 if __name__ == '__main__':
 
@@ -211,6 +212,9 @@ else:
 
         def logerr(msg):
             logmsg(syslog.LOG_ERR, msg)
+
+def gettraceback(e):
+    return ' - '.join(traceback.format_tb(e.__traceback__)).replace('\n',' ')
 
 import weewx
 from weewx.engine import StdService
@@ -828,11 +832,13 @@ class DWDCDCthread(BaseThread):
                 if x:
                     func = 'other table'
                     for ii in tab:
-                        if ii['dateTime'][0]>x[-1]['dateTime'][0]:
+                        if ii['dateTime'] in ti:
+                            x[ti[ii['dateTime']]].update(ii)
+                        elif ii['dateTime'][0]>x[-1]['dateTime'][0]:
                             ti[ii['dateTime']] = len(x)
                             x.append(ii)
                         else:
-                            x[ti[ii['dateTime']]].update(ii)
+                            logerr("thread '%s': missing timestamp %s (%s) in %s, required for %s" % (self.name,ii['dateTime'][0],time.strftime('%Y-%m-%dT%H:%M',time.localtime(ii['dateTime'][0])),self.urls[0],url))
                     # maximum timestamp for which there are all kinds
                     # of records available
                     if tab[-1]['dateTime'][0]<maxtime[0]:
@@ -843,7 +849,7 @@ class DWDCDCthread(BaseThread):
                     ti = {vv['dateTime']:ii for ii,vv in enumerate(tab)}
                     maxtime = tab[-1]['dateTime']
             except Exception as e:
-                logerr("thread '%s': %s %s %s" % (self.name,func,e.__class__.__name__,e))
+                logerr("thread '%s': %s %s %s traceback %s" % (self.name,func,e.__class__.__name__,e,gettraceback(e)))
         if x:
             for idx,_ in enumerate(x):
                 x[idx]['interval'] = (10,'minute','group_interval')
@@ -1792,7 +1798,11 @@ class DWDservice(StdService):
                     if data:
                         if has_db:
                             databaseput(self.database_q,datasource,self.threads[thread_name]['prefix'],data) 
-                        data = data[maxtime]
+                        try:
+                            data = data[maxtime]
+                        except (TypeError,LookupError):
+                            logerr("error processing data of thread '%s' for the new archive record: CDC data error. maxtime=%s %s %s" % (thread_name,maxtime,e.__class__.__name__,e))
+                            data = None
                 elif datasource=='ZAMG':
                     data,interval = self.threads[thread_name]['thread'].get_data(ts)
                 elif datasource=='OPENMETEO':
@@ -1812,7 +1822,7 @@ class DWDservice(StdService):
                     x = self._to_weewx(thread_name,data,event.record['usUnits'])
                     event.record.update(x)
             except (LookupError,TypeError,ValueError,ArithmeticError,OSError) as e:
-                logerr("error processing data of thread '%s' for the new archive record: %s %s" % (thread_name,e.__class__.__name__,e))
+                logerr("error processing data of thread '%s' for the new archive record: %s %s traceback %s" % (thread_name,e.__class__.__name__,e,gettraceback(e)))
 
 
     def _to_weewx(self, thread_name, reply, usUnits):
