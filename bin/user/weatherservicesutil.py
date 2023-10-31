@@ -30,6 +30,7 @@ import time
 import datetime
 import json
 import random
+import traceback
 
 if __name__ == '__main__':
 
@@ -152,5 +153,8 @@ class BaseThread(threading.Thread):
                 self.evt.wait(waiting)
         except Exception as e:
             logerr("thread '%s': main loop %s - %s" % (self.name,e.__class__.__name__,e))
+            for ii in traceback.format_tb(e.__traceback__):
+                for jj in ii.splitlines():
+                    logerr("thread '%s': *** %s" % (self.name,jj.replace('\n',' ').strip()))
         finally:
             loginf("thread '%s' stopped" % self.name)

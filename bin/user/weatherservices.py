@@ -831,18 +831,35 @@ class DWDCDCthread(BaseThread):
                 # process data
                 if x:
                     func = 'other table'
+                    tabti = []
+                    errti = []
                     for ii in tab:
                         if ii['dateTime'] in ti:
+                            # timestamp is already present
                             x[ti[ii['dateTime']]].update(ii)
+                            tabti.append(ii['dateTime'])
                         elif ii['dateTime'][0]>x[-1]['dateTime'][0]:
+                            # timestamp is after the last timestamp in list
                             ti[ii['dateTime']] = len(x)
                             x.append(ii)
+                            tabti.append(ii['dateTime'])
                         else:
-                            logerr("thread '%s': missing timestamp %s (%s) in %s, required for %s" % (self.name,ii['dateTime'][0],time.strftime('%Y-%m-%dT%H:%M',time.localtime(ii['dateTime'][0])),self.urls[0],url))
+                            # timestamp is out of range
+                            errti.append(ii['dateTime'][0])
                     # maximum timestamp for which there are all kinds
                     # of records available
-                    if tab[-1]['dateTime'][0]<maxtime[0]:
-                        maxtime = tab[-1]['dateTime']
+                    # tabti may be empty if all the records in the file are
+                    # out of date. Then the file is ignored entirely.
+                    if tabti:
+                        if tabti[-1][0]<maxtime[0] or tabti[0][0]>maxtime[0]:
+                            maxtime = tabti[-1]
+                    # timestamps that are not processed
+                    if errti:
+                        if len(errti)==1:
+                            errti_str = ' %s (%s)' % (errti[0],time.strftime('%Y-%m-%dT%H:%M',time.localtime(errti[0])))
+                        else:
+                            errti_str = 's %s (%s) to %s (%s)' % (min(errti),time.strftime('%Y-%m-%dT%H:%M',time.localtime(min(errti))),max(errti),time.strftime('%Y-%m-%dT%H:%M',time.localtime(max(errti))))
+                        logerr("thread '%s': missing timestamp%s in %s, required for %s" % (self.name,errti_str,self.urls[0],url))
                 else:
                     func = 'first table'
                     x = tab
@@ -863,7 +880,7 @@ class DWDCDCthread(BaseThread):
         try:
             self.lock.acquire()
             self.data = x
-            self.maxtime = ti[maxtime] if ti and maxtime else None
+            self.maxtime = ti[maxtime] if (ti and maxtime) else None
         finally:
             self.lock.release()
 
