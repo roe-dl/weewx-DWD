@@ -1800,7 +1800,7 @@ class DWDservice(StdService):
                             databaseput(self.database_q,datasource,self.threads[thread_name]['prefix'],data) 
                         try:
                             data = data[maxtime]
-                        except (TypeError,LookupError):
+                        except (TypeError,LookupError) as e:
                             logerr("error processing data of thread '%s' for the new archive record: CDC data error. maxtime=%s %s %s" % (thread_name,maxtime,e.__class__.__name__,e))
                             data = None
                 elif datasource=='ZAMG':
