@@ -57,13 +57,13 @@ geben Sie bitte immer folgende Informationen mit an:
 
 Für `dwd-mosmix` ist es vorteilhaft, `GeoPy` zu installieren.
 
-```
+```shell
 sudo apt-get install python3-geopy
 ```
 
 Herunterladen des Paketes von Github:
 
-```
+```shell
 wget -O weewx-dwd.zip https://github.com/roe-dl/weewx-DWD/archive/master.zip
 ```
 
@@ -77,7 +77,7 @@ Kopieren Sie `usr/local/bin/dwd-mosmix`, `usr/local/bin/dwd-warnings`,
 `/usr/local/bin` und machen Sie sie mit `chmod +x Dateiname` ausführbar.
 
 Legen Sie folgende Links an:
-```
+```shell
 sudo ln -s /usr/share/weewx/user/capwarnings.py /usr/local/bin/bbk-warnings
 sudo ln -s /usr/share/weewx/user/capwarnings.py /usr/local/bin/dwd-cap-warnings
 sudo ln -s /usr/share/weewx/user/capwarnings.py /usr/local/bin/msc-warnings
@@ -303,17 +303,17 @@ des ARS auf der Kommandozeile angegeben werden:
 Dieses Script sorgt dafür, daß die beiden Scripte `wget-dwd` und `dwd-warnings` regelmäßig aufgerufen werden.
 
 Der Aufruf von `dwd-warnings` kann auch durch 
-```
+```shell
 /usr/local/bin/dwd-cap-warnings --weewx --resolution=city
 ``` 
 bzw.
-```
+```shell
 /usr/local/bin/dwd-cap-warnings --weewx --resolution=county
 ```
 ersetzt werden.
 
 Soll `dwd-mosmix` benutzt werden, muß dafür in der Datei die Zeile
-```
+```shell
 /usr/local/bin/dwd-mosmix --weewx Station
 ```
 hinzugefügt werden. Wenn die Vorhersage für mehrere Stationen benötigt wird, ist für jede Station ein Aufruf einzutragen.
@@ -553,7 +553,7 @@ auch `wawa` vorhanden sind, wird `ww` verwendet und `wawa` ignoriert.
 Die Dateinamen werden zusammen mit dem HTML-Tag `<img>` verwendet,
 zum Beispiel:
 
-```
+```html
 <img src="$relative_url/images/$presentweather($ww,$n,$night).belchertown_icon" />
 ```
 
@@ -591,7 +591,7 @@ WMO-Code-Tabelle 4677 ww | WMO-Code-Tabelle 4680 w<sub>a</sub>w<sub>a</sub>
 ![WMO-Code-Tabelle 4677](https://raw.githubusercontent.com/roe-dl/weathericons/master/WMO-code-table-4677-colored.png) | ![WMO-Code-Tabelle 4680](https://raw.githubusercontent.com/roe-dl/weathericons/master/WMO-code-table-4680-colored.png)
 
 Mittels
-```
+```shell
 python3 /usr/share/weewx/user/weathercodes.py --write-svg Zielverzeichnis
 ```
 können alle WMO-Symbole als SVG-Dateien in "Zielverzeichnis" geschrieben
@@ -599,7 +599,7 @@ werden. Diese Dateien können dann mit dem `<img>`-Tag in Webseiten
 eingefügt werden.
 
 Mit 
-```
+```shell
 python3 /usr/share/weewx/user/weathercodes.py --print-ww-tab >wmo4677.inc
 python3 /usr/share/weewx/user/weathercodes.py --print-wawa-tab >wmo4680.inc
 ```
@@ -623,7 +623,7 @@ sowie die Konfigurationsdatei `weewx.conf` (siehe unten) muß der
 komplette Pfad dieses Verzeichnisses eingetragen werden.
 
 Beispiel:
-```
+```shell
 cd /etc/weewx/skins/Belchertown
 mkdir dwd
 ```
@@ -807,7 +807,7 @@ eingefügt werden.
 
 Bitte "DWLG" im folgenden Beispiel durch die Abkürzung des gewünschten Bundeslandes aus Spalte "VHDL" ersetzen.
 
-```
+```html
   <div class="col-sm-12" style="margin-bottom:1em">
     #if os.path.exists("dwd/VHDL50_DWLG_LATEST.html")
     #include raw "dwd/VHDL50_DWLG_LATEST.html"
@@ -823,7 +823,7 @@ Bitte "DWLG" im folgenden Beispiel durch die Abkürzung des gewünschten Bundesl
 
 Bitte "DL" durch den jeweiligen Gebietscode ersetzen wie in `/usr/local/bin/dwd-warnings` definiert.
 
-```
+```html
   <div class="col-sm-6">
     <p style="font-size:110%">Wetterwarnungen</p>
     #include raw "dwd/warn-DL.inc"
@@ -839,7 +839,7 @@ Beispiel für eine Wetterwarnung:
 
 Bitte "P0291" durch den gewünschten Stationscode ersetzen.
 
-```
+```html
   <div class="col-sm-8">
     <p style="font-size:110%">Wettervorhersage</p>
     #include raw "dwd/forecast-P0291.inc"
@@ -849,7 +849,7 @@ Bitte "P0291" durch den gewünschten Stationscode ersetzen.
 Das Aussehen der Vorhersagen kann mittels CSS beeinflußt werden.
 Dazu muß die Stylesheet-Datei ergänzt werden, bei der Belchertown-Skin
 wäre das `custom.css`, beispielsweise wie folgt:
-```
+```css
 .dwdforecasttable {
     line-height: 1.0;
 }
@@ -979,7 +979,7 @@ Es ist darüber hinaus ein Account nötig.
 
 Eine Liste der Luftqualitätsmeßstationen des deutschen Umweltbundesamtes (UBA) 
 erhält man mit
-```
+```shell
 usr/local/bin/dwd-mosmix --print-uba=meta,measure
 ```
 
@@ -988,13 +988,13 @@ aufgerufen werden, sonst werden unter Umständen veraltete Warnungen
 verarbeitet.
 
 In `/etc/cron.hourly/dwd` ist dann die folgende Zeile hinzufügen:
-```
+```shell
 /usr/local/bin/dwd-mosmix --weewx --belchertown Stationsname
 ```
 
 Soll das Programm zu Testzwecken von der Kommandozeile aufgerufen werden,
 ist `sudo` nötig:
-```
+```shell
 sudo /usr/local/bin/dwd-mosmix --weewx --belchertown Stationsname
 ```
 
@@ -1027,14 +1027,14 @@ Um damit Diagramme darstellen zu können, muß die Datenbank in
 
 In das Verzeichnis `schemas` muß eine Datei `dwd.py` geschrieben
 werden, die folgenden Inhalt hat:
-```
+```python
 schema = [('dateTime','INTEGER NOT NULL PRIMARY KEY'),
           ('usUnits','INTEGER NOT NULL'),
           ('interval','INTEGER NOT NULL')]
 ```
 
 In `user/extensions.py` sind ggf. die fehlenden Meßgrößen zu definieren:
-```
+```python
 import weewx.units
 weewx.units.obs_group_dict['pop'] = 'group_percent'
 weewx.units.obs_group_dict['cloudcover'] = 'group_percent'
@@ -1097,11 +1097,17 @@ Beispielkonfiguration in `skin.conf`:
 
 ![Vorhersagediagramm](./forecast-chart-other.png)
 
+## Wettervorhersage bei wechselndem Standort
+
+Ist die Wetterstation auf einem Fahrzeug angebracht, ändert sich regelmäßig
+der Standort. Tips dazu gibt der Wiki-Artikel 
+[Wettervorhersage im Wohnmobil](https://github.com/roe-dl/weewx-DWD/wiki/Wettervorhersage-im-Wohnmobil).
+
 ## Wetterkarte im HTML-Template
 
 Der Pfad, hier `dwd`, ist entsprechend der eigenen Konfiguration anzupassen. Das Anhängsel mit `getmtime` ist notwendig, damit der Browser keine veralteten Karten anzeigt. Damit wird der Cache beim Nutzer überlistet.
 
-```
+```html
   <div class="col-sm-12 snapshot-records-text">
     Wetterkarte (Luftdruck am Boden)
   </div>
