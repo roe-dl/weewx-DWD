@@ -520,7 +520,7 @@ WW_LIST = [
     # 30 slight or moderate duststorm or sandstorm, decreasing
     (30,'leichter oder mittlerer Staub- oder Sandsturm, abnehmend','slight or moderate duststorm or sandstorm, decreasing',None,'wind.png','18.png','wind',':L:BD','wi-sandstorm'),
     
-    (18,'Sturmböen','squalls',None,'wind.png','18.png','wind','','wi-strong-wind'),
+    (18,'Böen','squalls',None,'wind.png','18.png','wind','','wi-strong-wind'),
 
     (17,'Gewitter ohne Niederschlag','thunderstorm, but no precipitation',None,'thunderstorm.png','26.png','tstorm','VC::T','wi-lightning'),
     (16,'Niederschläge in Sichtweite aber nicht an der Station, den Boden erreichend','Precipitation within sight, reaching the ground or the surface of the sea, near to, but not at the station',None,None,None,None,None,None),
