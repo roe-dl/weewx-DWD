@@ -165,7 +165,7 @@ SVG_ICON_HAIL = '<path stroke="#828487" fill="none" d="M -31,22 m 4,0 h -4 a 20,
 SVG_ICON_SLEET = '<path stroke="#828487" fill="none" d="M -31,22 m 4,0 h -4 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39h -4" /><path stroke="#66a1ba" stroke-width="1.5" stroke-linecap="round" fill="none" d="M -13,23 l0.0,20.0 m-8.66025404,-15.0 l17.32050808,10.0 m-17.32050808,-0.0 l17.32050808,-10.0 m-8.66025404,-5.0 m2.88675135,1.66666667 l-2.88675135,1.66666667 l-2.88675135,-1.66666667 m2.88675135,-1.66666667 m-8.66025404,5.0 m2.88675135,-1.66666667 l-0.0,3.33333333 l-2.88675135,1.66666667 m0.0,-3.33333333 m-0.0,10.0 m0.0,-3.33333333 l2.88675135,1.66666667 l0.0,3.33333333 m-2.88675135,-1.66666667 m8.66025404,5.0 m-2.88675135,-1.66666667 l2.88675135,-1.66666667 l2.88675135,1.66666667 m-2.88675135,1.66666667 m8.66025404,-5.0 m-2.88675135,1.66666667 l0.0,-3.33333333 l2.88675135,-1.66666667 m-0.0,3.33333333 m0.0,-10.0 m-0.0,3.33333333 l-2.88675135,-1.66666667 l-0.0,-3.33333333 m2.88675135,1.66666667 m -8.66025404,0.0 m1.44337567,0.83333333 l-1.44337567,0.83333333 l-1.44337567,-0.83333333 m1.44337567,-0.83333333 m -4.33012702,2.5 m1.44337567,-0.83333333 l-0.0,1.66666667 l-1.44337567,0.83333333 m0.0,-1.66666667 m -0.0,5.0 m0.0,-1.66666667 l1.44337567,0.83333333 l0.0,1.66666667 m-1.44337567,-0.83333333 m 4.33012702,2.5 m-1.44337567,-0.83333333 l1.44337567,-0.83333333 l1.44337567,0.83333333 m-1.44337567,0.83333333 m 4.33012702,-2.5 m-1.44337567,0.83333333 l0.0,-1.66666667 l1.44337567,-0.83333333 m-0.0,1.66666667 m 0.0,-5.0 m-0.0,1.66666667 l-1.44337567,-0.83333333 l-0.0,-1.66666667 m1.44337567,0.83333333 " /><path stroke="#66a1ba" fille="none" stroke-dasharray="4 9" stroke-width="2" d="M 13.5,40 l -22,-30 m 7.5,0 l 22,30 m 7.5,0 l -22,-30 m 7.5,0 " />'
 SVG_ICON_SNOW = '<path stroke="#828487" fill="none" d="M -31,22 m 4,0 h -4 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39h -4" /><path stroke="#66a1ba" stroke-width="1.5" stroke-linecap="round" fill="none" d="M -13,7 l0.0,20.0 m-8.66025404,-15.0 l17.32050808,10.0 m-17.32050808,-0.0 l17.32050808,-10.0 m-8.66025404,-5.0 m2.88675135,1.66666667 l-2.88675135,1.66666667 l-2.88675135,-1.66666667 m2.88675135,-1.66666667 m-8.66025404,5.0 m2.88675135,-1.66666667 l-0.0,3.33333333 l-2.88675135,1.66666667 m0.0,-3.33333333 m-0.0,10.0 m0.0,-3.33333333 l2.88675135,1.66666667 l0.0,3.33333333 m-2.88675135,-1.66666667 m8.66025404,5.0 m-2.88675135,-1.66666667 l2.88675135,-1.66666667 l2.88675135,1.66666667 m-2.88675135,1.66666667 m8.66025404,-5.0 m-2.88675135,1.66666667 l0.0,-3.33333333 l2.88675135,-1.66666667 m-0.0,3.33333333 m0.0,-10.0 m-0.0,3.33333333 l-2.88675135,-1.66666667 l-0.0,-3.33333333 m2.88675135,1.66666667 m -8.66025404,0.0 m1.44337567,0.83333333 l-1.44337567,0.83333333 l-1.44337567,-0.83333333 m1.44337567,-0.83333333 m -4.33012702,2.5 m1.44337567,-0.83333333 l-0.0,1.66666667 l-1.44337567,0.83333333 m0.0,-1.66666667 m -0.0,5.0 m0.0,-1.66666667 l1.44337567,0.83333333 l0.0,1.66666667 m-1.44337567,-0.83333333 m 4.33012702,2.5 m-1.44337567,-0.83333333 l1.44337567,-0.83333333 l1.44337567,0.83333333 m-1.44337567,0.83333333 m 4.33012702,-2.5 m-1.44337567,0.83333333 l0.0,-1.66666667 l1.44337567,-0.83333333 m-0.0,1.66666667 m 0.0,-5.0 m-0.0,1.66666667 l-1.44337567,-0.83333333 l-0.0,-1.66666667 m1.44337567,0.83333333 " /><path stroke="#66a1ba" stroke-width="1.5" stroke-linecap="round" fill="none" d="M 12,0 l0.0,20.0 m-8.66025404,-15.0 l17.32050808,10.0 m-17.32050808,-0.0 l17.32050808,-10.0 m-8.66025404,-5.0 m2.88675135,1.66666667 l-2.88675135,1.66666667 l-2.88675135,-1.66666667 m2.88675135,-1.66666667 m-8.66025404,5.0 m2.88675135,-1.66666667 l-0.0,3.33333333 l-2.88675135,1.66666667 m0.0,-3.33333333 m-0.0,10.0 m0.0,-3.33333333 l2.88675135,1.66666667 l0.0,3.33333333 m-2.88675135,-1.66666667 m8.66025404,5.0 m-2.88675135,-1.66666667 l2.88675135,-1.66666667 l2.88675135,1.66666667 m-2.88675135,1.66666667 m8.66025404,-5.0 m-2.88675135,1.66666667 l0.0,-3.33333333 l2.88675135,-1.66666667 m-0.0,3.33333333 m0.0,-10.0 m-0.0,3.33333333 l-2.88675135,-1.66666667 l-0.0,-3.33333333 m2.88675135,1.66666667 m -8.66025404,0.0 m1.44337567,0.83333333 l-1.44337567,0.83333333 l-1.44337567,-0.83333333 m1.44337567,-0.83333333 m -4.33012702,2.5 m1.44337567,-0.83333333 l-0.0,1.66666667 l-1.44337567,0.83333333 m0.0,-1.66666667 m -0.0,5.0 m0.0,-1.66666667 l1.44337567,0.83333333 l0.0,1.66666667 m-1.44337567,-0.83333333 m 4.33012702,2.5 m-1.44337567,-0.83333333 l1.44337567,-0.83333333 l1.44337567,0.83333333 m-1.44337567,0.83333333 m 4.33012702,-2.5 m-1.44337567,0.83333333 l0.0,-1.66666667 l1.44337567,-0.83333333 m-0.0,1.66666667 m 0.0,-5.0 m-0.0,1.66666667 l-1.44337567,-0.83333333 l-0.0,-1.66666667 m1.44337567,0.83333333 " /><path stroke="#66a1ba" stroke-width="1.5" stroke-linecap="round" fill="none" d="M 5,23 l0.0,20.0 m-8.66025404,-15.0 l17.32050808,10.0 m-17.32050808,-0.0 l17.32050808,-10.0 m-8.66025404,-5.0 m2.88675135,1.66666667 l-2.88675135,1.66666667 l-2.88675135,-1.66666667 m2.88675135,-1.66666667 m-8.66025404,5.0 m2.88675135,-1.66666667 l-0.0,3.33333333 l-2.88675135,1.66666667 m0.0,-3.33333333 m-0.0,10.0 m0.0,-3.33333333 l2.88675135,1.66666667 l0.0,3.33333333 m-2.88675135,-1.66666667 m8.66025404,5.0 m-2.88675135,-1.66666667 l2.88675135,-1.66666667 l2.88675135,1.66666667 m-2.88675135,1.66666667 m8.66025404,-5.0 m-2.88675135,1.66666667 l0.0,-3.33333333 l2.88675135,-1.66666667 m-0.0,3.33333333 m0.0,-10.0 m-0.0,3.33333333 l-2.88675135,-1.66666667 l-0.0,-3.33333333 m2.88675135,1.66666667 m -8.66025404,0.0 m1.44337567,0.83333333 l-1.44337567,0.83333333 l-1.44337567,-0.83333333 m1.44337567,-0.83333333 m -4.33012702,2.5 m1.44337567,-0.83333333 l-0.0,1.66666667 l-1.44337567,0.83333333 m0.0,-1.66666667 m -0.0,5.0 m0.0,-1.66666667 l1.44337567,0.83333333 l0.0,1.66666667 m-1.44337567,-0.83333333 m 4.33012702,2.5 m-1.44337567,-0.83333333 l1.44337567,-0.83333333 l1.44337567,0.83333333 m-1.44337567,0.83333333 m 4.33012702,-2.5 m-1.44337567,0.83333333 l0.0,-1.66666667 l1.44337567,-0.83333333 m-0.0,1.66666667 m 0.0,-5.0 m-0.0,1.66666667 l-1.44337567,-0.83333333 l-0.0,-1.66666667 m1.44337567,0.83333333 " />'
 SVG_ICON_FREEZINGRAIN = '<path stroke="#828487" fill="none" d="M -26.349999999999998,4 m 3.4,0 h -3.4 a17.0,17.0 0 1 1 4.1482281485,-33.486121535 a20.4,20.4 0 0 1 36.7205047215,-8.067213252 a13.8125,13.8125 0 0 1 14.381267130000001,8.403334786999999 a17.0,17.0 0 0 1 -5.3082483,33.15 h -3.4" /><path stroke="none" fill="#66a1ba" d="M -27,-7 h 5 l 18.7,25.5 h -5 l -18.7,-25.5 z m 15,0 h 5 l 18.7,25.5 h -5 l -18.7,-25.5 z m 15,0 h 5 l 18.7,25.5 h -5 l -18.7,-25.5 z " /><path stroke="none" fill="#000000" d="M-9.42235138,48 l8.54455967,-4.047423 a6.04100450,6.04100450 0 0 0 2.54603347,-8.64621208 l-3.23725145,-5.21347156 a2.74580363,2.74580363 0 0 1 0.78256116,-3.71485342 l4.93895246,-3.37803994 h-1.38888889 l-5.10795449,2.93585208 a4.68254091,4.68254091 0 0 0 -2.09563466,5.5796135 l2.27226862,6.62156404 a3.29583971,3.29583971 0 0 1 -1.84474537,4.10998876 l-13.74323385,5.75298161 z m33.33333333,0 l1.22771241,-1.22771241 a6.20359314,6.20359314 0 0 0 -1.28480621,-9.75907203 l-13.55967183,-7.82868018 a3.22628070,3.22628070 0 0 1 -1.41857181,-3.89749403 l0.83241498,-2.28704135 h-1.38888889 l-0.68119443,1.08342259 a4.68254091,4.68254091 0 0 0 1.30173924,6.30605466 l12.49300857,8.59055233 a2.68888799,2.68888799 0 0 1 0.13365758,4.33313596 l-5.98873292,4.68683446 z" /><path stroke="#66a1ba" stroke-width="1.2" stroke-linecap="round" fill="none" d="M -17,26 l0.0,16.0 m-6.92820323,-12.0 l13.85640646,8.0 m-13.85640646,-0.0 l13.85640646,-8.0 m-6.92820323,-4.0 m2.30940108,1.33333333 l-2.30940108,1.33333333 l-2.30940108,-1.33333333 m2.30940108,-1.33333333 m-6.92820323,4.0 m2.30940108,-1.33333333 l-0.0,2.66666667 l-2.30940108,1.33333333 m0.0,-2.66666667 m-0.0,8.0 m0.0,-2.66666667 l2.30940108,1.33333333 l0.0,2.66666667 m-2.30940108,-1.33333333 m6.92820323,4.0 m-2.30940108,-1.33333333 l2.30940108,-1.33333333 l2.30940108,1.33333333 m-2.30940108,1.33333333 m6.92820323,-4.0 m-2.30940108,1.33333333 l0.0,-2.66666667 l2.30940108,-1.33333333 m-0.0,2.66666667 m0.0,-8.0 m-0.0,2.66666667 l-2.30940108,-1.33333333 l-0.0,-2.66666667 m2.30940108,1.33333333 " />'
-SVG_ICON_LIGHTNING = '<path stroke="#828487" fill="none" d="M -31,28 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39z" /><path stroke="none" fill="#f6bc68" d="M -4,16 l 8.03418996,-20.9297804 l -12.4943457,3.34784984 l 6.68617042,-17.41806944 h -5.42818409 l -4.83202054,20.9297804 l 12.02652853,-3.22249861 z" />'
+SVG_ICON_LIGHTNING = '<path stroke="#828487" fill="none" d="M -31,22 m 12,0 h -12 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39h -12" /><path stroke="none" fill="#f6bc68" d="M -2,45 l 8.03418996,-20.9297804 l -12.4943457,3.34784984 l 6.68617042,-17.41806944 h -5.42818409 l -4.83202054,20.9297804 l 12.02652853,-3.22249861 z" />'
 SVG_ICON_N = [
     ('<g stroke="#f6bc68"><circle cx="0" cy="0" r="18" fill="none" /><path d="M 24.0,0.0 L 38.0,0.0 M 16.97056274847714,16.97056274847714 L 26.87005768508881,26.8700576850888 M 0.0,24.0 L 0.0,38.0 M -16.97056274847714,16.97056274847714 L -26.8700576850888,26.87005768508881 M -24.0,0.0 L -38.0,0.0 M -16.97056274847714,-16.97056274847714 L -26.87005768508881,-26.8700576850888 M -0.0,-24.0 L -1e-14,-38.0 M 16.97056274847714,-16.97056274847714 L 26.8700576850888,-26.87005768508881 " /></g>',
      '<path stroke="#da4935" fill="none" d="M 0,-24 a 26,26 0 0 1 -22,39 a 24,24 0 1 0 22,-39 z" />'),
@@ -257,7 +257,7 @@ SVG_ICON_WW = [
     # 23
     None,
     # 24
-    None,
+    '<path stroke="#828487" fill="none" d="M -27.900000000000002,11 a18.0,18.0 0 1 1 4.392241569,-35.45589339 a21.6,21.6 0 0 1 38.880534411,-8.541755208000001 a14.625,14.625 0 0 1 15.227224020000001,8.897648598 a18.0,18.0 0 0 1 -5.6204982,35.1 z" /><path stroke="none" fill="#000000" d="M-9.42235138,44 l8.54455967,-4.047423 a6.04100450,6.04100450 0 0 0 2.54603347,-8.64621208 l-3.23725145,-5.21347156 a2.74580363,2.74580363 0 0 1 0.78256116,-3.71485342 l4.93895246,-3.37803994 h-1.38888889 l-5.10795449,2.93585208 a4.68254091,4.68254091 0 0 0 -2.09563466,5.5796135 l2.27226862,6.62156404 a3.29583971,3.29583971 0 0 1 -1.84474537,4.10998876 l-13.74323385,5.75298161 z m33.33333333,0 l1.22771241,-1.22771241 a6.20359314,6.20359314 0 0 0 -1.28480621,-9.75907203 l-13.55967183,-7.82868018 a3.22628070,3.22628070 0 0 1 -1.41857181,-3.89749403 l0.83241498,-2.28704135 h-1.38888889 l-0.68119443,1.08342259 a4.68254091,4.68254091 0 0 0 1.30173924,6.30605466 l12.49300857,8.59055233 a2.68888799,2.68888799 0 0 1 0.13365758,4.33313596 l-5.98873292,4.68683446 z" /><path stroke="#66a1ba" stroke-width="1.2" stroke-linecap="round" fill="none" d="M -17,22 l0.0,16.0 m-6.92820323,-12.0 l13.85640646,8.0 m-13.85640646,-0.0 l13.85640646,-8.0 m-6.92820323,-4.0 m2.30940108,1.33333333 l-2.30940108,1.33333333 l-2.30940108,-1.33333333 m2.30940108,-1.33333333 m-6.92820323,4.0 m2.30940108,-1.33333333 l-0.0,2.66666667 l-2.30940108,1.33333333 m0.0,-2.66666667 m-0.0,8.0 m0.0,-2.66666667 l2.30940108,1.33333333 l0.0,2.66666667 m-2.30940108,-1.33333333 m6.92820323,4.0 m-2.30940108,-1.33333333 l2.30940108,-1.33333333 l2.30940108,1.33333333 m-2.30940108,1.33333333 m6.92820323,-4.0 m-2.30940108,1.33333333 l0.0,-2.66666667 l2.30940108,-1.33333333 m-0.0,2.66666667 m0.0,-8.0 m-0.0,2.66666667 l-2.30940108,-1.33333333 l-0.0,-2.66666667 m2.30940108,1.33333333 " />',
     # 25
     None,
     # 26
@@ -412,7 +412,7 @@ SVG_ICON_WW = [
 
 def svg_icon_ww(ww, width=128, text=None, x=None, y=None):
     try:
-        height = width * 0.78125
+        height = round(width * 0.78125,5)
         text = ('<title>%s</title><rect x="-64" y="-50" width="100%%" height="100%%" stroke="none" fill="#000000" fill-opacity="0" />' % text) if text else ''
         coord = ('x="%s" y="%s"' % (x,y)) if x is not None and y is not None else ''
         return ((SVG_ICON_START % (coord,width,height,text))+
@@ -468,11 +468,11 @@ WW_LIST = [
     (81,'mäßiger oder starker Regenschauer','moderate or heavy rain showers',11,'rain.png','82.png','showers',':H:RW','wi-showers'),
     (80,'leichter Regenschauer','slight rain shower',12,'rain.png','80.png','showers',':L:RW','wi-showers'),
     # 70...79 solid precipitation not in showers
-    (75,'durchgehend starker Schneefall','heavy snowfall, continuous',13,'snow.png','16.png','snow',':H:S','wi-snow'),
+    (75,'starker Schneefall','heavy snowfall, continuous',13,'snow.png','16.png','snow',':H:S','wi-snow'),
     (74,'intermittierend starker Schneefall','heavy snowfall, intermittent',None,'snow.png','16.png','snow','IN:H:S','wi-snow'),
-    (73,'durchgehend mäßiger Schneefall','moderate snowfall, continuous',14,'snow.png','15.png','snow','::S','wi-snow'),
+    (73,'mäßiger Schneefall','moderate snowfall, continuous',14,'snow.png','15.png','snow','::S','wi-snow'),
     (72,'intermittierend mäßiger Schneefall','moderate snowfall, intermittent',None,'snow.png','15.png','snow','IN::S','wi-snow'),
-    (71,'durchgehend leichter Schneefall','slight snowfall, continuous',15,'snow.png','14.png','snow',':L:S','wi-snow'),
+    (71,'leichter Schneefall','slight snowfall, continuous',15,'snow.png','14.png','snow',':L:S','wi-snow'),
     (70,'intermittierend leichter Schneefall','slight snowfall, intermittent',None,'snow.png','14.png','snow','IN:L:S','wi-snow'),
     # 60...69 rain
     (69,'mäßger oder starker Schneeregen','moderate or heavy rain and snow',16,'sleet.png','13.png','rainandsnow',':H:RS','wi-sleet'),
@@ -480,18 +480,18 @@ WW_LIST = [
     # 50...59 drizzle
     (59,'starker Sprühregen und Regen','moderate or heavy drizzle and rain',None,'rain.png','','rain','','wi-rain'),
     (58,'leichter Sprühregen und Regen','slight drizzle and rain',None,'rain.png','','rain','','wi-rain'),
-    (55,'durchgehend starker Sprühregen','heavy drizzle, not freezing, continuous',18,'drizzle.png','9.png','drizzle',':H:L','wi-sprinkle'),
+    (55,'starker Sprühregen','heavy drizzle, not freezing, continuous',18,'drizzle.png','9.png','drizzle',':H:L','wi-sprinkle'),
     (54,'intermittierend starker Sprühregen','heavy drizzle, not freezing, intermittent',None,'drizzle.png','9.png','drizzle','IN:H:L','wi-sprinkle'),
-    (53,'durchgehend mäßiger Sprühregen','moderate drizzle, not freezing, continuous',19,'drizzle.png','8.png','drizzle','::L','wi-sprinkle'),
+    (53,'mäßiger Sprühregen','moderate drizzle, not freezing, continuous',19,'drizzle.png','8.png','drizzle','::L','wi-sprinkle'),
     (52,'intermittierend mäßiger Sprühregen','moderate drizzle, not freezing, intermittent',None,'drizzle.png','8.png','drizzle','IN::L','wi-sprinkle'),
-    (51,'durchgehend leichter Sprühregen','slight drizzle, not freezing, continuous',20,'drizzle.png','7.png','drizzle',':L:L','wi-sprinkle'),
+    (51,'leichter Sprühregen','slight drizzle, not freezing, continuous',20,'drizzle.png','7.png','drizzle',':L:L','wi-sprinkle'),
     (50,'intermittierend leichter Sprühregen','slight drizzle, not freezing, intermittent',None,'drizzle.png','7.png','drizzle','IN:L:L','wi-sprinkle'),
     # 60...69 rain
-    (65,'durchgehend starker Regen','heavy rain, not freezing, continuous',21,'rain.png','9.png','rain',':H:R','wi-rain'),
+    (65,'starker Regen','heavy rain, not freezing, continuous',21,'rain.png','9.png','rain',':H:R','wi-rain'),
     (64,'intermittierend starker Regen','heavy rain, not freezing, intermittent',None,'rain.png','9.png','rain','IN:H:R','wi-rain'),
-    (63,'durchgehend mäßiger Regen','moderate rain, not freezing, continuous',22,'rain.png','8.png','rain','::R','wi-rain'),
+    (63,'mäßiger Regen','moderate rain, not freezing, continuous',22,'rain.png','8.png','rain','::R','wi-rain'),
     (62,'intermittierend mäßiger Regen','moderate rain, not freezing, intermittent',None,'rain.png','8.png','rain','IN::R','wi-rain'),
-    (61,'durchgehend leichter Regen','slight rain, not freezing, continuous',23,'rain.png','7.png','rain',':L:R','wi-rain'),
+    (61,'leichter Regen','slight rain, not freezing, continuous',23,'rain.png','7.png','rain',':L:R','wi-rain'),
     (60,'intermittierend leichter Regen','slight rain, not freezing, intermittent',None,'rain.png','7.png','rain','IN:L:R','wi-rain'),
     
     (78,'einzelne Schneeflocken, mit oder ohne Nebel','isolated star-like snow crystals with or without fog',None,'snow.png','14.png','snow',':L:S','wi-snow'),
@@ -1571,12 +1571,16 @@ if hasSearchList:
                         if wwcode[0]==18 and self.nn is not None:
                             # squall
                             return get_ww([0,],self.nn,self.night)[4].replace('.png','-wind.svg')
-                        if wwcode[0]==96:
+                        if wwcode[0] in (96,99):
                             return 'thunderstorm-hail.svg'
-                        if wwcode[0] in (13,17):
+                        if wwcode[0] in (13,17,98):
                             return 'lightning.svg'
                         if wwcode[0] in (56,57,66,67):
                             return 'freezingrain.svg'
+                        if wwcode[0]==24:
+                            return 'glazeice.svg'
+                        if wwcode[0] in (79,87,88,89,90):
+                            return 'hail.svg'
                         return wwcode[4].replace('.png','.svg')
                     if attr=='svg_icon':
                         try:
@@ -1659,7 +1663,7 @@ if hasSearchList:
         def __str__(self):
             try:
                 if self.nn is not None:
-                    if self.ww is None or self.ww<=3 or (self.ww>=20 and self.ww<30) or self.ww in (14,15,16,18):
+                    if self.ww is None or self.ww in (0,1,2,3,14,15,16,18,20,21,22,23,25,26,27,28,29):
                         return svg_icon_n(int(round(float(self.nn)/100.0*8.0,0)),night=self.night,text=self.text,wind=3 if self.ww==18 else 0)
                 return svg_icon_ww(self.ww,text=self.text)
             except (LookupError,ArithmeticError,TypeError,ValueError):
@@ -1668,7 +1672,7 @@ if hasSearchList:
         def __call__(self, width=128, x=None, y=None, with_tooltip=True):
             try:
                 if self.nn is not None:
-                    if self.ww is None or self.ww<=3 or (self.ww>=20 and self.ww<30) or self.ww in (14,15,16,18):
+                    if self.ww is None or self.ww in (0,1,2,3,14,15,16,18,20,21,22,23,25,26,27,28,29):
                         return svg_icon_n(
                                    int(round(float(self.nn)/100.0*8.0,0)),
                                    night=self.night,
