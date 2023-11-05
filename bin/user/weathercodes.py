@@ -156,6 +156,7 @@ SVG_ICON_START = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" %s width
 SVG_ICON_END = '</g></svg>'
 SVG_ICON_UNKNOWN = '<path stroke="#828487" fill="none" d="M -31,28 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39z" /><text x="-18" y="18" fill="#828487" style="font-family:sans-serif;font-size:50px;font-weight:normal;text-align:center">?</text>'
 SVG_ICON_CLOUDY = '<path stroke="#828487" stroke-width="1.8" fill="none" d="M 5,-30 a 14.4,14.4 0 0 1 25.8,-5.4 h 2 a 9.75,9.75 0 0 1 9,6 a 12,12 0 0 1 0.3,22.68" /><path stroke="#828487" fill="none" d="M -31,28 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39z" />'
+SVG_ICON_CLOUDY_WIND = '<path stroke="#828487" stroke-width="1.8" fill="none" d="M 5,-30 a 14.4,14.4 0 0 1 25.8,-5.4 h 2 a 9.75,9.75 0 0 1 9,6 a 12,12 0 0 1 0.3,22.68" /><path stroke="#828487" fill="none" d="M -31,28 m 4,0 h -4 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39h -4" /><path stroke-width="3.0" stroke="#404040" fill="none" d="M-23,16.5 h20.0 a6.0,6.0 0 1 0 -6.0,-6.0 M-23,24 h37.5 a6.0,6.0 0 1 0 -6.0,-6.0 M-23,31.5 h28.75 a6.0,6.0 0 1 1 -6.0,6.0" />'
 SVG_ICON_FOG = '<path stroke="rgba(111,155,164,90)" stroke-linecap="round" d="M -39,-15 h 78 M -39,-5 h 78 M -39,5 h 78 M -39,15 h 78 " />'
 SVG_ICON_WIND = '<path stroke-width="6" stroke="#404040" fill="none" d="M-45,-15 h40 a12,12 0 1 0 -12,-12 M-45,0 h75 a12,12 0 1 0 -12,-12 M-45,15 h57.5 a12,12 0 1 1 -12,12" />'
 SVG_ICON_RAIN = '<path stroke="#828487" fill="none" d="M -31,22 m 4,0 h -4 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39h -4" /><path stroke="none" fill="#66a1ba" d="M -28,10 h 5 l 22.0,30 h -5 l -22.0,-30 z m 15,0 h 5 l 22.0,30 h -5 l -22.0,-30 z m 15,0 h 5 l 22.0,30 h -5 l -22.0,-30 z " />'
@@ -178,16 +179,30 @@ SVG_ICON_N = [
     (SVG_ICON_FOG,SVG_ICON_FOG),
     (SVG_ICON_UNKNOWN,SVG_ICON_UNKNOWN)
 ]
+SVG_ICON_N_WIND = [
+    ('<g stroke="#f6bc68"><circle cx="-21" cy="-6" r="18" fill="none" /><path d="M 3.0,-6.0 L 17.0,-6.0 M -4.02943725152286,10.97056274847714 L 5.87005768508881,20.8700576850888 M -21.0,18.0 L -21.0,32.0 M -37.97056274847714,10.97056274847714 L -47.8700576850888,20.87005768508881 M -45.0,-6.0 L -59.0,-6.0 M -37.97056274847714,-22.97056274847714 L -47.87005768508881,-32.8700576850888 M -21.0,-30.0 L -21.00000000000001,-44.0 M -4.02943725152286,-22.97056274847714 L 5.8700576850888,-32.87005768508881 " /></g><path stroke-width="3.0" stroke="#404040" fill="none" d="M13,16.5 h20.0 a6.0,6.0 0 1 0 -6.0,-6.0 M13,24 h37.5 a6.0,6.0 0 1 0 -6.0,-6.0 M13,31.5 h28.75 a6.0,6.0 0 1 1 -6.0,6.0" />',
+     '<path stroke="#da4935" fill="none" d="M -23,-35 a 26,26 0 0 1 -22,39 a 24,24 0 1 0 22,-39 z" /><path stroke-width="3.0" stroke="#404040" fill="none" d="M3,7.5 h20.0 a6.0,6.0 0 1 0 -6.0,-6.0 M3,15 h37.5 a6.0,6.0 0 1 0 -6.0,-6.0 M3,22.5 h28.75 a6.0,6.0 0 1 1 -6.0,6.0" />'),
+    ('<g stroke="#f6bc68"><path fill="none" d="M -3.5930044000000017,4.58219426 A 18,18 0 1 0 -26.26007294,17.21428571 M 3.0,0.0 L 17.0,0.0 M -37.970562748477136,16.97056274847714 L -47.870057685088796,26.87005768508881 M -45.0,0.0 L -59.0,0.0 M -37.970562748477136,-16.97056274847714 L -47.87005768508881,-26.8700576850888 M -21.0,-24.0 L -21.00000000000001,-38.0 M -4.029437251522861,-16.97056274847714 L 5.870057685088799,-26.87005768508881 " /></g><path stroke="#828487" stroke-width="1.8" fill="none" d="M -21,40 a 12,12 0 1 1 2.92816105,-23.63726226 a 14.4,14.4 0 0 1 25.92035627,-5.69450347 a 9.75,9.75 0 0 1 10.15148268,5.93176573 a 12,12 0 0 1 -3.7469988,23.4 z " /><path stroke-width="3.0" stroke="#404040" fill="none" d="M14,-30.5 h20.0 a6.0,6.0 0 1 0 -6.0,-6.0 M14,-23 h37.5 a6.0,6.0 0 1 0 -6.0,-6.0 M14,-15.5 h28.75 a6.0,6.0 0 1 1 -6.0,6.0" />',
+     '<path stroke="#da4935" fill="none" d="M-1.0229402599999986,4.87134981 a 24,24 0 0 0 -19.97705974,-28.87134981 a 26,26 0 0 1 -22,39 a 24,24 0 0 0 11.27165715,7.62388061" /><path stroke="#828487" stroke-width="1.8" fill="none" d="M -21,40 a 12,12 0 1 1 2.92816105,-23.63726226 a 14.4,14.4 0 0 1 25.92035627,-5.69450347 a 9.75,9.75 0 0 1 10.15148268,5.93176573 a 12,12 0 0 1 -3.7469988,23.4 z " /><path stroke-width="3.0" stroke="#404040" fill="none" d="M14,-30.5 h20.0 a6.0,6.0 0 1 0 -6.0,-6.0 M14,-23 h37.5 a6.0,6.0 0 1 0 -6.0,-6.0 M14,-15.5 h28.75 a6.0,6.0 0 1 1 -6.0,6.0" />'),
+    ('<g stroke="#f6bc68"><path fill="none" d="M -18.00252351,-17.73419552 A 14,14 0 1 0 -39.25615559,-6.02718888 M -45.4350288425444,-4.5649711574556004 L -53.21320343559642,3.21320343559643 M -51.0,-18.0 L -62.0,-18.0 M -45.43502884254441,-31.435028842544398 L -53.21320343559643,-39.21320343559642 M -32.0,-37.0 L -32.00000000000001,-48.0 M -18.564971157455602,-31.435028842544412 L -10.78679656440358,-39.21320343559643 " /></g><path stroke="#828487" fill="none" d="M -25,28 m 4,0 h -4 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39h -4" /><path stroke-width="3.0" stroke="#404040" fill="none" d="M-17,16.5 h20.0 a6.0,6.0 0 1 0 -6.0,-6.0 M-17,24 h37.5 a6.0,6.0 0 1 0 -6.0,-6.0 M-17,31.5 h28.75 a6.0,6.0 0 1 1 -6.0,6.0" />',
+     '<path stroke="#da4935" fill="none" d="M -13.88,-23.64 a 24,24 0 0 0 -20.12,-19.36 a 26,26 0 0 1 -22,39 a 24,24 0 0 0 11.44,7.68 m 30.68,-27.32 a 24,24 0 0 0 -20.12,-19.36 " /><path stroke="#828487" fill="none" d="M -25,28 m 4,0 h -4 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39h -4" /><path stroke-width="3.0" stroke="#404040" fill="none" d="M-17,16.5 h20.0 a6.0,6.0 0 1 0 -6.0,-6.0 M-17,24 h37.5 a6.0,6.0 0 1 0 -6.0,-6.0 M-17,31.5 h28.75 a6.0,6.0 0 1 1 -6.0,6.0" />'),
+    ('<g stroke="#f6bc68"><path fill="none" d="M -19.99475974,-23.48547467 A 14,14 0 0 0 -41.65782625,-8.92367394 M -47.0,-12.0 L -58.0,-12.0 M -41.43502884254441,-25.435028842544398 L -49.21320343559643,-33.21320343559642 M -28.0,-31.0 L -28.00000000000001,-42.0 " /></g><path stroke="#828487" stroke-width="1.8" fill="none" d="M 5,-30 a 14.4,14.4 0 0 1 25.8,-5.4 h 2 a 9.75,9.75 0 0 1 9,6 a 12,12 0 0 1 0.3,22.68" /><path stroke="#828487" fill="none" d="M -31,28 m 4,0 h -4 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39h -4" /><path stroke-width="3.0" stroke="#404040" fill="none" d="M-23,16.5 h20.0 a6.0,6.0 0 1 0 -6.0,-6.0 M-23,24 h37.5 a6.0,6.0 0 1 0 -6.0,-6.0 M-23,31.5 h28.75 a6.0,6.0 0 1 1 -6.0,6.0" />',
+     '<path stroke="#da4935" fill="none" d="M -13.88,-23.64 a 24,24 0 0 0 -20.12,-19.36 a 26,26 0 0 1 -22,39 a 24,24 0 0 0 11.44,7.68 m 30.68,-27.32 a 24,24 0 0 0 -20.12,-19.36 " /><path stroke="#828487" stroke-width="1.8" fill="none" d="M 11,-30 a 14.4,14.4 0 0 1 25.8,-5.4 h 2 a 9.75,9.75 0 0 1 9,6 a 12,12 0 0 1 0.3,22.68" /><path stroke="#828487" fill="none" d="M -25,28 m 4,0 h -4 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39h -4" /><path stroke-width="3.0" stroke="#404040" fill="none" d="M-17,16.5 h20.0 a6.0,6.0 0 1 0 -6.0,-6.0 M-17,24 h37.5 a6.0,6.0 0 1 0 -6.0,-6.0 M-17,31.5 h28.75 a6.0,6.0 0 1 1 -6.0,6.0" />'),
+    (SVG_ICON_CLOUDY_WIND,SVG_ICON_CLOUDY_WIND),
+    (SVG_ICON_FOG,SVG_ICON_FOG),
+    (SVG_ICON_UNKNOWN,SVG_ICON_UNKNOWN)
+]
 
-def svg_icon_n(okta, night=False, width=128, text=None, x=None, y=None):
+def svg_icon_n(okta, night=False, width=128, text=None, x=None, y=None, wind=0):
     try:
         height = width * 0.78125
         night = 1 if night else 0
         idx = (0,1,1,2,2,2,3,3,4,5,6)[okta]
         text = ('<title>%s</title><rect x="-64" y="-50" width="100%%" height="100%%" stroke="none" fill="#000000" fill-opacity="0" />' % text) if text else ''
         coord = ('x="%s" y="%s"' % (x,y)) if x is not None and y is not None else ''
+        icon = SVG_ICON_N_WIND if wind else SVG_ICON_N
         return ((SVG_ICON_START % (coord,width,height,text))+
-            SVG_ICON_N[idx][night]+
+            icon[idx][night]+
             SVG_ICON_END)
     except (ArithmeticError,LookupError,TypeError,ValueError):
         return ""
@@ -1552,6 +1567,17 @@ if hasSearchList:
                         icon = wwcode[8]
                         if not icon: icon = 'wi-na'
                         return '<i class="wi %s"></i>' % icon
+                    if attr=='svg_icon_filename':
+                        if wwcode[0]==18 and self.nn is not None:
+                            # squall
+                            return get_ww([0,],self.nn,self.night)[4].replace('.png','-wind.svg')
+                        if wwcode[0]==96:
+                            return 'thunderstorm-hail.svg'
+                        if wwcode[0] in (13,17):
+                            return 'lightning.svg'
+                        if wwcode[0] in (56,57,66,67):
+                            return 'freezingrain.svg'
+                        return wwcode[4].replace('.png','.svg')
                     if attr=='svg_icon':
                         try:
                             return SVGIconBinder(wwcode[0],n=self.nn,night=self.night,text=self._get_ww_text(wwcode))
@@ -1583,8 +1609,9 @@ if hasSearchList:
                     return '%.0f/8' % (self.nn/100*8)
                 if attr=='svg_icon':
                     try:
-                        return svg_icon_n(int(round(self.nn/100*8,0)))
-                    except (LookupError,ArithmenticError,TypeError,ValueError):
+                        return SVGIconBinder(None,n=self.nn,night=self.night,text=None)
+                        #return svg_icon_n(int(round(self.nn/100*8,0)))
+                    except (LookupError,ArithmeticError,TypeError,ValueError):
                         return ""
                 if attr=='wmo_symbol':
                     try:
@@ -1615,6 +1642,9 @@ if hasSearchList:
                 if attr=='wi_icon':
                     night = 6 if self.night else 5
                     return '<i class="wi %s"></i>' % n[night]
+                if attr=='svg_icon_filename':
+                    night = 1 if self.night else 0
+                    return n[night].replace('.png','.svg')
             return super(PresentWeatherBinder,self).__getattr__(attr)
 
     class SVGIconBinder(object):
@@ -1629,8 +1659,8 @@ if hasSearchList:
         def __str__(self):
             try:
                 if self.nn is not None:
-                    if self.ww is None or self.ww<=3 or (self.ww>=20 and self.ww<30) or self.ww in (14,15,16):
-                        return svg_icon_n(int(round(float(self.nn)/100.0*8.0,0)),night=self.night,text=self.text)
+                    if self.ww is None or self.ww<=3 or (self.ww>=20 and self.ww<30) or self.ww in (14,15,16,18):
+                        return svg_icon_n(int(round(float(self.nn)/100.0*8.0,0)),night=self.night,text=self.text,wind=3 if self.ww==18 else 0)
                 return svg_icon_ww(self.ww,text=self.text)
             except (LookupError,ArithmeticError,TypeError,ValueError):
                 return ""
@@ -1638,13 +1668,14 @@ if hasSearchList:
         def __call__(self, width=128, x=None, y=None, with_tooltip=True):
             try:
                 if self.nn is not None:
-                    if self.ww is None or self.ww<=3 or (self.ww>=20 and self.ww<30) or self.ww in (14,15,16):
+                    if self.ww is None or self.ww<=3 or (self.ww>=20 and self.ww<30) or self.ww in (14,15,16,18):
                         return svg_icon_n(
                                    int(round(float(self.nn)/100.0*8.0,0)),
                                    night=self.night,
                                    width=width,
                                    text=self.text if with_tooltip else None,
-                                   x=x,y=y)
+                                   x=x,y=y,
+                                   wind=3 if self.ww==18 else 0)
                 return svg_icon_ww(self.ww,
                                    width=width,
                                    text=self.text if with_tooltip else None,

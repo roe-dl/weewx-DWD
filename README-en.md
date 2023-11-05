@@ -1,5 +1,6 @@
 # weewx-DWD
 
+display weather icons in WeeWX as well as
 download weather and warning data and use them in WeeWX and skins.
 
 <p align="center"><img src="Wettervorhersage-Warnungen-Fichtelberg.png" width="600px" /></p>
@@ -432,6 +433,8 @@ than 4.
 * `svg_icon`: weather icon in SVG format
 * `svg_icon($width=128,$x=None,$y=None,$with_tooltip=True)`: 
   weather icon in SVG format, formatted
+* `svg_icon_filename`: filename of the SVG icon from
+  [weathericons](https://github.com/roe-dl/weathericons)
 * `wmo_symbol`: the meteorological symbol as defined by the WMO
 * `wmo_symbol($width,color=$color)`: the meteorological symbol as defined
   by the WMO, formatted

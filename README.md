@@ -5,9 +5,14 @@
 * Icons und Symbole im SVG-Vektorgraphikformat siehe [images](https://github.com/roe-dl/weathericons)
 * Icons and symbols in SVG vector graphic format see [images](https://github.com/roe-dl/weathericons)
 
+Wettersymbole in WeeWX darstellen sowie
 Wetter- und Warndaten herunterladen und für WeeWX und Web-Darstellung aufbereiten
 
 <p align="center"><img src="Wettervorhersage-Warnungen-Fichtelberg.png" width="600px" /></p>
+
+Völlig unabhängig von einzelnen Wetterdiensten können mittels
+`$presentweather` Wettersymbole dargestellt werden. Symbolsätze
+mehrerer Anbieter werden unterstützt.
 
 Diese Daten können mit den Programmen bezogen werden:
 * vom Deutschen Wetterdienst (DWD)
@@ -542,6 +547,8 @@ auch `wawa` vorhanden sind, wird `ww` verwendet und `wawa` ignoriert.
 * `svg_icon($width=128,$x=None,$y=None,$with_tooltip=True)`: 
   Wetter-Icon im SVG-Format 
   mit Größenangabe und Koordinaten
+* `svg_icon_filename`: Dateiname des SVG-Icons aus dem Wettersymbolesatz
+  in [weathericons](https://github.com/roe-dl/weathericons)
 * `wmo_symbol`: Symbol der Meteorologen für den Wetterzustand
 * `wmo_symbol($width,color=$color)`: Symbol der Meteorologen für den 
   Wetterzustand mit Größenangabe und optionaler Farbangabe.
