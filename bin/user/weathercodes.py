@@ -159,6 +159,8 @@ SVG_ICON_CLOUDY = '<path stroke="#828487" stroke-width="1.8" fill="none" d="M 5,
 SVG_ICON_CLOUDY_WIND = '<path stroke="#828487" stroke-width="1.8" fill="none" d="M 5,-30 a 14.4,14.4 0 0 1 25.8,-5.4 h 2 a 9.75,9.75 0 0 1 9,6 a 12,12 0 0 1 0.3,22.68" /><path stroke="#828487" fill="none" d="M -31,28 m 4,0 h -4 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39h -4" /><path stroke-width="3.0" stroke="#404040" fill="none" d="M-23,16.5 h20.0 a6.0,6.0 0 1 0 -6.0,-6.0 M-23,24 h37.5 a6.0,6.0 0 1 0 -6.0,-6.0 M-23,31.5 h28.75 a6.0,6.0 0 1 1 -6.0,6.0" />'
 SVG_ICON_FOG = '<path stroke="rgba(111,155,164,90)" stroke-linecap="round" d="M -39,-15 h 78 M -39,-5 h 78 M -39,5 h 78 M -39,15 h 78 " />'
 SVG_ICON_WIND = '<path stroke-width="6" stroke="#404040" fill="none" d="M-45,-15 h40 a12,12 0 1 0 -12,-12 M-45,0 h75 a12,12 0 1 0 -12,-12 M-45,15 h57.5 a12,12 0 1 1 -12,12" />'
+SVG_ICON_SANDSTORM = '<path stroke-width="6" stroke="#a96132" fill="none" d="M-45,-15 h40 a12,12 0 1 0 -12,-12 M-45,0 h75 a12,12 0 1 0 -12,-12 M-45,15 h57.5 a12,12 0 1 1 -12,12" />'
+SVG_ICON_BLOWINGSNOW = '<path stroke-width="6" stroke="#66a1ba" fill="none" d="M-60,-15 h40 a12,12 0 1 0 -12,-12 M-60,0 h75 a12,12 0 1 0 -12,-12 M-60,15 h57.5 a12,12 0 1 1 -12,12" /><path stroke="#66a1ba" stroke-width="1.5" stroke-linecap="round" fill="none" d="M 30,20 l0.0,20.0 m-8.66025404,-15.0 l17.32050808,10.0 m-17.32050808,-0.0 l17.32050808,-10.0 m-8.66025404,-5.0 m2.88675135,1.66666667 l-2.88675135,1.66666667 l-2.88675135,-1.66666667 m2.88675135,-1.66666667 m-8.66025404,5.0 m2.88675135,-1.66666667 l-0.0,3.33333333 l-2.88675135,1.66666667 m0.0,-3.33333333 m-0.0,10.0 m0.0,-3.33333333 l2.88675135,1.66666667 l0.0,3.33333333 m-2.88675135,-1.66666667 m8.66025404,5.0 m-2.88675135,-1.66666667 l2.88675135,-1.66666667 l2.88675135,1.66666667 m-2.88675135,1.66666667 m8.66025404,-5.0 m-2.88675135,1.66666667 l0.0,-3.33333333 l2.88675135,-1.66666667 m-0.0,3.33333333 m0.0,-10.0 m-0.0,3.33333333 l-2.88675135,-1.66666667 l-0.0,-3.33333333 m2.88675135,1.66666667 " /><path stroke="#66a1ba" stroke-width="1.5" stroke-linecap="round" fill="none" d="M 50,-5 l0.0,20.0 m-8.66025404,-15.0 l17.32050808,10.0 m-17.32050808,-0.0 l17.32050808,-10.0 m-8.66025404,-5.0 m2.88675135,1.66666667 l-2.88675135,1.66666667 l-2.88675135,-1.66666667 m2.88675135,-1.66666667 m-8.66025404,5.0 m2.88675135,-1.66666667 l-0.0,3.33333333 l-2.88675135,1.66666667 m0.0,-3.33333333 m-0.0,10.0 m0.0,-3.33333333 l2.88675135,1.66666667 l0.0,3.33333333 m-2.88675135,-1.66666667 m8.66025404,5.0 m-2.88675135,-1.66666667 l2.88675135,-1.66666667 l2.88675135,1.66666667 m-2.88675135,1.66666667 m8.66025404,-5.0 m-2.88675135,1.66666667 l0.0,-3.33333333 l2.88675135,-1.66666667 m-0.0,3.33333333 m0.0,-10.0 m-0.0,3.33333333 l-2.88675135,-1.66666667 l-0.0,-3.33333333 m2.88675135,1.66666667 " /><path stroke="#66a1ba" stroke-width="1.5" stroke-linecap="round" fill="none" d="M 42,-40 l0.0,20.0 m-8.66025404,-15.0 l17.32050808,10.0 m-17.32050808,-0.0 l17.32050808,-10.0 m-8.66025404,-5.0 m2.88675135,1.66666667 l-2.88675135,1.66666667 l-2.88675135,-1.66666667 m2.88675135,-1.66666667 m-8.66025404,5.0 m2.88675135,-1.66666667 l-0.0,3.33333333 l-2.88675135,1.66666667 m0.0,-3.33333333 m-0.0,10.0 m0.0,-3.33333333 l2.88675135,1.66666667 l0.0,3.33333333 m-2.88675135,-1.66666667 m8.66025404,5.0 m-2.88675135,-1.66666667 l2.88675135,-1.66666667 l2.88675135,1.66666667 m-2.88675135,1.66666667 m8.66025404,-5.0 m-2.88675135,1.66666667 l0.0,-3.33333333 l2.88675135,-1.66666667 m-0.0,3.33333333 m0.0,-10.0 m-0.0,3.33333333 l-2.88675135,-1.66666667 l-0.0,-3.33333333 m2.88675135,1.66666667 " />'
 SVG_ICON_RAIN = '<path stroke="#828487" fill="none" d="M -31,22 m 4,0 h -4 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39h -4" /><path stroke="none" fill="#66a1ba" d="M -28,10 h 5 l 22.0,30 h -5 l -22.0,-30 z m 15,0 h 5 l 22.0,30 h -5 l -22.0,-30 z m 15,0 h 5 l 22.0,30 h -5 l -22.0,-30 z " />'
 SVG_ICON_DRIZZLE = '<path stroke="#828487" fill="none" d="M -31,22 m 4,0 h -4 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39h -4" /><path stroke="#66a1ba" fille="none" stroke-dasharray="4 9" stroke-width="2" d="M -4.5,40 l -22,-30 m 7.5,0 l 22,30 m 7.5,0 l -22,-30 m 7.5,0 l 22,30 m 7.5,0 l -22,-30 " />'
 SVG_ICON_HAIL = '<path stroke="#828487" fill="none" d="M -31,22 m 4,0 h -4 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39h -4" /><g stroke="none" fill="#66a1ba"><circle cx="-15" cy="37" r="4" /><circle cx="-6" cy="19" r="4" /><circle cx="11" cy="30" r="4" /></g>'
@@ -270,27 +272,27 @@ SVG_ICON_WW = [
     # 29
     None,
     # 30
-    SVG_ICON_WIND,
+    SVG_ICON_SANDSTORM,
     # 31
-    SVG_ICON_WIND,
+    SVG_ICON_SANDSTORM,
     # 32
-    SVG_ICON_WIND,
+    SVG_ICON_SANDSTORM,
     # 33
-    SVG_ICON_WIND,
+    SVG_ICON_SANDSTORM,
     # 34
-    SVG_ICON_WIND,
+    SVG_ICON_SANDSTORM,
     # 35
-    SVG_ICON_WIND,
+    SVG_ICON_SANDSTORM,
     # 36
-    SVG_ICON_WIND,
+    SVG_ICON_BLOWINGSNOW,
     # 37
-    SVG_ICON_WIND,
+    SVG_ICON_BLOWINGSNOW,
     # 38
-    SVG_ICON_WIND,
+    SVG_ICON_BLOWINGSNOW,
     # 39
-    SVG_ICON_WIND,
+    SVG_ICON_BLOWINGSNOW,
     # 40
-    SVG_ICON_FOG,
+    None,
     # 41
     SVG_ICON_FOG,
     # 42
@@ -428,156 +430,156 @@ def svg_icon_ww(ww, width=128, text=None, x=None, y=None):
 
 
 # The list is sorted by severity.
-# ww, german description, English description, severity, Belchertown icon, DWD icon, Aeris icon, Aeris coded weather
+# ww, german description, English description, severity, Belchertown icon, DWD icon, Aeris icon, Aeris coded weather, E.Flower icon
 WW_LIST = [
     # ::FC ::TO
-    (19,'Tornado (Windhose), Trichterwolke','funnel clouds (tornado)',None,'tornado.png','18.png','','::FC','wi-tornado'),
+    (19,'Tornado (Windhose), Trichterwolke','funnel clouds (tornado)',None,'tornado.png','18.png','','::FC','wi-tornado','tornado.png'),
     # 95...99 thunderstorm at time of observation
-    (99,'schweres Gewitter mit Hagel','heavy thunderstorm with hail',None,'thunderstorm.png','30.png','tstorm',':H:T','wi-thunderstorm'),
-    (98,'Gewitter mit Staub- oder Standsturm','thunderstorm with duststorm or sandstorm',None,'thunderstorm.png','27.png','tstorm','::T','wi-thunderstorm'),
-    (97,'schweres Gewitter mit Regen oder Schnee','heavy thunderstorm with rain or snow',None,'thunderstorm.png','28.png','tstorm',':H:T','wi-thunderstorm'),
-    (96,'leichtes oder mäßiges Gewitter mit Hagel','slight or moderate thunderstorm with hail',None,'thunderstorm.png','29.png','tstorm',':L:T','wi-thunderstorm'),
-    (95,'leichtes oder mäßiges Gewitter mit Regen oder Schnee','slight or moderate thunderstorm with rain or snow',1,'thunderstorm.png','27.png','tstorm',':L:T','wi-thunderstorm'),
+    (99,'schweres Gewitter mit Hagel','heavy thunderstorm with hail',None,'thunderstorm.png','30.png','tstorm',':H:T','wi-thunderstorm','thunderstorm-hail.svg'),
+    (98,'Gewitter mit Staub- oder Standsturm','thunderstorm with duststorm or sandstorm',None,'thunderstorm.png','27.png','tstorm','::T','wi-thunderstorm','lightning.svg'),
+    (97,'schweres Gewitter mit Regen oder Schnee','heavy thunderstorm with rain or snow',None,'thunderstorm.png','28.png','tstorm',':H:T','wi-thunderstorm','thunderstorm.svg'),
+    (96,'leichtes oder mäßiges Gewitter mit Hagel','slight or moderate thunderstorm with hail',None,'thunderstorm.png','29.png','tstorm',':L:T','wi-thunderstorm','thunderstorm-hail.svg'),
+    (95,'leichtes oder mäßiges Gewitter mit Regen oder Schnee','slight or moderate thunderstorm with rain or snow',1,'thunderstorm.png','27.png','tstorm',':L:T','wi-thunderstorm','thunderstorm.svg'),
     # 50...59 drizzle (here: freezing drizzle)
-    (57,'mäßiger oder starker gefrierender Sprühregen','Drizzle, freezing, moderate or heavy (dence)',2,'sleet.png','67.png','freezingrain',':H:ZL','wi-sleet'),
-    (56,'leichter gefrierender Sprühregen','Drizzle, freezing, slight',3,'sleet.png','66.png','freezingrain',':L:ZL','wi-sleet'),
+    (57,'mäßiger oder starker gefrierender Sprühregen','Drizzle, freezing, moderate or heavy (dence)',2,'sleet.png','67.png','freezingrain',':H:ZL','wi-sleet','freezingdrizzle.svg'),
+    (56,'leichter gefrierender Sprühregen','Drizzle, freezing, slight',3,'sleet.png','66.png','freezingrain',':L:ZL','wi-sleet','freezingdrizzle.svg'),
     # 60...69 rain (here: freezing rain)
-    (67,'mäßiger bis starker gefrierender Regen','Rain, freezing, moderate or heavy (dence)',4,'sleet.png','67.png','freezingrain',':H:ZR','wi-sleet'),
-    (66,'leichter gefrierender Regen','Rain, freezing, slight',5,'sleet.png','66.png','freezingrain',':L:ZR','wi-sleet'),
+    (67,'mäßiger bis starker gefrierender Regen','Rain, freezing, moderate or heavy (dence)',4,'sleet.png','67.png','freezingrain',':H:ZR','wi-sleet','freezingrain.svg'),
+    (66,'leichter gefrierender Regen','Rain, freezing, slight',5,'sleet.png','66.png','freezingrain',':L:ZR','wi-sleet','freezingrain.svg'),
     # 20...29 events during the preceding hour but not now
     # 24 freezing drizzle or freezing rain ::ZL ::ZR
-    (24,'nach gefrierendem Regen','after freezing drizzle or freezing rain',None,None,'eis.png',None,'::ZR',''),
+    (24,'nach gefrierendem Regen','after freezing drizzle or freezing rain',None,None,'eis.png',None,'::ZR','','glazeice.svg'),
     # 80...90 shower(s) or precipitation with current or recent thunderstorm
-    (90,'kräftige Hagelschauer','moderate or heavy shower(s) of hail',None,'hail.png','17.png','hail',':H:A','wi-hail'),
-    (89,'leichte Hagelschauer','slight shower(s) of hail',None,'hail.png','17.png','hail',':L:A','wi-hail'),
-    (88,'kräftige Graupelschauer','moderate or heavy shower(s) of snow pellets',None,'snow.png','86.png','snow',':H:A','wi-hail'),
-    (87,'leichte Graupelschauer','slight shower(s) of snow pellets',None,'snow.png','85.png','snow',':L:A','wi-hail'),
+    (90,'kräftige Hagelschauer','moderate or heavy shower(s) of hail',None,'hail.png','17.png','hail',':H:A','wi-hail','hail.svg'),
+    (89,'leichte Hagelschauer','slight shower(s) of hail',None,'hail.png','17.png','hail',':L:A','wi-hail','hail.svg'),
+    (88,'kräftige Graupelschauer','moderate or heavy shower(s) of snow pellets',None,'snow.png','86.png','snow',':H:A','wi-hail','hail.svg'),
+    (87,'leichte Graupelschauer','slight shower(s) of snow pellets',None,'snow.png','85.png','snow',':L:A','wi-hail','hail.svg'),
     # 70...79
     # 79 Eiskörner
-    (79,'Niederschlag in Form von Eiskörnern','ice pellets',None,'snow.png','85.png','snow',':L:A','wi-hail'),
+    (79,'Niederschlag in Form von Eiskörnern','ice pellets',None,'snow.png','85.png','snow',':L:A','wi-hail','snow.svg'),
     # 91...94 thunderstorm during the preceding hour but not at time of observation
-    (94,'Schnee, Schneeregen oder Hagel nach einem Gewitter','snow, or rain and snow mixed or hail after thunderstorm',None,'snow.png','27.png','snow',':H:T','wi-snow'),
-    (93,'leichter Schnee, Schneeregen oder Hagel nach einem Gewitter','slight snow, or rain and snow mixed or hail after thunderstorm',None,'snow.png','27.png','snow',':L:T','wi-snow'),
-    (92,'kräftiger Regen nach Gewitter','moderate or heavy rain after thunderstorm',None,'rain.png','27.png','rain',':H:T','wi-rain'),
-    (91,'leichter Regen nach Gewitter','slight rain after thunderstorm',None,'rain.png','27.png','rain',':L:T','wi-rain'),
+    (94,'Schnee, Schneeregen oder Hagel nach einem Gewitter','snow, or rain and snow mixed or hail after thunderstorm',None,'snow.png','27.png','snow',':H:T','wi-snow','snow.svg'),
+    (93,'leichter Schnee, Schneeregen oder Hagel nach einem Gewitter','slight snow, or rain and snow mixed or hail after thunderstorm',None,'snow.png','27.png','snow',':L:T','wi-snow','snow.svg'),
+    (92,'kräftiger Regen nach Gewitter','moderate or heavy rain after thunderstorm',None,'rain.png','27.png','rain',':H:T','wi-rain','rain.svg'),
+    (91,'leichter Regen nach Gewitter','slight rain after thunderstorm',None,'rain.png','27.png','rain',':L:T','wi-rain','rain.svg'),
     # 80...90 shower(s) or precipitation with current or recent thunderstorm
-    (86,'mäßiger bis starker Schneeschauer','Snow shower(s), moderate or heavy',6,'snow.png','86.png','snowshowers',':H:SW','wi-snow'),
-    (85,'leichter Schneeschauer','Snow shower(s), slight',7,'snow.png','85.png','snowshowers',':L:SW','wi-snow'),
-    (84,'mäßiger oder starker Schneeregenschauer','Shower(s) of rain and snow mixed, moderate or heavy',8,'sleet.png','84.png','wintrymix',':H:RS','wi-sleet'),
-    (83,'leichter Schneeregenschauer','Shower(s) of rain and snow mixed, slight',9,'sleet.png','83.png','wintrymix',':L:RS','wi-sleet'),
-    (82,'äußerst heftiger Regenschauer','extremely heavy rain shower',10,'rain.png','82.png','showers',':VH:RW','wi-showers'),
-    (81,'mäßiger oder starker Regenschauer','moderate or heavy rain showers',11,'rain.png','82.png','showers',':H:RW','wi-showers'),
-    (80,'leichter Regenschauer','slight rain shower',12,'rain.png','80.png','showers',':L:RW','wi-showers'),
+    (86,'mäßiger bis starker Schneeschauer','Snow shower(s), moderate or heavy',6,'snow.png','86.png','snowshowers',':H:SW','wi-snow','snow.svg'),
+    (85,'leichter Schneeschauer','Snow shower(s), slight',7,'snow.png','85.png','snowshowers',':L:SW','wi-snow','snow.svg'),
+    (84,'mäßiger oder starker Schneeregenschauer','Shower(s) of rain and snow mixed, moderate or heavy',8,'sleet.png','84.png','wintrymix',':H:RS','wi-sleet','sleet.svg'),
+    (83,'leichter Schneeregenschauer','Shower(s) of rain and snow mixed, slight',9,'sleet.png','83.png','wintrymix',':L:RS','wi-sleet','sleet.svg'),
+    (82,'äußerst heftiger Regenschauer','extremely heavy rain shower',10,'rain.png','82.png','showers',':VH:RW','wi-showers','rain.svg'),
+    (81,'mäßiger oder starker Regenschauer','moderate or heavy rain showers',11,'rain.png','82.png','showers',':H:RW','wi-showers','rain.svg'),
+    (80,'leichter Regenschauer','slight rain shower',12,'rain.png','80.png','showers',':L:RW','wi-showers','rain.svg'),
     # 70...79 solid precipitation not in showers
-    (75,'starker Schneefall','heavy snowfall, continuous',13,'snow.png','16.png','snow',':H:S','wi-snow'),
-    (74,'intermittierend starker Schneefall','heavy snowfall, intermittent',None,'snow.png','16.png','snow','IN:H:S','wi-snow'),
-    (73,'mäßiger Schneefall','moderate snowfall, continuous',14,'snow.png','15.png','snow','::S','wi-snow'),
-    (72,'intermittierend mäßiger Schneefall','moderate snowfall, intermittent',None,'snow.png','15.png','snow','IN::S','wi-snow'),
-    (71,'leichter Schneefall','slight snowfall, continuous',15,'snow.png','14.png','snow',':L:S','wi-snow'),
-    (70,'intermittierend leichter Schneefall','slight snowfall, intermittent',None,'snow.png','14.png','snow','IN:L:S','wi-snow'),
+    (75,'starker Schneefall','heavy snowfall, continuous',13,'snow.png','16.png','snow',':H:S','wi-snow','snow.svg'),
+    (74,'intermittierend starker Schneefall','heavy snowfall, intermittent',None,'snow.png','16.png','snow','IN:H:S','wi-snow','snow.svg'),
+    (73,'mäßiger Schneefall','moderate snowfall, continuous',14,'snow.png','15.png','snow','::S','wi-snow','snow.svg'),
+    (72,'intermittierend mäßiger Schneefall','moderate snowfall, intermittent',None,'snow.png','15.png','snow','IN::S','wi-snow','snow.svg'),
+    (71,'leichter Schneefall','slight snowfall, continuous',15,'snow.png','14.png','snow',':L:S','wi-snow','snow.svg'),
+    (70,'intermittierend leichter Schneefall','slight snowfall, intermittent',None,'snow.png','14.png','snow','IN:L:S','wi-snow','snow.svg'),
     # 60...69 rain
-    (69,'mäßger oder starker Schneeregen','moderate or heavy rain and snow',16,'sleet.png','13.png','rainandsnow',':H:RS','wi-sleet'),
-    (68,'leichter Schneeregen','slight rain and snow',17,'sleet.png','12.png','rainandsnow',':L:RS','wi-sleet'),
+    (69,'mäßger oder starker Schneeregen','moderate or heavy rain and snow',16,'sleet.png','13.png','rainandsnow',':H:RS','wi-sleet','sleet.svg'),
+    (68,'leichter Schneeregen','slight rain and snow',17,'sleet.png','12.png','rainandsnow',':L:RS','wi-sleet','sleet.svg'),
     # 50...59 drizzle
-    (59,'starker Sprühregen und Regen','moderate or heavy drizzle and rain',None,'rain.png','','rain','','wi-rain'),
-    (58,'leichter Sprühregen und Regen','slight drizzle and rain',None,'rain.png','','rain','','wi-rain'),
-    (55,'starker Sprühregen','heavy drizzle, not freezing, continuous',18,'drizzle.png','9.png','drizzle',':H:L','wi-sprinkle'),
-    (54,'intermittierend starker Sprühregen','heavy drizzle, not freezing, intermittent',None,'drizzle.png','9.png','drizzle','IN:H:L','wi-sprinkle'),
-    (53,'mäßiger Sprühregen','moderate drizzle, not freezing, continuous',19,'drizzle.png','8.png','drizzle','::L','wi-sprinkle'),
-    (52,'intermittierend mäßiger Sprühregen','moderate drizzle, not freezing, intermittent',None,'drizzle.png','8.png','drizzle','IN::L','wi-sprinkle'),
-    (51,'leichter Sprühregen','slight drizzle, not freezing, continuous',20,'drizzle.png','7.png','drizzle',':L:L','wi-sprinkle'),
-    (50,'intermittierend leichter Sprühregen','slight drizzle, not freezing, intermittent',None,'drizzle.png','7.png','drizzle','IN:L:L','wi-sprinkle'),
+    (59,'starker Sprühregen und Regen','moderate or heavy drizzle and rain',None,'rain.png','','rain','','wi-rain','rain.svg'),
+    (58,'leichter Sprühregen und Regen','slight drizzle and rain',None,'rain.png','','rain','','wi-rain','rain.svg'),
+    (55,'starker Sprühregen','heavy drizzle, not freezing, continuous',18,'drizzle.png','9.png','drizzle',':H:L','wi-sprinkle','drizzle.svg'),
+    (54,'intermittierend starker Sprühregen','heavy drizzle, not freezing, intermittent',None,'drizzle.png','9.png','drizzle','IN:H:L','wi-sprinkle','drizzle.svg'),
+    (53,'mäßiger Sprühregen','moderate drizzle, not freezing, continuous',19,'drizzle.png','8.png','drizzle','::L','wi-sprinkle','drizzle.svg'),
+    (52,'intermittierend mäßiger Sprühregen','moderate drizzle, not freezing, intermittent',None,'drizzle.png','8.png','drizzle','IN::L','wi-sprinkle','drizzle.svg'),
+    (51,'leichter Sprühregen','slight drizzle, not freezing, continuous',20,'drizzle.png','7.png','drizzle',':L:L','wi-sprinkle','drizzle.svg'),
+    (50,'intermittierend leichter Sprühregen','slight drizzle, not freezing, intermittent',None,'drizzle.png','7.png','drizzle','IN:L:L','wi-sprinkle','drizzle.svg'),
     # 60...69 rain
-    (65,'starker Regen','heavy rain, not freezing, continuous',21,'rain.png','9.png','rain',':H:R','wi-rain'),
-    (64,'intermittierend starker Regen','heavy rain, not freezing, intermittent',None,'rain.png','9.png','rain','IN:H:R','wi-rain'),
-    (63,'mäßiger Regen','moderate rain, not freezing, continuous',22,'rain.png','8.png','rain','::R','wi-rain'),
-    (62,'intermittierend mäßiger Regen','moderate rain, not freezing, intermittent',None,'rain.png','8.png','rain','IN::R','wi-rain'),
-    (61,'leichter Regen','slight rain, not freezing, continuous',23,'rain.png','7.png','rain',':L:R','wi-rain'),
-    (60,'intermittierend leichter Regen','slight rain, not freezing, intermittent',None,'rain.png','7.png','rain','IN:L:R','wi-rain'),
+    (65,'starker Regen','heavy rain, not freezing, continuous',21,'rain.png','9.png','rain',':H:R','wi-rain','rain.svg'),
+    (64,'intermittierend starker Regen','heavy rain, not freezing, intermittent',None,'rain.png','9.png','rain','IN:H:R','wi-rain','rain.svg'),
+    (63,'mäßiger Regen','moderate rain, not freezing, continuous',22,'rain.png','8.png','rain','::R','wi-rain','rain.svg'),
+    (62,'intermittierend mäßiger Regen','moderate rain, not freezing, intermittent',None,'rain.png','8.png','rain','IN::R','wi-rain','rain.svg'),
+    (61,'leichter Regen','slight rain, not freezing, continuous',23,'rain.png','7.png','rain',':L:R','wi-rain','rain.svg'),
+    (60,'intermittierend leichter Regen','slight rain, not freezing, intermittent',None,'rain.png','7.png','rain','IN:L:R','wi-rain','rain.svg'),
     
-    (78,'einzelne Schneeflocken, mit oder ohne Nebel','isolated star-like snow crystals with or without fog',None,'snow.png','14.png','snow',':L:S','wi-snow'),
-    (77,'Schneegriesel, mit oder ohne Nebel','snow grains with or without fog',None,'snow.png','14.png','snow',':L:S','wi-snow'),
-    (76,'Eisnadeln (auch Diamantstaub genannt), mit oder ohne Nebel','diamond dust with our without fog',None,'fog.png','','dust','','wi-fog'),
+    (78,'einzelne Schneeflocken, mit oder ohne Nebel','isolated star-like snow crystals with or without fog',None,'snow.png','14.png','snow',':L:S','wi-snow','snow.svg'),
+    (77,'Schneegriesel, mit oder ohne Nebel','snow grains with or without fog',None,'snow.png','14.png','snow',':L:S','wi-snow','snow.svg'),
+    (76,'Eisnadeln (auch Diamantstaub genannt), mit oder ohne Nebel','diamond dust with our without fog',None,'fog.png','','dust','','wi-fog','fog.svg'),
 
     # 49 in MOSMIX
-    (49,'Nebel mit Reifansatz, Himmel nicht erkennbar, unverändert','Ice Fog, sky not recognizable',24,'fog.png','48.png','fog','::IF','wi-fog'),
+    (49,'Nebel mit Reifansatz, Himmel nicht erkennbar, unverändert','Ice Fog, sky not recognizable',24,'fog.png','48.png','fog','::IF','wi-fog','fog.svg'),
     # 49 fog, despositing rime, sky invisible
-    (48,'Nebel mit Reifansatz, Himmel erkennbar','fog depositing rime, sky visible',None,'fog.png','48.png','fog','::IF','wi-fog'),
-    (47,'Nebel oder Eisnebel, Himmel nicht erkennbar, zunehmend','fog or ice fog, sky invisible, has become thicker',None,'fog.png','48.png','fog','::IF','wi-fog'),
-    (46,'Nebel oder Eisnebel, Himmel erkennbar, zunehmend','fog or ice fog, sky visible, has become thicker',None,'fog.png','48.png','fog','::IF','wi-fog'),
+    (48,'Nebel mit Reifansatz, Himmel erkennbar','fog depositing rime, sky visible',None,'fog.png','48.png','fog','::IF','wi-fog','fog.svg'),
+    (47,'Nebel oder Eisnebel, Himmel nicht erkennbar, zunehmend','fog or ice fog, sky invisible, has become thicker',None,'fog.png','48.png','fog','::IF','wi-fog','fog.svg'),
+    (46,'Nebel oder Eisnebel, Himmel erkennbar, zunehmend','fog or ice fog, sky visible, has become thicker',None,'fog.png','48.png','fog','::IF','wi-fog','fog.svg'),
     # 45 in MOSMIX
-    (45,'Nebel, Himmel nicht erkennbar','Fog, sky not recognizable',25,'fog.png','40.png','fog','::F','wi-fog'),
+    (45,'Nebel, Himmel nicht erkennbar','Fog, sky not recognizable',25,'fog.png','40.png','fog','::F','wi-fog','fog.svg'),
     # 45 fog or ice fog, sky invisible, no appreciable change during the preceding hour
-    (44,'Nebel oder Eisnebel, Himmel erkennbar, unverändert','fog or ice fog, sky visible, no change',None,'fog.png','40.png','fog','::F','wi-fog'), 
-    (43,'Nebel oder Eisnebel, Himmel nicht erkennbar, abnehmend','fog or ice fog, sky invisible, has become thinner',None,'fog.png','40.png','fog','::F','wi-fog'),
-    (42,'Nebel oder Eisnebel, Himmel erkennbar, abnehmend','fog or ice fog, sky visible, has become thinner',None,'fog.png','40.png','fog','::F','wi-fog'),
-    (41,'stellenweise Nebel oder Eisnebel','fog or ice fog in patches',None,'fog.png','40.png','fog','PA::F','wi-fog'),
-    (40,'Nebel oder Eisnebel in der Entfernung','fog or ice fog at a distance',None,'fog.png','40.png','fog','VC::F','wi-fog'),
+    (44,'Nebel oder Eisnebel, Himmel erkennbar, unverändert','fog or ice fog, sky visible, no change',None,'fog.png','40.png','fog','::F','wi-fog','fog.svg'), 
+    (43,'Nebel oder Eisnebel, Himmel nicht erkennbar, abnehmend','fog or ice fog, sky invisible, has become thinner',None,'fog.png','40.png','fog','::F','wi-fog','fog.svg'),
+    (42,'Nebel oder Eisnebel, Himmel erkennbar, abnehmend','fog or ice fog, sky visible, has become thinner',None,'fog.png','40.png','fog','::F','wi-fog','fog.svg'),
+    (41,'stellenweise Nebel oder Eisnebel','fog or ice fog in patches',None,'fog.png','40.png','fog','PA::F','wi-fog','fog.svg'),
+    (40,'Nebel oder Eisnebel in der Entfernung','fog or ice fog at a distance',None,None,None,None,'VC::F','',None),
     
     # duststorm, sandstorm, drifting or blowing snow
     # 39 heavy drifting snow, generally high (above eye level) :H:BS
-    (39,'starkes Schneefegen, oberhalb Augenhöhe','heavy drifting snow, generally high (above eye level)',None,'wind.png','18.png','blowingsnow',':H:BS','wi-snow-wind'),
+    (39,'starkes Schneefegen, oberhalb Augenhöhe','heavy drifting snow, generally high (above eye level)',None,'wind.png','18.png','blowingsnow',':H:BS','wi-snow-wind','blowingsnow.svg'),
     # 38 slight or moderate blowing snow, generally high (above eye level) :L:BS
-    (38,'Schneefegen, oberhalb Augenhöhe','slight or moderate blowing snow, generally high (above eye level)',None,'wind.png','18.png','blowingsnow',':L:BS','wi-snow-wind'),
+    (38,'Schneefegen, oberhalb Augenhöhe','slight or moderate blowing snow, generally high (above eye level)',None,'wind.png','18.png','blowingsnow',':L:BS','wi-snow-wind','blowingsnow.svg'),
     # 37 heavy drifting snow, generally low (below eye level) :H:BS
-    (37,'starkes Schneefegen unterhalb Augenhöhe','heavy drifting snow, generally low (below eye level',None,'wind.png','18.png','blowingsnow',':H:BS','wi-snow-wind'),
+    (37,'starkes Schneefegen unterhalb Augenhöhe','heavy drifting snow, generally low (below eye level',None,'wind.png','18.png','blowingsnow',':H:BS','wi-snow-wind','blowingsnow.svg'),
     # 36 slight or moderate blowing snow, generally low (below eye level) :L:BS
-    (36,'Schneefegen unterhalb Augenhöhe','slight or moderate blowing snow, generally low (below eye level)',None,'wind.png','18.png','blowingsnow',':L:BS','wi-snow-wind'),
+    (36,'Schneefegen unterhalb Augenhöhe','slight or moderate blowing snow, generally low (below eye level)',None,'wind.png','18.png','blowingsnow',':L:BS','wi-snow-wind','blowingsnow.svg'),
     # 35 severe duststorm or sandstorm, increasing
-    (35,'schwerer Staub- oder Sandsturm, zunehmend','severe duststorm or sandstorm, increasing',None,'wind.png','18.png','wind',':H:BD','wi-sandstorm'),
+    (35,'schwerer Staub- oder Sandsturm, zunehmend','severe duststorm or sandstorm, increasing',None,'wind.png','18.png','wind',':H:BD','wi-sandstorm','sandstorm.svg'),
     # 34 severe duststorm or sandstorm, no change :H:BD :H:BN
-    (34,'schwerer Staub- oder Sandsturm, unverändert','severe duststorm or sandstorm, no change',None,'wind.png','18.png','wind',':H:BD','wi-sandstorm'),
+    (34,'schwerer Staub- oder Sandsturm, unverändert','severe duststorm or sandstorm, no change',None,'wind.png','18.png','wind',':H:BD','wi-sandstorm','sandstorm.svg'),
     # 33 severe duststorm or sandstorm, decreasing
-    (33,'schwerer Staub- oder Sandsturm, abnehmend','severe duststorm or sandstorm, decreasing',None,'wind.png','18.png','wind',':H:BD','wi-sandstorm'),
+    (33,'schwerer Staub- oder Sandsturm, abnehmend','severe duststorm or sandstorm, decreasing',None,'wind.png','18.png','wind',':H:BD','wi-sandstorm','sandstorm.svg'),
     # 32 slight or moderate duststorm or sandstorm, increasing
-    (32,'leichter oder mittlerer Staub- oder Sandsturm, zunehmend','slight or moderate duststorm or sandstorm, increasing',None,'wind.png','18.png','wind',':L:BD','wi-sandstorm'),
+    (32,'leichter oder mittlerer Staub- oder Sandsturm, zunehmend','slight or moderate duststorm or sandstorm, increasing',None,'wind.png','18.png','wind',':L:BD','wi-sandstorm','sandstorm.svg'),
     # 31 slight or moderate duststorm or sandstorm, no change :L:BD :L:BN
-    (31,'leichter oder mittlerer Staub- oder Sandsturm, unverändert','slight or moderate duststorm or sandstorm, no change',None,'wind.png','18.png','wind',':L:BD','wi-sandstorm'),
+    (31,'leichter oder mittlerer Staub- oder Sandsturm, unverändert','slight or moderate duststorm or sandstorm, no change',None,'wind.png','18.png','wind',':L:BD','wi-sandstorm','sandstorm.svg'),
     # 30 slight or moderate duststorm or sandstorm, decreasing
-    (30,'leichter oder mittlerer Staub- oder Sandsturm, abnehmend','slight or moderate duststorm or sandstorm, decreasing',None,'wind.png','18.png','wind',':L:BD','wi-sandstorm'),
+    (30,'leichter oder mittlerer Staub- oder Sandsturm, abnehmend','slight or moderate duststorm or sandstorm, decreasing',None,'wind.png','18.png','wind',':L:BD','wi-sandstorm','sandstorm.svg'),
     
-    (18,'markante Böen','squalls',None,'wind.png','18.png','wind','','wi-strong-wind'),
+    (18,'markante Böen','squalls',None,'wind.png','18.png','wind','','wi-strong-wind','wind.svg'),
 
-    (17,'Gewitter ohne Niederschlag','thunderstorm, but no precipitation',None,'thunderstorm.png','26.png','tstorm','VC::T','wi-lightning'),
-    (16,'Niederschläge in Sichtweite aber nicht an der Station, den Boden erreichend','Precipitation within sight, reaching the ground or the surface of the sea, near to, but not at the station',None,None,None,None,None,None),
-    (15,'Niederschläge in Sichtweite, aber entfernt, den Boden erreichend','Precipitation within sight, reaching the ground or the surface of the sea, but distant, i.e.  estimated to be more than 5 km from the station',None,None,None,None,None,None),
-    (14,'Niederschläge in Sichtweite, nicht den Boden erreichend','Precipitation within sight, not reaching the ground or the surface of the sea',None,None,None,None,None,None),
-    (13,'Wetterleuchten','lightning visible, no thunder heard',None,None,'26.png',None,'VC::T','wi-lightning'),
-    (12,'flacher Nebel','shallow fog or ice fog',None,'fog.png','40.png','fog','::BR',''),
-    (11,'Nebelschwaden','patches of fog or ice fog',None,'fog.png','40.png','fog','PA::BR','wi-fog'),
-    (10,'feuchter Dunst','mist',None,None,None,'fog','::BR','wi-fog'),
-    (9,'Staub- oder Sandsturm in Sichtweite','duststorm or sandstorm in sight',None,'wind.png','18.png','wind','VC::BD','wi-sandstorm'),
-    (8,'kleine Wirbel mit Staub oder Sand','well developed dust whirl(s) or sand whirls(s)',None,None,None,None,'VC::BD','wi-windy'),
-    (7,'Staub oder Sand aufgewirbelt in der Luft','dust or sand raised by wind',None,None,None,'dust','::BD','wi-windy'),
-    (6,'Staub in der Luft, kein Wind','widespread dust in suspension in the air, not raised by wind',None,None,None,'dust','::H','wi-dust'),
-    (5,'trockener Dunst','haze',None,None,None,'hazy','::H','wi-dust'),
-    (4,'durch Rauch oder Vulkanasche eingeschränkte Sicht','visbility reduced by smoke or volcanic ashes',None,'fog.png','40.png','smoke','::K','wi-smog'),
+    (17,'Gewitter ohne Niederschlag','thunderstorm, but no precipitation',None,'thunderstorm.png','26.png','tstorm','VC::T','wi-lightning','lightning.svg'),
+    (16,'Niederschläge in Sichtweite aber nicht an der Station, den Boden erreichend','Precipitation within sight, reaching the ground or the surface of the sea, near to, but not at the station',None,None,None,None,None,None,None),
+    (15,'Niederschläge in Sichtweite, aber entfernt, den Boden erreichend','Precipitation within sight, reaching the ground or the surface of the sea, but distant, i.e.  estimated to be more than 5 km from the station',None,None,None,None,None,None,None),
+    (14,'Niederschläge in Sichtweite, nicht den Boden erreichend','Precipitation within sight, not reaching the ground or the surface of the sea',None,None,None,None,None,None,None),
+    (13,'Wetterleuchten','lightning visible, no thunder heard',None,None,'26.png',None,'VC::T','wi-lightning','lightning.svg'),
+    (12,'flacher Nebel','shallow fog or ice fog',None,'fog.png','40.png','fog','::BR','','fog.svg'),
+    (11,'Nebelschwaden','patches of fog or ice fog',None,'fog.png','40.png','fog','PA::BR','wi-fog','fog.svg'),
+    (10,'feuchter Dunst','mist',None,None,None,'fog','::BR','wi-fog','fog.svg'),
+    (9,'Staub- oder Sandsturm in Sichtweite','duststorm or sandstorm in sight',None,'wind.png','18.png','wind','VC::BD','wi-sandstorm',None),
+    (8,'kleine Wirbel mit Staub oder Sand','well developed dust whirl(s) or sand whirls(s)',None,None,None,None,'VC::BD','wi-windy',None),
+    (7,'Staub oder Sand aufgewirbelt in der Luft','dust or sand raised by wind',None,None,None,'dust','::BD','wi-windy',None),
+    (6,'Staub in der Luft, kein Wind','widespread dust in suspension in the air, not raised by wind',None,None,None,'dust','::H','wi-dust',None),
+    (5,'trockener Dunst','haze',None,None,None,'hazy','::H','wi-dust',None),
+    (4,'durch Rauch oder Vulkanasche eingeschränkte Sicht','visbility reduced by smoke or volcanic ashes',None,'fog.png','40.png','smoke','::K','wi-smog','fog.svg'),
     
     # 20...29 events during the preceding hour but not now
     # 29 thunderstorm with or without precipitation ::T
-    (29,'nach Gewitter','after thunderstorm',None,None,None,None,'::T',''),
+    (29,'nach Gewitter','after thunderstorm',None,None,None,None,'::T','',None),
     # 28 fog or ice fog ::F ::IF
-    (28,'nach Nebel oder Eisnebel','after fog or ice fog',None,None,None,None,'::F',''),
+    (28,'nach Nebel oder Eisnebel','after fog or ice fog',None,None,None,None,'::F','',None),
     # 27 shower(s) of hail, or of rain and hail ::A
-    (27,'nach Hagelschauer','after shower(s) of hail',None,None,None,None,'::A',''),
+    (27,'nach Hagelschauer','after shower(s) of hail',None,None,None,None,'::A','',None),
     # 26 shower(s) of snow, or of rain and snow ::SW
-    (26,'nach Schneeschauer','after shower(s) of snow or rain and snow',None,None,None,None,'::SW',''),
+    (26,'nach Schneeschauer','after shower(s) of snow or rain and snow',None,None,None,None,'::SW','',None),
     # 25 shower(s) of rain ::RW
-    (25,'nach Regenschauer','after shower(s) of rain',None,None,None,None,'::RW',''),
+    (25,'nach Regenschauer','after shower(s) of rain',None,None,None,None,'::RW','',None),
     # 23 rain and snow or ice pellets, not falling as shower(s) ::SI
-    (23,'nach Schneeregen','after rain and snow or ice pellets',None,None,None,None,'::SI',''),
+    (23,'nach Schneeregen','after rain and snow or ice pellets',None,None,None,None,'::SI','',None),
     # 22 snow, not falling as shower(s) ::S
-    (22,'nach Schneefall','after snow fall',None,None,None,None,'::S',''),
+    (22,'nach Schneefall','after snow fall',None,None,None,None,'::S','',None),
     # 21 rain (not freezing,''), not falling as shower(s) ::R
-    (21,'nach Regen','after rain',None,None,None,None,'::R',''),
+    (21,'nach Regen','after rain',None,None,None,None,'::R','',None),
     # 20 drizzle (not freezing) or snow grains, not falling as shower(s) ::L
-    (20,'nach Sprühregen','after drizzle',None,None,None,None,'::L',''),
+    (20,'nach Sprühregen','after drizzle',None,None,None,None,'::L','',None),
     
     # clouds and cloud development
-    (3,'Bewölkung zunehmend','Clouds generally forming or developing',26,None,None,None,None,None),
-    (2,'Bewölkung unverändert','State of sky on the whole unchanged',27,None,None,None,None,None),
-    (1,'Bewölkung abnehmend','Clouds generally dissolving or becoming less developed',28,None,None,None,None,None),
-    (0,'keine Bewölkungsentwicklung','no cloud cover development',29,None,None,None,None,None)
+    (3,'Bewölkung zunehmend','Clouds generally forming or developing',26,None,None,None,None,None,None),
+    (2,'Bewölkung unverändert','State of sky on the whole unchanged',27,None,None,None,None,None,None),
+    (1,'Bewölkung abnehmend','Clouds generally dissolving or becoming less developed',28,None,None,None,None,None,None),
+    (0,'keine Bewölkungsentwicklung','no cloud cover development',29,None,None,None,None,None,None)
 ]
 
 N_ICON_LIST = [
@@ -1096,6 +1098,19 @@ def get_ww(ww,n,night):
         
         Returns:
             tuple: icons and description of the current weather
+        
+        Return tuple:
+        [0]: ww
+        [1]: german description
+        [2]: English description
+        [3]: MOSMIX serverity
+        [4]: Belchertown icon filename
+        [5]: DWD icon filename
+        [6]: AERIS icon name (some additions needed to get the filename)
+        [7]: AERIS coded weather
+        [8]: Eric Flower icon HTML class
+        [9]: SVG icon filename
+        [10]: SVG icon
     """
     # If weather code ww is within the list of WW_LIST (which means
     # it is important over cloud coverage), get the data from that
@@ -1105,7 +1120,7 @@ def get_ww(ww,n,night):
             wwcode = ii+(WW_SYMBOLS[ii[0]],)
             break
     else:
-        wwcode = (0,'','',30,'unknown.png','unknown.png','na.png','','wi_na',WW_SYMBOLS[0])
+        wwcode = (0,'','',30,'unknown.png','unknown.png','na.png','','wi_na','unknown.svg',WW_SYMBOLS[0])
     # Otherwise use cloud coverage
     # see aerisweather for percentage values
     # https://www.aerisweather.com/support/docs/api/reference/weather-codes/
@@ -1132,7 +1147,7 @@ def get_ww(ww,n,night):
             except Exception:
                 n_str = str(n)
             wi = cover[night+5]
-            wwcode = (wwcode[0],wwcode[1]+' '+n_str,wwcode[2]+' '+str(n),wwcode[3],icon,dwd,aeicon,aecode,wi,WW_SYMBOLS[wwcode[0]])
+            wwcode = (wwcode[0],wwcode[1]+' '+n_str,wwcode[2]+' '+str(n),wwcode[3],icon,dwd,aeicon,aecode,wi,icon.replace('.png','.svg'),WW_SYMBOLS[wwcode[0]])
     return wwcode
 
 def get_cloudcover(n):
@@ -1573,6 +1588,17 @@ if hasSearchList:
         def __getattr__(self, attr):
             if self.ww_list is not None:
                 wwcode = get_ww(self.ww_list,self.nn,self.night)
+                # wwcode[0]: ww
+                # wwcode[1]: german description
+                # wwcode[2]: English description
+                # wwcode[3]: MOSMIX serverity
+                # wwcode[4]: Belchertown icon filename
+                # wwcode[5]: DWD icon filename
+                # wwcode[6]: AERIS icon name (some additions needed to get the filename)
+                # wwcode[7]: AERIS coded weather
+                # wwcode[8]: Eric Flower icon HTML class
+                # wwcode[9]: SVG icon filename
+                # wwcode[10]: SVG icon
                 if wwcode:
                     if attr=='ww':
                         return wwcode[0]
@@ -1612,17 +1638,7 @@ if hasSearchList:
                         if wwcode[0]==18 and self.nn is not None:
                             # squall
                             return get_ww([0,],self.nn,self.night)[4].replace('.png','-wind.svg')
-                        if wwcode[0] in (96,99):
-                            return 'thunderstorm-hail.svg'
-                        if wwcode[0] in (13,17,98):
-                            return 'lightning.svg'
-                        if wwcode[0] in (56,57,66,67):
-                            return 'freezingrain.svg'
-                        if wwcode[0]==24:
-                            return 'glazeice.svg'
-                        if wwcode[0] in (79,87,88,89,90):
-                            return 'hail.svg'
-                        return wwcode[4].replace('.png','.svg')
+                        return wwcode[9]
                     if attr=='svg_icon':
                         try:
                             return SVGIconBinder(wwcode[0],n=self.nn,night=self.night,text=self._get_ww_text(wwcode))
@@ -1704,7 +1720,7 @@ if hasSearchList:
         def __str__(self):
             try:
                 if self.nn is not None:
-                    if self.ww is None or self.ww in (0,1,2,3,14,15,16,18,20,21,22,23,25,26,27,28,29):
+                    if self.ww is None or self.ww in (0,1,2,3,14,15,16,18,20,21,22,23,25,26,27,28,29,40):
                         return svg_icon_n(int(round(float(self.nn)/100.0*8.0,0)),night=self.night,text=self.text,wind=3 if self.ww==18 else 0)
                 return svg_icon_ww(self.ww,text=self.text)
             except (LookupError,ArithmeticError,TypeError,ValueError):
@@ -1713,7 +1729,7 @@ if hasSearchList:
         def __call__(self, width=128, x=None, y=None, with_tooltip=True):
             try:
                 if self.nn is not None:
-                    if self.ww is None or self.ww in (0,1,2,3,14,15,16,18,20,21,22,23,25,26,27,28,29):
+                    if self.ww is None or self.ww in (0,1,2,3,14,15,16,18,20,21,22,23,25,26,27,28,29,40):
                         return svg_icon_n(
                                    int(round(float(self.nn)/100.0*8.0,0)),
                                    night=self.night,
@@ -1779,19 +1795,19 @@ if hasSearchList:
                 'RRR':  ( 1, 2, 2, 3, 1.50, 2.25,0.4),
             },
             'DWD': {
-                #        x0 y0 x1 y1 x     y     size
-                'n':    ( 0, 0, 1, 1, 0.00, 0.00,1.0),
-                'ww':   (-1, 0, 0, 1,-1.00, 0.00,1.0),
-                'TTT':  (-1,-1, 0, 0,-0.50,-0.75,0.4),
-                'Td':   (-1, 1, 0, 2,-0.50, 1.25,0.4),
-                'Tw':   (-1, 1, 0, 2,-0.50, 1.75,0.4),
-                'PPPP': ( 1,-1, 2, 0, 1.50,-0.75,0.4),
-                'ppp':  ( 1,-1, 2, 0, 1.50,-0.25,0.4),
-                'a':    ( 1, 0, 2, 1, 1.50, 0.50,1.0),
-                'VV':   (-1, 0,-1, 1,-0.50,-0.25,0.4),
-                'W1':   ( 1, 1, 2, 2, 1.00, 1.00,0.5),
-                'W2':   ( 1, 1, 2, 2, 1.50, 1.00,0.5),
-                'RRR':  ( 1, 1, 2, 2, 1.50, 1.75,0.4),
+                #        x0   y0   x1   y1   x     y     size
+                'n':    ( 0  , 0  , 1  , 1  , 0.00, 0.00,1.0),
+                'ww':   (-1.2, 0  ,-0.2, 1  ,-1.20, 0.00,1.0),
+                'TTT':  (-1.2,-1.2,-0.2,-0.2,-0.70,-0.95,0.4),
+                'Td':   (-1.2, 1.2,-0.2, 2.2,-0.70, 1.45,0.4),
+                'Tw':   (-1.2, 1.2,-0.2, 2.2,-0.70, 1.95,0.4),
+                'PPPP': ( 1.2,-1.2, 2.2,-0.2, 1.70,-0.95,0.4),
+                'ppp':  ( 1.2,-1.2, 2.2,-0.2, 1.70,-0.45,0.4),
+                'a':    ( 1.2, 0  , 2.2, 1  , 1.70, 0.50,1.0),
+                'VV':   (-1.2,-1.2,-0.2,-0.2,-0.70,-0.45,0.4),
+                'W1':   ( 1.2, 1.2, 2.2, 2.2, 1.20, 1.20,0.5),
+                'W2':   ( 1.2, 1.2, 2.2, 2.2, 1.70, 1.20,0.5),
+                'RRR':  ( 1.2, 1.2, 2.2, 2.2, 1.70, 1.95,0.4),
             }
         }
 
@@ -2318,3 +2334,4 @@ Direct call is for testing only."""
         print('svg n',func(n=50).svg_icon)
     else:
         print('nothing to do')
+
