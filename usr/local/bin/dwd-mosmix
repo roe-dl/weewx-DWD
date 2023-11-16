@@ -1499,19 +1499,21 @@ class DwdMosmix(object):
                 daynights (list): night flags
                 issue (dict): issuer data
                 dryrun (boolean): do all except saving
-                here (tuple): user location (latitude,longitude)
             
             Returns:
                 nothing
 
         """
-        # coordinates of user's location
+        # get coordinates of the user's location
         if self.belchertown_forecast==placemark['id']:
             # station location as found in weewx.conf
             here = (self.latitude,self.longitude)
-        elif 'query' in placemark:
-            here = (placemark['query']['coordinates'][1],placemark['query']['coordinates'][0])
+        elif 'query' in placemark and 'coordinates' in placemark['query']:
+            # coordinates out of the command parameters
+            here = (placemark['query']['coordinates'][1],
+                    placemark['query']['coordinates'][0])
         else:
+            # no user's coordinates available, use forecast coordinates instead
             here = (placemark['coordinates'][1],placemark['coordinates'][0])
         # coordinates of the location the forecast is calculated for
         geo = placemark['coordinates']
