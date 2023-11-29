@@ -550,7 +550,7 @@ auch `wawa` vorhanden sind, wird `ww` verwendet und `wawa` ignoriert.
 * `svg_icon_filename`: Dateiname des SVG-Icons aus dem Wettersymbolesatz
   in [weathericons](https://github.com/roe-dl/weathericons)
 * `wmo_symbol`: Symbol der Meteorologen für den Wetterzustand
-* `wmo_symbol($width,color=$color)`: Symbol der Meteorologen für den 
+* `wmo_symbol($width,color=$color,None_string=None)`: Symbol der Meteorologen für den 
   Wetterzustand mit Größenangabe und optionaler Farbangabe.
 * `n`: Wolkenbedeckung in Prozent (nur wenn nur `n` übergeben wurde)
 * `okta`: Wolkenbedeckung in Okta (nur wenn nur `n` übergeben wurde)

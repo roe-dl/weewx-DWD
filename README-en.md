@@ -436,7 +436,7 @@ than 4.
 * `svg_icon_filename`: filename of the SVG icon from
   [weathericons](https://github.com/roe-dl/weathericons)
 * `wmo_symbol`: the meteorological symbol as defined by the WMO
-* `wmo_symbol($width,color=$color)`: the meteorological symbol as defined
+* `wmo_symbol($width,color=$color,None_string=None)`: the meteorological symbol as defined
   by the WMO, formatted
 * `n`: cloud cover in percent (if parameter `n` is given only)
 * `okta`: cloud cover in Okta (if parameter `n` is given only)

@@ -1036,7 +1036,7 @@ W_SYMBOLS = [
     # 7 Snow, or rain and snow mixed
     '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-20 -20 40 40"> <desc>WMO 4561 W 7</desc> <path d="M 0,0 m -5.5,0 h 11 m -2.75,-4.763139720814413 l -5.5,9.526279441628825 m 5.5,0 l -5.5,-9.526279441628825" stroke="#ac00ff" stroke-linecap="round" stroke-width="3" /></svg> ',
     # 8 Shower(s)
-    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-20 -20 40 40"> <desc>WMO 4680 W 8</desc> <g> <path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> </svg> ',
+    '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="50" height="50" viewBox="-20 -20 40 40"> <desc>WMO 4561 W 8</desc> <g> <path d="M 0,-5.5 h 8.5 l-8.5,20 l-8.5,-20 z" style="fill:none; stroke-width:3; stroke:#00d700" /> </g> </svg> ',
     # 9 Thunderstorm(s) with or without precipitation
     WW_SYMBOLS[17]
 ]
@@ -1748,6 +1748,14 @@ if hasSearchList:
                 if attr=='svg_icon_filename':
                     night = 1 if self.night else 0
                     return n[night].replace('.png','.svg')
+            else:
+                for ii in ('W','W1','W2','Wa','Wa1','Wa2'):
+                    if ii in self.kwargs:
+                        if attr=='wmo_symbol':
+                            return WMOSymbolBinder(
+                                self.kwargs[ii],
+                                4531 if 'a' in ii else 4561
+                            )
             return super(PresentWeatherBinder,self).__getattr__(attr)
 
     class SVGIconBinder(object):
@@ -1790,20 +1798,34 @@ if hasSearchList:
         """ Helper class for $presentweather(...).wmo_symbol """
     
         def __init__(self, code, code_table):
+            if isinstance(code,ValueTuple):
+                code = code[0]
+            elif isinstance(code,ValueHelper):
+                code = code.raw
             self.ww = code
             self.code_table = code_table
             try:
-                self.wmosymbol = WMO_TABLES[code_table][code]
+                if code<0: 
+                    raise LookupError('value %s out of range' % code)
+                if code is None:
+                    self.wmosymbol = None
+                else:
+                    self.wmosymbol = WMO_TABLES[code_table][code]
             except (LookupError,TypeError,ValueError,ArithmeticError):
                 self.wmosymbol = str(code_table)+':'+str(code)
-            
+        
         def __str__(self):
             return self.wmosymbol
             
-        def __call__(self, width=40, color=None):
+        def __call__(self, width=40, color=None, None_string=None):
             sym = self.wmosymbol
             if sym is None:
-                sym = "N/A"
+                if None_string is not None:
+                    sym = str(None_string)
+                elif self.code_table in (4561,4531):
+                    sym = '/'
+                else:
+                    sym = 'N/A'
             else:
                 if width:
                     sym = sym.replace('width="50"','width="%s"' % width).replace('height="50"','height="%s"' % width)
@@ -2374,6 +2396,8 @@ Direct call is for testing only."""
         print('okta',func(n=87.5).wmo_symbol)
         print('svg ww',func(ww=53).svg_icon)
         print('svg n',func(n=50).svg_icon)
+        print('W',func(W=8).wmo_symbol)
+        print('W',func(W=7).wmo_symbol(width=10))
     else:
         print('nothing to do')
 
