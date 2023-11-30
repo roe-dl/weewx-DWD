@@ -1800,7 +1800,7 @@ if hasSearchList:
         def __init__(self, code, code_table):
             if isinstance(code,ValueTuple):
                 code = code[0]
-            elif isinstance(code,ValueHelper):
+            elif isinstance(code,ValueHelper) or isinstance(code,AggTypeBinder):
                 code = code.raw
             self.ww = code
             self.code_table = code_table
