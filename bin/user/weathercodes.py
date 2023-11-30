@@ -2231,8 +2231,10 @@ if hasSearchList:
                             ww = W_SYMBOLS[int(ww[0])//10]
                         else:
                             ww = None
-                    else:
+                    elif ww[0] is not None:
                         ww = W_SYMBOLS[int(ww[0])]
+                    else:
+                        ww = None
                     if ww:
                         if width:
                             ww = ww.replace('width="50"','width="%d"' % (obsfmt[6]*width)).replace('height="50"','height="%d"' % (obsfmt[6]*width))
