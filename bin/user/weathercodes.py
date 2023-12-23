@@ -1756,6 +1756,10 @@ if hasSearchList:
                                 self.kwargs[ii],
                                 4531 if 'a' in ii else 4561
                             )
+                if attr=='wmo_symbol':
+                    return WMOSymbolBinder(None,None)
+                if attr=='station':
+                    return StationBinder(**self.kwargs)
             return super(PresentWeatherBinder,self).__getattr__(attr)
 
     class SVGIconBinder(object):
@@ -1805,27 +1809,32 @@ if hasSearchList:
             self.ww = code
             self.code_table = code_table
             try:
-                if code<0: 
-                    raise LookupError('value %s out of range' % code)
                 if code is None:
                     self.wmosymbol = None
                 else:
+                    if code<0: 
+                        raise LookupError('value %s out of range' % code)
                     self.wmosymbol = WMO_TABLES[code_table][code]
             except (LookupError,TypeError,ValueError,ArithmeticError):
                 self.wmosymbol = str(code_table)+':'+str(code)
         
+        def _none_string(self, None_string=None):
+            if None_string is not None:
+                return str(None_string)
+            elif self.code_table in (4561,4531):
+                return '/'
+            else:
+                return 'N/A'
+        
         def __str__(self):
+            if self.wmosymbol is None:
+                return self._none_string()
             return self.wmosymbol
             
         def __call__(self, width=40, color=None, None_string=None):
             sym = self.wmosymbol
             if sym is None:
-                if None_string is not None:
-                    sym = str(None_string)
-                elif self.code_table in (4561,4531):
-                    sym = '/'
-                else:
-                    sym = 'N/A'
+                sym = self._none_string(None_string)
             else:
                 if width:
                     sym = sym.replace('width="50"','width="%s"' % width).replace('height="50"','height="%s"' % width)

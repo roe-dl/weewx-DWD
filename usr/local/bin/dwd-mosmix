@@ -148,14 +148,23 @@ WW_LIST = [
     (3,'Bewölkung zunehmend','Clouds generally forming or developing',26,None,None,None,None),
     (2,'Bewölkung unverändert','State of sky on the whole unchanged',27,None,None,None,None),
     (1,'Bewölkung abnehmend','Clouds generally dissolving or becoming less developed',28,None,None,None,None),
-    (0,'keine Bewölkungsentwicklung','no cloud cover development',29,None,None,None,None)]
+    (0,'keine Bewölkungsentwicklung','no cloud cover development',29,None,None,None,None)
+]
+
+WW_SVG_LIST = {
+    56:'freezingdrizzle.svg',
+    57:'freezingdrizzle.svg',
+    66:'freezingrain.svg',
+    67:'freezingrain.svg',
+}
 
 N_ICON_LIST = [
     ('clear-day.png','clear-night.png','0-8.png','CL','clear'),
     ('mostly-clear-day.png','mostly-clear-night.png','2-8.png','FW','fair'),
     ('partly-cloudy-day.png','partly-cloudy-night.png','5-8.png','SC','pcloudy'),
     ('mostly-cloudy-day.png','mostly-cloudy-night.png','5-8.png','BK','mcloudy'),
-    ('cloudy.png','cloudy.png','8-8.png','OV','cloudy')]
+    ('cloudy.png','cloudy.png','8-8.png','OV','cloudy')
+]
     
 def get_ww(ww,n,night):
     """ get icon and description for the current weather """
@@ -547,6 +556,7 @@ class DwdMosmix(object):
         self.iconset = 4
         if forecast_dict.get('icon_set','').lower()=='dwd': self.iconset = 5
         if forecast_dict.get('icon_set','').lower()=='aeris': self.iconset = 6
+        if forecast_dict.get('icon_set','').lower()=='svg': self.iconset = 40
         # logging
         self.verbose = verbose
         self.log_success = tobool(forecast_dict.get('log_success',config_dict.get('DeutscherWetterdienst',dict()).get('log_success',config_dict.get('log_success',False))))
@@ -1103,7 +1113,10 @@ class DwdMosmix(object):
                         icontitle = wwcode[2]
                     else:
                         icontitle = wwcode[1].replace('ö','&ouml;').replace('ü','&uuml;')
-                    icon = wwcode[self.iconset]
+                    if self.iconset==40:
+                        icon = WW_SVG_LIST.get(wwcode[0],wwcode[4].replace('.png','.svg'))
+                    else:
+                        icon = wwcode[self.iconset]
                     if self.iconset==6: icon += ('n' if night else '')+'.png'
                     s += '<td title="%s"><img src="%s/%s" width="50px" alt="%s" /></td>' % (icontitle,self.icon_pth,icon,icontitle)
                 s += '</tr>\n'
@@ -1196,7 +1209,10 @@ class DwdMosmix(object):
                         icontitle = wwcode[2]
                     else:
                         icontitle = wwcode[1].replace('ö','&ouml;').replace('ü','&uuml;')
-                    icon = wwcode[self.iconset]
+                    if self.iconset==40:
+                        icon = WW_SVG_LIST.get(wwcode[0],wwcode[4].replace('.png','.svg'))
+                    else:
+                        icon = wwcode[self.iconset]
                     if self.iconset==6: icon += ('n' if night else '')+'.png'
                     s += '<td rowspan="2" title="%s"><img src="%s/%s" width="50px" alt="%s" /></td>' % (icontitle,self.icon_pth,icon,icontitle)
                     try:
@@ -1466,7 +1482,10 @@ class DwdMosmix(object):
                     hour[ii] = placemark['Forecast'][ii][idx]
 
                 wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],daynights[idx])
-                icon = self.icon_pth + '/' + wwcode[self.iconset]
+                if self.iconset==40:
+                    icon = self.icon_pth + '/' + WW_SVG_LIST.get(wwcode[0],wwcode[4].replace('.png','.svg'))
+                else:
+                    icon = self.icon_pth + '/' + wwcode[self.iconset]
                 if self.iconset == 6: icon += ('n' if night else '') + '.png'
 
                 hour['icon'] = icon
@@ -2201,7 +2220,10 @@ class DwdMosmix(object):
                 # weather symbol
                 try:
                     wwcode = get_ww([vals['ww3']],vals['Neffavg'],night)
-                    icon = self.icon_pth+'/'+wwcode[self.iconset]
+                    if self.iconset==40:
+                        icon = self.icon_pth + '/' + WW_SVG_LIST.get(wwcode[0],wwcode[4].replace('.png','.svg'))
+                    else:
+                        icon = self.icon_pth+'/'+wwcode[self.iconset]
                     if self.iconset==6: icon += ('n' if night else '')+'.png'
                     vals['night'] = night
                     vals['icon'] = icon
@@ -2329,7 +2351,9 @@ class DwdMosmix(object):
                     pass
             # weather symbol
             wwcode = get_ww(days[day]['ww'],days[day]['Neffavg'],False)
-            if wwcode[self.iconset] is None:
+            if self.iconset==40:
+                days[day]['icon'] = self.icon_pth+'/'+WW_SVG_LIST.get(wwcode[0],wwcode[4].replace('.png','.svg'))
+            elif wwcode[self.iconset] is None:
                 days[day]['icon'] = 'unknown.png'
             else:
                 days[day]['icon'] = self.icon_pth+'/'+wwcode[self.iconset]+('.png' if self.iconset==6 else '')
@@ -2744,7 +2768,7 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
     parser.add_option("--orientation", type=str, metavar="H,V",
                       help="HTML table orientation horizontal, vertial, or both")
     parser.add_option("--icon-set", dest="iconset", type=str, metavar="SET",
-                      help="icon set to use, default is 'belchertown', possible values are 'dwd', 'belchertown', and 'aeris'")
+                      help="icon set to use, default is 'belchertown', possible values are 'dwd', 'belchertown', 'aeris', and 'svg'")
     parser.add_option("--lang", dest="lang", type=str,
                       metavar="ISO639",
                       default='de',

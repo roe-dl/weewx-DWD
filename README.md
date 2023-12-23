@@ -177,8 +177,9 @@ Die MOSMIX-Vorhersagen basieren auf den Modellen ICON des DWD
 und IFS des ECMWF und werden mit zusätzlichen Informationen verfeinert.
 
 Zur Darstellung sind folgende Ressourcen nötig:
-* Wetter-Icons der [Belchertown Skin](https://obrienlabs.net/belchertownweather-com-website-theme-for-weewx/)
-  oder des [DWD](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/piktogramm_node.html)
+* Wetter-Icons der [Belchertown Skin](https://obrienlabs.net/belchertownweather-com-website-theme-for-weewx/),
+  des [DWD](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/piktogramm_node.html)
+  oder [SVG-Icons](https://github.com/roe-dl/weathericons)
 * Wetter-Icons von [Erik Flowers](https://erikflowers.github.io/weather-icons/)
 * zusätzliche CSS-Eintragungen
 
@@ -192,7 +193,7 @@ Options:
   --weewx               Read config from weewx.conf.
   --orientation=H,V     HTML table orientation horizontal, vertial, or both
   --icon-set=SET        icon set to use, default is 'belchertown', possible
-                        values are 'dwd', 'belchertown', and 'aeris'
+                        values are 'dwd', 'belchertown', 'aeris', and 'svg'
   --lang=ISO639         Forecast language. Default 'de'
   --aqi-source=PROVIDER Provider for Belchertown AQI section
   --hide-placemark      No placemark caption over forecast table

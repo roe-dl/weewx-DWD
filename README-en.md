@@ -94,8 +94,9 @@ forecasts are based on both the ICON model of the DWD and the IFS
 model of the EZMW, enriched by additional information.
 
 To use `dwd-mosmix` you need:
-* weather icons of the [Belchertown Skin](https://obrienlabs.net/belchertownweather-com-website-theme-for-weewx/)
-  or the [DWD](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/piktogramm_node.html)
+* weather icons of the [Belchertown Skin](https://obrienlabs.net/belchertownweather-com-website-theme-for-weewx/),
+  the [DWD](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/piktogramm_node.html)
+  or [SVG icons](https://github.com/roe-dl/weathericons)
 * weather icons of [Erik Flowers](https://erikflowers.github.io/weather-icons/)
 * additional CSS entries (see below)
 
@@ -110,7 +111,7 @@ Options:
   --weewx               Read config from weewx.conf.
   --orientation=H,V     HTML table orientation horizontal, vertial, or both
   --icon-set=SET        icon set to use, default is 'belchertown', possible
-                        values are 'dwd', 'belchertown', and 'aeris'
+                        values are 'dwd', 'belchertown', 'aeris', and 'svg'
   --lang=ISO639         Forecast language. Default 'de'
   --aqi-source=PROVIDER Provider for Belchertown AQI section
   --hide-placemark      No placemark caption over forecast table
