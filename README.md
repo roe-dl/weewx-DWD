@@ -292,6 +292,21 @@ Die ARS, für die Meldungen abzufragen sind, können in beim
 Programmaufruf auf der Kommanodozeile oder in der Konfiguration 
 angegeben werden.
 
+Aufruf im WeeWX-Umfeld:
+```shell
+bbk-warnings --weewx
+```
+
+Aufruf ohne WeeWX oder bei mehreren WeeWX-Installationen auf dem Rechner:
+```shell
+bbk-warnings --config=/pfad/zur/Konfigurationsdatei
+```
+
+Aufruf, wenn Ausführbarmachen von Dateien nicht erlaubt ist:
+```shell
+python3 /pfad/zur/Programmdatei/capwarnings.py --config=/pfad/zur/Konfigurationsdatei --provider=BBK
+```
+
 [Liste der Regionalschlüssel ARS der Landkreise](https://github.com/roe-dl/weewx-DWD/wiki/Namen-der-Landkreise-in-der-Schreibweise-des-Deutschen-Wetterdienstes)
 
 Für eine bundesweite Liste von Warnungen können folgende Kennungen anstelle
