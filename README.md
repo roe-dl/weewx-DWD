@@ -292,6 +292,17 @@ Die ARS, für die Meldungen abzufragen sind, können in beim
 Programmaufruf auf der Kommanodozeile oder in der Konfiguration 
 angegeben werden.
 
+[Liste der Regionalschlüssel ARS der Landkreise](https://github.com/roe-dl/weewx-DWD/wiki/Namen-der-Landkreise-in-der-Schreibweise-des-Deutschen-Wetterdienstes)
+
+Für eine bundesweite Liste von Warnungen können folgende Kennungen anstelle
+des ARS auf der Kommandozeile angegeben werden:
+* `katwarn`: Katwarn-Meldungen
+* `biwapp`: Biwapp-Meldungen
+* `mowas`: Mowas-Meldungen
+* `dwd`: Wettermeldungen (nur zusammen mit `--include-dwd`)
+* `lhp`: Meldungen des länderübergreifenden Hochwasserportals
+* `police`: Polizeiliche Meldungen
+
 Aufruf im WeeWX-Umfeld:
 ```shell
 bbk-warnings --weewx
@@ -307,16 +318,6 @@ Aufruf, wenn Ausführbarmachen von Dateien nicht erlaubt ist:
 python3 /pfad/zur/Programmdatei/capwarnings.py --config=/pfad/zur/Konfigurationsdatei --provider=BBK
 ```
 
-[Liste der Regionalschlüssel ARS der Landkreise](https://github.com/roe-dl/weewx-DWD/wiki/Namen-der-Landkreise-in-der-Schreibweise-des-Deutschen-Wetterdienstes)
-
-Für eine bundesweite Liste von Warnungen können folgende Kennungen anstelle
-des ARS auf der Kommandozeile angegeben werden:
-* `katwarn`: Katwarn-Meldungen
-* `biwapp`: Biwapp-Meldungen
-* `mowas`: Mowas-Meldungen
-* `dwd`: Wettermeldungen (nur zusammen mit `--include-dwd`)
-* `lhp`: Meldungen des länderübergreifenden Hochwasserportals
-* `police`: Polizeiliche Meldungen
 
 
 ## /etc/cron.hourly/dwd
