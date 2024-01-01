@@ -1831,7 +1831,8 @@ class DWDservice(StdService):
                     data = None
                 #print(thread_name,data,interval)
                 if data:
-                    if data.get('dateTime',(ts,'unixepoch','group_time'))[0]<(ts-10800):
+                    x = data.get('dateTime',(ts,'unixepoch','group_time'))[0]
+                    if x is None or x<(ts-10800):
                         # no recent readings found
                         for key in data:
                             if key not in ('interval','latitude','longitude','altitude'):
