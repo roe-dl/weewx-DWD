@@ -734,6 +734,31 @@ Beispiel:
         #show_obs_description = False # optional
         # Soll der Ortsname über die Tabelle geschrieben werden?
         #show_placemark = True # optional
+        # Beispiele
+        [[[10578]]]
+            # Wettervorhersage
+            provider = DWD
+            model = MOSMIX
+            # optional darzustellende Wetterelemente anstelle des defaults
+            #observations_daily = ww, TTTmax, TTTmin, windchill, FFavg, DDavg, RR1c, Rd10, Neffavg, RSunD, Rad1hsum, VVmin
+            # Was würde eine PV-Anlage an dem Tag bringen? 
+            #pv_factor = 10.0 # Fläche * Wirkungsgrad
+        [[[SN20]]]
+            # Waldbrandgefahrenvorhersage
+            # Soll die Wartezeit protokolliert werden?
+            log_sleeping = true
+            # Zugangsdaten vom Anbieter
+            api_key = replace_me
+            # Vorhersageregion (Beispiel)
+            area = 20
+            # URL vom Anbieter
+            server_url = replace_me
+            # Dateiname der zu erzeugenden Datei wbs-<file>*
+            file = 'DL'
+            # Anbieter
+            provider = Sachsenforst
+            # Uhrzeit, zu der der Anbieter die Daten bereitstellt
+            fetch_time = 04:20 UTC
     # Warnungen (dwd-cap-warnings, bbk-warnings, msc-warnings)
     [[warning]]
         #icons = ... # Optional, für alle Provider
