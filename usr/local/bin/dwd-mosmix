@@ -993,7 +993,10 @@ class DwdMosmix(object):
         'RR1c':('<i class="wi wi-umbrella"></i>','Niederschlag','mm'),
         'Rd10':('<i class="wi wi-umbrella"></i>','Wahrscheinlichkeit','%'),
         'R101':('<i class="wi wi-umbrella"></i>','Wahrscheinlichkeit','%'),
-        'VV':('VV','Sichtweite','m'),
+        'VV':('Sicht','Sichtweite','km'),
+        'VVmin':('Sicht','minimale Sichtweite','km'),
+        'VVmax':('Sicht','maximale Sichtweite','km'),
+        'VVavg':('Sicht','Sichtweite','km'),
         'humidity':('<i class="wi wi-humidity"></i>','Luftfeuchte','%'),
         'heatindex':('HI','Hitzeindex','&deg;C'),
         'windchill':('WCT','Windchill','&deg;C')}
@@ -1286,6 +1289,10 @@ class DwdMosmix(object):
                     has_heatindex = True
                 if item.get('TTTmin') is not None and item['TTTmin']<=10 and item.get('windchill') is not None:
                     has_windchill = True
+            if self.verbose:
+                loginf("station config: %s" % station_dict)
+                loginf("include windchill: %s" % has_windchill)
+                loginf("include heatindex: %s" % has_heatindex)
             # HTML 
             s = ""
             if self.show_placemark:
@@ -1307,13 +1314,19 @@ class DwdMosmix(object):
                 s += '</tr>\n'
                 if obstypes:
                     obs = obstypes 
+                    if self.verbose:
+                        loginf("observations from parameter: %s" % obs)
                 elif 'observations_daily' in station_dict:
                     obs = station_dict['observations_daily']
+                    if self.verbose:
+                        loginf("observations from config: %s" % obs)
                 else:
                     obs = ['ww','TTTmax','TTTmin']
                     if has_heatindex: obs += ['heatindex']
                     if has_windchill: obs += ['windchill']
                     obs += ['FFavg','DDavg','RR1c','Rd10','PPPPavg','Neffavg','RSunD','Rad1hsum']
+                    if self.verbose:
+                        loginf("default observations: %s" % obs)
                 for ii in obs:
                     if ii=='ww':
                         s += '<tr class="icons">'
@@ -1344,6 +1357,9 @@ class DwdMosmix(object):
                             elif ii in ('DD','DDavg'):
                                 #s += '<td%s><i class="fa fa-arrow-down" style="transform:rotate(%sdeg)"></i></td>' % (htmlclass,days[day][ii])
                                 s += '<td%s><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%" title="%s"></i></td>' % (htmlclass,days[day][ii],compass(days[day][ii],lang))
+                            elif ii in ('VV','VVmin','VVmax','VVavg'):
+                                val = ('%.1f' % (days[day].get(ii,float("NaN"))*0.001)).replace('.',',')
+                                s += '<td%s%s>%s</td>' % (htmlclass,color,val)
                             else:
                                 color = ''
                                 if ii[0:3]=='TTT': color = ' style="color:%s"' % DwdMosmix._temp_color(days[day][ii])
@@ -2839,6 +2855,11 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
     if config_path:
         print("Using configuration file %s" % config_path)
         config = configobj.ConfigObj(config_path)
+        try:
+            include_dict = configobj.ConfigObj(config['WeatherServices']['include'])
+            config['WeatherServices'].merge(include_dict)
+        except LookupError:
+            pass
     else:
         # test only
         print("Using test configuration")

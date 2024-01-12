@@ -167,6 +167,7 @@ import json
 import random
 import math
 import traceback
+import os.path
 
 if __name__ == '__main__':
 
@@ -223,6 +224,12 @@ import weewx.accum
 import weewx.units
 import weewx.wxformulas
 from user.weatherservicesutil import wget, BaseThread
+
+try:
+    import user.weatherservicesradar
+    has_radar = True
+except ImportError:
+    has_radar = False
 
 try:
     import user.wildfire
@@ -1585,6 +1592,11 @@ class DWDservice(StdService):
         super(DWDservice,self).__init__(engine, config_dict)
         
         if 'WeatherServices' in config_dict:
+            if 'include' in config_dict['WeatherServices']:
+                dire = os.path.dirname(config_dict.get('config_path','/'))
+                include_dict = configobj.ConfigObj(os.path.join(dire,config_dict['WeatherServices']['include']))
+                config_dict = weeutil.config.deep_copy(config_dict)
+                weeutil.config.merge_config(config_dict['WeatherServices'],include_dict)
             site_dict = weeutil.config.accumulateLeaves(config_dict.get('WeatherServices',configobj.ConfigObj()))
         else:
             site_dict = weeutil.config.accumulateLeaves(config_dict.get('DeutscherWetterdienst',configobj.ConfigObj()))
@@ -1707,8 +1719,46 @@ class DWDservice(StdService):
                         logerr("error creating forecast thread '%s': %s %s" % (location,e.__class__.__name__,e))
                     continue
         
+        if has_radar:
+            radar_dict = configobj.ConfigObj()
+            site_dict = config_dict.get('WeatherServices',configobj.ConfigObj()).get('radar',configobj.ConfigObj())
+            loginf("site_dict %s" % site_dict)
+            for location in site_dict.sections:
+                location_dict = weeutil.config.accumulateLeaves(config_dict['WeatherServices']['radar'][location])
+                loginf("location_dict %s" % location_dict)
+                provider = location_dict.get('provider')
+                model = location_dict.get('model')
+                if model and provider:
+                    idx = str(provider)+'_!_'+str(model)
+                    if idx not in radar_dict:
+                        radar_dict[idx] = configobj.ConfigObj()
+                        radar_dict[idx]['provider'] = provider
+                        radar_dict[idx]['model'] = model
+                        if 'path' in location_dict:
+                            radar_dict[idx]['path'] = location_dict['path']
+                        radar_dict[idx]['log_success'] = location_dict.get('log_success',False)
+                        radar_dict[idx]['log_failure'] = location_dict.get('log_failure',True)
+                    radar_dict[idx][location] = location_dict
+            #loginf('radar %s' % radar_dict)
+            for radar in radar_dict:
+                try:
+                    loginf('radar %s' % radar)
+                    loginf('radar %s' % radar_dict[radar])
+                    thread_name = radar_dict[radar]['provider']+'_'+radar_dict[radar]['model']
+                    thread = user.weatherservicesradar.create_thread(
+                        thread_name,
+                        radar_dict[radar],
+                        archive_interval
+                    )
+                    if thread:
+                        self.threads[thread_name] = thread
+                except (LookupError,ValueError,TypeError,ArithmeticError,NameError) as e:
+                    logerr("error creating radar thread '%s': %s %s" % (thread_name,e.__class__.__name__,e))
+        
         if has_db:
             self.database_q, self.database_thread = databasecreatethread('DWDsave',config_dict)
+        
+        self.next_loop_error_ts = 0
         
         if  __name__!='__main__':
             self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
@@ -1797,9 +1847,15 @@ class DWDservice(StdService):
         #for thread_name in self.threads:
         #    pass
         # remember outTemp and outHumidty for later use
-        if self.dwdxtype:
-            self.dwdxtype.remember(event.packet)
-            
+        try:
+            if self.dwdxtype:
+                self.dwdxtype.remember(event.packet)
+        except (LookupError,TypeError,ValueError,ArithmeticError,OSError) as e:
+            # reported once every 5 minutes only
+            if self.next_loop_error_ts<time.time():
+                logerr("dwdxtype.remember() %s %s" % (e.__class__.__name__))
+                self.next_loop_error_ts = time.time()+300
+    
     
     def new_archive_record(self, event):
         ts = event.record.get('dateTime',time.time())
@@ -1827,11 +1883,14 @@ class DWDservice(StdService):
                     if data: data = data[0]
                 elif datasource=='WBS':
                     data,interval = self.threads[thread_name]['thread'].get_data(ts)
+                elif datasource=='Radolan':
+                    data,interval = self.threads[thread_name]['thread'].get_data(ts)
+                    logdbg('user.DWD.radar %s' % data)
                 else:
                     data = None
                 #print(thread_name,data,interval)
                 if data:
-                    x = data.get('dateTime',(ts,'unixepoch','group_time'))[0]
+                    x = data.get('dateTime',(ts,'unix_epoch','group_time'))[0]
                     if x is None or x<(ts-10800):
                         # no recent readings found
                         for key in data:
@@ -1861,7 +1920,10 @@ class DWDservice(StdService):
                         val = reply[key][0]
                     except LookupError:
                         val = None
-                data[prefix+key[0].upper()+key[1:]] = val
+                if prefix:
+                    data[prefix+key[0].upper()+key[1:]] = val
+                else:
+                    data[key] = val
         return data
 
 

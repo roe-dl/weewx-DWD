@@ -135,6 +135,11 @@ class BaseThread(threading.Thread):
         return self.query_interval-time.time()%self.query_interval
     
     
+    def random_time(self):
+        """ do a little bit of load balancing """
+        return -random.random()*60
+
+    
     def run(self):
         """ thread loop """
         loginf("thread '%s' starting" % self.name)
@@ -146,7 +151,7 @@ class BaseThread(threading.Thread):
                 waiting = self.waiting_time()
                 if waiting<=60: waiting += self.query_interval
                 # do a little bit of load balancing
-                waiting -= random.random()*60
+                waiting += self.random_time()
                 # wait
                 if self.log_sleeping:
                     loginf ("thread '%s': sleeping for %s seconds" % (self.name,waiting))
