@@ -251,6 +251,7 @@ class DwdRadar(object):
         self.data_width = 1100
         self.data_height = 1200
         self.font_file = '/etc/weewx/skins/Belchertown1_3/lib/fonts/roboto/KFOlCnqEu92Fr1MmSU5fBBc9.ttf'
+        self.background = 'light'
         # data
         self.data = []
         self.header = dict()
@@ -486,16 +487,20 @@ class DwdRadar(object):
             height = self.data_height-y
         ww = width
         hh = ww*height/width
+        if self.background and self.background[0]=='#':
+            if len(self.background)==4:
+                background_color = ImageColor.getrgb('#'+
+                    self.background[1]+self.background[1]+
+                    self.background[2]+self.background[2]+
+                    self.background[3]+self.background[3]+
+                    'FF')
+            else:
+                background_color = ImageColor.getrgb(self.background[:7]+'FF')
+            dark_background = self.background[1]<='4'
+        else:
+            dark_background = self.background=='dark'
+            background_color = ImageColor.getrgb('#000000FF' if dark_background else '#FFFFFFFF')
         baseimg = Image.new('RGBA',(width,height),color=ImageColor.getrgb('#00000000'))
-        draw = ImageDraw.Draw(baseimg)
-        for line in self.lines:
-            xy = []
-            for coord in line['coordinates']:
-                xx = (coord['xy'][0]-self.coords['SW']['xy'][0])/1000-x
-                yy = (coord['xy'][1]-self.coords['SW']['xy'][1])/1000-y
-                xy.append((xx,height-yy))
-                draw.point((xx,height-yy),fill="#000")
-            draw.line(xy,fill=ImageColor.getrgb('#000'),width=1)
         img = Image.new('RGBA',(width,height),color=ImageColor.getrgb('#00000000'))
         if width>=640:
             font_size = 16
@@ -505,16 +510,21 @@ class DwdRadar(object):
             font_size = int(width*0.025)
         fnt=ImageFont.truetype(self.font_file,font_size)
         draw = ImageDraw.Draw(img)
+        basedraw = ImageDraw.Draw(baseimg)
         # set points according to radar reading
         #s = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="%s" height="%s" viewBox="%s %s %s %s">\n' % (ww,hh,x,1200-y-height,width,height)
         for yy in range(height):
             for xx in range(width):
                 val = self.data[(y+yy)*self.data_width+x+xx]
                 col = self.colors.get(val,'#12345640')
+                if dark_background and col[:7]=='#FFFFFF':
+                    col = '#000000'+col[7:]
                 #s += '<rect x="%s" y="%s" width="1" height="1" fill="%s" />\n' % (x+xx,1200-yy-y-1,col)
                 c = ImageColor.getrgb(col)
                 try:
                     draw.point((xx,height-yy-1),fill=c)
+                    if val!=2147483648:
+                        basedraw.point((xx,height-yy-1),fill=background_color)
                 except IndexError as e:
                     print(e,xx,height-yy,c)
         # mark locations
@@ -538,13 +548,22 @@ class DwdRadar(object):
                     y_off = 4+font_size
                     x_off = 4
                 if cx>=0 and cy>=0:
-                    draw.ellipse([cx-2,height-cy-2,cx+2,height-cy+2],fill=ImageColor.getrgb('#000'))
-                    draw.text((cx+x_off,height-cy-y_off),location,fill=ImageColor.getrgb('#000'),font=fnt)
+                    draw.ellipse([cx-2,height-cy-2,cx+2,height-cy+2],fill=ImageColor.getrgb('#FFF' if dark_background else '#000'))
+                    draw.text((cx+x_off,height-cy-y_off),location,fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),font=fnt)
         #s += '</svg>\n'
         ts_str = time.strftime("%d.%m.%Y %H:%M %z",time.localtime(self.timestamp))
-        draw.multiline_text((10,height-10),'Herausgegeben %s\nDatenbasis Deutscher Wetterdienst\nGrenzen © EuroGeographics\n© Wetterstation Wöllsdorf' % ts_str,fill=ImageColor.getrgb('#000'),font=fnt,anchor="ld")
+        product_str = 'Niederschlagsart 2m über Grund\n' if self.product=='HG' else ''
+        draw.multiline_text((10,height-10),'%sHerausgegeben %s\nDatenbasis Deutscher Wetterdienst\nGrenzen © EuroGeographics\n© Wetterstation Wöllsdorf' % (product_str,ts_str),fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),font=fnt,anchor="ld")
         #with open('test.svg','wt') as f:
         #    f.write(s)
+        for line in self.lines:
+            xy = []
+            for coord in line['coordinates']:
+                xx = (coord['xy'][0]-self.coords['SW']['xy'][0])/1000-x
+                yy = (coord['xy'][1]-self.coords['SW']['xy'][1])/1000-y
+                xy.append((xx,height-yy))
+                #basedraw.point((xx,height-yy),fill="#000")
+            basedraw.line(xy,fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),width=1)
         img = Image.alpha_composite(baseimg,img)
         try:
             img.save(fn)
@@ -646,6 +665,7 @@ class DwdRadarThread(BaseThread):
                     fn = 'radar-'+dwd.product+'.png'
                 fn = os.path.join(self.target_path,fn)
                 size = self.maps[map]['map']
+                dwd.background = self.maps[map].get('background','light')
                 if 'borders' in self.maps[map]:
                     dwd.load_lines(os.path.join(self.target_path,self.maps[map]['borders']))
                 dwd.map(fn,
@@ -768,6 +788,9 @@ Coordinates go from west to east and south to north, respectively.
     parser.add_option("--filter", dest="filter", metavar="LIST",
                       type="string",
                       help="optional list of locations to filter")
+    parser.add_option("--background",dest="background", metavar="TYPE",
+                      type="string",
+                      help="optional background type light or dark")
 
     parser.add_option("--print-locations", dest="printlocations", action="store_true",
                       help="print locations list")
@@ -812,6 +835,10 @@ Coordinates go from west to east and south to north, respectively.
         dwd = DwdRadar.open(args[0],log_success=True,verbose=verbose)
     else:
         dwd = DwdRadar.wget('HG',log_success=True,verbose=verbose)
+
+    if options.background:
+        dwd.background = options.background
+    
     #dwd.load_coordinates('coords.txt')
     if options.printlocations:
         dwd.print_coordinates()
