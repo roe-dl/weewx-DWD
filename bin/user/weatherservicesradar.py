@@ -609,9 +609,9 @@ class DwdRadar(object):
         if self.product=='HG':
             product_str = 'Niederschlagsart 2m über Grund\n'
         elif self.product=='WN':
-            product_str = 'Reflektivität\n'
+            product_str = 'Radarreflektivität dBZ\n'
         elif self.product=='RV':
-            product_str = 'Regenmenge\n'
+            product_str = 'Regenintensität\n'
         else:
             product_str = ''
         draw.multiline_text((10,height-10),'%sHerausgegeben %s\nDatenbasis Deutscher Wetterdienst\nGrenzen © EuroGeographics\n© Wetterstation Wöllsdorf' % (product_str,ts_str),fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),font=fnt,anchor="ld")
@@ -722,27 +722,20 @@ class DwdRadarThread(BaseThread):
             if self.log_failure:
                 logerr("thread '%s': %s %s" % (self.name,e.__class__.__name__,e))
             return
+        # If the file includes forecasts, find the record of the actual data
+        try:
+            if isinstance(dwd,list):
+                logdbg("radar file contains %s records" % len(dwd))
+                for ii in dwd:
+                    if int(ii.header['VV'])==0:
+                        dwd = ii
+                        break
+        except (LookupError,TypeError) as e:
+            if self.log_failure:
+                logerr("thread '%s': invalid forecast indicator %s %s" % (self.name,e.__class__.__name__,e))
+            return
         # create map image
-        for map in self.maps:
-            try:
-                if self.maps[map].get('prefix'):
-                    fn = self.maps[map]['prefix']+'Radar-'+dwd.product+'.png'
-                else:
-                    fn = 'radar-'+dwd.product+'.png'
-                fn = os.path.join(self.target_path,fn)
-                size = self.maps[map]['map']
-                dwd.background = self.maps[map].get('background','light')
-                if 'borders' in self.maps[map]:
-                    dwd.load_lines(os.path.join(self.target_path,self.maps[map]['borders']))
-                dwd.map(fn,
-                    size[0], # x
-                    size[1], # y
-                    size[2], # width
-                    size[3], # height
-                    self.maps[map].get('filter',[]))
-            except (LookupError,ValueError,TypeError,ArithmeticError,NameError) as e:
-                if self.log_failure:
-                    logerr("thread '%s': %s %s" % (self.name,e.__class__.__name__,e))
+        self.write_map(dwd)
         # data
         # Note: prefix is added in _to_weewx() in weatherservices.py, not here
         data = dict()
@@ -775,6 +768,33 @@ class DwdRadarThread(BaseThread):
                 del self.data[0]
         finally:
             self.lock.release()
+    
+    def write_map(self, dwd):
+        for map in self.maps:
+            try:
+                try:
+                    fn = int(dwd.header['VV'])
+                except (LookupError,TypeError):
+                    fn = 0
+                fn = '' if fn==0 else '-%03d' % fn
+                if self.maps[map].get('prefix'):
+                    fn = self.maps[map]['prefix']+'Radar-'+dwd.product+fn+'.png'
+                else:
+                    fn = 'radar-'+dwd.product+fn+'.png'
+                fn = os.path.join(self.target_path,fn)
+                size = self.maps[map]['map']
+                dwd.background = self.maps[map].get('background','light')
+                if 'borders' in self.maps[map]:
+                    dwd.load_lines(os.path.join(self.target_path,self.maps[map]['borders']))
+                dwd.map(fn,
+                    size[0], # x
+                    size[1], # y
+                    size[2], # width
+                    size[3], # height
+                    self.maps[map].get('filter',[]))
+            except (LookupError,ValueError,TypeError,ArithmeticError,NameError) as e:
+                if self.log_failure:
+                    logerr("thread '%s': %s %s" % (self.name,e.__class__.__name__,e))
 
     def get_data(self, ts):
         data = dict()
@@ -824,7 +844,13 @@ def create_thread(thread_name,config_dict,archive_interval):
                 else:
                     p = 'radar'+model
                 weewx.units.obs_group_dict.setdefault(p+'DateTime','group_time')
-                weewx.units.obs_group_dict.setdefault(p+'Wawa','group_wmo_wawa')
+                if model=='HG':
+                    weewx.units.obs_group_dict.setdefault(p+'Wawa','group_wmo_wawa')
+                elif model=='WN':
+                    weewx.units.obs_group_dict.setdefault(p+'DBZ','group_db')
+                elif model=='RV':
+                    weewx.units.obs_group_dict.setdefault(p+'Rain','group_rain')
+                    weewx.units.obs_group_dict.setdefault(p+'RainRate','group_rainrate')
             if 'map' in config_dict[section]:
                 conf_dict['maps'][section] = config_dict[section]
                 map = [weeutil.weeutil.to_int(x) for x in config_dict[section]['map']]
