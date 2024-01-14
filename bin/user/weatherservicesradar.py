@@ -24,6 +24,10 @@
     
     * HG format:
       precipitation kind 2m above ground according to the radar
+    * WN format
+      radar reflectivity factor dBZ
+    * RV format
+      precipitation in mm of the last 5 min.
     
     # https://opendata.dwd.de/weather/radar/composite/{hg|pg|rv|wn}/
 
@@ -60,6 +64,7 @@ import configobj
 import os.path
 import threading
 import random
+import math
 
 if __name__ == '__main__':
 
@@ -146,6 +151,8 @@ MAP_LOCATIONS_DE1200_WGS84 = {
     'Kassel':{'xy':(506522.38,-563143.59), 'lat': '51.3157', 'lon': '9.498'},
     'Zugspitze':{'xy':(623159.66,-1022123.31),'lat':47.42122,'lon':10.9863},
     #'Schwerin':{'xy':(639938.73,-294247.94),'lat':53.62884,'lon': 11.41486},
+    #'Leeuwarden':{'xy':(252164.35,-334194.25),'lat':53.19959,'lon':5.79331},
+    'Apeldoorn':{'xy':(255942.84,-448573.20),'lat':52.2154,'lon':5.9640},
 }
 
 class DwdRadar(object):
@@ -162,7 +169,7 @@ class DwdRadar(object):
     
     PROJ_STR_DE1200_WGS84 = "+proj=stere +lat_0=90 +lat_ts=60 +lon_0=10 +a=6378137 +b=6356752.3142451802 +no_defs +x_0=543196.83521776402 +y_0=3622588.8619310018"
     
-    COLORS = {
+    COLORS_HG = {
         0:          '#FFFFFFD0', # no echo
         2147483648: '#FFFFFFD0', # no data
         1:          '#787878D0', # nicht klassifiziert
@@ -222,7 +229,7 @@ class DwdRadar(object):
             2147483648: 'no data'
         }
     }
-
+    
     HEADER_FMT = {
         'BY':('I',10), # Produktlänge in Bytes
         'VS':('I',2),  # Formatversion
@@ -247,7 +254,7 @@ class DwdRadar(object):
         self.log_failure = log_failure
         self.verbose = verbose
         # configuration data
-        self.colors = DwdRadar.COLORS
+        self.colors = DwdRadar.COLORS_HG
         self.data_width = 1100
         self.data_height = 1200
         self.font_file = '/etc/weewx/skins/Belchertown1_3/lib/fonts/roboto/KFOlCnqEu92Fr1MmSU5fBBc9.ttf'
@@ -264,8 +271,19 @@ class DwdRadar(object):
     def open(fn, log_success=False, log_failure=True, verbose=0):
         """ create a DwdRadar instance from a file
         """
-        dwd = DwdRadar(log_success,log_failure,verbose)
-        dwd.read_data(DwdRadar._decompress_file(fn))
+        if 'tar' not in fn:
+            dwd = DwdRadar(log_success,log_failure,verbose)
+            dwd.read_data(DwdRadar._decompress_file(fn))
+            return dwd
+        dwd = []
+        tarf = tarfile.open(fn)
+        for member in tarf:
+            ff = tarf.extractfile(member)
+            newdwd = DwdRadar(log_success,log_failure,verbose)
+            newdwd.read_data(ff)
+            ff.close()
+            dwd.append(newdwd)
+        tarf.close()
         return dwd
     
     @staticmethod
@@ -418,7 +436,33 @@ class DwdRadar(object):
                 factor = pow(10,int(x[1:]))
                 if self.verbose:
                     print('Genauigkeitsfaktor:',factor)
-                self.data = [i*factor for i in self.data]
+                self.data = [i*factor if i<0x29C4 else 0x29C4 for i in self.data]
+        # colors
+        if self.product=='HG':
+            self.colors = DwdRadar.COLORS_HG
+        else:
+            self.colors = dict() # DwdRadar.COLORS_WN # 1...0x0FFF 1...4095
+            for i in range(4096):
+                if self.product=='RV':
+                    idx = i*factor
+                else:
+                    idx = i*factor/2-32.5
+                if i==0:
+                    col = (255,255,255)
+                else:
+                    if self.product=='RV':
+                        # RV factor 0.01 precipitation
+                        col = 256-math.log(i)/7.6*256
+                    else:
+                        # WN factor 0.1 dBZ
+                        col = 256-(idx if idx>0 else 0)/85*256
+                    if col<0: col=0
+                    col = ImageColor.getrgb('hsv(%s,100%%,100%%)' % col)
+                self.colors[idx] = '#%02X%02X%02XD0' % (col[0],col[1],col[2])
+            self.colors[0x29C4] = '#FFFFFFD0' # no data 0x29C4
+        # radar reflectivity factor
+        if self.product=='WN':
+            self.data = [i/2-32.5 if i<0x29C4 else i for i in self.data]
         # initialize coordinate data
         self.init_coords()
         if self.verbose:
@@ -465,9 +509,19 @@ class DwdRadar(object):
             Returns:
                 int: wawa code of the location described by xy
         """
+        if self.product!='HG': 
+            raise ValueError('product '+self.product+' does not provide the kind of precipitation')
         try:
             return DwdRadar.WAWA[self.get_value(xy)]
         except LookupError:
+            return None
+    
+    def get_rainrate(self, xy):
+        if self.product!='RV':
+            raise ValueError('product '+self.product+' does not provide precipitation')
+        try:
+            return self.get_value(xy)*12
+        except (LookupError,TypeError):
             return None
 
     def map(self,fn,x,y,width,height, filter=[]):
@@ -552,7 +606,14 @@ class DwdRadar(object):
                     draw.text((cx+x_off,height-cy-y_off),location,fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),font=fnt)
         #s += '</svg>\n'
         ts_str = time.strftime("%d.%m.%Y %H:%M %z",time.localtime(self.timestamp))
-        product_str = 'Niederschlagsart 2m über Grund\n' if self.product=='HG' else ''
+        if self.product=='HG':
+            product_str = 'Niederschlagsart 2m über Grund\n'
+        elif self.product=='WN':
+            product_str = 'Reflektivität\n'
+        elif self.product=='RV':
+            product_str = 'Regenmenge\n'
+        else:
+            product_str = ''
         draw.multiline_text((10,height-10),'%sHerausgegeben %s\nDatenbasis Deutscher Wetterdienst\nGrenzen © EuroGeographics\n© Wetterstation Wöllsdorf' % (product_str,ts_str),fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),font=fnt,anchor="ld")
         #with open('test.svg','wt') as f:
         #    f.write(s)
@@ -651,10 +712,15 @@ class DwdRadarThread(BaseThread):
         self.lock = threading.Lock()
     
     def getRecord(self):
-        dwd = DwdRadar.wget(self.product,self.log_success,self.log_failure)
-        if dwd is None: 
-            if log.failure:
-                logerr("thread '%s': error downloading data" % self.name)
+        try:
+            dwd = DwdRadar.wget(self.product,self.log_success,self.log_failure)
+            if dwd is None: 
+                if self.log_failure:
+                    logerr("thread '%s': error downloading data" % self.name)
+                return
+        except ConnectionError as e:
+            if self.log_failure:
+                logerr("thread '%s': %s %s" % (self.name,e.__class__.__name__,e))
             return
         # create map image
         for map in self.maps:
@@ -674,7 +740,7 @@ class DwdRadarThread(BaseThread):
                     size[2], # width
                     size[3], # height
                     self.maps[map].get('filter',[]))
-            except (LookupError,ValueError,TypeError,ArithmeticError) as e:
+            except (LookupError,ValueError,TypeError,ArithmeticError,NameError) as e:
                 if self.log_failure:
                     logerr("thread '%s': %s %s" % (self.name,e.__class__.__name__,e))
         # data
@@ -687,10 +753,19 @@ class DwdRadarThread(BaseThread):
                     prefix = self.locations[location]['prefix']+'Radar'+dwd.product
                 else:
                     prefix = 'radar'+dwd.product
-                data[prefix+'Value'] = (dwd.get_value(xy),None,None)
-                data[prefix+'Wawa'] = (dwd.get_wawa(xy),'byte','group_wmo_wawa')
+                if dwd.product=='HG':
+                    # kind of precipitation
+                    data[prefix+'Value'] = (dwd.get_value(xy),None,None)
+                    data[prefix+'Wawa'] = (dwd.get_wawa(xy),'byte','group_wmo_wawa')
+                elif dwd.product=='WN':
+                    # radar reflectivity factor
+                    data[prefix+'DBZ'] = (dwd.get_value(xy),'dB','group_db')
+                elif dwd.product=='RV':
+                    # 5 minute precipitation
+                    data[prefix+'Rain'] = (dwd.get_value(xy),'mm','group_rain')
+                    data[prefix+'RainRate'] = (dwd.get_rainrate(xy),'mm_per_hour','group_rainrate')
                 data[prefix+'DateTime'] = (int(dwd.timestamp),'unix_epoch','group_time')
-            except (LookupError,ValueError,TypeError,ArithmeticError) as e:
+            except (LookupError,ValueError,TypeError,ArithmeticError,NameError) as e:
                 if self.log_failure:
                     logerr("thread '%s': %s %s" % (self.name,e.__class__.__name__,e))
         try:
@@ -714,9 +789,9 @@ class DwdRadarThread(BaseThread):
         logdbg('get_data %s' % data)
         return data,interval
         
-    def random_time(self):
-        """ do a little bit of load balancing """
-        return random.random()*15
+    #def random_time(self):
+    #    """ do a little bit of load balancing """
+    #    return random.random()*15
 
 def create_thread(thread_name,config_dict,archive_interval):
     """ create radar thread """
@@ -802,17 +877,10 @@ Coordinates go from west to east and south to north, respectively.
 
     (options, args) = parser.parse_args()
 
-    """
-    vals = dict()
-    for ii in data:
-        if ii not in vals:
-            vals[ii] = 0
-        vals[ii] += 1
-    print('vals',vals)
-    """
-    
+    # verbose output
     verbose = 1 if options.verbose else 0
 
+    # test thread class
     if options.test:
         conf = configobj.ConfigObj("radar.conf")
         dwd = create_thread('radar',conf,300)
@@ -829,13 +897,40 @@ Coordinates go from west to east and south to north, respectively.
         dwd['thread'].shutDown()
         exit(0)
 
-    # 'HG_LATEST_000.bz2'
-
-    if len(args)>0:
+    # load data
+    if len(args)>0 and args[0][0]!='=':
+        # load from file
         dwd = DwdRadar.open(args[0],log_success=True,verbose=verbose)
     else:
-        dwd = DwdRadar.wget('HG',log_success=True,verbose=verbose)
+        # download from DWD server
+        model = args[0][1:] if len(args)>0 else 'HG'
+        dwd = DwdRadar.wget(model,log_success=True,verbose=verbose)
 
+    # If the file contains actual data as well as forecasts, look for
+    # the actual data to process and discard the forecasts
+    if isinstance(dwd,list):
+        print('list of %s records' % len(dwd))
+        for ii in dwd:
+            #print(ii.header['VV'])
+            if int(ii.header['VV'])==0:
+                dwd = ii
+                break
+    
+    # which value how often?
+    if verbose:
+        j = 0
+        x = dict()
+        for i in dwd.data:
+            if i not in x: x[i] = 0
+            x[i] += 1
+            if i>=0x29C4 and dwd.product!='HG': continue
+            j = max(j,i)
+        print('maximum',j)
+        for i in sorted(x.items()):
+            print(i)
+
+    # set light or dark background
+    # (The default is light, if this option is missing.)
     if options.background:
         dwd.background = options.background
     
