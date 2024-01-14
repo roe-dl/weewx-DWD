@@ -271,25 +271,28 @@ class DwdRadar(object):
     def open(fn, log_success=False, log_failure=True, verbose=0):
         """ create a DwdRadar instance from a file
         """
+        if verbose: start_ts = time.time()
         if 'tar' not in fn:
             dwd = DwdRadar(log_success,log_failure,verbose)
             dwd.read_data(DwdRadar._decompress_file(fn))
-            return dwd
-        dwd = []
-        tarf = tarfile.open(fn)
-        for member in tarf:
-            ff = tarf.extractfile(member)
-            newdwd = DwdRadar(log_success,log_failure,verbose)
-            newdwd.read_data(ff)
-            ff.close()
-            dwd.append(newdwd)
-        tarf.close()
+        else:
+            dwd = []
+            tarf = tarfile.open(fn)
+            for member in tarf:
+                ff = tarf.extractfile(member)
+                newdwd = DwdRadar(log_success,log_failure,verbose)
+                newdwd.read_data(ff)
+                ff.close()
+                dwd.append(newdwd)
+            tarf.close()
+        if verbose: print('elapsed time for loading from file: %.2f s' % (time.time()-start_ts))
         return dwd
     
     @staticmethod
     def wget(product, log_success=False, log_failure=True, verbose=0):
         """ create a DwdRadar instance from internet data
         """
+        if verbose: start_ts = time.time()
         # 'PG' is in BUFR format, not in the format handled here.
         fn = {
             'HG':'HG_LATEST_000.bz2',
@@ -302,18 +305,19 @@ class DwdRadar(object):
         if 'tar' not in fn:
             dwd = DwdRadar(log_success,log_failure,verbose)
             dwd.read_data([bz2.decompress(reply)])
-            return dwd
-        dwd = []
-        f = io.BytesIO(reply)
-        tarf = tarfile.open(fileobj=f)
-        for member in tarf:
-            ff = tarf.extractfile(member)
-            newdwd = DwdRadar(log_success,log_failure,verbose)
-            newdwd.read_data(ff)
-            ff.close()
-            dwd.append(newdwd)
-        tarf.close()
-        f.close()
+        else:
+            dwd = []
+            f = io.BytesIO(reply)
+            tarf = tarfile.open(fileobj=f)
+            for member in tarf:
+                ff = tarf.extractfile(member)
+                newdwd = DwdRadar(log_success,log_failure,verbose)
+                newdwd.read_data(ff)
+                ff.close()
+                dwd.append(newdwd)
+            tarf.close()
+            f.close()
+        if verbose: print('elapsed time for download: %.2f s' % (time.time()-start_ts))
         return dwd
     
     @staticmethod
@@ -416,6 +420,11 @@ class DwdRadar(object):
                     ct = DwdRadar.HEADER_FMT[idx][1]
                     tp = DwdRadar.HEADER_FMT[idx][0]
         self.header = header_vals
+        # no data value
+        if self.product=='HG':
+            self.no_data_value = 2147483648
+        else:
+            self.no_data_value = 0x29C4
         # format version
         if 'VS' in header_vals:
             try:
@@ -436,10 +445,10 @@ class DwdRadar(object):
                 factor = pow(10,int(x[1:]))
                 if self.verbose:
                     print('Genauigkeitsfaktor:',factor)
-                self.data = [i*factor if i<0x29C4 else 0x29C4 for i in self.data]
+                self.data = [i*factor if i<self.no_data_value else self.no_data_value for i in self.data]
         # colors
         if self.product=='HG':
-            self.colors = DwdRadar.COLORS_HG
+            self.colors = {i[0]:ImageColor.getrgb(i[1]) for i in DwdRadar.COLORS_HG.items()}
         else:
             self.colors = dict() # DwdRadar.COLORS_WN # 1...0x0FFF 1...4095
             for i in range(4096):
@@ -458,11 +467,11 @@ class DwdRadar(object):
                         col = 256-(idx if idx>0 else 0)/85*256
                     if col<0: col=0
                     col = ImageColor.getrgb('hsv(%s,100%%,100%%)' % col)
-                self.colors[idx] = '#%02X%02X%02XD0' % (col[0],col[1],col[2])
-            self.colors[0x29C4] = '#FFFFFFD0' # no data 0x29C4
+                self.colors[idx] = col+(0xD0,)
+            self.colors[self.no_data_value] = (255,255,255,0xD0) # no data 0x29C4
         # radar reflectivity factor
         if self.product=='WN':
-            self.data = [i/2-32.5 if i<0x29C4 else i for i in self.data]
+            self.data = [i/2-32.5 if i<self.no_data_value else i for i in self.data]
         # initialize coordinate data
         self.init_coords()
         if self.verbose:
@@ -533,6 +542,7 @@ class DwdRadar(object):
                 width (int, float): image width in pixels 0...1100
                 height (int, float): image height in pixels 0...1200
         """
+        if self.verbose: start_ts = time.time()
         x = int(x)
         y = int(y)
         if (x+width)>self.data_width:
@@ -571,20 +581,28 @@ class DwdRadar(object):
             basedraw = ImageDraw.Draw(baseimg)
         # set points according to radar reading
         #s = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="%s" height="%s" viewBox="%s %s %s %s">\n' % (ww,hh,x,1200-y-height,width,height)
+        if self.verbose:
+            print('elapsed time 1: %.2f s' % (time.time()-start_ts))
+        # Separate loops for xx and yy are much faster than one loop over
+        # self.data with calculating xx and yy from the list index.
+        # 68% of the time is consumed by ImageColor.getrgb(). So this 
+        # statement is moved to read_data(). Color is expressed by a
+        # tuple of (R,G,B,A).
         for yy in range(height):
             for xx in range(width):
                 val = self.data[(y+yy)*self.data_width+x+xx]
-                col = self.colors.get(val,'#12345640')
-                if dark_background and col[:7]=='#FFFFFF':
-                    col = '#000000'+col[7:]
+                col = self.colors.get(val,(1,2,3,128))
+                if dark_background and col[:3]==(255,255,255):
+                    col = (0,0,0,col[3])
                 #s += '<rect x="%s" y="%s" width="1" height="1" fill="%s" />\n' % (x+xx,1200-yy-y-1,col)
-                c = ImageColor.getrgb(col)
                 try:
-                    draw.point((xx,height-yy-1),fill=c)
-                    if val!=2147483648 and not background_img:
+                    draw.point((xx,height-yy-1),fill=col)
+                    if val!=self.no_data_value and not background_img:
                         basedraw.point((xx,height-yy-1),fill=background_color)
                 except IndexError as e:
-                    print(e,xx,height-yy,c)
+                    print(e,xx,height-yy,col)
+        if self.verbose:
+            print('elapsed time 2: %.2f s' % (time.time()-start_ts))
         # mark locations
         for location,coord in self.coords.items():
             if location not in ('NW','NO','SW','SO') and location not in filter:
@@ -631,6 +649,9 @@ class DwdRadar(object):
                     #basedraw.point((xx,height-yy),fill="#000")
                 basedraw.line(xy,fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),width=1)
         img = Image.alpha_composite(baseimg,img)
+        if self.verbose:
+            print('elapsed time for creating the image: %.2f s' % (time.time()-start_ts))
+            start_ts = time.time()
         try:
             img.save(fn)
         except (ValueError,OSError) as e:
@@ -640,6 +661,7 @@ class DwdRadar(object):
         else:
             if self.log_success:
                 loginf("map '%s' created" % fn)
+        if self.verbose: print('elapsed time for saving the image: %.2f s' % (time.time()-start_ts))
         return baseimg
 
     def load_coordinates(self, fn):
@@ -1019,4 +1041,3 @@ Coordinates go from west to east and south to north, respectively.
             print('    [%s],' % ','.join(xxx))
         """
         dwd.map('radar-'+dwd.product+'.png',image_size[0],image_size[1],image_size[2],image_size[3],filter=filter)
-
