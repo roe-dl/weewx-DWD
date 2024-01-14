@@ -524,7 +524,7 @@ class DwdRadar(object):
         except (LookupError,TypeError):
             return None
 
-    def map(self,fn,x,y,width,height, filter=[]):
+    def map(self,fn,x,y,width,height, filter=[], background_img=None):
         """ draw a map
         
             Args:
@@ -554,7 +554,10 @@ class DwdRadar(object):
         else:
             dark_background = self.background=='dark'
             background_color = ImageColor.getrgb('#000000FF' if dark_background else '#FFFFFFFF')
-        baseimg = Image.new('RGBA',(width,height),color=ImageColor.getrgb('#00000000'))
+        if background_img:
+            baseimg = background_img
+        else:
+            baseimg = Image.new('RGBA',(width,height),color=ImageColor.getrgb('#00000000'))
         img = Image.new('RGBA',(width,height),color=ImageColor.getrgb('#00000000'))
         if width>=640:
             font_size = 16
@@ -564,7 +567,8 @@ class DwdRadar(object):
             font_size = int(width*0.025)
         fnt=ImageFont.truetype(self.font_file,font_size)
         draw = ImageDraw.Draw(img)
-        basedraw = ImageDraw.Draw(baseimg)
+        if not background_img:
+            basedraw = ImageDraw.Draw(baseimg)
         # set points according to radar reading
         #s = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="%s" height="%s" viewBox="%s %s %s %s">\n' % (ww,hh,x,1200-y-height,width,height)
         for yy in range(height):
@@ -577,7 +581,7 @@ class DwdRadar(object):
                 c = ImageColor.getrgb(col)
                 try:
                     draw.point((xx,height-yy-1),fill=c)
-                    if val!=2147483648:
+                    if val!=2147483648 and not background_img:
                         basedraw.point((xx,height-yy-1),fill=background_color)
                 except IndexError as e:
                     print(e,xx,height-yy,c)
@@ -617,14 +621,15 @@ class DwdRadar(object):
         draw.multiline_text((10,height-10),'%sHerausgegeben %s\nDatenbasis Deutscher Wetterdienst\nGrenzen © EuroGeographics\n© Wetterstation Wöllsdorf' % (product_str,ts_str),fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),font=fnt,anchor="ld")
         #with open('test.svg','wt') as f:
         #    f.write(s)
-        for line in self.lines:
-            xy = []
-            for coord in line['coordinates']:
-                xx = (coord['xy'][0]-self.coords['SW']['xy'][0])/1000-x
-                yy = (coord['xy'][1]-self.coords['SW']['xy'][1])/1000-y
-                xy.append((xx,height-yy))
-                #basedraw.point((xx,height-yy),fill="#000")
-            basedraw.line(xy,fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),width=1)
+        if not background_img:
+            for line in self.lines:
+                xy = []
+                for coord in line['coordinates']:
+                    xx = (coord['xy'][0]-self.coords['SW']['xy'][0])/1000-x
+                    yy = (coord['xy'][1]-self.coords['SW']['xy'][1])/1000-y
+                    xy.append((xx,height-yy))
+                    #basedraw.point((xx,height-yy),fill="#000")
+                basedraw.line(xy,fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),width=1)
         img = Image.alpha_composite(baseimg,img)
         try:
             img.save(fn)
@@ -635,6 +640,7 @@ class DwdRadar(object):
         else:
             if self.log_success:
                 loginf("map '%s' created" % fn)
+        return baseimg
 
     def load_coordinates(self, fn):
         coords = dict()
@@ -710,6 +716,8 @@ class DwdRadarThread(BaseThread):
         # data
         self.data = []
         self.lock = threading.Lock()
+        for map in self.maps:
+            self.maps[map]['background_img'] = None
     
     def getRecord(self):
         try:
@@ -723,23 +731,39 @@ class DwdRadarThread(BaseThread):
                 logerr("thread '%s': %s %s" % (self.name,e.__class__.__name__,e))
             return
         # If the file includes forecasts, find the record of the actual data
-        try:
-            if isinstance(dwd,list):
-                logdbg("radar file contains %s records" % len(dwd))
+        if isinstance(dwd,list):
+            logdbg("radar file contains %s records" % len(dwd))
+            try:
                 for ii in dwd:
+                    # test shutdown request
+                    if not self.running: return
                     if int(ii.header['VV'])==0:
-                        dwd = ii
-                        break
-        except (LookupError,TypeError) as e:
-            if self.log_failure:
-                logerr("thread '%s': invalid forecast indicator %s %s" % (self.name,e.__class__.__name__,e))
-            return
-        # create map image
-        self.write_map(dwd)
-        # data
+                        dwd0 = ii
+                    self.write_map(ii)
+            except (LookupError,TypeError) as e:
+                if self.log_failure:
+                    logerr("thread '%s': invalid forecast indicator %s %s" % (self.name,e.__class__.__name__,e))
+                return
+            # data
+            self.cache_readings(dwd0)
+        else:
+            # data
+            self.cache_readings(dwd)
+            # create map image
+            self.write_map(dwd)
+    
+    def cache_readings(self, dwd):
+        """ get readings and cache them
+        
+            process all the locations defined in configuration and get the
+            readings for those locations and cache them
+            
+        """
         # Note: prefix is added in _to_weewx() in weatherservices.py, not here
         data = dict()
         for location in self.locations:
+            # test shutdown request
+            if not self.running: return
             try:
                 xy = self.locations[location]['xy']
                 if 'prefix' in self.locations[location] and self.locations[location]['prefix']:
@@ -770,12 +794,19 @@ class DwdRadarThread(BaseThread):
             self.lock.release()
     
     def write_map(self, dwd):
+        """ write map
+        """
         for map in self.maps:
+            # test shutdown request
+            if not self.running: return
             try:
                 try:
                     fn = int(dwd.header['VV'])
                 except (LookupError,TypeError):
                     fn = 0
+                if fn>0:
+                    with_forecast = weeutil.weeutil.to_bool(self.maps[map].get('forecast',False))
+                    if not with_forecast: continue
                 fn = '' if fn==0 else '-%03d' % fn
                 if self.maps[map].get('prefix'):
                     fn = self.maps[map]['prefix']+'Radar-'+dwd.product+fn+'.png'
@@ -784,14 +815,15 @@ class DwdRadarThread(BaseThread):
                 fn = os.path.join(self.target_path,fn)
                 size = self.maps[map]['map']
                 dwd.background = self.maps[map].get('background','light')
-                if 'borders' in self.maps[map]:
+                if 'borders' in self.maps[map] and self.maps[map]['background_img'] is None:
                     dwd.load_lines(os.path.join(self.target_path,self.maps[map]['borders']))
-                dwd.map(fn,
+                self.maps[map]['background_img'] = dwd.map(fn,
                     size[0], # x
                     size[1], # y
                     size[2], # width
                     size[3], # height
-                    self.maps[map].get('filter',[]))
+                    filter=self.maps[map].get('filter',[]),
+                    background_img=self.maps[map]['background_img'])
             except (LookupError,ValueError,TypeError,ArithmeticError,NameError) as e:
                 if self.log_failure:
                     logerr("thread '%s': %s %s" % (self.name,e.__class__.__name__,e))
