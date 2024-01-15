@@ -25,6 +25,9 @@ Diese Daten können mit den Programmen bezogen werden:
   * Wetterkarten (`wget-dwd`)
   * aktuelle Meßwerte von offiziellen DWD-Wetterstationen
     (`user.weatherservices.DWDservice`)
+  * Radarbilder und aktuelle Meßwerte aus den Radarmessungen
+    (Details siehe Wiki-Artikel
+    [Niederschlagsradar](https://github.com/roe-dl/weewx-DWD/wiki/Niederschlagsradar))
 * von der Zentralanstalt für Meteorologie und Geodynamik (ZAMG)
   * aktuelle Meßwerte von offiziellen ZAMG-Wetterstationen
     (`user.weatherservices.DWDservice`)
@@ -382,6 +385,13 @@ dann ein Wettermodell oder Produkt von diesem Anbieter.
   10-Minuten-Werte abgerufen werden.
 
   [Liste der Stationen](https://opendata.dwd.de/climate_environment/CDC/help/wetter_tageswerte_Beschreibung_Stationen.txt)
+
+* DWD-Wetterradar
+
+  Hiermit können Meßwerte der Radarstationen eingelesen und Radarbilder
+  erzeugt werden. Details und die Konfiguration sind im Wiki-Artikel
+  [Niederschlagsradar](https://github.com/roe-dl/weewx-DWD/wiki/Niederschlagsradar)
+  beschrieben.
 
 * ZAMG
 
