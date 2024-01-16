@@ -119,40 +119,80 @@ import weeutil.config # accumulateLeaves
 import weewx.units
 
 MAP_LOCATIONS_DE1200_WGS84 = {
-    'Wöllsdorf': {'xy': (766379.87, -579859.86), 'lat': '51.123', 'lon': '13.040'},
-    'Leipzig': {'xy': (716516.82, -556809.38), 'lat': '51.3406', 'lon': '12.3747'},
-    'Dresden': {'xy': (817762.02, -585484.68), 'lat': '51.0489', 'lon': '13.7331'},
-    'Chemnitz': {'xy': (759302.32, -614127.12), 'lat': '50.8332', 'lon': '12.92'},
-    'Berlin': {'xy': (783746.86, -416406.23), 'lat': '52.518611', 'lon': '13.408333'},
-    'Görlitz': {'xy': (909705.9, -566628.93), 'lat': '51.15', 'lon': '15.0'},
-    'Hamburg': {'xy': (542739.88, -304450.27), 'lat': '53.550556', 'lon': '9.993333'},
-    'Emden': {'xy': (350748.08, -320916.7), 'lat': '53.3668', 'lon': '7.2061'},
-    'Greifswald': {'xy': (771145.8, -235040.31), 'lat': '54.0960', 'lon': '13.3817'},
-    'Wolfenbüttel': {'xy': (581351.05, -464637.09), 'lat': '52.16263', 'lon': '10.53484'},
-    'Brocken': {'xy': (587565.63, -506791.63), 'lat': '51.7991', 'lon': '10.6156'},
-    'Fichtelberg': {'xy': (764264.57, -661198.14), 'lat': '50.429444', 'lon': '12.954167'},
-    'Weimar': {'xy': (641248.04, -601415.0), 'lat': '50.97937', 'lon': '11.32976'},
-    'Aachen': {'xy': (253005.58, -616350.99), 'lat': '50.77644', 'lon': '6.08373'},
-    'Augsburg': {'xy': (614212.32, -909407.49), 'lat': '48.36879', 'lon': '10.89774'},
-    'Nürnberg': {'xy': (626001.01, -780799.9), 'lat': '49.45390', 'lon': '11.07730'},
-    'Praha': {'xy': (876957.35, -694134.76), 'lat': '50.08749', 'lon': '14.42120'},
-    'Salzburg': {'xy': (787704.56, -971297.07), 'lat': '47.79848', 'lon': '13.04667'},
-    'Plzeň': {'xy': (800628.43, -739437.07), 'lat': '49.7472', 'lon': '13.37748'},
-    'Offenbach': {'xy': (449889.2, -703981.79), 'lat': '50.10478', 'lon': '8.76454'},
-    'Luxembourg': {'xy': (247137.74, -753023.96), 'lat': '49.6113', 'lon': '6.1292'},
-    'Zürich': {'xy': (424864.45, -1027214.44), 'lat': '47.37177', 'lon': '8.54220'},
-    'Karlsruhe': {'xy': (419118.5, -831795.91), 'lat': '49.01396', 'lon': '8.40442'},
-    'Münster': {'xy': (372911.26, -484503.91), 'lat': '51.9626', 'lon': '7.6258'},
-    'Kiel': {'xy': (552568.9, -215715.36), 'lat': '54.3231', 'lon': '10.1399'},
-    'Flensburg': {'xy': (505833.67, -162879.18), 'lat': '54.7832', 'lon': '9.4345'},
-    'Szczecin': {'xy': (856569.86, -306401.86), 'lat': '53.42523', 'lon':'14.56021'},
-    'Cottbus': {'xy': (855632.43, -499673.59), 'lat': '51.76068', 'lon':'14.33429'},
-    #'Göttingen': {'xy': (538491.31, -538008.38), 'lat': '51.5328', 'lon': '9.9352'},
-    'Kassel':{'xy':(506522.38,-563143.59), 'lat': '51.3157', 'lon': '9.498'},
-    'Zugspitze':{'xy':(623159.66,-1022123.31),'lat':47.42122,'lon':10.9863},
-    #'Schwerin':{'xy':(639938.73,-294247.94),'lat':53.62884,'lon': 11.41486},
-    #'Leeuwarden':{'xy':(252164.35,-334194.25),'lat':53.19959,'lon':5.79331},
-    'Apeldoorn':{'xy':(255942.84,-448573.20),'lat':52.2154,'lon':5.9640},
+    'Wöllsdorf': {'xy': (766379.87, -579859.86), 'lat': '51.123', 'lon': '13.040', 'scale':1.0},
+    'Leipzig': {'xy': (716516.82, -556809.38), 'lat': '51.3406', 'lon': '12.3747', 'scale':1.0},
+    'Dresden': {'xy': (817762.02, -585484.68), 'lat': '51.0489', 'lon': '13.7331', 'scale':1.0},
+    'Chemnitz': {'xy': (759302.32, -614127.12), 'lat': '50.8332', 'lon': '12.92', 'scale':1.0},
+    'Berlin': {'xy': (783746.86, -416406.23), 'lat': '52.518611', 'lon': '13.408333', 'scale':1.0},
+    'Brandenburg':{'xy':(724015.12,-431647.86),'lat':52.41399,'lon':12.55369,'scale':2.0},
+    'Görlitz': {'xy': (909705.9, -566628.93), 'lat': '51.15', 'lon': '15.0', 'scale':1.0},
+    'Hamburg': {'xy': (542739.88, -304450.27), 'lat': '53.550556', 'lon': '9.993333', 'scale':1.0},
+    'Emden': {'xy': (350748.08, -320916.7), 'lat': '53.3668', 'lon': '7.2061', 'scale':1.0},
+    'Greifswald': {'xy': (771145.8, -235040.31), 'lat': '54.0960', 'lon': '13.3817', 'scale':1.0},
+    'Wolfenbüttel': {'xy': (581351.05, -464637.09), 'lat': '52.16263', 'lon': '10.53484', 'scale':1.0},
+    'Brocken': {'xy': (587565.63, -506791.63), 'lat': '51.7991', 'lon': '10.6156', 'scale':1.0},
+    'Fichtelberg': {'xy': (764264.57, -661198.14), 'lat': '50.429444', 'lon': '12.954167', 'scale':1.0},
+    'Weimar': {'xy': (641248.04, -601415.0), 'lat': '50.97937', 'lon': '11.32976', 'scale':1.0},
+    'Aachen': {'xy': (253005.58, -616350.99), 'lat': '50.77644', 'lon': '6.08373', 'scale':1.0},
+    'Augsburg': {'xy': (614212.32, -909407.49), 'lat': '48.36879', 'lon': '10.89774', 'scale':1.0},
+    'Nürnberg': {'xy': (626001.01, -780799.9), 'lat': '49.45390', 'lon': '11.07730', 'scale':1.0},
+    'Praha': {'xy': (876957.35, -694134.76), 'lat': '50.08749', 'lon': '14.42120', 'scale':1.0},
+    'Salzburg': {'xy': (787704.56, -971297.07), 'lat': '47.79848', 'lon': '13.04667', 'scale':1.0},
+    'Plzeň': {'xy': (800628.43, -739437.07), 'lat': '49.7472', 'lon': '13.37748', 'scale':1.0},
+    'Offenbach': {'xy': (449889.2, -703981.79), 'lat': '50.10478', 'lon': '8.76454', 'scale':1.0},
+    'Luxembourg': {'xy': (247137.74, -753023.96), 'lat': '49.6113', 'lon': '6.1292', 'scale':1.0},
+    'Zürich': {'xy': (424864.45, -1027214.44), 'lat': '47.37177', 'lon': '8.54220', 'scale':1.0},
+    'Karlsruhe': {'xy': (419118.5, -831795.91), 'lat': '49.01396', 'lon': '8.40442', 'scale':1.0},
+    'Münster': {'xy': (372911.26, -484503.91), 'lat': '51.9626', 'lon': '7.6258', 'scale':1.0},
+    'Kiel': {'xy': (552568.9, -215715.36), 'lat': '54.3231', 'lon': '10.1399', 'scale':1.0},
+    'Flensburg': {'xy': (505833.67, -162879.18), 'lat': '54.7832', 'lon': '9.4345', 'scale':1.0},
+    'Szczecin': {'xy': (856569.86, -306401.86), 'lat': '53.42523', 'lon':'14.56021', 'scale':1.0},
+    'Cottbus': {'xy': (855632.43, -499673.59), 'lat': '51.76068', 'lon':'14.33429', 'scale':1.0},
+    'Göttingen': {'xy': (538491.31, -538008.38), 'lat': '51.5328', 'lon': '9.9352', 'scale':2.0},
+    'Kassel':{'xy':(506522.38,-563143.59), 'lat': '51.3157', 'lon': '9.498', 'scale':1.0},
+    'Zugspitze':{'xy':(623159.66,-1022123.31),'lat':47.42122,'lon':10.9863, 'scale':1.0},
+    'Schwerin':{'xy':(639938.73,-294247.94),'lat':53.62884,'lon': 11.41486, 'scale':2.0},
+    'Leeuwarden':{'xy':(252164.35,-334194.25),'lat':53.19959,'lon':5.79331, 'scale':2.0},
+    'Apeldoorn':{'xy':(255942.84,-448573.20),'lat':52.2154,'lon':5.9640, 'scale':1.0},
+    'Ústí nad Labem':{'xy':(843631.75,-629392.32),'lat':50.659167,'lon':14.041667,'scale':2.0},
+    'Karlovy Vary':{'xy':(759537.85,-684494.50),'lat':50.2331,'lon':12.8755,'scale':4.0},
+    'Riesa':{'xy':(784545.47,-557952.21),'lat':51.3019,'lon':13.3041,'scale':2.0},
+    'Rostock':{'xy':(687534.54,-239909.82),'lat':54.08871,'lon':12.14009,'scale':2.0},
+    'Neubrandenburg':{'xy':(766490.78,-297304.44),'lat':53.55743,'lon':13.26029,'scale':2.0},
+    'Lübeck':{'xy':(589701.46,-267829.25),'lat':53.86661,'lon':10.68486,'scale':2.0},
+    'Stralsund':{'xy':(750175.49,-210958.17),'lat':54.31599,'lon':13.09048,'scale':3.0},
+    'Wismar':{'xy':(642670.59,-263984.20),'lat':53.89142,'lon':11.46612,'scale':3.0},
+    'Cottbus/Chóśebuz':{'xy':(855630.10,-499671.44),'lat':51.7607,'lon':14.33426,'scale':2.0},
+    'Magdeburg':{'xy':(659925.02,-467441.19),'lat':52.12564,'lon':11.63476,'scale':2.0},
+    'Wernigerode':{'xy':(599678.61,-502655.27),'lat':51.83341,'lon':10.78443,'scale':10.0},
+    'Goslar':{'xy':(574026.86,-494503.16),'lat':51.9059,'lon':10.42904,'scale':10.0},
+    'Nordhausen':{'xy':(600850.17,-541186.64),'lat':51.5021,'lon':10.79329,'scale':4.0},
+    'Sangerhausen':{'xy':(637582.21,-543917.50),'lat':51.4729,'lon':11.29772,'scale':10.0},
+    'Herzberg am Harz':{'xy':(568003.36,-523537.35),'lat':51.65652,'lon':10.3428,'scale':10.0},
+    'Quedlinburg':{'xy':(625518.77,-507290.73),'lat':51.7898,'lon':11.14194,'scale':4.0},
+    'Halle':{'xy':(686408.52,-541383.04),'lat':51.4827,'lon':11.9698,'scale':2.0},
+    'Dessau':{'xy':(704934.34,-499645.91),'lat':51.83534,'lon':12.24687,'scale':4.0},
+    'Eisenach':{'xy':(566769.42,-603040.83),'lat':50.97463,'lon':10.31962,'scale':2.0},
+    'Zwickau':{'xy':(728629.46,-629097.17),'lat':50.71774,'lon':12.49731,'scale':4.0},
+    'Plauen':{'xy':(702782.89,-656383.59),'lat':50.49379,'lon':12.13588,'scale':4.0},
+    'Gera':{'xy':(697226.91,-611763.29),'lat':50.87658,'lon':12.08329,'scale':4.0},
+    'Bautzen/Budyšin':{'xy':(867292.32,-566448.65),'lat':51.1814,'lon':14.42402,'scale':4.0},
+    'Stendal':{'xy':(674153.10,-411427.04),'lat':52.60511,'lon':11.85934,'scale':2.0},
+    'Herzberg (Elster)':{'xy':(776949.55,-512837.59),'lat':51.69239,'lon':13.23517,'scale':2.0},
+    'Innsbruck':{'xy':(656587.54,-1039686.29),'lat':47.2685,'lon':11.39321,'scale':4.0},
+}
+
+AREAS = {
+    'DE':(100,100,900,1000),
+    'DE-MV':(578,839,275,200),
+    'DE-BB':(631,624,240,290),
+    'DE-ST':(580,588,192,262),
+    'DE-SN':(677,489,236,211),
+    'DE-TH':(520,494,219,192),
+    'Harz':(550,646,100,70),
+    'DE-Ost':(520,489,400,550),
+    'AT-8':(493,102,74,96), # Vorarlberg
+    'AT-7':(543,78,240,150), # Tirol
 }
 
 class DwdRadar(object):
@@ -533,7 +573,7 @@ class DwdRadar(object):
         except (LookupError,TypeError):
             return None
 
-    def map(self,x,y,width,height, filter=[], background_img=None):
+    def map(self,x,y,width,height, filter=[], background_img=None, svg=False):
         """ draw a map
         
             Args:
@@ -549,7 +589,25 @@ class DwdRadar(object):
             width = self.data_width-x
         if (y+height)>self.data_height:
             height = self.data_height-y
-        ww = width
+        if width>512:
+            scale = 1.0
+        elif width>300:
+            scale = 2.0
+        elif width>256:
+            scale = 3.0
+        elif width>200:
+            scale = 4.0
+        elif width>166:
+            scale = 5.0
+        elif width>128:
+            scale = 6.0
+        elif width>100:
+            scale = 8.0
+        else:
+            scale = 10.0
+        if self.verbose:
+            print('scale: %s' % scale)
+        ww = width*scale
         hh = ww*height/width
         if self.background and self.background[0]=='#':
             if len(self.background)==4:
@@ -564,23 +622,27 @@ class DwdRadar(object):
         else:
             dark_background = self.background=='dark'
             background_color = ImageColor.getrgb('#000000FF' if dark_background else '#FFFFFFFF')
-        if background_img:
-            baseimg = background_img
-        else:
-            baseimg = Image.new('RGBA',(width,height),color=ImageColor.getrgb('#00000000'))
-        img = Image.new('RGBA',(width,height),color=ImageColor.getrgb('#00000000'))
-        if width>=640:
+        if svg:
+            baseimg = None
+            img = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="%s" height="%s" viewBox="%s %s %s %s">\n' % (ww,hh,x,1200-y-height,width,height)
             font_size = 16
-        elif width<320:
-            font_size = 8
         else:
-            font_size = int(width*0.025)
-        fnt=ImageFont.truetype(self.font_file,font_size)
-        draw = ImageDraw.Draw(img)
-        if not background_img:
-            basedraw = ImageDraw.Draw(baseimg)
+            if background_img:
+                baseimg = background_img
+            else:
+                baseimg = Image.new('RGBA',(int(width*scale),int(height*scale)),color=ImageColor.getrgb('#00000000'))
+            img = Image.new('RGBA',(int(width*scale),int(height*scale)),color=ImageColor.getrgb('#00000000'))
+            if (width*scale)>=640:
+                font_size = 16
+            elif (width*scale)<320:
+                font_size = 8
+            else:
+                font_size = int(width*scale*0.025)
+            fnt=ImageFont.truetype(self.font_file,font_size)
+            draw = ImageDraw.Draw(img)
+            if not background_img:
+                basedraw = ImageDraw.Draw(baseimg)
         # set points according to radar reading
-        #s = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="%s" height="%s" viewBox="%s %s %s %s">\n' % (ww,hh,x,1200-y-height,width,height)
         if self.verbose:
             print('elapsed time 1: %.2f s' % (time.time()-start_ts))
         # Separate loops for xx and yy are much faster than one loop over
@@ -594,23 +656,27 @@ class DwdRadar(object):
                 col = self.colors.get(val,(1,2,3,128))
                 if dark_background and col[:3]==(255,255,255):
                     col = (0,0,0,col[3])
-                #s += '<rect x="%s" y="%s" width="1" height="1" fill="%s" />\n' % (x+xx,1200-yy-y-1,col)
-                try:
-                    draw.point((xx,height-yy-1),fill=col)
-                    if val!=self.no_data_value and not background_img:
-                        basedraw.point((xx,height-yy-1),fill=background_color)
-                except IndexError as e:
-                    print(e,xx,height-yy,col)
+                if svg:
+                    img += '<rect x="%s" y="%s" width="1" height="1" fill="#%02X%02X%02X" fill-opacity="%.2f" />\n' % (x+xx,1200-yy-y-1,col[0],col[1],col[2],col[3]/255)
+                else:
+                    try:
+                        if scale==1.0:
+                            draw.point((xx,height-yy-1),fill=col)
+                            if val!=self.no_data_value and not background_img:
+                                basedraw.point((xx,height-yy-1),fill=background_color)
+                        else:
+                            draw.rectangle([xx*scale,(height-yy-1)*scale,xx*scale+(scale-1.0),(height-yy-1)*scale+(scale-1.0)],fill=col)
+                            if val!=self.no_data_value and not background_img:
+                                basedraw.rectangle([xx*scale,(height-yy-1)*scale,xx*scale+(scale-1.0),(height-yy-1)*scale+(scale-1.0)],fill=background_color)
+                    except IndexError as e:
+                        print(e,xx,height-yy,col)
         if self.verbose:
             print('elapsed time 2: %.2f s' % (time.time()-start_ts))
         # mark locations
         for location,coord in self.coords.items():
-            if location not in ('NW','NO','SW','SO') and location not in filter:
+            if location not in ('NW','NO','SW','SO') and location not in filter and scale>=coord['scale']:
                 cx = (coord['xy'][0]-self.coords['SW']['xy'][0])/1000
                 cy = (coord['xy'][1]-self.coords['SW']['xy'][1])/1000
-                #s += '<circle cx="%s" cy="%s" r="5" fill="#123456" />\n' % (cx,1200-cy)
-                cx -= x
-                cy -= y
                 if location in ('Dresden','Chemnitz'):
                     # label besides the dot
                     y_off = 4+font_size/4
@@ -623,10 +689,14 @@ class DwdRadar(object):
                     # label right above the dot
                     y_off = 4+font_size
                     x_off = 4
-                if cx>=0 and cy>=0:
-                    draw.ellipse([cx-2,height-cy-2,cx+2,height-cy+2],fill=ImageColor.getrgb('#FFF' if dark_background else '#000'))
-                    draw.text((cx+x_off,height-cy-y_off),location,fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),font=fnt)
-        #s += '</svg>\n'
+                if svg:
+                    img += '<circle cx="%s" cy="%s" r="%.2f" fill="%s" />\n' % (cx,1200-cy,width/150,'#FFF' if dark_background else '#000')
+                else:
+                    cx -= x+0.5
+                    cy -= y+0.5
+                    if cx>=0 and cy>=0:
+                        draw.ellipse([cx*scale-2,(height-cy)*scale-2,cx*scale+2,(height-cy)*scale+2],fill=ImageColor.getrgb('#FFF' if dark_background else '#000'))
+                        draw.text((cx*scale+x_off,(height-cy)*scale-y_off),location,fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),font=fnt)
         try:
             vv = int(self.header['VV'])*60
         except (LookupError,ValueError,TypeError,ArithmeticError):
@@ -640,24 +710,30 @@ class DwdRadar(object):
             product_str = 'Regenintensität\n'
         else:
             product_str = ''
-        draw.multiline_text(
-            (10,height-10),
-            '%sHerausgegeben %s\nDatenbasis Deutscher Wetterdienst\nGrenzen © EuroGeographics\n© Wetterstation Wöllsdorf' % (product_str,ts_str),
-            fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),
-            font=fnt,
-            anchor="ld")
-        #with open('test.svg','wt') as f:
-        #    f.write(s)
+        if svg:
+            pass
+        else:
+            draw.multiline_text(
+                (10,height*scale-10),
+                '%sHerausgegeben %s\nDatenbasis Deutscher Wetterdienst\nGrenzen © EuroGeographics\n© Wetterstation Wöllsdorf' % (product_str,ts_str),
+                fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),
+                font=fnt,
+                anchor="ld")
         if not background_img:
             for line in self.lines:
                 xy = []
                 for coord in line['coordinates']:
-                    xx = (coord['xy'][0]-self.coords['SW']['xy'][0])/1000-x
-                    yy = (coord['xy'][1]-self.coords['SW']['xy'][1])/1000-y
-                    xy.append((xx,height-yy))
-                    #basedraw.point((xx,height-yy),fill="#000")
-                basedraw.line(xy,fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),width=1)
-        img = Image.alpha_composite(baseimg,img)
+                    xx = (coord['xy'][0]-self.coords['SW']['xy'][0])/1000-x-0.5
+                    yy = (coord['xy'][1]-self.coords['SW']['xy'][1])/1000-y-0.5
+                    xy.append((xx*scale,(height-yy)*scale))
+                if svg:
+                    pass
+                else:
+                    basedraw.line(xy,fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),width=1)
+        if svg:
+            img += '</svg>\n'
+        else:
+            img = Image.alpha_composite(baseimg,img)
         if self.verbose:
             print('elapsed time for creating the image: %.2f s' % (time.time()-start_ts))
         return img, baseimg
@@ -947,7 +1023,10 @@ def create_thread(thread_name,config_dict,archive_interval):
                     weewx.units.obs_group_dict.setdefault(p+'RainRate','group_rainrate')
             if 'map' in config_dict[section]:
                 conf_dict['maps'][section] = config_dict[section]
-                map = [weeutil.weeutil.to_int(x) for x in config_dict[section]['map']]
+                if isinstance(config_dict[section]['map'],list):
+                    map = [weeutil.weeutil.to_int(x) for x in config_dict[section]['map']]
+                else:
+                    map = AREAS[config_dict[section]['map']]
                 conf_dict['maps'][section].update({
                     'map': map,
                     'prefix':config_dict[section].get('prefix',''),
@@ -986,6 +1065,8 @@ Coordinates go from west to east and south to north, respectively.
     parser.add_option("--background",dest="background", metavar="TYPE",
                       type="string",
                       help="optional background type light or dark")
+    parser.add_option("--svg", dest="svg", action="store_true",
+                      help="output in SVG format")
 
     parser.add_option("--print-locations", dest="printlocations", action="store_true",
                       help="print locations list")
@@ -1065,8 +1146,11 @@ Coordinates go from west to east and south to north, respectively.
     #dwd.set_background_color('#000000')
     if options.writemap:
         if options.imagesize:
-            x = options.imagesize.split(',')
-            image_size = tuple([int(i) for i in x])
+            if options.imagesize in AREAS:
+                image_size = AREAS[options.imagesize]
+            else:
+                x = options.imagesize.split(',')
+                image_size = tuple([int(i) for i in x])
         else:
             image_size = (100,100,900,1000)
         if options.filter:
@@ -1080,5 +1164,9 @@ Coordinates go from west to east and south to north, respectively.
             xxx = [str(coord['xy']) for coord in line['coordinates']]
             print('    [%s],' % ','.join(xxx))
         """
-        img,_ = dwd.map(image_size[0],image_size[1],image_size[2],image_size[3],filter=filter)
-        dwd.save_map('radar-'+dwd.product+'.png',img)
+        img,_ = dwd.map(image_size[0],image_size[1],image_size[2],image_size[3],filter=filter,svg=options.svg)
+        if options.svg:
+            with open('radar-'+dwd.product+'.svg','wt') as f:
+                f.write(img)
+        else:
+            dwd.save_map('radar-'+dwd.product+'.png',img)
