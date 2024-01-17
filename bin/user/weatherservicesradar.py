@@ -186,6 +186,8 @@ MAP_LOCATIONS_DE1200_WGS84 = {
     'Hartha':{'xy':(761938.15,-583039.95),'lat':51.09779,'lon':12.97736,'scale':10.0},
     'Roßwein':{'xy':(777357.60,-586031.84),'lat':51.06510,'lon':13.18456,'scale':10.0},
     'Leisnig':{'xy':(757848.47,-576002.90),'lat':51.15981,'lon': 12.92668,'scale':10.0},
+    'Gärtitz':{'xy':(771940.21,-577226.79),'lat':51.14297,'lon':13.11754,'scale':20.0},
+    'Großweitzschen':{'xy':(766550.99,-575748.76),'lat':51.1581,'lon':13.0453,'scale':10.0},
 }
 
 AREAS = {
@@ -193,12 +195,13 @@ AREAS = {
     'DE-MV':(578,839,275,200),
     'DE-BB':(631,624,240,290),
     'DE-ST':(580,588,192,262),
-    'DE-SN':(677,489,236,208),
+    'DE-SN':(677,489,240,202),
     'DE-TH':(520,494,219,192),
     'Harz':(550,646,100,70),
     'DE-Ost':(520,489,400,550),
     'AT-8':(493,102,74,96), # Vorarlberg
     'AT-7':(543,78,240,150), # Tirol
+    'Döbeln':(755,608,30,25),
 }
 
 class DwdRadar(object):
@@ -720,7 +723,11 @@ class DwdRadar(object):
         else:
             product_str = ''
         # copyright notice
-        txt = '%sHerausgegeben %s\nDatenbasis Deutscher Wetterdienst\nGrenzen © EuroGeographics\n© Wetterstation Wöllsdorf' % (product_str,ts_str)
+        if self.lines:
+            bcptxt = 'Grenzen © %s\n' % self.lines_copyright if self.lines_copyright else 'Kartendatenlieferant'
+        else:
+            bcptxt = ''
+        txt = '%sHerausgegeben %s\nDatenbasis Deutscher Wetterdienst\n%s© Wetterstation Wöllsdorf' % (product_str,ts_str,bcptxt)
         if svg:
             pass
         else:
@@ -744,6 +751,7 @@ class DwdRadar(object):
             # mix it into the image
             img = Image.alpha_composite(img,txtimg)
         if not background_img:
+            col = ImageColor.getrgb('#FFF' if dark_background else '#000')
             for line in self.lines:
                 xy = []
                 for coord in line['coordinates']:
@@ -753,7 +761,7 @@ class DwdRadar(object):
                 if svg:
                     pass
                 else:
-                    basedraw.line(xy,fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),width=1)
+                    basedraw.line(xy,fill=col,width=1)
         if svg:
             img += '</svg>\n'
         else:
@@ -802,7 +810,7 @@ class DwdRadar(object):
                 self.get_value(coord['xy'])
             ))
     
-    def load_lines(self, fn):
+    def load_lines(self, fn, copyright):
         lines = []
         start = True
         with open(fn, "rt") as f:
@@ -816,6 +824,7 @@ class DwdRadar(object):
                     lines[-1]['coordinates'].append({'xy':(float(x[0]),float(x[1]))})
                     start = False
         self.lines = lines
+        self.lines_copyright = str(copyright)
     
     def set_background_color(self, color):
         self.colors[2147483648] = str(color)
@@ -976,7 +985,9 @@ class DwdRadarThread(BaseThread):
             if 'place_label_font_path' in self.maps[map]:
                 dwd.font_file = self.maps[map]['place_label_font_path']
             if 'borders' in self.maps[map] and self.maps[map]['background_img'] is None:
-                dwd.load_lines(os.path.join(self.target_path,self.maps[map]['borders']))
+                dwd.load_lines(os.path.join(self.target_path,self.maps[map]['borders']),self.maps[map].get('borders_copyright','Kartendatenlieferant'))
+            else:
+                dwd.lines_copyright = self.maps[map].get('borders_copyright','Kartendatenlieferant')
             img, self.maps[map]['background_img'] = dwd.map(
                     size[0], # x
                     size[1], # y
@@ -1073,34 +1084,41 @@ if __name__ == "__main__":
     usage = """Usage: %prog [options] [file.bz2]
 
 Direct call is for testing only."""
-    epilog = """The maximum image size for HG is 1100px wide and 1200px high,
+    epilog = """The maximum image size for HG, WN, and RV is 1100px wide and 1200px high,
 referring to 1100 km west-east and 1200 km south-north.
 Coordinates go from west to east and south to north, respectively.
 """
 
     parser = optparse.OptionParser(usage=usage, epilog=epilog)
     
-    parser.add_option("--write-map", dest="writemap", action="store_true",
+    parser.add_option("-v","--verbose", dest="verbose",action="store_true",
+                      help="verbose output")
+
+    group = optparse.OptionGroup(parser,'Commands')
+    group.add_option("--write-map", dest="writemap", action="store_true",
                       help="write map image")
-    parser.add_option("--image-size", dest="imagesize", metavar="X,Y,W,H",
+    group.add_option("--print-locations", dest="printlocations", action="store_true",
+                      help="print locations list")
+    group.add_option("--test-thread",dest="test",action="store_true",
+                      help="test thread")
+    parser.add_option_group(group)
+
+    group = optparse.OptionGroup(parser,'Map creation options')
+    group.add_option("--image-size", dest="imagesize", metavar="X,Y,W,H",
                       type="string",
                       help="optional x y width height")
-    parser.add_option("--filter", dest="filter", metavar="LIST",
+    group.add_option("--filter", dest="filter", metavar="LIST",
                       type="string",
                       help="optional list of locations to filter")
-    parser.add_option("--background",dest="background", metavar="TYPE",
+    group.add_option("--borders",dest="borders",metavar="FILE",
+                     type="string",
+                     help="file of border coordinates")
+    group.add_option("--background",dest="background", metavar="TYPE",
                       type="string",
                       help="optional background type light or dark")
-    parser.add_option("--svg", dest="svg", action="store_true",
+    group.add_option("--svg", dest="svg", action="store_true",
                       help="output in SVG format")
-
-    parser.add_option("--print-locations", dest="printlocations", action="store_true",
-                      help="print locations list")
-    parser.add_option("--test-thread",dest="test",action="store_true",
-                      help="test thread")
-    
-    parser.add_option("-v","--verbose", dest="verbose",action="store_true",
-                      help="Verbose output")
+    parser.add_option_group(group)
 
     (options, args) = parser.parse_args()
 
@@ -1184,7 +1202,10 @@ Coordinates go from west to east and south to north, respectively.
         else:
             filter = []
         #dwd.load_lines('coastcoords.txt')
-        dwd.load_lines('countrycoords.txt')
+        if options.borders:
+            dwd.load_lines(options.borders,'Kartendatenlieferant')
+        else:
+            dwd.load_lines('countrycoords.txt','EuroGeographics')
         """
         for line in dwd.lines:
             xxx = [str(coord['xy']) for coord in line['coordinates']]
