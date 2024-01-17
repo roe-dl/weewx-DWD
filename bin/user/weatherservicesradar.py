@@ -147,7 +147,7 @@ MAP_LOCATIONS_DE1200_WGS84 = {
     'Kiel': {'xy': (552568.9, -215715.36), 'lat': '54.3231', 'lon': '10.1399', 'scale':1.0},
     'Flensburg': {'xy': (505833.67, -162879.18), 'lat': '54.7832', 'lon': '9.4345', 'scale':1.0},
     'Szczecin': {'xy': (856569.86, -306401.86), 'lat': '53.42523', 'lon':'14.56021', 'scale':1.0},
-    'Cottbus': {'xy': (855632.43, -499673.59), 'lat': '51.76068', 'lon':'14.33429', 'scale':1.0},
+    'Cottbus/Chóśebuz': {'xy': (855632.43, -499673.59), 'lat': '51.76068', 'lon':'14.33429', 'scale':1.0},
     'Göttingen': {'xy': (538491.31, -538008.38), 'lat': '51.5328', 'lon': '9.9352', 'scale':2.0},
     'Kassel':{'xy':(506522.38,-563143.59), 'lat': '51.3157', 'lon': '9.498', 'scale':1.0},
     'Zugspitze':{'xy':(623159.66,-1022123.31),'lat':47.42122,'lon':10.9863, 'scale':1.0},
@@ -156,13 +156,13 @@ MAP_LOCATIONS_DE1200_WGS84 = {
     'Apeldoorn':{'xy':(255942.84,-448573.20),'lat':52.2154,'lon':5.9640, 'scale':1.0},
     'Ústí nad Labem':{'xy':(843631.75,-629392.32),'lat':50.659167,'lon':14.041667,'scale':2.0},
     'Karlovy Vary':{'xy':(759537.85,-684494.50),'lat':50.2331,'lon':12.8755,'scale':4.0},
+    'Louny':{'xy':(827797.23,-665920.36),'lat':50.35732,'lon':13.79678,'scale':4.0},
     'Riesa':{'xy':(784545.47,-557952.21),'lat':51.3019,'lon':13.3041,'scale':2.0},
     'Rostock':{'xy':(687534.54,-239909.82),'lat':54.08871,'lon':12.14009,'scale':2.0},
     'Neubrandenburg':{'xy':(766490.78,-297304.44),'lat':53.55743,'lon':13.26029,'scale':2.0},
     'Lübeck':{'xy':(589701.46,-267829.25),'lat':53.86661,'lon':10.68486,'scale':2.0},
     'Stralsund':{'xy':(750175.49,-210958.17),'lat':54.31599,'lon':13.09048,'scale':3.0},
     'Wismar':{'xy':(642670.59,-263984.20),'lat':53.89142,'lon':11.46612,'scale':3.0},
-    'Cottbus/Chóśebuz':{'xy':(855630.10,-499671.44),'lat':51.7607,'lon':14.33426,'scale':2.0},
     'Magdeburg':{'xy':(659925.02,-467441.19),'lat':52.12564,'lon':11.63476,'scale':2.0},
     'Wernigerode':{'xy':(599678.61,-502655.27),'lat':51.83341,'lon':10.78443,'scale':10.0},
     'Goslar':{'xy':(574026.86,-494503.16),'lat':51.9059,'lon':10.42904,'scale':10.0},
@@ -179,15 +179,21 @@ MAP_LOCATIONS_DE1200_WGS84 = {
     'Bautzen/Budyšin':{'xy':(867292.32,-566448.65),'lat':51.1814,'lon':14.42402,'scale':4.0},
     'Stendal':{'xy':(674153.10,-411427.04),'lat':52.60511,'lon':11.85934,'scale':2.0},
     'Herzberg (Elster)':{'xy':(776949.55,-512837.59),'lat':51.69239,'lon':13.23517,'scale':2.0},
+    'Bad Düben':{'xy':(730557.66,-527005.97),'lat':51.59102,'lon':12.58524,'scale':4.0},
     'Innsbruck':{'xy':(656587.54,-1039686.29),'lat':47.2685,'lon':11.39321,'scale':4.0},
+    'Döbeln':{'xy':(772401.33,-579683.03),'lat':51.12174,'lon':13.12199,'scale':10.0},
+    'Waldheim':{'xy':(765529.88,-585740.27),'lat':51.07308,'lon':13.02422,'scale':10.0},
+    'Hartha':{'xy':(761938.15,-583039.95),'lat':51.09779,'lon':12.97736,'scale':10.0},
+    'Roßwein':{'xy':(777357.60,-586031.84),'lat':51.06510,'lon':13.18456,'scale':10.0},
+    'Leisnig':{'xy':(757848.47,-576002.90),'lat':51.15981,'lon': 12.92668,'scale':10.0},
 }
 
 AREAS = {
-    'DE':(100,100,900,1000),
+    'DE':(120,100,860,1000),
     'DE-MV':(578,839,275,200),
     'DE-BB':(631,624,240,290),
     'DE-ST':(580,588,192,262),
-    'DE-SN':(677,489,236,211),
+    'DE-SN':(677,489,236,208),
     'DE-TH':(520,494,219,192),
     'Harz':(550,646,100,70),
     'DE-Ost':(520,489,400,550),
@@ -297,7 +303,8 @@ class DwdRadar(object):
         self.colors = DwdRadar.COLORS_HG
         self.data_width = 1100
         self.data_height = 1200
-        self.font_file = '/etc/weewx/skins/Belchertown1_3/lib/fonts/roboto/KFOlCnqEu92Fr1MmSU5fBBc9.ttf'
+        #self.font_file = '/etc/weewx/skins/Belchertown1_3/lib/fonts/roboto/KFOlCnqEu92Fr1MmSU5fBBc9.ttf'
+        self.font_file = '/etc/weewx/skins/Seasons/font/OpenSans-Regular.ttf'
         self.background = 'light'
         # data
         self.data = []
@@ -603,8 +610,10 @@ class DwdRadar(object):
             scale = 6.0
         elif width>100:
             scale = 8.0
-        else:
+        elif width>50:
             scale = 10.0
+        else:
+            scale = 20.0
         if self.verbose:
             print('scale: %s' % scale)
         ww = width*scale
@@ -627,11 +636,11 @@ class DwdRadar(object):
             img = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="%s" height="%s" viewBox="%s %s %s %s">\n' % (ww,hh,x,1200-y-height,width,height)
             font_size = 16
         else:
+            img = Image.new('RGBA',(int(width*scale),int(height*scale)),color=(0,0,0,0))
             if background_img:
                 baseimg = background_img
             else:
-                baseimg = Image.new('RGBA',(int(width*scale),int(height*scale)),color=ImageColor.getrgb('#00000000'))
-            img = Image.new('RGBA',(int(width*scale),int(height*scale)),color=ImageColor.getrgb('#00000000'))
+                baseimg = Image.new('RGBA',img.size,color=(0,0,0,0))
             if (width*scale)>=640:
                 font_size = 16
             elif (width*scale)<320:
@@ -710,15 +719,30 @@ class DwdRadar(object):
             product_str = 'Regenintensität\n'
         else:
             product_str = ''
+        # copyright notice
+        txt = '%sHerausgegeben %s\nDatenbasis Deutscher Wetterdienst\nGrenzen © EuroGeographics\n© Wetterstation Wöllsdorf' % (product_str,ts_str)
         if svg:
             pass
         else:
-            draw.multiline_text(
-                (10,height*scale-10),
-                '%sHerausgegeben %s\nDatenbasis Deutscher Wetterdienst\nGrenzen © EuroGeographics\n© Wetterstation Wöllsdorf' % (product_str,ts_str),
+            txtfnt=ImageFont.truetype(self.font_file,int(font_size*0.9))
+            # fade the background a little bit
+            txtimg = Image.new("RGBA",img.size,(0,0,0,0))
+            txtdraw = ImageDraw.Draw(txtimg)
+            bbox = txtdraw.multiline_textbbox(
+                    (7,height*scale-5),
+                    txt,
+                    font=txtfnt,
+                    anchor="ld")
+            txtdraw.rectangle((0,bbox[1]-5,bbox[2]+5,height*scale),fill=(0,0,0,128) if dark_background else (255,255,255,128))
+            # draw the copyright notice
+            txtdraw.multiline_text(
+                (7,height*scale-5),
+                txt,
                 fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),
-                font=fnt,
+                font=txtfnt,
                 anchor="ld")
+            # mix it into the image
+            img = Image.alpha_composite(img,txtimg)
         if not background_img:
             for line in self.lines:
                 xy = []
@@ -949,6 +973,8 @@ class DwdRadarThread(BaseThread):
             fn = os.path.join(self.target_path,fn)
             size = self.maps[map]['map']
             dwd.background = self.maps[map].get('background','light')
+            if 'place_label_font_path' in self.maps[map]:
+                dwd.font_file = self.maps[map]['place_label_font_path']
             if 'borders' in self.maps[map] and self.maps[map]['background_img'] is None:
                 dwd.load_lines(os.path.join(self.target_path,self.maps[map]['borders']))
             img, self.maps[map]['background_img'] = dwd.map(

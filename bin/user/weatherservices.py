@@ -1721,10 +1721,20 @@ class DWDservice(StdService):
         
         if has_radar:
             radar_dict = configobj.ConfigObj()
+            weewx_root = config_dict.get('WEEWX_ROOT','')
+            skin_root = config_dict.get('StdReport',configobj.ConfigObj()).get('SKIN_ROOT','')
+            if skin_root:
+                font_root = os.path.join(weewx_root,skin_root,'Seasons','font')
+            else:
+                font_root = weewx_root
             site_dict = config_dict.get('WeatherServices',configobj.ConfigObj()).get('radar',configobj.ConfigObj())
             loginf("site_dict %s" % site_dict)
             for location in site_dict.sections:
                 location_dict = weeutil.config.accumulateLeaves(config_dict['WeatherServices']['radar'][location])
+                if 'place_label_font_path' in location_dict:
+                    location_dict['place_label_font_path'] = os.path.join(font_root, location_dict['place_label_font_path'])
+                elif font_root:
+                    location_dict['place_label_font_path'] = os.path.join(font_root, 'OpenSans-Regular.ttf')
                 loginf("location_dict %s" % location_dict)
                 provider = location_dict.get('provider')
                 model = location_dict.get('model')
