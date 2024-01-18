@@ -1752,8 +1752,8 @@ class DWDservice(StdService):
             #loginf('radar %s' % radar_dict)
             for radar in radar_dict:
                 try:
-                    loginf('radar %s' % radar)
-                    loginf('radar %s' % radar_dict[radar])
+                    #loginf('radar %s' % radar)
+                    #loginf('radar %s' % radar_dict[radar])
                     thread_name = radar_dict[radar]['provider']+'_'+radar_dict[radar]['model']
                     thread = user.weatherservicesradar.create_thread(
                         thread_name,

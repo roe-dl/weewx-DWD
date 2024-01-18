@@ -723,8 +723,8 @@ class DwdRadar(object):
         else:
             product_str = ''
         # copyright notice
-        if self.lines:
-            bcptxt = 'Grenzen © %s\n' % self.lines_copyright if self.lines_copyright else 'Kartendatenlieferant'
+        if self.lines or background_img is not None:
+            bcptxt = 'Grenzen © %s\n' % (self.lines_copyright if self.lines_copyright else 'Kartendatenlieferant')
         else:
             bcptxt = ''
         txt = '%sHerausgegeben %s\nDatenbasis Deutscher Wetterdienst\n%s© Wetterstation Wöllsdorf' % (product_str,ts_str,bcptxt)
@@ -850,6 +850,7 @@ class DwdRadarThread(BaseThread):
         # locations to report
         self.locations = conf_dict['locations']
         self.maps = conf_dict['maps']
+        #loginf(self.maps)
         # target path
         self.target_path = conf_dict['path']
         # product
@@ -1069,7 +1070,7 @@ def create_thread(thread_name,config_dict,archive_interval):
                     'prefix':config_dict[section].get('prefix',''),
                 })
         if weeutil.weeutil.to_bool(conf_dict.get('enable',True)):
-            loginf(conf_dict)
+            #loginf(conf_dict)
             thread = dict()
             thread['datasource'] = 'Radolan'
             thread['prefix'] = prefix
