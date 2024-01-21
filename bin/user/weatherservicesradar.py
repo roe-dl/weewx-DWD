@@ -128,6 +128,8 @@ MAP_LOCATIONS_DE1200_WGS84 = {
     'Görlitz': {'xy': (909705.9, -566628.93), 'lat': '51.15', 'lon': '15.0', 'scale':1.0},
     'Hamburg': {'xy': (542739.88, -304450.27), 'lat': '53.550556', 'lon': '9.993333', 'scale':1.0},
     'Emden': {'xy': (350748.08, -320916.7), 'lat': '53.3668', 'lon': '7.2061', 'scale':1.0},
+    'Bremen':{'xy':(460307.48,-358300.18),'lat':53.0758,'lon':8.80717,'scale':2.0},
+    'Bremerhaven':{'xy':(445790.99,-303943.91),'lat':53.54446,'lon':8.57895,'scale':6.0},
     'Greifswald': {'xy': (771145.8, -235040.31), 'lat': '54.0960', 'lon': '13.3817', 'scale':1.0},
     'Wolfenbüttel': {'xy': (581351.05, -464637.09), 'lat': '52.16263', 'lon': '10.53484', 'scale':1.0},
     'Brocken': {'xy': (587565.63, -506791.63), 'lat': '51.7991', 'lon': '10.6156', 'scale':1.0},
@@ -146,6 +148,8 @@ MAP_LOCATIONS_DE1200_WGS84 = {
     'Münster': {'xy': (372911.26, -484503.91), 'lat': '51.9626', 'lon': '7.6258', 'scale':1.0},
     'Kiel': {'xy': (552568.9, -215715.36), 'lat': '54.3231', 'lon': '10.1399', 'scale':1.0},
     'Flensburg': {'xy': (505833.67, -162879.18), 'lat': '54.7832', 'lon': '9.4345', 'scale':1.0},
+    'Husum':{'xy':(479962.35,-197575.74),'lat':54.47698,'lon':9.05168,'scale':2.0},
+    'Brunsbüttel':{'xy':(482414.53,-264324.56),'lat':53.8954,'lon':9.1041,'scale':2.0},
     'Szczecin': {'xy': (856569.86, -306401.86), 'lat': '53.42523', 'lon':'14.56021', 'scale':1.0},
     'Cottbus/Chóśebuz': {'xy': (855632.43, -499673.59), 'lat': '51.76068', 'lon':'14.33429', 'scale':1.0},
     'Göttingen': {'xy': (538491.31, -538008.38), 'lat': '51.5328', 'lon': '9.9352', 'scale':2.0},
@@ -193,20 +197,31 @@ MAP_LOCATIONS_DE1200_WGS84 = {
     'Ostrau':{'xy':(775027.72,-570451.50),'lat':51.19950,'lon':13.16463,'scale':20.0},
     'Mügeln':{'xy':(766227.92,-566575.17),'lat':51.23677,'lon':13.04755,'scale':10.0},
     'Bockelwitz':{'xy':(759657.51,-571308.11),'lat':51.1992,'lon':12.9546,'scale':20.0},
+    'Würzburg':{'xy':(537819.43,-741466.75),'lat':49.79442,'lon':9.9294,'scale':2.0},
+    'Stuttgart':{'xy':(478924.35,-861337.35),'lat':48.77501,'lon':9.17878,'scale':2.0},
+    'Ulm':{'xy':(542686.17,-906655.24),'lat':48.39666,'lon':9.99354,'scale':3.0},
 }
 
+# often used map dimensions
 AREAS = {
-    'DE':(120,100,860,1000),
-    'DE-MV':(578,839,275,200),
-    'DE-BB':(631,624,240,290),
-    'DE-ST':(580,588,192,262),
-    'DE-SN':(677,489,240,202),
-    'DE-TH':(520,494,219,192),
-    'Harz':(550,646,100,70),
-    'DE-Ost':(520,489,400,550),
-    'AT-8':(493,102,74,96), # Vorarlberg
-    'AT-7':(543,78,240,150), # Tirol
-    'Döbeln':(755,608,30,25),
+    'DE':(120,100,860,1000),    # Deutschland gesamt
+    'DE-MV':(578,839,275,200),  # Mecklenburg-Vorpommern
+    'DE-BB':(631,624,240,290),  # Land Brandenburg
+    'DE-BE':(756,754,54,54),    # Berlin
+    'DE-ST':(580,588,192,262),  # Sachsen-Anhalt
+    'DE-SN':(677,489,240,202),  # Sachsen
+    'DE-TH':(520,494,219,192),  # Thüringen
+    'Harz':(550,646,100,70),    # Harz (Gebirge)
+    'DE-Ost':(520,489,400,550), # Deutschland Ost
+    'DE-SH':(390,869,240,190),  # Schleswig-Hollstein
+    'DE-HH':(515,877,42,46),    # Hansestadt Hamburg
+    'DE-HB':(424,832,57,70),    # Hansestadt Bremen
+    'DE-NI':(287,630,332,306),  # Niedersachsen
+    'DE-SL':(256,383,88,68),    # Saarland
+    'DE-BW':(330,160,266,310),  # Baden-Württemberg
+    'AT-8':(493,102,74,96),     # Vorarlberg
+    'AT-7':(543,78,240,150),    # Tirol
+    'Döbeln':(755,608,30,25),   # Döbelner Land
 }
 
 def load_places(fn,projection):
@@ -216,7 +231,7 @@ def load_places(fn,projection):
         with open(fn,'rt') as f:
             for line in f:
                 x = line.split()
-                places[x[2]] = {
+                places[x[2].replace('_',' ')] = {
                     'xy':(float(x[0]),float(x[1])),
                     'lat':x[3],
                     'lon':x[4],
