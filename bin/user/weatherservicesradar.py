@@ -188,6 +188,11 @@ MAP_LOCATIONS_DE1200_WGS84 = {
     'Leisnig':{'xy':(757848.47,-576002.90),'lat':51.15981,'lon': 12.92668,'scale':10.0},
     'Gärtitz':{'xy':(771940.21,-577226.79),'lat':51.14297,'lon':13.11754,'scale':20.0},
     'Großweitzschen':{'xy':(766550.99,-575748.76),'lat':51.1581,'lon':13.0453,'scale':10.0},
+    'Ziegra':{'xy':(767778.60,-581947.75),'lat':51.1045,'lon':13.0575,'scale':20.0},
+    'Geringswalde':{'xy':(756649.66,-585769.85),'lat':51.07676,'lon':12.90362,'scale':10.0},
+    'Ostrau':{'xy':(775027.72,-570451.50),'lat':51.19950,'lon':13.16463,'scale':20.0},
+    'Mügeln':{'xy':(766227.92,-566575.17),'lat':51.23677,'lon':13.04755,'scale':10.0},
+    'Bockelwitz':{'xy':(759657.51,-571308.11),'lat':51.1992,'lon':12.9546,'scale':20.0},
 }
 
 AREAS = {
@@ -203,6 +208,29 @@ AREAS = {
     'AT-7':(543,78,240,150), # Tirol
     'Döbeln':(755,608,30,25),
 }
+
+def load_places(fn,projection):
+    try:
+        line = ''
+        places = dict()
+        with open(fn,'rt') as f:
+            for line in f:
+                x = line.split()
+                places[x[2]] = {
+                    'xy':(float(x[0]),float(x[1])),
+                    'lat':x[3],
+                    'lon':x[4],
+                    'scale':float(x[5])
+                }
+        if projection=='DE1200':
+            MAP_LOCATIONS_DE1200_WGS84.update(places)
+    except OSError as e:
+        logerr("%s: cannot open file %s %s" % (fn,e.__class__.__name__,e))
+    except LookupError as e:
+        logerr("%s: invalid line '%s' %s %s" % (fn,line,e.__class__.__name__,e))
+        logerr("%s: expected 'easting northing name latitude longitude scale'" % fn)
+    except (ValueError,OverflowError) as e:
+        logerr("%s: file encoding error %s %s" % (fn,e.__class__.__name,e))
 
 class DwdRadar(object):
 
@@ -724,7 +752,7 @@ class DwdRadar(object):
             product_str = ''
         # copyright notice
         if self.lines or background_img is not None:
-            bcptxt = 'Grenzen © %s\n' % (self.lines_copyright if self.lines_copyright else 'Kartendatenlieferant')
+            bcptxt = 'Geographie © %s\n' % (self.lines_copyright if self.lines_copyright else 'Kartendatenlieferant')
         else:
             bcptxt = ''
         txt = '%sHerausgegeben %s\nDatenbasis Deutscher Wetterdienst\n%s© Wetterstation Wöllsdorf' % (product_str,ts_str,bcptxt)
@@ -860,7 +888,10 @@ class DwdRadarThread(BaseThread):
         self.data = []
         self.lock = threading.Lock()
         for map in self.maps:
-            self.maps[map]['background_img'] = None
+            if 'background_img' in self.maps[map]:
+                self.maps[map]['background_img'] = Image.open(self.maps[map]['background_img'])
+            else:
+                self.maps[map]['background_img'] = None
     
     def getRecord(self):
         try:
@@ -869,7 +900,7 @@ class DwdRadarThread(BaseThread):
                 if self.log_failure:
                     logerr("thread '%s': error downloading data" % self.name)
                 return
-        except ConnectionError as e:
+        except (ConnectionError,NewConnectionError,OSError) as e:
             if self.log_failure:
                 logerr("thread '%s': %s %s" % (self.name,e.__class__.__name__,e))
             return
@@ -1094,6 +1125,9 @@ Coordinates go from west to east and south to north, respectively.
     
     parser.add_option("-v","--verbose", dest="verbose",action="store_true",
                       help="verbose output")
+    parser.add_option("--places", dest="places", metavar="FILE",
+                     type="string",
+                     help="optional list of places to show on the map")
 
     group = optparse.OptionGroup(parser,'Commands')
     group.add_option("--write-map", dest="writemap", action="store_true",
@@ -1126,6 +1160,9 @@ Coordinates go from west to east and south to north, respectively.
     # verbose output
     verbose = 1 if options.verbose else 0
 
+    if options.places:
+        load_places(options.places,'DE1200')
+    
     # test thread class
     if options.test:
         conf = configobj.ConfigObj("radar.conf")

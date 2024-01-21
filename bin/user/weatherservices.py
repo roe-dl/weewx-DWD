@@ -1728,7 +1728,8 @@ class DWDservice(StdService):
             else:
                 font_root = weewx_root
             site_dict = config_dict.get('WeatherServices',configobj.ConfigObj()).get('radar',configobj.ConfigObj())
-            loginf("site_dict %s" % site_dict)
+            if 'places_de1200' in site_dict:
+                user.weatherservicesradar.load_places(os.path.join(weewx_root,site_dict['places_de1200']),'DE1200')
             for location in site_dict.sections:
                 location_dict = weeutil.config.accumulateLeaves(config_dict['WeatherServices']['radar'][location])
                 if 'place_label_font_path' in location_dict:
