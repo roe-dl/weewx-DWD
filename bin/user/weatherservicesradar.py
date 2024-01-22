@@ -200,6 +200,8 @@ MAP_LOCATIONS_DE1200_WGS84 = {
     'Würzburg':{'xy':(537819.43,-741466.75),'lat':49.79442,'lon':9.9294,'scale':2.0},
     'Stuttgart':{'xy':(478924.35,-861337.35),'lat':48.77501,'lon':9.17878,'scale':2.0},
     'Ulm':{'xy':(542686.17,-906655.24),'lat':48.39666,'lon':9.99354,'scale':3.0},
+    'Freiburg im Breisgau':{'xy':(371457.19,-951050.08),'lat':47.99603,'lon':7.84956,'scale':2.0},
+    'Strasbourg':{'xy':(365930.12,-881015.56),'lat':48.58339,'lon':7.74594,'scale':3.0},
 }
 
 # often used map dimensions
@@ -915,7 +917,7 @@ class DwdRadarThread(BaseThread):
                 if self.log_failure:
                     logerr("thread '%s': error downloading data" % self.name)
                 return
-        except (ConnectionError,NewConnectionError,OSError) as e:
+        except (ConnectionError,OSError) as e:
             if self.log_failure:
                 logerr("thread '%s': %s %s" % (self.name,e.__class__.__name__,e))
             return
@@ -1126,6 +1128,71 @@ def create_thread(thread_name,config_dict,archive_interval):
     return None
 
 
+def convert_geojson(fni, fno, include_comment):
+    """ convert geojson file to list of coordinates for proj
+    
+        Args:
+            fni (str): geojson file to read
+            fno (str): file to write
+        
+        Returns:
+            nothing
+    """
+    min_lon = min(float(DwdRadar.BORDER_DE1200_WGS84['NW']['lon']),float(DwdRadar.BORDER_DE1200_WGS84['SW']['lon']))
+    max_lon = max(float(DwdRadar.BORDER_DE1200_WGS84['NO']['lon']),float(DwdRadar.BORDER_DE1200_WGS84['SO']['lon']))
+    min_lat = min(float(DwdRadar.BORDER_DE1200_WGS84['SW']['lat']),float(DwdRadar.BORDER_DE1200_WGS84['SO']['lat']))
+    max_lat = max(float(DwdRadar.BORDER_DE1200_WGS84['NW']['lat']),float(DwdRadar.BORDER_DE1200_WGS84['NO']['lat']))
+    coords = []
+    with open(fni,"rb") as f:
+        geojson = json.load(f)
+    if not geojson:
+        print('error reading file')
+        return
+    ct_features = 0
+    ct_coordinates = 0
+    ct_new = 0
+    for x in geojson['features']:
+        ct_features += 1
+        name = x['properties'].get('name','unknown')
+        typ = x['geometry']['type']
+        if typ=='LineString':
+            if len(coords)==0 or len(coords[-1])!=0:
+                coords.append({'name':name,'geometry':[]})
+            for z in x['geometry']['coordinates']:
+                if z[0]>=min_lon and z[0]<max_lon and z[1]>=min_lat and z[1]<max_lat:
+                    coords[-1]['geometry'].append(z)
+                    ct_new += 1
+                else:
+                    if len(coords[-1])!=0:
+                        coords.append({'name':name,'geometry':[]})
+        else:
+            for y in x['geometry']['coordinates']:
+                if len(coords)==0 or len(coords[-1])!=0:
+                    coords.append({'name':name,'geometry':[]})
+                for z in y:
+                    ct_coordinates += 1
+                    if z[0]>=min_lon and z[0]<max_lon and z[1]>=min_lat and z[1]<max_lat:
+                        coords[-1]['geometry'].append(z)
+                        ct_new += 1
+                    else:
+                        if len(coords[-1])!=0:
+                            coords.append({'name':name,'geometry':[]})
+    with open(fno,'wt') as f:
+        for x in coords:
+            if include_comment:
+                f.write('366 366 %s - -\n' % x['name'].replace(' ','_'))
+            else:
+                f.write('366 366 %s\n' % x['name'].replace(' ','_'))
+            for y in x['geometry']:
+                if include_comment:
+                    f.write('%s %s %s %s %s\n' % (y[0],y[1],x['name'].replace(' ','_'),y[1],y[0]))
+                else:
+                    f.write('%s %s\n' % (y[0],y[1]))
+    print('features',ct_features)
+    print('coordinates',ct_coordinates)
+    print('new',ct_new)
+
+
 if __name__ == "__main__":
 
     usage = """Usage: %prog [options] [file.bz2]
@@ -1151,6 +1218,8 @@ Coordinates go from west to east and south to north, respectively.
                       help="print locations list")
     group.add_option("--test-thread",dest="test",action="store_true",
                       help="test thread")
+    group.add_option("--convert-geojson", dest="convert", action="store_true",
+                     help="convert geojson file to list for proj")
     parser.add_option_group(group)
 
     group = optparse.OptionGroup(parser,'Map creation options')
@@ -1175,9 +1244,18 @@ Coordinates go from west to east and south to north, respectively.
     # verbose output
     verbose = 1 if options.verbose else 0
 
+    # load file containing additional places data
     if options.places:
         load_places(options.places,'DE1200')
     
+    # convert a geojson file to a file appropriate for proj
+    if options.convert:
+        if not args[0] or not args[1]:
+            print('--convert-geojson geojson_file output_file')
+            exit(1)
+        convert_geojson(args[0],args[1],False)
+        exit(0)
+
     # test thread class
     if options.test:
         conf = configobj.ConfigObj("radar.conf")
