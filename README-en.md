@@ -14,6 +14,7 @@ With this extension you can receive and process the following data:
   * weather maps of Europe (`wget-dwd`)
   * actual readings of the DWD weather stations in Germany
     (`user.weatherservices.DWDservice`)
+  * radar images and radar readings
 * from Zentralanstalt für Meteorologie und Geodynamik (ZAMG)
   * actual readings of the ZAMG weather stations in Austria
     (`user.weatherservices.DWDservice`)
@@ -43,7 +44,7 @@ If you need help, please make sure to provide:
 
 You may install GeoPy:
 
-```
+```shell
 sudo apt-get install python3-geopy
 ```
 
@@ -51,13 +52,27 @@ sudo apt-get install python3-geopy
 
 Download the extension from Github:
 
-```
+```shell
 wget -O weewx-dwd.zip https://github.com/roe-dl/weewx-DWD/archive/master.zip
 ```
 
+Installation at WeeWX up to version 4.X:
+
+```shell
+sudo wee_extension --install weewx-dwd.zip
+```
+
+Installation at WeeWX from version 5.0 on:
+
+```shell
+sudo weectl extension install weewx-dwd.zip
+```
+
+Manual installation:
+
 Unpack the file
 
-Copy `bin/user/weatherservices.py` and `bin/user/capwarnings.py`
+Copy all files in `bin/user/` 
 into the extension directory of WeeWX. That is often
 `/usr/share/weewx/user`.
 

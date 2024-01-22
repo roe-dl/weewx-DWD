@@ -75,9 +75,23 @@ Herunterladen des Paketes von Github:
 wget -O weewx-dwd.zip https://github.com/roe-dl/weewx-DWD/archive/master.zip
 ```
 
+Installation unter WeeWX bis Version 4.X:
+
+```shell
+sudo wee_extension --install weewx-dwd.zip
+```
+
+Installation unter WeeWX ab Version 5.0:
+
+```shell
+sudo weectl extension install weewx-dwd.zip
+```shell
+
+Manuelle Installation:
+
 Packen Sie die ZIP-Datei aus.
 
-Kopieren Sie `bin/user/weatherservices.py` und `bin/usr/capwarnings.py` ins 
+Kopieren Sie alle Dateien aus dem Verzeichnis `bin/user/` ins 
 Erweiterungsverzeichnis von WeeWX, typischerweise `/usr/share/weewx/user`.
 
 Kopieren Sie `usr/local/bin/dwd-mosmix`, `usr/local/bin/dwd-warnings`,
