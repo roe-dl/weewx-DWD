@@ -210,7 +210,7 @@ AREAS = {
     'DE-MV':(578,839,275,200),  # Mecklenburg-Vorpommern
     'DE-BB':(631,624,240,290),  # Land Brandenburg
     'DE-BE':(756,754,54,54),    # Berlin
-    'DE-ST':(580,588,192,262),  # Sachsen-Anhalt
+    'DE-ST':(580,588,196,254),  # Sachsen-Anhalt
     'DE-SN':(677,489,240,202),  # Sachsen
     'DE-TH':(520,494,219,192),  # Thüringen
     'Harz':(550,646,100,70),    # Harz (Gebirge)
@@ -219,8 +219,12 @@ AREAS = {
     'DE-HH':(515,877,42,46),    # Hansestadt Hamburg
     'DE-HB':(424,832,57,70),    # Hansestadt Bremen
     'DE-NI':(287,630,332,306),  # Niedersachsen
+    'DE-NW':(235,490,276,294),  # Nordrhein-Westfalen
+    'DE-RP':(240,356,200,246),  # Rheinland-Pfalz
     'DE-SL':(256,383,88,68),    # Saarland
+    'DE-HE':(370,408,190,270),  # Hessen
     'DE-BW':(330,160,266,310),  # Baden-Württemberg
+    'DE-BY':(465,155,390,400),  # Bayern
     'AT-8':(493,102,74,96),     # Vorarlberg
     'AT-7':(543,78,240,150),    # Tirol
     'Döbeln':(755,608,30,25),   # Döbelner Land
@@ -695,6 +699,8 @@ class DwdRadar(object):
                 font_size = 8
             else:
                 font_size = int(width*scale*0.025)
+            if self.verbose:
+                print('font size: %s' % font_size)
             fnt=ImageFont.truetype(self.font_file,font_size)
             draw = ImageDraw.Draw(img)
             if not background_img:
@@ -1154,6 +1160,7 @@ def convert_geojson(fni, fno, include_comment):
     for x in geojson['features']:
         ct_features += 1
         name = x['properties'].get('name','unknown')
+        if name is None: name = 'unknown'
         typ = x['geometry']['type']
         if typ=='LineString':
             if len(coords)==0 or len(coords[-1])!=0:
