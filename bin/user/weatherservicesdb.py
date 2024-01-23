@@ -147,7 +147,7 @@ class DatabaseThread(threading.Thread):
     def open_create_db(self, provider, interval):
         """ open or create the database for a given interval """
         if interval not in self.databases:
-            if provider.lower() in ('poi','cdc','zamg','openmeteo','met'):
+            if provider.lower() in ('poi','cdc','zamg','openmeteo','met','radolanhg','radolanwn','radolanrv'):
                 file = 'weatherservices-readings-%s-%s.sdb' % (self.name,interval)
             else:
                 file = '%s.sdb' % provider
@@ -220,6 +220,7 @@ class DatabaseThread(threading.Thread):
                     if reply and reply[0]:
                         # There is a row for that timestamp in the database.
                         colvals = ','.join(['`%s`=%s' % (key,sqlstr(val)) for key,val in el.items() if key not in ('dateTime','usUnits','interval',None)])
+                        if not colvals: continue
                         sql = 'UPDATE archive SET %s WHERE `dateTime`=%s' % (colvals,el['dateTime'])
                     else:
                         # There is no row for that timestamp in the database.
@@ -248,6 +249,7 @@ class DatabaseThread(threading.Thread):
         """ process data
 
             Args:
+                datasource(str): product name like CDC, POI, Radolan etc.
                 prefix(str): observation type prefix
                 data(list of dict of ValueTuple): data to convert
                 
@@ -257,8 +259,14 @@ class DatabaseThread(threading.Thread):
         interval = weewx.units.convert(data[0].get('interval'),'minute')[0]
         con = self.open_create_db(datasource, interval)
         x = self.convert(prefix, data)
-        if con and self.check_and_add_columns(con, x, "prefix '%s'" % prefix):
-            self.update_data(con, x, "prefix '%s'" % prefix)
+        if prefix:
+            logtxt = "prefix '%s'" % prefix
+        elif datasource.startswith('Radolan'):
+            logtxt = "product '%s'" % datasource[7:]
+        else:
+            logtxt = datasource
+        if con and self.check_and_add_columns(con, x, logtxt):
+            self.update_data(con, x, logtxt)
     
     def convert(self, prefix, data):
         """ convert data to the appropriate units and add prefix to the keys
@@ -281,7 +289,10 @@ class DatabaseThread(threading.Thread):
                             new_key = key
                             new_val = weeutil.weeutil.to_int(new_val)
                         else:
-                            new_key = prefix+key[0].upper()+key[1:]
+                            if prefix:
+                                new_key = prefix+key[0].upper()+key[1:]
+                            else:
+                                new_key = key
                             if val[1] and val[2]:
                                 new_val = weeutil.weeutil.to_float(new_val)
                         x[new_key] = new_val

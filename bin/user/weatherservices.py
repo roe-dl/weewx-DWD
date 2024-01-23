@@ -1894,9 +1894,11 @@ class DWDservice(StdService):
                     if data: data = data[0]
                 elif datasource=='WBS':
                     data,interval = self.threads[thread_name]['thread'].get_data(ts)
-                elif datasource=='Radolan':
+                elif datasource.startswith('Radolan'):
                     data,interval = self.threads[thread_name]['thread'].get_data(ts)
                     logdbg('user.DWD.radar %s' % data)
+                    if data and has_db:
+                        databaseput(self.database_q,datasource,self.threads[thread_name]['prefix'],[data]) 
                 else:
                     data = None
                 #print(thread_name,data,interval)
@@ -1918,7 +1920,7 @@ class DWDservice(StdService):
         data = dict()
         for key in reply:
             #print('*',key)
-            if key in ('interval','count','sysStatus'):
+            if key in ('interval','count','sysStatus') or (key=='dateTime' and not prefix):
                 pass
             elif key in ('interval','count'):
                 data[key] = reply[key]

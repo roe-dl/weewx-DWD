@@ -134,6 +134,13 @@ MAP_LOCATIONS_DE1200_WGS84 = {
     'Wolfenbüttel': {'xy': (581351.05, -464637.09), 'lat': '52.16263', 'lon': '10.53484', 'scale':1.0},
     'Brocken': {'xy': (587565.63, -506791.63), 'lat': '51.7991', 'lon': '10.6156', 'scale':1.0},
     'Fichtelberg': {'xy': (764264.57, -661198.14), 'lat': '50.429444', 'lon': '12.954167', 'scale':1.0},
+    'Carlsfeld':{'xy':(738623.48,-662226.69),'lat':50.4314,'lon':12.6114,'scale':20.0},
+    'Rittersgrün':{'xy':(752720.72,-656540.09),'lat':50.47409,'lon':12.8032,'scale':20.0},
+    'Aue':{'xy':(744558.02,-643498.63),'lat':50.58865,'lon':12.70238,'scale':20.0},
+    'Schwarzenberg':{'xy':(750902.22,-649178.70),'lat':50.53761,'lon':12.78369,'scale':10.0},
+    'Cranzahl':{'xy':(766566.35,-650829.15),'lat':50.5168,'lon':12.9921,'scale':20.0},
+    'Eibenstock':{'xy':(737396.96,-654935.98),'lat':50.49393,'lon':12.59945,'scale':20.0},
+    'Jáchymov':{'xy':(761972.06,-668527.96),'lat':50.368,'lon':12.9186,'scale':20.0},
     'Weimar': {'xy': (641248.04, -601415.0), 'lat': '50.97937', 'lon': '11.32976', 'scale':1.0},
     'Aachen': {'xy': (253005.58, -616350.99), 'lat': '50.77644', 'lon': '6.08373', 'scale':1.0},
     'Augsburg': {'xy': (614212.32, -909407.49), 'lat': '48.36879', 'lon': '10.89774', 'scale':1.0},
@@ -227,7 +234,9 @@ AREAS = {
     'DE-BY':(465,155,390,400),  # Bayern
     'AT-8':(493,102,74,96),     # Vorarlberg
     'AT-7':(543,78,240,150),    # Tirol
+    'LU':  (215,417,66,100),    # Lëtzebuerg
     'Döbeln':(755,608,30,25),   # Döbelner Land
+    'Fichtelberg':(727,526,44,28) # Fichtelberggebiet
 }
 
 def load_places(fn,projection):
@@ -993,6 +1002,12 @@ class DwdRadarThread(BaseThread):
         """
         # Note: prefix is added in _to_weewx() in weatherservices.py, not here
         data = dict()
+        try:
+            data['dateTime'] = (int(dwd.timestamp),'unix_epoch','group_time')
+            data['interval'] = (5,'minute','group_interval')
+        except (LookupError,ValueError,TypeError,ArithmeticError,NameError) as e:
+            if self.log_failure:
+                logerr("thread '%s': %s %s" % (self.name,e.__class__.__name__,e))
         for location in self.locations:
             # test shutdown request
             if not self.running: return
@@ -1067,7 +1082,10 @@ class DwdRadarThread(BaseThread):
                 data = dd[1]
         finally:
             self.lock.release()
-        interval = 1
+        try:
+            interval = data['interval'][0]
+        except LookupError:
+            interval = 5 # minutes
         logdbg('get_data %s' % data)
         return data,interval
         
@@ -1126,7 +1144,7 @@ def create_thread(thread_name,config_dict,archive_interval):
         if weeutil.weeutil.to_bool(conf_dict.get('enable',True)):
             #loginf(conf_dict)
             thread = dict()
-            thread['datasource'] = 'Radolan'
+            thread['datasource'] = 'Radolan'+model
             thread['prefix'] = prefix
             thread['thread'] = DwdRadarThread(thread_name,conf_dict,archive_interval)
             thread['thread'].start()
