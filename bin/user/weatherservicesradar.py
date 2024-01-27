@@ -59,26 +59,37 @@ import datetime
 import bz2
 import tarfile
 import io
-from PIL import Image, ImageColor, ImageDraw, ImageFont
 import configobj
 import os.path
 import threading
 import random
 import math
+from PIL import Image, ImageColor, ImageDraw, ImageFont
+
+# deal with differences between python 2 and python 3
+try:
+    # Python 3
+    import queue
+except ImportError:
+    # Python 2
+    # noinspection PyUnresolvedReferences
+    import Queue as queue
 
 if __name__ == '__main__':
-
     import optparse
     import json
     import sys
     sys.path.append('/usr/share/weewx')
 
+import __main__
+if __name__ == '__main__' or __main__.__file__.endswith('weatherservices.py'):
+
     def logdbg(x):
-        print('DEBUG',x)
+        print('DEBUG radar',x)
     def loginf(x):
-        print('INFO',x)
+        print('INFO radar',x)
     def logerr(x):
-        print('ERROR',x)
+        print('ERROR radar',x)
 
 else:
 
@@ -239,6 +250,11 @@ AREAS = {
     'Fichtelberg':(727,526,44,28) # Fichtelberggebiet
 }
 
+# Initialize default unit for the unit groups defined in this extension
+
+for _,ii in weewx.units.std_groups.items():
+    ii.setdefault('group_wmo_wawa','byte')
+
 def load_places(fn,projection):
     try:
         line = ''
@@ -262,9 +278,60 @@ def load_places(fn,projection):
     except (ValueError,OverflowError) as e:
         logerr("%s: file encoding error %s %s" % (fn,e.__class__.__name,e))
 
+def merge_wawa(wawa, intensity):
+    """ merge precipitation intensity into wawa
+    
+        Args:
+            wawa(int): wawa
+            intensity(float): precipitation intensity in mm/h
+        
+        Returns:
+            int: wawa
+    """
+    try:
+        if wawa==50:
+            if intensity<0.1: return 51
+            if intensity>=0.5: return 53
+            return 52
+        if wawa==54:
+            if intensity<0.1: return 54
+            if intensity>=0.5: return 56
+            return 55
+        if wawa==60:
+            if intensity<2.5: return 61
+            if intensity>=10.0: return 63
+            return 62
+        if wawa==64:
+            if intensity<2.5: return 64
+            if intensity>=10: return 66
+            return 65
+        if wawa==67:
+            if intensity<2.5: return 67
+            return 68
+        if wawa==70:
+            if intensity<1.0: return 71
+            if intensity>=4: return 73
+            return 72
+        if wawa==74:
+            if intensity<1.0: return 74
+            if intensity>=4.0: return 76
+            return 75
+    except (TypeError,ValueError,ArithmeticError):
+        pass
+    return wawa
+
+def hyperbel_color(y0, yn, xs):
+    ys = 0.5*yn+0.5*y0
+    a = yn-ys
+    c = a/(yn-y0)
+    b = (1-c)/xs
+    return a,b,c
+
 class DwdRadar(object):
 
     COMPOSITE_URL = 'https://opendata.dwd.de/weather/radar/composite'
+    RADOLAN_URL = 'https://opendata.dwd.de/weather/radar/radolan'
+    RADVOR_URL = 'https://opendata.dwd.de/weather/radar/radvor'
 
     # valid for 1200x1100 DE1200 WGS84 HG, WN, RV
     BORDER_DE1200_WGS84 = {
@@ -275,6 +342,20 @@ class DwdRadar(object):
     }
     
     PROJ_STR_DE1200_WGS84 = "+proj=stere +lat_0=90 +lat_ts=60 +lon_0=10 +a=6378137 +b=6356752.3142451802 +no_defs +x_0=543196.83521776402 +y_0=3622588.8619310018"
+
+    BORDER_DE900_WGS84 = {
+        'NW': { 'lat':'54.58546706','lon':'2.095883211' },
+        'NO': { 'lat':'54.73806893','lon':'15.69697166' },
+        'SO': { 'lat':'47.07156997','lon':'14.60482286' },
+        'SW': { 'lat':'46.95361533','lon':'3.604382997' }
+    }
+    
+    BORDER_DE900_KUGEL = {
+        'NW': { 'xy':(-523462.2,-3758645.0), 'lat':54.5877, 'lon':2.0715 },
+        'NO': { 'xy':(376537.8,-3758645.0), 'lat':54.7405, 'lon':15.7208 },
+        'SO': { 'xy':(376537.8,-4658645.0), 'lat':47.0705, 'lon':15.7208 },
+        'SW': { 'xy':(-523462.2,-4658645.0), 'lat':46.9526, 'lon':3.5889 }
+    }
     
     COLORS_HG = {
         0:          '#FFFFFFD0', # no echo
@@ -289,6 +370,17 @@ class DwdRadar(object):
         16:         '#009901D0', # Regen Bit 5
         12:         '#f77676D0', # Gefrierender Sprühregen Bits 4+3
         8:          '#32ff00D0', # Sprühregen
+    }
+    
+    HUE_HG = {
+        8192:       291,         # Hagel
+        4096:        36,         # Graupel
+        64:         300,         # Schnee
+        80:          60,         # Schneeregen
+        20:           0,         # Gefrierender Regen
+        16:         120,         # Regen
+        12:           0,         # Gefrierender Sprühregen
+        8:          108,         # Sprühregen
     }
     
     WAWA = {
@@ -353,6 +445,10 @@ class DwdRadar(object):
         'HG':16777216, # 4 Bytes
         'WN':256,      # 2 Bytes
         'RV':256,      # 2 Bytes
+        'WX':1,        # 1 Byte
+        'RX':1,        # 1 Byte
+        'EX':1,        # 1 Byte
+        'WW':16777216, # 4 Bytes
     }
 
     def __init__(self, log_success=False, log_failure=True, verbose=0):
@@ -405,9 +501,19 @@ class DwdRadar(object):
         fn = {
             'HG':'HG_LATEST_000.bz2',
             'RV':'DE1200_RV_LATEST.tar.bz2',
-            'WN':'WN_LATEST.tar.bz2'
+            'WN':'WN_LATEST.tar.bz2',
+            'RW':'raa01-rw_10000-latest-dwd---bin.bz2',
+            'RY':'raa01-ry_10000-latest-dwd---bin.bz2',
+            'SF':'raa01-sf_10000-latest-dwd---bin.bz2',
+            'YW':'raa01-yw_10000-latest-dwd---bin.bz2'
         }[product.upper()]
-        url = DwdRadar.COMPOSITE_URL+'/'+product.lower()+'/'+fn
+        if product in ('HG','RV','WN'):
+            url = DwdRadar.COMPOSITE_URL
+        elif product in ('RE','RG'):
+            url = DwdRadar.RADVOR_URL
+        else:
+            url = DwdRadar.RADOLAN_URL
+        url = url+'/'+product.lower()+'/'+fn
         reply = wget(url,log_success,log_failure)
         if reply is None: return None
         if 'tar' not in fn:
@@ -427,6 +533,49 @@ class DwdRadar(object):
             f.close()
         if verbose: print('elapsed time for download: %.2f s' % (time.time()-start_ts))
         return dwd
+    
+    @staticmethod
+    def from_hg_rv(hg, rv, log_success=False, log_failure=True, verbose=0):
+        if verbose:
+            print('timestamp hg',hg.timestamp,'rv',rv.timestamp)
+        if hg.timestamp==rv.timestamp and hg.version==rv.version:
+            dwd = DwdRadar(log_success,log_failure,verbose)
+            dwd.product = 'HGRV'
+            dwd.timestamp = hg.timestamp
+            dwd.wmo_nr = hg.wmo_nr
+            dwd.header = hg.header
+            dwd.version = hg.version
+            dwd.data = list(zip(hg.data,rv.data))
+            dwd.no_data_value = rv.no_data_value
+            dwd.out_of_range_value = rv.out_of_range_value
+            dwd.init_coords()
+            factor = pow(10,int(rv.header['PR'].strip()[1:]))
+            yn = 100
+            y0 = 10
+            dwd.colors = dict()
+            for hgval,hgcol in DwdRadar.COLORS_HG.items():
+                hue = DwdRadar.HUE_HG.get(hgval,256)
+                if hgval&8:
+                    xs = 0.3/12
+                elif hgval&64:
+                    xs = 2.5/12
+                else:
+                    xs = 6.25/12
+                a, b, c = hyperbel_color(y0,yn,xs)
+                for i in range(4096):
+                    idx = (hgval,i*factor)
+                    sat = yn-a/(b*i*factor+c)
+                    if hue<256:
+                        #col = ImageColor.getrgb('hsv(%s,%s%%,100%%)' % (hue,math.log(i)/7.6*256 if i>0 else 0))
+                        col = ImageColor.getrgb('hsv(%s,%s%%,100%%)' % (hue,sat))
+                        dwd.colors[idx] = col+(0xD0,)
+                    elif hgval==1:
+                        sat = int(255-sat*255/100)
+                        dwd.colors[idx] = (sat,sat,sat,0xD0)
+                    else:
+                        dwd.colors[idx] = ImageColor.getrgb(hgcol)
+            return dwd
+        return None
     
     @staticmethod
     def _decompress_file(fn):
@@ -508,6 +657,11 @@ class DwdRadar(object):
         val = ""
         ct = 0
         for ii in header:
+            if idx=='BY' and not ii.isdigit() and ii!=' ':
+                header_vals[idx] = val
+                idx = ""
+                val = ""
+                ct = 0
             if ct:
                 val += ii
                 ct -= 1
@@ -531,8 +685,13 @@ class DwdRadar(object):
         # no data value
         if self.product=='HG':
             self.no_data_value = 2147483648
+            self.out_of_range_value = 2147483648
+        elif self.product in ('WX','RX','EX'):
+            self.no_data_value = 250
+            self.out_of_range_value = 249
         else:
             self.no_data_value = 0x29C4
+            self.out_of_range_value = 4096
         # format version
         if 'VS' in header_vals:
             try:
@@ -553,32 +712,50 @@ class DwdRadar(object):
                 factor = pow(10,int(x[1:]))
                 if self.verbose:
                     print('Genauigkeitsfaktor:',factor)
-                self.data = [i*factor if i<self.no_data_value else self.no_data_value for i in self.data]
+                self.data = [(i&0xEFFF)*factor if (i&0xEFFF)<self.out_of_range_value else self.no_data_value for i in self.data]
         # colors
         if self.product=='HG':
             self.colors = {i[0]:ImageColor.getrgb(i[1]) for i in DwdRadar.COLORS_HG.items()}
-        else:
-            self.colors = dict() # DwdRadar.COLORS_WN # 1...0x0FFF 1...4095
-            for i in range(4096):
-                if self.product=='RV':
-                    idx = i*factor
-                else:
-                    idx = i*factor/2-32.5
+        elif self.product in ('WX','RX','EX'):
+            self.colors = dict()
+            for i in range(249):
+                idx = i*factor
                 if i==0:
                     col = (255,255,255)
                 else:
-                    if self.product=='RV':
-                        # RV factor 0.01 precipitation
-                        col = 256-math.log(i)/7.6*256
-                    else:
+                    col = ImageColor.getrgb('hsv(%s,100%%,100%%)' % (256-i))
+                self.colors[idx] = col+(0xD0,)
+            self.colors[self.no_data_value] = (255,255,255,0xD0) # no data 0x29C4
+        else:
+            self.colors = dict() # DwdRadar.COLORS_WN # 1...0x0FFF 1...4095
+            for i in range(4096):
+                if self.product=='WN':
+                    idx = i*factor/2-32.5
+                else:
+                    idx = i*factor
+                if i==0:
+                    col = (255,255,255)
+                else:
+                    if self.product=='RW':
+                        # RW factor 0.1 precipitation
+                        col = 240-math.log(i)/8.3*240
+                    elif self.product=='WN':
                         # WN factor 0.1 dBZ
-                        col = 256-(idx if idx>0 else 0)/85*256
-                    if col<0: col=0
+                        col = 240-(idx if idx>0 else 0)/85*240
+                    else:
+                        # RV factor 0.01 precipitation
+                        #col = 256-math.log(i)/7.6*256
+                        col = 240-math.log(0.02425*i+0.03)*26.632997406928514-93.39014738656778
+                        if col<0 and col>-30:
+                            col += 360
+                    if col<0: col=330
+                    # The defined range for hue is 0 to 360 here.
+                    # 240 blue - 180 cyan - 120 green - 60 yellow - 0 red
                     col = ImageColor.getrgb('hsv(%s,100%%,100%%)' % col)
                 self.colors[idx] = col+(0xD0,)
             self.colors[self.no_data_value] = (255,255,255,0xD0) # no data 0x29C4
         # radar reflectivity factor
-        if self.product=='WN':
+        if self.product in ('WN','WX','RX'):
             self.data = [i/2-32.5 if i<self.no_data_value else i for i in self.data]
         # initialize coordinate data
         self.init_coords()
@@ -590,12 +767,22 @@ class DwdRadar(object):
         """ initialize coordinate data
         """
         if (self.version is None or 
-            (self.product in ('HG','WN','RV') and self.version>=5)):
+            (self.product in ('HG','WN','RV','HGRV') and self.version>=5)):
             self.coords = DwdRadar.BORDER_DE1200_WGS84
             self.coords.update(MAP_LOCATIONS_DE1200_WGS84)
             self.lines = []
             if self.verbose and self.version is not None:
                 print('Grid initialized to DE1200 WGS84')
+        elif self.data_height==900 and self.data_width==900 and self.version>=5:
+            self.coords = DwdRadar.BORDER_DE900_WGS84
+            self.lines = []
+            if self.verbose:
+                print('Grid initialized to DE900 WGS84')
+        elif self.data_height==900 and self.data_width==900 and self.version<5:
+            self.coords = DwdRadar.BORDER_DE900_KUGEL
+            self.lines = []
+            if self.verbose:
+                print('Grid initialized to DE900 Kugel')
 
     def get_value(self, xy):
         """ get the radar reading for a certain location 
@@ -626,19 +813,40 @@ class DwdRadar(object):
             Returns:
                 int: wawa code of the location described by xy
         """
+        if self.product=='HGRV':
+            try:
+                x = self.get_value(xy)
+                return merge_wawa(DwdRadar.WAWA[x[0]],x[1])
+            except LookupError:
+                return None
         if self.product!='HG': 
-            raise ValueError('product '+self.product+' does not provide the kind of precipitation')
+            raise ValueError('product '+self.product+' does not provide precipitation type')
         try:
             return DwdRadar.WAWA[self.get_value(xy)]
         except LookupError:
             return None
     
     def get_rainrate(self, xy):
+        """ get the precipitation rate for products that provide it 
+        
+            Args:
+                xy (tuple): tuple of easting and northing of the location
+                            to get the value for, in meters
+            
+            Returns:
+                float: precipitation rate in mm/h
+        
+        """
+        if self.product=='HGRV':
+            try:
+                return self.get_value(xy)[1]*12
+            except (LookupError,TypeError,ValueError,ArithmeticError):
+                return None
         if self.product!='RV':
             raise ValueError('product '+self.product+' does not provide precipitation')
         try:
             return self.get_value(xy)*12
-        except (LookupError,TypeError):
+        except (LookupError,TypeError,ArithmeticError):
             return None
 
     def map(self,x,y,width,height, filter=[], background_img=None, svg=False):
@@ -698,6 +906,8 @@ class DwdRadar(object):
             font_size = 16
         else:
             img = Image.new('RGBA',(int(width*scale),int(height*scale)),color=(0,0,0,0))
+            if self.verbose:
+                print('Abmessung der Bilddatei',img.size)
             if background_img:
                 baseimg = background_img
             else:
@@ -728,6 +938,7 @@ class DwdRadar(object):
                 col = self.colors.get(val,(1,2,3,128))
                 if dark_background and col[:3]==(255,255,255):
                     col = (0,0,0,col[3])
+                if self.product=='HGRV': val = val[1]
                 if svg:
                     img += '<rect x="%s" y="%s" width="1" height="1" fill="#%02X%02X%02X" fill-opacity="%.2f" />\n' % (x+xx,1200-yy-y-1,col[0],col[1],col[2],col[3]/255)
                 else:
@@ -831,6 +1042,15 @@ class DwdRadar(object):
         return img, baseimg
     
     def save_map(self, fn, img):
+        """ Save a previously created map to a file
+            
+            Args:
+                fn (str): file path
+                img (Image): image to save
+            
+            Returns:
+                nothing
+        """
         if self.verbose: start_ts = time.time()
         try:
             img.save(fn)
@@ -844,6 +1064,17 @@ class DwdRadar(object):
         if self.verbose: print('elapsed time for saving the image: %.2f s' % (time.time()-start_ts))
 
     def load_coordinates(self, fn):
+        """ read a file of locations and their coordinates 
+        
+            Data is used when creating maps.
+        
+            Args:
+                fn (str): path of a file containing a whitespace separated 
+                          table
+            
+            Returns:
+                nothing
+        """
         coords = dict()
         with open(fn,'rt') as f:
             for line in f:
@@ -858,6 +1089,7 @@ class DwdRadar(object):
             print('NO-SO y',coords['NO']['xy'][1]-coords['SO']['xy'][1])
     
     def print_coordinates(self):
+        """ print the list of locations and their actual readings """
         print('%-20s %8s %8s %12s %12s %s' % ('location','easting','northing','latitude','longitude','reading'))
         print('%-20s %8s %8s %12s %12s %s' % ('-'*20,'-'*8,'-'*8,'-'*12,'-'*12,'-'*10))
         for location,coord in self.coords.items():
@@ -871,6 +1103,7 @@ class DwdRadar(object):
             ))
     
     def load_lines(self, fn, copyright):
+        """ read a file containing line data to draw on maps """
         lines = []
         start = True
         with open(fn, "rt") as f:
@@ -887,7 +1120,14 @@ class DwdRadar(object):
         self.lines_copyright = str(copyright)
     
     def set_background_color(self, color):
-        self.colors[2147483648] = str(color)
+        """ set the background color """
+        if isinstance(color,tuple):
+            col = color
+        else:
+            col = ImageColor.getrgb(str(color))
+        if len(col)==3:
+            col = col+(0xD0,)
+        self.colors[self.no_data_value] = col
 
 class DwdRadarThread(BaseThread):
 
@@ -907,6 +1147,11 @@ class DwdRadarThread(BaseThread):
         super(DwdRadarThread,self).__init__(name='DWD-Radar-'+name,log_success=log_success,log_failure=log_failure)
         # archive interval
         self.query_interval = weeutil.weeutil.to_int(archive_interval)
+        # Note: The German Weather Service DWD releases radar data every
+        #       5 minutes. So it is no use to query them more often.
+        if self.query_interval<300:
+            self.query_interval = 300
+            logdbg("thread '%s': The German Weather Service DWD releases radar data every 5 minutes. So it is no use to query them more often." % self.name)
         # locations to report
         self.locations = conf_dict['locations']
         self.maps = conf_dict['maps']
@@ -924,6 +1169,7 @@ class DwdRadarThread(BaseThread):
                 self.maps[map]['background_img'] = Image.open(self.maps[map]['background_img'])
             else:
                 self.maps[map]['background_img'] = None
+        self.hgrv_queue = None
     
     def getRecord(self):
         try:
@@ -934,12 +1180,25 @@ class DwdRadarThread(BaseThread):
                 return
         except (ConnectionError,OSError) as e:
             if self.log_failure:
-                logerr("thread '%s': %s %s" % (self.name,e.__class__.__name__,e))
+                logerr("thread '%s': download error %s %s" % (self.name,e.__class__.__name__,e))
             return
         # If the file includes forecasts, find the record of the actual data
         if isinstance(dwd,list):
             # data include actual data and forecast
             logdbg("radar file contains %s records" % len(dwd))
+            for ii in dwd:
+                # test shutdown request
+                if not self.running: return
+                # forecast indicator
+                try:
+                    vv = int(ii.header['VV'])
+                except (LookupError,TypeError):
+                    vv = 0
+                # remember actual data record
+                if vv==0: 
+                    self.cache_readings(ii)
+                    self.queue_for_hgrv(ii)
+                    break
             try:
                 for map in self.maps:
                     # test shutdown request
@@ -981,8 +1240,6 @@ class DwdRadarThread(BaseThread):
                 if self.log_failure:
                     logerr("thread '%s': invalid forecast indicator %s %s" % (self.name,e.__class__.__name__,e))
                 return
-            # data
-            self.cache_readings(dwd0)
         else:
             # actual data only
             # data
@@ -992,6 +1249,16 @@ class DwdRadarThread(BaseThread):
                 # test shutdown request
                 if not self.running: return
                 self.write_map(map,dwd,0,False)
+            self.queue_for_hgrv(dwd)
+
+    def queue_for_hgrv(self, dwd):
+        """ queue data for HGRV thread """
+        if self.hgrv_queue:
+            try:
+                self.hgrv_queue.put(dwd, block=False)
+            except queue.Full as e:
+                if self.log_failure:
+                    logerr("thread '%s': HGRV queue error %s %s" % (self.name,e.__class__.__name__,e))
     
     def cache_readings(self, dwd):
         """ get readings and cache them
@@ -1000,6 +1267,7 @@ class DwdRadarThread(BaseThread):
             readings for those locations and cache them
             
         """
+        logdbg("cache_readings %s" % dwd.timestamp)
         # Note: prefix is added in _to_weewx() in weatherservices.py, not here
         data = dict()
         try:
@@ -1007,7 +1275,7 @@ class DwdRadarThread(BaseThread):
             data['interval'] = (5,'minute','group_interval')
         except (LookupError,ValueError,TypeError,ArithmeticError,NameError) as e:
             if self.log_failure:
-                logerr("thread '%s': %s %s" % (self.name,e.__class__.__name__,e))
+                logerr("thread '%s': could not assign timestamp %s %s" % (self.name,e.__class__.__name__,e))
         for location in self.locations:
             # test shutdown request
             if not self.running: return
@@ -1018,7 +1286,7 @@ class DwdRadarThread(BaseThread):
                 else:
                     prefix = 'radar'+dwd.product
                 if dwd.product=='HG':
-                    # kind of precipitation
+                    # precipitation type
                     data[prefix+'Value'] = (dwd.get_value(xy),None,None)
                     data[prefix+'Wawa'] = (dwd.get_wawa(xy),'byte','group_wmo_wawa')
                 elif dwd.product=='WN':
@@ -1028,10 +1296,14 @@ class DwdRadarThread(BaseThread):
                     # 5 minute precipitation
                     data[prefix+'Rain'] = (dwd.get_value(xy),'mm','group_rain')
                     data[prefix+'RainRate'] = (dwd.get_rainrate(xy),'mm_per_hour','group_rainrate')
+                elif dwd.product=='HGRV':
+                    # combined precipitation type (HG) and amount (RV)
+                    data[prefix[:-4]+'Wawa'] = (dwd.get_wawa(xy),'byte','group_wmo_wawa')
+                    data[prefix[:-4]+'Rainrate'] = (dwd.get_rainrate(xy),'mm_per_hour','group_rainrate')
                 data[prefix+'DateTime'] = (int(dwd.timestamp),'unix_epoch','group_time')
             except (LookupError,ValueError,TypeError,ArithmeticError,NameError) as e:
                 if self.log_failure:
-                    logerr("thread '%s': %s %s" % (self.name,e.__class__.__name__,e))
+                    logerr("thread '%s': could not assign reading %s %s" % (self.name,e.__class__.__name__,e))
         try:
             self.lock.acquire()
             self.data.append((dwd.timestamp,data))
@@ -1070,7 +1342,7 @@ class DwdRadarThread(BaseThread):
             return img
         except (LookupError,ValueError,TypeError,ArithmeticError,NameError) as e:
             if self.log_failure:
-                logerr("thread '%s': %s %s" % (self.name,e.__class__.__name__,e))
+                logerr("thread '%s': error writing map %s %s" % (self.name,e.__class__.__name__,e))
             return None
 
     def get_data(self, ts):
@@ -1086,12 +1358,85 @@ class DwdRadarThread(BaseThread):
             interval = data['interval'][0]
         except LookupError:
             interval = 5 # minutes
-        logdbg('get_data %s' % data)
+        logdbg('get_data(%s) %s' % (ts,data))
         return data,interval
         
     #def random_time(self):
     #    """ do a little bit of load balancing """
     #    return random.random()*15
+
+
+class HgRvThread(DwdRadarThread):
+
+    def __init__(self, name, conf_dict, archive_interval):
+        super(HgRvThread,self).__init__(name, conf_dict, archive_interval)
+        self.hg = None
+        self.rv = None
+
+    def waiting_time(self):
+        """ How long to wait before the next getRecord() call 
+        
+            New data do not arrive earlier than 60 seconds before the next
+            5 minutes boundary. So we can easily waiting until then before
+            checking for new data in getRecord()
+        """
+        waiting = self.query_interval-time.time()%self.query_interval
+        if waiting>60: return waiting-60
+        if waiting<2: return 0.1
+        return 2
+        
+    def random_time(self, waiting):
+        """ add a (random) additional amount of time to the waiting time 
+        
+            As we do not access the Internet in this thread, we need not
+            do any load balancing here.
+        """
+        return 0
+    
+    def getRecord(self):
+        """ get data - in this case from the queue - and process it """
+        # get a record of radar data from the queue
+        try:
+            reply = self.hgrv_queue.get(block=False, timeout=10)
+        except queue.Empty:
+            return
+        # determine the kind of radar data
+        try:
+            product = reply.product
+        except AttributeError:
+            if self.log_failure:
+                logerr("thread '%s': got data out of the queue that is not radar data" % self.name)
+            return
+        # Form the queue we get one radar data record at a time only. So
+        # save them for further reference. 
+        if product=='HG':
+            self.hg = reply
+        elif product=='RV':
+            self.rv = reply
+        else:
+            return
+        # If one of self.hg or self.rv is None, we cannot do anything except
+        # waiting for more data to arrive.
+        if self.hg is None or self.rv is None:
+            return
+        # process data
+        try:
+            # Try to get a combined record of both the HG und RV data.
+            dwd = DwdRadar.from_hg_rv(self.hg,
+                                      self.rv,
+                                      log_success=self.log_success,
+                                      log_failure=self.log_failure)
+            if dwd:
+                self.cache_readings(dwd)
+                # create map image
+                for map in self.maps:
+                    # test shutdown request
+                    if not self.running: return
+                    self.write_map(map,dwd,0,False)
+        except (LookupError,TypeError,ValueError,ArithmeticError,NameError) as e:
+            if self.log_failure:
+                logerr("thread '%s': getRecord() %s %s" % (self.name,e.__class__.__name__,e))
+
 
 def create_thread(thread_name,config_dict,archive_interval):
     """ create radar thread """
@@ -1146,7 +1491,10 @@ def create_thread(thread_name,config_dict,archive_interval):
             thread = dict()
             thread['datasource'] = 'Radolan'+model
             thread['prefix'] = prefix
-            thread['thread'] = DwdRadarThread(thread_name,conf_dict,archive_interval)
+            if model=='HGRV':
+                thread['thread'] = HgRvThread(thread_name,conf_dict,archive_interval)
+            else:
+                thread['thread'] = DwdRadarThread(thread_name,conf_dict,archive_interval)
             thread['thread'].start()
             return thread
     return None
@@ -1305,7 +1653,16 @@ Coordinates go from west to east and south to north, respectively.
     else:
         # download from DWD server
         model = args[0][1:] if len(args)>0 else 'HG'
-        dwd = DwdRadar.wget(model,log_success=True,verbose=verbose)
+        if model=='HGRV':
+            dwd1 = DwdRadar.wget('HG',log_success=True,verbose=verbose)
+            dwd2 = DwdRadar.wget('RV',log_success=True,verbose=verbose)
+            for ii in dwd2:
+                if int(ii.header['VV'])==0:
+                    dwd2 = ii
+                    break
+            dwd = DwdRadar.from_hg_rv(dwd1,dwd2,log_success=True,verbose=verbose)
+        else:
+            dwd = DwdRadar.wget(model,log_success=True,verbose=verbose)
 
     # If the file contains actual data as well as forecasts, look for
     # the actual data to process and discard the forecasts
@@ -1324,6 +1681,7 @@ Coordinates go from west to east and south to north, respectively.
         for i in dwd.data:
             if i not in x: x[i] = 0
             x[i] += 1
+            if dwd.product=='HGRV': continue
             if i>=0x29C4 and dwd.product!='HG': continue
             j = max(j,i)
         print('maximum',j)

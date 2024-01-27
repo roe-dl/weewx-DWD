@@ -425,6 +425,7 @@ class WildfireThread(BaseThread):
 
     def waiting_time(self):
         """ time to wait until the next fetch """
+        if self.last_data_ts==0: return 0
         now, today, countdown = self.is_fetch_time_reached()
         if today[0]>self.last_data_ts:
             # new day

@@ -169,6 +169,15 @@ import math
 import traceback
 import os.path
 
+# deal with differences between python 2 and python 3
+try:
+    # Python 3
+    import queue
+except ImportError:
+    # Python 2
+    # noinspection PyUnresolvedReferences
+    import Queue as queue
+
 if __name__ == '__main__':
 
     import sys
@@ -1738,19 +1747,28 @@ class DWDservice(StdService):
                     location_dict['place_label_font_path'] = os.path.join(font_root, 'OpenSans-Regular.ttf')
                 loginf("location_dict %s" % location_dict)
                 provider = location_dict.get('provider')
-                model = location_dict.get('model')
-                if model and provider:
-                    idx = str(provider)+'_!_'+str(model)
-                    if idx not in radar_dict:
-                        radar_dict[idx] = configobj.ConfigObj()
-                        radar_dict[idx]['provider'] = provider
-                        radar_dict[idx]['model'] = model
-                        if 'path' in location_dict:
-                            radar_dict[idx]['path'] = location_dict['path']
-                        radar_dict[idx]['log_success'] = location_dict.get('log_success',False)
-                        radar_dict[idx]['log_failure'] = location_dict.get('log_failure',True)
-                    radar_dict[idx][location] = location_dict
-            #loginf('radar %s' % radar_dict)
+                models = location_dict.get('model')
+                if models and provider:
+                    if not isinstance(models,list): models = [models]
+                    for model in models:
+                        idx = str(provider)+'_!_'+str(model)
+                        if idx not in radar_dict:
+                            radar_dict[idx] = self._radar_entry(provider,model,location_dict)
+                        radar_dict[idx][location] = configobj.ConfigObj()
+                        weeutil.config.merge_config(radar_dict[idx][location],location_dict)
+                        radar_dict[idx][location]['model'] = model
+            if 'DWD_!_HGRV' in radar_dict:
+                if 'DWD_!_HG' not in radar_dict:
+                    radar_dict['DWD_!_HG'] = self._radar_entry('DWD','HG',configobj.ConfigObj())
+                if 'DWD_!_RV' not in radar_dict:
+                    radar_dict['DWD_!_RV'] = self._radar_entry('DWD','RV',configobj.ConfigObj())
+                q = queue.Queue()
+            else:
+                q = None
+            loginf('radar %s' % radar_dict)
+            hg_thread = None
+            rv_thread = None
+            hgrv_thread = None
             for radar in radar_dict:
                 try:
                     #loginf('radar %s' % radar)
@@ -1763,6 +1781,9 @@ class DWDservice(StdService):
                     )
                     if thread:
                         self.threads[thread_name] = thread
+                        if (radar_dict[radar]['provider']=='DWD' and
+                            radar_dict[radar]['model'] in ('HG','RV','HGRV')):
+                            thread['thread'].hgrv_queue = q
                 except (LookupError,ValueError,TypeError,ArithmeticError,NameError) as e:
                     logerr("error creating radar thread '%s': %s %s" % (thread_name,e.__class__.__name__,e))
         
@@ -1784,6 +1805,16 @@ class DWDservice(StdService):
         weewx.units.obs_group_dict.setdefault('outSVPDWD','group_pressure')
 
 
+    def _radar_entry(self, provider, model, location_dict):
+        radar_dict = configobj.ConfigObj()
+        radar_dict['provider'] = provider
+        radar_dict['model'] = model
+        if 'path' in location_dict:
+            radar_dict['path'] = location_dict['path']
+        radar_dict['log_success'] = location_dict.get('log_success',False)
+        radar_dict['log_failure'] = location_dict.get('log_failure',True)
+        return radar_dict
+    
     def _create_poi_thread(self, thread_name, location, station_dict):
         prefix = station_dict.get('prefix','id'+thread_name)
         self.threads[thread_name] = dict()

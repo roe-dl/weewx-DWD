@@ -135,9 +135,13 @@ class BaseThread(threading.Thread):
         return self.query_interval-time.time()%self.query_interval
     
     
-    def random_time(self):
-        """ do a little bit of load balancing """
-        return -random.random()*60
+    def random_time(self, waiting):
+        """ do a little bit of load balancing 
+        
+            let at least 10 seconds to ultimo to download an process
+            data
+        """
+        return -random.random()*(60 if waiting>60 else waiting)-10
 
     
     def run(self):
@@ -145,17 +149,20 @@ class BaseThread(threading.Thread):
         loginf("thread '%s' starting" % self.name)
         try:
             while self.running:
-                # download and process data
-                self.getRecord()
                 # time to to the next interval
                 waiting = self.waiting_time()
-                if waiting<=60: waiting += self.query_interval
                 # do a little bit of load balancing
-                waiting += self.random_time()
+                waiting_r = self.random_time(waiting)
+                waiting += waiting_r
                 # wait
                 if self.log_sleeping:
                     loginf ("thread '%s': sleeping for %s seconds" % (self.name,waiting))
-                self.evt.wait(waiting)
+                if waiting>0: 
+                    if self.evt.wait(waiting): break
+                # download and process data
+                self.getRecord()
+                if waiting_r<=0:
+                    if self.evt.wait(1-waiting_r): break
         except Exception as e:
             logerr("thread '%s': main loop %s - %s" % (self.name,e.__class__.__name__,e))
             for ii in traceback.format_tb(e.__traceback__):
