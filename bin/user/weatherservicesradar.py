@@ -128,6 +128,7 @@ from user.weatherservicesutil import wget, BaseThread
 import weeutil.weeutil # startOfDay, archiveDaySpan
 import weeutil.config # accumulateLeaves
 import weewx.units
+import weewx.xtypes
 
 MAP_LOCATIONS_DE1200_WGS84 = {
     'Wöllsdorf': {'xy': (766379.87, -579859.86), 'lat': '51.123', 'lon': '13.040', 'scale':1.0},
@@ -508,10 +509,16 @@ class DwdRadar(object):
             'YW':'raa01-yw_10000-latest-dwd---bin.bz2'
         }[product.upper()]
         if product in ('HG','RV','WN'):
+            # HG actual precipitation type
+            # RV actual precipitation amount and forecast
+            # WN actual radar reflectivity factor dBZ and forecast
             url = DwdRadar.COMPOSITE_URL
-        elif product in ('RE','RG'):
+        elif product in ('RE','RQ'):
+            # RQ calibrated precipitation analysis and forecast
+            # RE analysis and forecast of the proportion of solid precipitation
             url = DwdRadar.RADVOR_URL
         else:
+            # RW, RY, SF, YW
             url = DwdRadar.RADOLAN_URL
         url = url+'/'+product.lower()+'/'+fn
         reply = wget(url,log_success,log_failure)
@@ -1170,6 +1177,7 @@ class DwdRadarThread(BaseThread):
             else:
                 self.maps[map]['background_img'] = None
         self.hgrv_queue = None
+        self.forecast = dict()
     
     def getRecord(self):
         try:
@@ -1199,6 +1207,8 @@ class DwdRadarThread(BaseThread):
                     self.cache_readings(ii)
                     self.queue_for_hgrv(ii)
                     break
+            if dwd[0].product=='RV':
+                self.cache_forecast(dwd)
             try:
                 for map in self.maps:
                     # test shutdown request
@@ -1251,6 +1261,44 @@ class DwdRadarThread(BaseThread):
                 self.write_map(map,dwd,0,False)
             self.queue_for_hgrv(dwd)
 
+    def cache_forecast(self, dwds):
+        start = list()
+        stop = list()
+        try:
+            for dwd in dwds:
+                vv = int(dwd.header['VV'])
+                ts = dwd.timestamp+vv*60
+                start.append(ts-300)
+                stop.append(ts)
+        except (LookupError,AttributeError,ValueError,TypeError):
+            return
+        vals = {
+            'start': (start,'unix_epoch','group_time'),
+            'stop': (stop,'unix_epoch','group_time')
+        }
+        for location in self.locations:
+            if not self.running: return
+            try:
+                xy = self.locations[location]['xy']
+                if 'prefix' in self.locations[location] and self.locations[location]['prefix']:
+                    prefix = self.locations[location]['prefix']+'Radar'+dwds[0].product
+                else:
+                    prefix = 'radar'+dwds[0].product
+                val = list()
+                for dwd in dwds:
+                    if dwd.product=='RV':
+                        val.append(dwd.get_rainrate(xy))
+                val = (val,'mm_per_hour','group_rainrate')
+                vals['%sRainRateForecast' % prefix] = val
+            except (LookupError,ValueError,TypeError,ArithmeticError,NameError) as e:
+                if self.log_failure:
+                    logerr("thread '%s': could not assign forecast %s %s" % (self.name,e.__class__.__name__,e))
+        try:
+            self.lock.acquire()
+            self.forecast = vals
+        finally:
+            self.lock.release()
+    
     def queue_for_hgrv(self, dwd):
         """ queue data for HGRV thread """
         if self.hgrv_queue:
@@ -1360,7 +1408,15 @@ class DwdRadarThread(BaseThread):
             interval = 5 # minutes
         logdbg('get_data(%s) %s' % (ts,data))
         return data,interval
-        
+    
+    def get_forecast(self):
+        try:
+            self.lock.acquire()
+            forecast = self.forecast
+        finally:
+            self.lock.release()
+        return forecast
+    
     #def random_time(self):
     #    """ do a little bit of load balancing """
     #    return random.random()*15

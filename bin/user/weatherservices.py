@@ -324,13 +324,14 @@ def get_cloudcover(n):
 class DWDXType(weewx.xtypes.XType):
     """ derived types according to formulae used by the DWD """
     
-    def __init__(self, altitude_vt):
+    def __init__(self, altitude_vt, rv_thread):
         self.altitude = weewx.units.convert(altitude_vt, 'meter')[0]
         self.outTemp = None
         self.outHumidity = None
         self.outTemp_last_seen = 0
         self.outHumidity_last_seen = 0
         self.loop_seen = False
+        self.rv_thread = rv_thread
     
     
     def get_scalar(self, obstype, record, dbmanager, **opt_dict):
@@ -430,7 +431,22 @@ class DWDXType(weewx.xtypes.XType):
             return weewx.units.convertStd(weewx.units.ValueTuple(svp,'hPa','group_pressure'), record['usUnits'])
         except (LookupError,ValueError,TypeError,ArithmeticError):
             raise weewx.CannotCalculate('barometerDWD')
+
     
+    def get_series(self, obs_type, timespan, db_manager, aggregate_type=None,
+                   aggregate_interval=None, **option_dict):
+        """ precipitation forecast for the next 2 hours """
+        if not self.rv_thread:
+            raise weewx.CannotCalculate('no data for %s' % obs_type)
+        forecast = self.rv_thread.get_forecast()
+        if (forecast and 
+            obs_type in forecast and 
+            'start' in forecast and 
+            'stop' in forecast):
+            return (forecast['start'],
+                    forecast['stop'],
+                    forecast[obs_type])
+        raise weewx.UnknownType(obs_type)
 
 
 class DWDPOIthread(BaseThread):
@@ -1618,6 +1634,7 @@ class DWDservice(StdService):
         archive_interval = 300 # engine.archive_interval
 
         self.threads = dict()
+        rv_thread = None
         
         try:
             iconset = config_dict['WeatherServices']['forecast']['icon_set']
@@ -1766,9 +1783,6 @@ class DWDservice(StdService):
             else:
                 q = None
             loginf('radar %s' % radar_dict)
-            hg_thread = None
-            rv_thread = None
-            hgrv_thread = None
             for radar in radar_dict:
                 try:
                     #loginf('radar %s' % radar)
@@ -1781,9 +1795,11 @@ class DWDservice(StdService):
                     )
                     if thread:
                         self.threads[thread_name] = thread
-                        if (radar_dict[radar]['provider']=='DWD' and
-                            radar_dict[radar]['model'] in ('HG','RV','HGRV')):
-                            thread['thread'].hgrv_queue = q
+                        if radar_dict[radar]['provider']=='DWD':
+                            if radar_dict[radar]['model'] in ('HG','RV','HGRV'):
+                                thread['thread'].hgrv_queue = q
+                            if radar_dict[radar]['model']=='RV':
+                                rv_thread = thread['thread']
                 except (LookupError,ValueError,TypeError,ArithmeticError,NameError) as e:
                     logerr("error creating radar thread '%s': %s %s" % (thread_name,e.__class__.__name__,e))
         
@@ -1798,7 +1814,7 @@ class DWDservice(StdService):
         
         # Initialization for calculating barometer according to DWD formula
         self.station_altitude = weewx.units.convert(engine.stn_info.altitude_vt, 'meter')[0]
-        self.dwdxtype = DWDXType(engine.stn_info.altitude_vt)
+        self.dwdxtype = DWDXType(engine.stn_info.altitude_vt, rv_thread)
         if self.dwdxtype:
             weewx.xtypes.xtypes.append(self.dwdxtype)
         weewx.units.obs_group_dict.setdefault('barometerDWD','group_pressure')
