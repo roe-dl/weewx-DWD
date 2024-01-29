@@ -30,6 +30,8 @@ Data will be processed to:
 * HTML files (`*.inc`) to include in skins with `#include`
 * JSON files (`*.json`) to automatically process 
 * `forecast.json` for direct use with Belchertown skin
+* observation types in WeeWX
+* maps (in case of radar data)
 
 ## Trouble shooting
 

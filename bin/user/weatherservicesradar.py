@@ -56,6 +56,7 @@
 
 import time
 import datetime
+import gzip
 import bz2
 import tarfile
 import io
@@ -506,8 +507,11 @@ class DwdRadar(object):
             'RW':'raa01-rw_10000-latest-dwd---bin.bz2',
             'RY':'raa01-ry_10000-latest-dwd---bin.bz2',
             'SF':'raa01-sf_10000-latest-dwd---bin.bz2',
-            'YW':'raa01-yw_10000-latest-dwd---bin.bz2'
+            'YW':'raa01-yw_10000-latest-dwd---bin.bz2',
+            'RE':'%s',
+            'RQ':'%s',
         }[product.upper()]
+        # The base URL depends on the product.
         if product in ('HG','RV','WN'):
             # HG actual precipitation type
             # RV actual precipitation amount and forecast
@@ -517,27 +521,49 @@ class DwdRadar(object):
             # RQ calibrated precipitation analysis and forecast
             # RE analysis and forecast of the proportion of solid precipitation
             url = DwdRadar.RADVOR_URL
+            reply = wget('%s/%s' % (url,product.lower()))
+            if reply is None: return None
+            fns = DwdRadar._list_directory(reply.decode(encoding='utf-8'))
         else:
             # RW, RY, SF, YW
             url = DwdRadar.RADOLAN_URL
-        url = url+'/'+product.lower()+'/'+fn
-        reply = wget(url,log_success,log_failure)
-        if reply is None: return None
-        if 'tar' not in fn:
-            dwd = DwdRadar(log_success,log_failure,verbose)
-            dwd.read_data([bz2.decompress(reply)])
-        else:
+        # The complete URL contains of the base URL, the product name in
+        # lowercase and the filename
+        url = '/'.join((url,product.lower(),fn))
+        # Depending on the structure of the files on the DWD opendata server
+        # different downloading methods apply.
+        if product in ('RE','RQ'):
+            # Several files to download
             dwd = []
-            f = io.BytesIO(reply)
-            tarf = tarfile.open(fileobj=f)
-            for member in tarf:
-                ff = tarf.extractfile(member)
+            for fn in fns:
+                reply = wget(url % fn,log_success,log_failure)
                 newdwd = DwdRadar(log_success,log_failure,verbose)
-                newdwd.read_data(ff)
-                ff.close()
+                if fn.endswith('.gz') or fn.endswith('.GZ'):
+                    newdwd.read_data([gzip.decompress(reply)])
+                else:
+                    newdwd.read_data([bz2.decompress(reply)])
                 dwd.append(newdwd)
-            tarf.close()
-            f.close()
+        else:
+            # One file to download only
+            reply = wget(url,log_success,log_failure)
+            if reply is None: return None
+            if 'tar' not in fn:
+                # one record in one file only
+                dwd = DwdRadar(log_success,log_failure,verbose)
+                dwd.read_data([bz2.decompress(reply)])
+            else:
+                # actual record and forecast included in one tar.bz2 file
+                dwd = []
+                f = io.BytesIO(reply)
+                tarf = tarfile.open(fileobj=f)
+                for member in tarf:
+                    ff = tarf.extractfile(member)
+                    newdwd = DwdRadar(log_success,log_failure,verbose)
+                    newdwd.read_data(ff)
+                    ff.close()
+                    dwd.append(newdwd)
+                tarf.close()
+                f.close()
         if verbose: print('elapsed time for download: %.2f s' % (time.time()-start_ts))
         return dwd
     
@@ -596,6 +622,27 @@ class DwdRadar(object):
                 if reply==b'': break
                 yield reply
 
+    @staticmethod
+    def _list_directory(reply):
+        """ read directory and get the names of the most recent records """
+        fns = list()
+        reply_len = len(reply)
+        i = 0
+        while True:
+            i = reply.find('href="',i)
+            if i<0: break
+            i += 6
+            fn = ''
+            while i<reply_len and reply[i]!='"':
+                fn += reply[i]
+                i += 1
+            fns.append(fn)
+        fns.sort()
+        if fns:
+            x = fns[-1].split('_')
+            fns = [fn for fn in fns if fn.startswith(x[0])]
+        return fns
+    
     def read_data(self, in_data):
         """ read radar data and convert to internal data structure
         """
@@ -1532,6 +1579,10 @@ def create_thread(thread_name,config_dict,archive_interval):
                 elif model=='RV':
                     weewx.units.obs_group_dict.setdefault(p+'Rain','group_rain')
                     weewx.units.obs_group_dict.setdefault(p+'RainRate','group_rainrate')
+                    weewx.units.obs_group_dict.setdefault(p+'RainRateForecast','group_rainrate')
+                elif model=='HGRV':
+                    weewx.units.obs_group_dict.setdefault(p[:-4]+'Wawa','group_wmo_wawa')
+                    weewx.units.obs_group_dict.setdefault(p[:-4]+'RainRate','group_rainrate')
             if 'map' in config_dict[section]:
                 conf_dict['maps'][section] = config_dict[section]
                 if isinstance(config_dict[section]['map'],list):
@@ -1775,7 +1826,8 @@ Coordinates go from west to east and south to north, respectively.
         if options.borders:
             dwd.load_lines(options.borders,'Kartendatenlieferant')
         else:
-            dwd.load_lines('countrycoords.txt','EuroGeographics')
+            #dwd.load_lines('countrycoords.txt','EuroGeographics')
+            pass
         """
         for line in dwd.lines:
             xxx = [str(coord['xy']) for coord in line['coordinates']]

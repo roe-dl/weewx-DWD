@@ -47,6 +47,8 @@ Die Daten werden aufbereitet als:
 * JSON-Dateien (`*.json`) zur maschinellen Weiterverarbeitung,
   z.B. mittels JavaScript im Browser
 * `forecast.json` zur direkten Verwendung mit der Belchertown-Skin
+* Variablen (observation type) in WeeWX
+* bei Radardaten auch zu Landkarten
 
 
 # Melden von Fehlern
