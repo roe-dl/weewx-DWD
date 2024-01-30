@@ -468,34 +468,32 @@ class DwdRadar(object):
         # data
         self.data = []
         self.header = dict()
+        self.clutter_flag = list()
+        self.station_flag = list()
         self.product = None
         self.version = None
         # initialize coordinate data
         self.init_coords()
     
-    @staticmethod
-    def open(fn, log_success=False, log_failure=True, verbose=0):
+    @classmethod
+    def open(cls, fn, log_success=False, log_failure=True, verbose=0):
         """ create a DwdRadar instance from a file
         """
         if verbose: start_ts = time.time()
-        if 'tar' not in fn:
-            dwd = DwdRadar(log_success,log_failure,verbose)
-            dwd.read_data(DwdRadar._decompress_file(fn))
-        else:
+        if tarfile.is_tarfile(fn):
+            # a set of records embedded in one tar file
             dwd = []
-            tarf = tarfile.open(fn)
-            for member in tarf:
-                ff = tarf.extractfile(member)
-                newdwd = DwdRadar(log_success,log_failure,verbose)
-                newdwd.read_data(ff)
-                ff.close()
-                dwd.append(newdwd)
-            tarf.close()
+            with tarfile.open(fn) as tarf:
+                dwd = cls._read_tarfile(tarf,log_success,log_failure,verbose)
+        else:
+            # one record in one file only, no forecast
+            dwd = cls(log_success,log_failure,verbose)
+            dwd.read_data(DwdRadar._decompress_file(fn))
         if verbose: print('elapsed time for loading from file: %.2f s' % (time.time()-start_ts))
         return dwd
     
-    @staticmethod
-    def wget(product, log_success=False, log_failure=True, verbose=0):
+    @classmethod
+    def wget(cls, product, log_success=False, log_failure=True, verbose=0):
         """ create a DwdRadar instance from internet data
         """
         if verbose: start_ts = time.time()
@@ -537,7 +535,7 @@ class DwdRadar(object):
             dwd = []
             for fn in fns:
                 reply = wget(url % fn,log_success,log_failure)
-                newdwd = DwdRadar(log_success,log_failure,verbose)
+                newdwd = cls(log_success,log_failure,verbose)
                 if fn.endswith('.gz') or fn.endswith('.GZ'):
                     newdwd.read_data([gzip.decompress(reply)])
                 else:
@@ -549,30 +547,26 @@ class DwdRadar(object):
             if reply is None: return None
             if 'tar' not in fn:
                 # one record in one file only
-                dwd = DwdRadar(log_success,log_failure,verbose)
+                dwd = cls(log_success,log_failure,verbose)
                 dwd.read_data([bz2.decompress(reply)])
             else:
                 # actual record and forecast included in one tar.bz2 file
                 dwd = []
-                f = io.BytesIO(reply)
-                tarf = tarfile.open(fileobj=f)
-                for member in tarf:
-                    ff = tarf.extractfile(member)
-                    newdwd = DwdRadar(log_success,log_failure,verbose)
-                    newdwd.read_data(ff)
-                    ff.close()
-                    dwd.append(newdwd)
-                tarf.close()
-                f.close()
+                with io.BytesIO(reply) as f:
+                    with tarfile.open(fileobj=f) as tarf:
+                        dwd = cls._read_tarfile(tarf,
+                                                log_success,
+                                                log_failure,
+                                                verbose)
         if verbose: print('elapsed time for download: %.2f s' % (time.time()-start_ts))
         return dwd
     
-    @staticmethod
-    def from_hg_rv(hg, rv, log_success=False, log_failure=True, verbose=0):
+    @classmethod
+    def from_hg_rv(cls, hg, rv, log_success=False, log_failure=True, verbose=0):
         if verbose:
             print('timestamp hg',hg.timestamp,'rv',rv.timestamp)
         if hg.timestamp==rv.timestamp and hg.version==rv.version:
-            dwd = DwdRadar(log_success,log_failure,verbose)
+            dwd = cls(log_success,log_failure,verbose)
             dwd.product = 'HGRV'
             dwd.timestamp = hg.timestamp
             dwd.wmo_nr = hg.wmo_nr
@@ -622,6 +616,38 @@ class DwdRadar(object):
                 if reply==b'': break
                 yield reply
 
+    @classmethod
+    def _read_tarfile(cls, tarf, log_success, log_failure, verbose):
+        """ read a set of records, embedded in one tar file """
+        added_data = None
+        dwd = list()
+        for member in tarf:
+            ff = tarf.extractfile(member)
+            newdwd = cls(log_success,log_failure,verbose)
+            newdwd.read_data(ff)
+            ff.close()
+            if newdwd.product=='RV':
+                if added_data:
+                    try:
+                        added_data = list(map(newdwd._add_none,added_data,newdwd.data))
+                    except (ValueError,TypeError,ArithmeticError):
+                        pass
+                else:
+                    added_data = newdwd.data
+            dwd.append(newdwd)
+        if dwd and dwd[0].product=='RV':
+            dwd[0].sum_data = added_data
+        return dwd
+    
+    def _add_none(self, *x):
+        try:
+            if self.no_data_value in x:
+                raise TypeError('no data value')
+            result = sum(x)
+        except TypeError:
+            result = None
+        return result
+    
     @staticmethod
     def _list_directory(reply):
         """ read directory and get the names of the most recent records """
@@ -706,6 +732,9 @@ class DwdRadar(object):
             print('Zeitpunkt der Messung:',self.timestamp)
             print('WMO-Nummer:',self.wmo_nr)
             #print(header)
+        if data_size==256:
+            self.clutter_flag = [(x&0x8000)!=0 for x in self.data]
+            self.station_flag = [(x&0x1000)!=0 for x in self.data]
         header_vals = dict()
         idx = ""
         val = ""
@@ -762,11 +791,11 @@ class DwdRadar(object):
         # data accuracy
         if 'PR' in header_vals:
             x = header_vals['PR'].strip()
-            if x[0]=='E' and x[1]=='-' and x!='E-00':
+            if x[0]=='E' and x[1]=='-' and data_size==256:
                 factor = pow(10,int(x[1:]))
                 if self.verbose:
                     print('Genauigkeitsfaktor:',factor)
-                self.data = [(i&0xEFFF)*factor if (i&0xEFFF)<self.out_of_range_value else self.no_data_value for i in self.data]
+                self.data = [(i&0x0FFF)*(-1 if (i&0x4000) else 1)*factor if (i&0xAFFF)<self.out_of_range_value else self.no_data_value for i in self.data]
         # colors
         if self.product=='HG':
             self.colors = {i[0]:ImageColor.getrgb(i[1]) for i in DwdRadar.COLORS_HG.items()}
@@ -838,6 +867,23 @@ class DwdRadar(object):
             if self.verbose:
                 print('Grid initialized to DE900 Kugel')
 
+    def get_index(self, xy):
+        """ get the index in self.data for a certain location
+            
+            Args:
+                xy (tuple): coordinate pair in meters
+            
+            Returns:
+                int: index
+        """
+        cx = (xy[0]-self.coords['SW']['xy'][0])/1000
+        cy = (xy[1]-self.coords['SW']['xy'][1])/1000
+        if cx>self.data_width or cx<0.0: raise LookupError('x out of range')
+        if cy>self.data_height or cy<0.0: raise LookupError('y out of range')
+        if cx==self.data_width: cx -= 0.1
+        if cy==self.data_height: cy -= 0.1
+        return int(cy)*self.data_width+int(cx)
+    
     def get_value(self, xy):
         """ get the radar reading for a certain location 
             
@@ -848,13 +894,7 @@ class DwdRadar(object):
                 int: reading of the location described by xy
         """
         try:
-            cx = (xy[0]-self.coords['SW']['xy'][0])/1000
-            cy = (xy[1]-self.coords['SW']['xy'][1])/1000
-            if cx>self.data_width or cx<0.0: raise LookupError('x out of range')
-            if cy>self.data_height or cy<0.0: raise LookupError('y out of range')
-            if cx==self.data_width: cx -= 0.1
-            if cy==self.data_height: cy -= 0.1
-            return self.data[int(cy)*self.data_width+int(cx)]
+            return self.data[self.get_index(xy)]
         except LookupError:
             return None
     
@@ -901,6 +941,13 @@ class DwdRadar(object):
         try:
             return self.get_value(xy)*12
         except (LookupError,TypeError,ArithmeticError):
+            return None
+    
+    def get_2h_rain_forecast(self, xy):
+        if self.product!='RV': return
+        try:
+            return self.sum_data[self.get_index(xy)]
+        except (LookupError,AttributeError):
             return None
 
     def map(self,x,y,width,height, filter=[], background_img=None, svg=False):
@@ -1391,6 +1438,7 @@ class DwdRadarThread(BaseThread):
                     # 5 minute precipitation
                     data[prefix+'Rain'] = (dwd.get_value(xy),'mm','group_rain')
                     data[prefix+'RainRate'] = (dwd.get_rainrate(xy),'mm_per_hour','group_rainrate')
+                    data[prefix+'Rain2hForecast'] = (dwd.get_2h_rain_forecast(xy),'mm','group_rain')
                 elif dwd.product=='HGRV':
                     # combined precipitation type (HG) and amount (RV)
                     data[prefix[:-4]+'Wawa'] = (dwd.get_wawa(xy),'byte','group_wmo_wawa')
@@ -1464,9 +1512,15 @@ class DwdRadarThread(BaseThread):
             self.lock.release()
         return forecast
     
-    #def random_time(self):
-    #    """ do a little bit of load balancing """
-    #    return random.random()*15
+    def random_time(self, waiting):
+        """ do a little bit of load balancing """
+        ti = super(DwdRadarThread,self).random_time(waiting)
+        # RV needs a lot of time to process. So try to start loading
+        # earlier.
+        if self.product=='RV' and ti>-30:
+            ti -= 30
+            if (waiting+ti)<0.1: ti = 0.1-waiting
+        return ti
 
 
 class HgRvThread(DwdRadarThread):
@@ -1484,9 +1538,9 @@ class HgRvThread(DwdRadarThread):
             checking for new data in getRecord()
         """
         waiting = self.query_interval-time.time()%self.query_interval
-        if waiting>60: return waiting-60
+        if waiting>30: return waiting-30
         if waiting<2: return 0.1
-        return 2
+        return 5
         
     def random_time(self, waiting):
         """ add a (random) additional amount of time to the waiting time 
@@ -1536,6 +1590,8 @@ class HgRvThread(DwdRadarThread):
                     # test shutdown request
                     if not self.running: return
                     self.write_map(map,dwd,0,False)
+                # wait long enough to get after the archive interval end
+                self.evt.wait(70)
         except (LookupError,TypeError,ValueError,ArithmeticError,NameError) as e:
             if self.log_failure:
                 logerr("thread '%s': getRecord() %s %s" % (self.name,e.__class__.__name__,e))
@@ -1580,6 +1636,7 @@ def create_thread(thread_name,config_dict,archive_interval):
                     weewx.units.obs_group_dict.setdefault(p+'Rain','group_rain')
                     weewx.units.obs_group_dict.setdefault(p+'RainRate','group_rainrate')
                     weewx.units.obs_group_dict.setdefault(p+'RainRateForecast','group_rainrate')
+                    weewx.units.obs_group_dict.setdefault(p+'Rain2hForecast','group_rain')
                 elif model=='HGRV':
                     weewx.units.obs_group_dict.setdefault(p[:-4]+'Wawa','group_wmo_wawa')
                     weewx.units.obs_group_dict.setdefault(p[:-4]+'RainRate','group_rainrate')
@@ -1794,6 +1851,18 @@ Coordinates go from west to east and south to north, respectively.
         print('maximum',j)
         for i in sorted(x.items()):
             print(i)
+        if dwd.product=='RV':
+            x = dict()
+            for i in dwd.sum_data:
+                j = None if i is None else round(i,1)
+                if j not in x: x[j] = 0
+                x[j] += 1
+            print('sum of rain in forecast:')
+            for i in sorted(x.items(),key=lambda x:-1 if x[0] is None else x[0]):
+                if i[0] is None:
+                    print('sum %6s %8s' % i)
+                else:
+                    print('sum %6.2f %8s' % i)
 
     # set light or dark background
     # (The default is light, if this option is missing.)

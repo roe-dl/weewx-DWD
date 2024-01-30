@@ -432,20 +432,34 @@ class DWDXType(weewx.xtypes.XType):
         except (LookupError,ValueError,TypeError,ArithmeticError):
             raise weewx.CannotCalculate('barometerDWD')
 
+    def get_aggregate(self, obs_type, timespan, aggregate_type, db_manager, **option_dict):
+        """ aggregations out of precipitation forecast for the next 2 hours """
+        if self.rv_thread:
+            forecast = self.rv_thread.get_forecast()
+            if obs_type in forecast:
+                val = forecast[obs_type]
+                x = [x for x in val[0] if x is not None]
+                if aggregate_type=='max':
+                    return weewx.units.ValueTuple(max(x,default=None),val[1],val[2])
+                if aggregate_type=='min':
+                    return weewx.units.ValueTuple(min(x,default=None),val[1],val[2])
+                if aggregate_type=='avg':
+                    return weewx.units.ValueTuple(avg(x,default=None),val[1],val[2])
+                raise weewx.UnknownAggregation('%s.%s' % (obs_type,aggregate_type))
+        raise weewx.UnknownType(obs_type)
     
     def get_series(self, obs_type, timespan, db_manager, aggregate_type=None,
                    aggregate_interval=None, **option_dict):
         """ precipitation forecast for the next 2 hours """
-        if not self.rv_thread:
-            raise weewx.CannotCalculate('no data for %s' % obs_type)
-        forecast = self.rv_thread.get_forecast()
-        if (forecast and 
-            obs_type in forecast and 
-            'start' in forecast and 
-            'stop' in forecast):
-            return (forecast['start'],
-                    forecast['stop'],
-                    forecast[obs_type])
+        if self.rv_thread:
+            forecast = self.rv_thread.get_forecast()
+            if (forecast and 
+                obs_type in forecast and 
+                'start' in forecast and 
+                'stop' in forecast):
+                return (forecast['start'],
+                        forecast['stop'],
+                        forecast[obs_type])
         raise weewx.UnknownType(obs_type)
 
 
@@ -1762,7 +1776,6 @@ class DWDservice(StdService):
                     location_dict['place_label_font_path'] = os.path.join(font_root, location_dict['place_label_font_path'])
                 elif font_root:
                     location_dict['place_label_font_path'] = os.path.join(font_root, 'OpenSans-Regular.ttf')
-                loginf("location_dict %s" % location_dict)
                 provider = location_dict.get('provider')
                 models = location_dict.get('model')
                 if models and provider:
@@ -1782,7 +1795,7 @@ class DWDservice(StdService):
                 q = queue.Queue()
             else:
                 q = None
-            loginf('radar %s' % radar_dict)
+            #loginf('radar %s' % radar_dict)
             for radar in radar_dict:
                 try:
                     #loginf('radar %s' % radar)

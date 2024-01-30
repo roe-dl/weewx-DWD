@@ -141,7 +141,9 @@ class BaseThread(threading.Thread):
             let at least 10 seconds to ultimo to download an process
             data
         """
-        return -random.random()*(60 if waiting>60 else waiting)-10
+        if waiting<=10: return 0.1-waiting
+        w = waiting-10
+        return -random.random()*(60 if w>60 else w)-10
 
     
     def run(self):
