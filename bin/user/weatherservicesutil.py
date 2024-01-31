@@ -85,20 +85,27 @@ import weewx.units
 for group in weewx.units.std_groups:
     weewx.units.std_groups[group].setdefault('group_coordinate','degree_compass')
 
-def wget(url,log_success=False,log_failure=True):
+def wget(url, log_success=False, log_failure=True, session=requests):
     """ download  """
+    elapsed = time.time()
     headers={'User-Agent':'weewx-DWD'}
-    reply = requests.get(url,headers=headers)
+    try:
+        reply = session.get(url, headers=headers, timeout=5)
+    except requests.exceptions.Timeout:
+        if log_failure:
+            logerr('timeout downloading %s' % url)
+        return None
+    elapsed = time.time()-elapsed
 
     reply_url = reply.url.split('?')[0]
 
     if reply.status_code==200:
         if log_success:
-            loginf('successfully downloaded %s' % reply_url)
+            loginf('successfully downloaded %s in %.2f seconds' % (reply_url,elapsed))
         return reply.content
     else:
         if log_failure:
-            loginf('error downloading %s: %s %s' % (reply_url,reply.status_code,reply.reason))
+            logerr('error downloading %s: %s %s' % (reply_url,reply.status_code,reply.reason))
         return None
 
 
@@ -112,7 +119,7 @@ class BaseThread(threading.Thread):
         self.evt = threading.Event()
         self.running = True
         self.query_interval = 300
-
+        self.last_run_duration = 0
 
     def shutDown(self):
         """ request thread shutdown """
@@ -120,20 +127,16 @@ class BaseThread(threading.Thread):
         loginf("thread '%s': shutdown requested" % self.name)
         self.evt.set()
 
-
     def get_data(self, ts):
         raise NotImplementedError
-        
-        
+                
     def getRecord(self):
         """ download and process data """
         raise NotImplementedError
 
-
     def waiting_time(self):
         """ time to wait until the next data fetch """
         return self.query_interval-time.time()%self.query_interval
-    
     
     def random_time(self, waiting):
         """ do a little bit of load balancing 
@@ -145,7 +148,6 @@ class BaseThread(threading.Thread):
         w = waiting-10
         return -random.random()*(60 if w>60 else w)-10
 
-    
     def run(self):
         """ thread loop """
         loginf("thread '%s' starting" % self.name)
@@ -162,7 +164,9 @@ class BaseThread(threading.Thread):
                 if waiting>0: 
                     if self.evt.wait(waiting): break
                 # download and process data
+                start_ts = time.thread_time_ns()
                 self.getRecord()
+                self.last_run_duration = (time.thread_time_ns()-start_ts)*1e-9
                 if waiting_r<=0:
                     if self.evt.wait(1-waiting_r): break
         except Exception as e:

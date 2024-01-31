@@ -861,11 +861,12 @@ class DWDCDCthread(BaseThread):
         x = None
         ti = None
         maxtime = None
-        for url in self.urls:
+        with requests.Session() as session:
+          for url in self.urls:
             try:
                 # download data in ZIP format from DWD's server
                 func = 'wget'
-                reply = wget(url,log_success=self.log_success,log_failure=self.log_failure)
+                reply = wget(url,log_success=self.log_success,log_failure=self.log_failure,session=session)
                 if not reply: raise TypeError('no data')
                 # extract data file out of the downloaded ZIP file
                 func = 'decodezip'
@@ -1929,8 +1930,13 @@ class DWDservice(StdService):
     
     
     def new_archive_record(self, event):
+        elapsed = list()
         ts = event.record.get('dateTime',time.time())
         for thread_name in self.threads:
+            try:
+                elapsed.append('%s:%.2fs' % (thread_name,self.threads[thread_name]['thread'].last_run_duration))
+            except AttributeError:
+                pass
             try:
                 # get collected data
                 datasource = self.threads[thread_name]['datasource']
@@ -1973,6 +1979,7 @@ class DWDservice(StdService):
                     event.record.update(x)
             except (LookupError,TypeError,ValueError,ArithmeticError,OSError) as e:
                 logerr("error processing data of thread '%s' for the new archive record: %s %s traceback %s" % (thread_name,e.__class__.__name__,e,gettraceback(e)))
+        logdbg('elapsed CPU time %s' % ' '.join(elapsed))
 
 
     def _to_weewx(self, thread_name, reply, usUnits):
@@ -2047,7 +2054,7 @@ if __name__ == '__main__':
                     print(event.record)
                 time.sleep(10)
         except Exception as e:
-            print('**MAIN**',e)
+            print('**MAIN**',e.__class__.__name__,e)
         except KeyboardInterrupt:
             print()
             print('**MAIN** CTRL-C pressed')

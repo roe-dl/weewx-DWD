@@ -959,7 +959,8 @@ class DwdRadar(object):
                 width (int, float): image width in pixels 0...1100
                 height (int, float): image height in pixels 0...1200
         """
-        if self.verbose: start_ts = time.time()
+        start_ts = time.time()
+        time0_ts = time.thread_time_ns()
         x = int(x)
         y = int(y)
         if (x+width)>self.data_width:
@@ -1006,13 +1007,18 @@ class DwdRadar(object):
             img = '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="%s" height="%s" viewBox="%s %s %s %s">\n' % (ww,hh,x,1200-y-height,width,height)
             font_size = 16
         else:
-            img = Image.new('RGBA',(int(width*scale),int(height*scale)),color=(0,0,0,0))
-            if self.verbose:
-                print('Abmessung der Bilddatei',img.size)
+            if scale==1.0:
+                img_bytes = list()
+            else:
+                img = Image.new('RGBA',(int(width*scale),int(height*scale)),color=(0,0,0,0))
+                draw = ImageDraw.Draw(img)
+                if self.verbose:
+                    print('Abmessung der Bilddatei',img.size)
             if background_img:
                 baseimg = background_img
             else:
-                baseimg = Image.new('RGBA',img.size,color=(0,0,0,0))
+                baseimg = Image.new('RGBA',(int(width*scale),int(height*scale)),color=(0,0,0,0))
+                basedraw = ImageDraw.Draw(baseimg)
             if (width*scale)>=640:
                 font_size = 16
             elif (width*scale)<320:
@@ -1022,21 +1028,31 @@ class DwdRadar(object):
             if self.verbose:
                 print('font size: %s' % font_size)
             fnt=ImageFont.truetype(self.font_file,font_size)
-            draw = ImageDraw.Draw(img)
-            if not background_img:
-                basedraw = ImageDraw.Draw(baseimg)
         # set points according to radar reading
-        if self.verbose:
-            print('elapsed time 1: %.2f s' % (time.time()-start_ts))
+        time1_ts = time.thread_time_ns()
         # Separate loops for xx and yy are much faster than one loop over
         # self.data with calculating xx and yy from the list index.
         # 68% of the time is consumed by ImageColor.getrgb(). So this 
         # statement is moved to read_data(). Color is expressed by a
         # tuple of (R,G,B,A).
+        data = self.data
+        colors = self.colors
+        # This index points to the left-most pixel in the line obove the
+        # top line of the image.
+        idx0 = (y+height)*self.data_width+x
         for yy in range(height):
+            # go from top to bottom
+            # Move the index one line down the image
+            idx0 -= self.data_width
+            # Get the line in the image, measured from top
+            if scale==1.0:
+                yyy = yy
+            else:
+                yyy = yy*scale
             for xx in range(width):
-                val = self.data[(y+yy)*self.data_width+x+xx]
-                col = self.colors.get(val,(1,2,3,128))
+                # go from left to right
+                val = data[idx0+xx]
+                col = colors.get(val,(1,2,3,128))
                 if dark_background and col[:3]==(255,255,255):
                     col = (0,0,0,col[3])
                 if self.product=='HGRV': val = val[1]
@@ -1045,17 +1061,21 @@ class DwdRadar(object):
                 else:
                     try:
                         if scale==1.0:
-                            draw.point((xx,height-yy-1),fill=col)
+                            #draw.point((xx,yyy),fill=col)
+                            img_bytes.extend(col)
                             if val!=self.no_data_value and not background_img:
-                                basedraw.point((xx,height-yy-1),fill=background_color)
+                                basedraw.point((xx,yyy),fill=background_color)
                         else:
-                            draw.rectangle([xx*scale,(height-yy-1)*scale,xx*scale+(scale-1.0),(height-yy-1)*scale+(scale-1.0)],fill=col)
+                            xxx = xx*scale
+                            draw.rectangle([xxx,yyy,xxx+(scale-1.0),yyy+(scale-1.0)],fill=col)
                             if val!=self.no_data_value and not background_img:
-                                basedraw.rectangle([xx*scale,(height-yy-1)*scale,xx*scale+(scale-1.0),(height-yy-1)*scale+(scale-1.0)],fill=background_color)
+                                basedraw.rectangle([xxx,yyy,xxx+(scale-1.0),yyy+(scale-1.0)],fill=background_color)
                     except IndexError as e:
                         print(e,xx,height-yy,col)
-        if self.verbose:
-            print('elapsed time 2: %.2f s' % (time.time()-start_ts))
+        if scale==1.0:
+            img = Image.frombytes('RGBA',(width,height),bytes(img_bytes))
+            draw = ImageDraw.Draw(img)
+        time2_ts = time.thread_time_ns()
         # mark locations
         for location,coord in self.coords.items():
             if location not in ('NW','NO','SW','SO') and location not in filter and scale>=coord['scale']:
@@ -1081,6 +1101,7 @@ class DwdRadar(object):
                     if cx>=0 and cy>=0:
                         draw.ellipse([cx*scale-2,(height-cy)*scale-2,cx*scale+2,(height-cy)*scale+2],fill=ImageColor.getrgb('#FFF' if dark_background else '#000'))
                         draw.text((cx*scale+x_off,(height-cy)*scale-y_off),location,fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),font=fnt)
+        time3_ts = time.thread_time_ns()
         try:
             vv = int(self.header['VV'])*60
         except (LookupError,ValueError,TypeError,ArithmeticError):
@@ -1122,6 +1143,7 @@ class DwdRadar(object):
                 anchor="ld")
             # mix it into the image
             img = Image.alpha_composite(img,txtimg)
+        time4_ts = time.thread_time_ns()
         if not background_img:
             col = ImageColor.getrgb('#FFF' if dark_background else '#000')
             for line in self.lines:
@@ -1134,12 +1156,20 @@ class DwdRadar(object):
                     pass
                 else:
                     basedraw.line(xy,fill=col,width=1)
+        time5_ts = time.thread_time_ns()
         if svg:
             img += '</svg>\n'
         else:
             img = Image.alpha_composite(baseimg,img)
         if self.verbose:
-            print('elapsed time for creating the image: %.2f s' % (time.time()-start_ts))
+            print('elapsed time for creating the image: %.2fs' % (time.time()-start_ts))
+        logdbg('elapsed CPU time for creating the image: init %.2fs, readings %.2fs, cities %.2fs, copyright %.2fs, lines %.2fs, all %.2fs' % (
+        (time1_ts-time0_ts)/1000000000,
+        (time2_ts-time1_ts)/1000000000,
+        (time3_ts-time2_ts)/1000000000,
+        (time4_ts-time3_ts)/1000000000,
+        (time5_ts-time4_ts)/1000000000,
+        (time.thread_time_ns()-time0_ts)/1000000000))
         return img, baseimg
     
     def save_map(self, fn, img):
@@ -1162,7 +1192,8 @@ class DwdRadar(object):
         else:
             if self.log_success:
                 loginf("map '%s' saved" % fn)
-        if self.verbose: print('elapsed time for saving the image: %.2f s' % (time.time()-start_ts))
+        if self.verbose:
+            print('elapsed time for saving the image: %.2f s' % (time.time()-start_ts))
 
     def load_coordinates(self, fn):
         """ read a file of locations and their coordinates 
@@ -1356,6 +1387,7 @@ class DwdRadarThread(BaseThread):
             self.queue_for_hgrv(dwd)
 
     def cache_forecast(self, dwds):
+        #start_ts = time.time()
         start = list()
         stop = list()
         try:
@@ -1387,6 +1419,7 @@ class DwdRadarThread(BaseThread):
             except (LookupError,ValueError,TypeError,ArithmeticError,NameError) as e:
                 if self.log_failure:
                     logerr("thread '%s': could not assign forecast %s %s" % (self.name,e.__class__.__name__,e))
+        #loginf("thread '%s': cache_forecast %.2fs" % (self.name,time.time()-start_ts))
         try:
             self.lock.acquire()
             self.forecast = vals
@@ -1410,6 +1443,7 @@ class DwdRadarThread(BaseThread):
             
         """
         logdbg("cache_readings %s" % dwd.timestamp)
+        #start_ts = time.time()
         # Note: prefix is added in _to_weewx() in weatherservices.py, not here
         data = dict()
         try:
@@ -1447,6 +1481,7 @@ class DwdRadarThread(BaseThread):
             except (LookupError,ValueError,TypeError,ArithmeticError,NameError) as e:
                 if self.log_failure:
                     logerr("thread '%s': could not assign reading %s %s" % (self.name,e.__class__.__name__,e))
+        #loginf("thread '%s': cache_readings %.2fs" % (self.name,time.time()-start_ts))
         try:
             self.lock.acquire()
             self.data.append((dwd.timestamp,data))
@@ -1530,25 +1565,15 @@ class HgRvThread(DwdRadarThread):
         self.hg = None
         self.rv = None
 
-    def waiting_time(self):
-        """ How long to wait before the next getRecord() call 
-        
-            New data do not arrive earlier than 60 seconds before the next
-            5 minutes boundary. So we can easily waiting until then before
-            checking for new data in getRecord()
-        """
-        waiting = self.query_interval-time.time()%self.query_interval
-        if waiting>30: return waiting-30
-        if waiting<2: return 0.1
-        return 5
-        
     def random_time(self, waiting):
         """ add a (random) additional amount of time to the waiting time 
         
             As we do not access the Internet in this thread, we need not
             do any load balancing here.
         """
-        return 0
+        if waiting>30: return -30
+        if waiting<2: return 0.1-waiting
+        return 5-waiting
     
     def getRecord(self):
         """ get data - in this case from the queue - and process it """
@@ -1590,8 +1615,6 @@ class HgRvThread(DwdRadarThread):
                     # test shutdown request
                     if not self.running: return
                     self.write_map(map,dwd,0,False)
-                # wait long enough to get after the archive interval end
-                self.evt.wait(70)
         except (LookupError,TypeError,ValueError,ArithmeticError,NameError) as e:
             if self.log_failure:
                 logerr("thread '%s': getRecord() %s %s" % (self.name,e.__class__.__name__,e))
