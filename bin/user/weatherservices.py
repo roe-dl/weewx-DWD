@@ -1980,6 +1980,8 @@ class DWDservice(StdService):
             except (LookupError,TypeError,ValueError,ArithmeticError,OSError) as e:
                 logerr("error processing data of thread '%s' for the new archive record: %s %s traceback %s" % (thread_name,e.__class__.__name__,e,gettraceback(e)))
         logdbg('elapsed CPU time %s' % ' '.join(elapsed))
+        if has_radar:
+            logdbg('dwdradarinstancescount %s' % user.weatherservicesradar.dwdradarinstancescount)
 
 
     def _to_weewx(self, thread_name, reply, usUnits):

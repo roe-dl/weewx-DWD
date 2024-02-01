@@ -252,6 +252,9 @@ AREAS = {
     'Fichtelberg':(727,526,44,28) # Fichtelberggebiet
 }
 
+dwdradarinstancescount = 0
+dwdradarinstancescount_lock = threading.Lock()
+
 # Initialize default unit for the unit groups defined in this extension
 
 for _,ii in weewx.units.std_groups.items():
@@ -454,6 +457,13 @@ class DwdRadar(object):
     }
 
     def __init__(self, log_success=False, log_failure=True, verbose=0):
+        global dwdradarinstancescount
+        global dwdradarinstancescount_lock
+        try:
+            dwdradarinstancescount_lock.acquire()
+            dwdradarinstancescount += 1
+        finally:
+            dwdradarinstancescount_lock.release()
         # logging settings
         self.log_success = log_success
         self.log_failure = log_failure
@@ -474,6 +484,15 @@ class DwdRadar(object):
         self.version = None
         # initialize coordinate data
         self.init_coords()
+    
+    def __del__(self):
+        global dwdradarinstancescount
+        global dwdradarinstancescount_lock
+        try:
+            dwdradarinstancescount_lock.acquire()
+            dwdradarinstancescount -= 1
+        finally:
+            dwdradarinstancescount_lock.release()
     
     @classmethod
     def open(cls, fn, log_success=False, log_failure=True, verbose=0):
@@ -1016,6 +1035,8 @@ class DwdRadar(object):
                     print('Abmessung der Bilddatei',img.size)
             if background_img:
                 baseimg = background_img
+            elif scale==1.0:
+                baseimg_bytes = list()
             else:
                 baseimg = Image.new('RGBA',(int(width*scale),int(height*scale)),color=(0,0,0,0))
                 basedraw = ImageDraw.Draw(baseimg)
@@ -1063,8 +1084,10 @@ class DwdRadar(object):
                         if scale==1.0:
                             #draw.point((xx,yyy),fill=col)
                             img_bytes.extend(col)
-                            if val!=self.no_data_value and not background_img:
-                                basedraw.point((xx,yyy),fill=background_color)
+                            if not background_img:
+                                baseimg_bytes.extend((0,0,0,0) if val==self.no_data_value else background_color)
+                            #if val!=self.no_data_value and not background_img:
+                            #    basedraw.point((xx,yyy),fill=background_color)
                         else:
                             xxx = xx*scale
                             draw.rectangle([xxx,yyy,xxx+(scale-1.0),yyy+(scale-1.0)],fill=col)
@@ -1075,6 +1098,9 @@ class DwdRadar(object):
         if scale==1.0:
             img = Image.frombytes('RGBA',(width,height),bytes(img_bytes))
             draw = ImageDraw.Draw(img)
+            if not background_img:
+                baseimg = Image.frombytes('RGBA',(width,height),bytes(baseimg_bytes))
+                basedraw = ImageDraw.Draw(baseimg)
         time2_ts = time.thread_time_ns()
         # mark locations
         for location,coord in self.coords.items():
@@ -1142,7 +1168,10 @@ class DwdRadar(object):
                 font=txtfnt,
                 anchor="ld")
             # mix it into the image
-            img = Image.alpha_composite(img,txtimg)
+            newimg = Image.alpha_composite(img,txtimg)
+            txtimg.close()
+            img.close()
+            img = newimg
         time4_ts = time.thread_time_ns()
         if not background_img:
             col = ImageColor.getrgb('#FFF' if dark_background else '#000')
@@ -1160,16 +1189,20 @@ class DwdRadar(object):
         if svg:
             img += '</svg>\n'
         else:
-            img = Image.alpha_composite(baseimg,img)
+            newimg = Image.alpha_composite(baseimg,img)
+            img.close()
+            img = newimg
         if self.verbose:
             print('elapsed time for creating the image: %.2fs' % (time.time()-start_ts))
-        logdbg('elapsed CPU time for creating the image: init %.2fs, readings %.2fs, cities %.2fs, copyright %.2fs, lines %.2fs, all %.2fs' % (
+        logdbg('elapsed CPU time for creating the image: init %.3fs, readings %.3fs, cities %.3fs, copyright %.3fs, lines %.3fs, all %.3fs' % (
         (time1_ts-time0_ts)/1000000000,
         (time2_ts-time1_ts)/1000000000,
         (time3_ts-time2_ts)/1000000000,
         (time4_ts-time3_ts)/1000000000,
         (time5_ts-time4_ts)/1000000000,
         (time.thread_time_ns()-time0_ts)/1000000000))
+        baseimg.close()
+        return img, None
         return img, baseimg
     
     def save_map(self, fn, img):
@@ -1371,6 +1404,9 @@ class DwdRadarThread(BaseThread):
                         else:
                             if self.log_success:
                                 loginf("thread '%s': animated GIF %s saved" % (self.name,fn))
+                    while imgs:
+                        img = imgs.pop()
+                        if img: img.close()
             except (LookupError,TypeError) as e:
                 if self.log_failure:
                     logerr("thread '%s': invalid forecast indicator %s %s" % (self.name,e.__class__.__name__,e))
@@ -1383,7 +1419,8 @@ class DwdRadarThread(BaseThread):
             for map in self.maps:
                 # test shutdown request
                 if not self.running: return
-                self.write_map(map,dwd,0,False)
+                img = self.write_map(map,dwd,0,False)
+                if img: img.close()
             self.queue_for_hgrv(dwd)
 
     def cache_forecast(self, dwds):
@@ -1496,9 +1533,9 @@ class DwdRadarThread(BaseThread):
         try:
             fn = '' if vv==0 else '-%03d' % vv
             if self.maps[map].get('prefix'):
-                fn = self.maps[map]['prefix']+'Radar-'+dwd.product+fn+'.png'
+                fn = '%sRadar-%s%s.png' % (self.maps[map]['prefix'],dwd.product,fn)
             else:
-                fn = 'radar-'+dwd.product+fn+'.png'
+                fn = 'radar-%s%s.png' % (dwd.product,fn)
             fn = os.path.join(self.target_path,fn)
             size = self.maps[map]['map']
             dwd.background = self.maps[map].get('background','light')
@@ -1825,6 +1862,7 @@ Coordinates go from west to east and south to north, respectively.
                 time.sleep(300-time.time()%300+15)
                 data, interval = dwd['thread'].get_data(time.time()-15)
                 print(json.dumps(data,indent=4,ensure_ascii=False))
+                print('dwdradarinstancescount',dwdradarinstancescount)
         except Exception as e:
             print('**MAIN**',e)
         except KeyboardInterrupt:
