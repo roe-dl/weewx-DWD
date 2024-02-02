@@ -1793,7 +1793,7 @@ class DWDservice(StdService):
                     radar_dict['DWD_!_HG'] = self._radar_entry('DWD','HG',configobj.ConfigObj())
                 if 'DWD_!_RV' not in radar_dict:
                     radar_dict['DWD_!_RV'] = self._radar_entry('DWD','RV',configobj.ConfigObj())
-                q = queue.Queue()
+                q = queue.Queue(4)
             else:
                 q = None
             #loginf('radar %s' % radar_dict)

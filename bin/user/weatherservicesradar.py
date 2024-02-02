@@ -1615,25 +1615,28 @@ class HgRvThread(DwdRadarThread):
     def getRecord(self):
         """ get data - in this case from the queue - and process it """
         # get a record of radar data from the queue
-        try:
-            reply = self.hgrv_queue.get(block=False, timeout=10)
-        except queue.Empty:
-            return
-        # determine the kind of radar data
-        try:
-            product = reply.product
-        except AttributeError:
-            if self.log_failure:
-                logerr("thread '%s': got data out of the queue that is not radar data" % self.name)
-            return
-        # Form the queue we get one radar data record at a time only. So
-        # save them for further reference. 
-        if product=='HG':
-            self.hg = reply
-        elif product=='RV':
-            self.rv = reply
-        else:
-            return
+        ct = 0
+        while self.running:
+            try:
+                reply = self.hgrv_queue.get(block=False, timeout=10)
+            except queue.Empty:
+                if ct: break
+                return
+            # determine the kind of radar data
+            try:
+                product = reply.product
+            except AttributeError:
+                if self.log_failure:
+                    logerr("thread '%s': got data out of the queue that is not radar data" % self.name)
+                product = None
+            # Form the queue we get one radar data record at a time only. So
+            # save them for further reference. 
+            if product=='HG':
+                self.hg = reply
+                ct += 1
+            elif product=='RV':
+                self.rv = reply
+                ct += 1
         # If one of self.hg or self.rv is None, we cannot do anything except
         # waiting for more data to arrive.
         if self.hg is None or self.rv is None:
