@@ -1602,15 +1602,28 @@ class HgRvThread(DwdRadarThread):
         self.hg = None
         self.rv = None
 
+    def waiting_time(self):
+         """ How long to wait before the next getRecord() call 
+         
+             New data do not arrive earlier than 60 seconds before the next
+             5 minutes boundary. So we can easily waiting until then before
+             checking for new data in getRecord()
+         """
+         waiting = self.query_interval-time.time()%self.query_interval
+         if waiting>30: return waiting-30
+         if waiting<2: return 0.1
+         return 5
+
     def random_time(self, waiting):
         """ add a (random) additional amount of time to the waiting time 
         
             As we do not access the Internet in this thread, we need not
             do any load balancing here.
+            
+            Beware! A return value below 0 results in waiting after
+            the getRecord() call. 
         """
-        if waiting>30: return -30
-        if waiting<2: return 0.1-waiting
-        return 5-waiting
+        return 0
     
     def getRecord(self):
         """ get data - in this case from the queue - and process it """
@@ -1655,6 +1668,8 @@ class HgRvThread(DwdRadarThread):
                     # test shutdown request
                     if not self.running: return
                     self.write_map(map,dwd,0,False)
+                # wait long enough to get after the archive interval end
+                self.evt.wait(70)
         except (LookupError,TypeError,ValueError,ArithmeticError,NameError) as e:
             if self.log_failure:
                 logerr("thread '%s': getRecord() %s %s" % (self.name,e.__class__.__name__,e))

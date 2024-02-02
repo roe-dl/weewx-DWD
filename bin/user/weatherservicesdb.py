@@ -324,7 +324,7 @@ def databasecreatethread(name, config_dict):
     log_failure = weeutil.weeutil.to_bool(site_dict.get('log_failure',True))
     save = weeutil.weeutil.to_bool(site_dict.get('save',True))
     if save:
-        q = queue.Queue()
+        q = queue.Queue(10)
         db = DatabaseThread(name,q,sqlite_path,log_success,log_failure)
         db.start()
     else:
