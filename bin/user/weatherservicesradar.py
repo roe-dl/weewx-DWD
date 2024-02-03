@@ -252,9 +252,6 @@ AREAS = {
     'Fichtelberg':(727,526,44,28) # Fichtelberggebiet
 }
 
-dwdradarinstancescount = 0
-dwdradarinstancescount_lock = threading.Lock()
-
 # Initialize default unit for the unit groups defined in this extension
 
 for _,ii in weewx.units.std_groups.items():
@@ -457,13 +454,6 @@ class DwdRadar(object):
     }
 
     def __init__(self, log_success=False, log_failure=True, verbose=0):
-        global dwdradarinstancescount
-        global dwdradarinstancescount_lock
-        try:
-            dwdradarinstancescount_lock.acquire()
-            dwdradarinstancescount += 1
-        finally:
-            dwdradarinstancescount_lock.release()
         # logging settings
         self.log_success = log_success
         self.log_failure = log_failure
@@ -484,15 +474,6 @@ class DwdRadar(object):
         self.version = None
         # initialize coordinate data
         self.init_coords()
-    
-    def __del__(self):
-        global dwdradarinstancescount
-        global dwdradarinstancescount_lock
-        try:
-            dwdradarinstancescount_lock.acquire()
-            dwdradarinstancescount -= 1
-        finally:
-            dwdradarinstancescount_lock.release()
     
     @classmethod
     def open(cls, fn, log_success=False, log_failure=True, verbose=0):
@@ -897,8 +878,10 @@ class DwdRadar(object):
         """
         cx = (xy[0]-self.coords['SW']['xy'][0])/1000
         cy = (xy[1]-self.coords['SW']['xy'][1])/1000
-        if cx>self.data_width or cx<0.0: raise LookupError('x out of range')
-        if cy>self.data_height or cy<0.0: raise LookupError('y out of range')
+        if cx>self.data_width or cx<0.0:
+            raise LookupError('x %s out of range' % xy[0])
+        if cy>self.data_height or cy<0.0:
+            raise LookupError('y %s out of range' % xy[1])
         if cx==self.data_width: cx -= 0.1
         if cy==self.data_height: cy -= 0.1
         return int(cy)*self.data_width+int(cx)
@@ -912,9 +895,22 @@ class DwdRadar(object):
             Returns:
                 int: reading of the location described by xy
         """
-        try:
-            return self.data[self.get_index(xy)]
-        except LookupError:
+        return self.data[self.get_index(xy)]
+    
+    def get_float(self, xy):
+        val = self.get_value(xy)
+        return val if val!=self.no_data_value else None
+    
+    def get_clutter_flag(self, xy):
+        if self.clutter_flag:
+            return self.clutter_flag[self.get_index(xy)]
+        else:
+            return None
+    
+    def get_station_flag(self, xy):
+        if self.station_flag:
+            return self.station_flag[self.get_index(xy)]
+        else:
             return None
     
     def get_wawa(self, xy):
@@ -950,16 +946,16 @@ class DwdRadar(object):
                 float: precipitation rate in mm/h
         
         """
-        if self.product=='HGRV':
-            try:
-                return self.get_value(xy)[1]*12
-            except (LookupError,TypeError,ValueError,ArithmeticError):
-                return None
-        if self.product!='RV':
-            raise ValueError('product '+self.product+' does not provide precipitation')
+        if self.product=='RV':
+            y = self.get_value(xy)
+        elif self.product=='HGRV':
+            y = self.get_value(xy)[1]
+        else:
+            raise ValueError('product %s does not provide precipitation' % self.product)
         try:
-            return self.get_value(xy)*12
-        except (LookupError,TypeError,ArithmeticError):
+            if y==self.no_data_value: raise ValueError('no data')
+            return y*12
+        except (LookupError,TypeError,ValueError,ArithmeticError):
             return None
     
     def get_2h_rain_forecast(self, xy):
@@ -1504,10 +1500,10 @@ class DwdRadarThread(BaseThread):
                     data[prefix+'Wawa'] = (dwd.get_wawa(xy),'byte','group_wmo_wawa')
                 elif dwd.product=='WN':
                     # radar reflectivity factor
-                    data[prefix+'DBZ'] = (dwd.get_value(xy),'dB','group_db')
+                    data[prefix+'DBZ'] = (dwd.get_float(xy),'dB','group_db')
                 elif dwd.product=='RV':
                     # 5 minute precipitation
-                    data[prefix+'Rain'] = (dwd.get_value(xy),'mm','group_rain')
+                    data[prefix+'Rain'] = (dwd.get_float(xy),'mm','group_rain')
                     data[prefix+'RainRate'] = (dwd.get_rainrate(xy),'mm_per_hour','group_rainrate')
                     data[prefix+'Rain2hForecast'] = (dwd.get_2h_rain_forecast(xy),'mm','group_rain')
                 elif dwd.product=='HGRV':
@@ -1880,7 +1876,6 @@ Coordinates go from west to east and south to north, respectively.
                 time.sleep(300-time.time()%300+15)
                 data, interval = dwd['thread'].get_data(time.time()-15)
                 print(json.dumps(data,indent=4,ensure_ascii=False))
-                print('dwdradarinstancescount',dwdradarinstancescount)
         except Exception as e:
             print('**MAIN**',e)
         except KeyboardInterrupt:

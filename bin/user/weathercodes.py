@@ -450,16 +450,204 @@ SVG_ICON_WW = [
     SVG_ICON_LIGHTNING,
     # 99
     '<path stroke="#828487" fill="none" d="M -31,22 m 4,0 h -4 a 20,20 0 1 1 4.88026841,-39.3954371 a 24,24 0 0 1 43.20059379,-9.49083912 a 16.25,16.25 0 0 1 16.9191378,9.88627622 a 20,20 0 0 1 -6.244998,39h -4" /><path stroke-width="2" stroke-linejoin="round" stroke="#f6bc68" fill="#f6bc68" d="M-4,6 l9.12538211,-21.49805304 l-12.39550268,3.32136493 l7.14107222,-16.82331189 h-8.81753557 l-4.1787982,21.49805304 l12.39550268,-3.32136493 z" /><g stroke="none" fill="#66a1ba"><circle cx="-15" cy="37" r="4" /><circle cx="-6" cy="19" r="4" /><circle cx="11" cy="30" r="4" /></g>',
+    # 100
+    None,
+    # 101
+    None,
+    # 102
+    None,
+    # 103
+    None,
+    # 104
+    SVG_ICON_FOG,
+    # 105
+    SVG_ICON_FOG,
+    # 106
+    None,
+    # 107
+    None,
+    # 108
+    None,
+    # 109
+    None,
+    # 110
+    SVG_ICON_FOG,
+    # 111
+    None,
+    # 112
+    SVG_ICON_LIGHTNING,
+    # 113
+    None,
+    # 114
+    None,
+    # 115
+    None,
+    # 116
+    None,
+    # 117
+    None,
+    # 118
+    SVG_ICON_WIND,
+    # 119
+    None,
+    # 120
+    None,
+    # 121
+    None,
+    # 122
+    None,
+    # 123 
+    None,
+    # 124
+    None,
+    # 125 after freezing precipitation
+    '<path stroke="#828487" fill="none" d="M -27.900000000000002,11 a18.0,18.0 0 1 1 4.392241569,-35.45589339 a21.6,21.6 0 0 1 38.880534411,-8.541755208000001 a14.625,14.625 0 0 1 15.227224020000001,8.897648598 a18.0,18.0 0 0 1 -5.6204982,35.1 z" /><path stroke="none" fill="#000000" d="M-9.42235138,44 l8.54455967,-4.047423 a6.04100450,6.04100450 0 0 0 2.54603347,-8.64621208 l-3.23725145,-5.21347156 a2.74580363,2.74580363 0 0 1 0.78256116,-3.71485342 l4.93895246,-3.37803994 h-1.38888889 l-5.10795449,2.93585208 a4.68254091,4.68254091 0 0 0 -2.09563466,5.5796135 l2.27226862,6.62156404 a3.29583971,3.29583971 0 0 1 -1.84474537,4.10998876 l-13.74323385,5.75298161 z m33.33333333,0 l1.22771241,-1.22771241 a6.20359314,6.20359314 0 0 0 -1.28480621,-9.75907203 l-13.55967183,-7.82868018 a3.22628070,3.22628070 0 0 1 -1.41857181,-3.89749403 l0.83241498,-2.28704135 h-1.38888889 l-0.68119443,1.08342259 a4.68254091,4.68254091 0 0 0 1.30173924,6.30605466 l12.49300857,8.59055233 a2.68888799,2.68888799 0 0 1 0.13365758,4.33313596 l-5.98873292,4.68683446 z" /><path stroke="#66a1ba" stroke-width="1.2" stroke-linecap="round" fill="none" d="M -17,22 l0.0,16.0 m-6.92820323,-12.0 l13.85640646,8.0 m-13.85640646,-0.0 l13.85640646,-8.0 m-6.92820323,-4.0 m2.30940108,1.33333333 l-2.30940108,1.33333333 l-2.30940108,-1.33333333 m2.30940108,-1.33333333 m-6.92820323,4.0 m2.30940108,-1.33333333 l-0.0,2.66666667 l-2.30940108,1.33333333 m0.0,-2.66666667 m-0.0,8.0 m0.0,-2.66666667 l2.30940108,1.33333333 l0.0,2.66666667 m-2.30940108,-1.33333333 m6.92820323,4.0 m-2.30940108,-1.33333333 l2.30940108,-1.33333333 l2.30940108,1.33333333 m-2.30940108,1.33333333 m6.92820323,-4.0 m-2.30940108,1.33333333 l0.0,-2.66666667 l2.30940108,-1.33333333 m-0.0,2.66666667 m0.0,-8.0 m-0.0,2.66666667 l-2.30940108,-1.33333333 l-0.0,-2.66666667 m2.30940108,1.33333333 " />',
+    # 126
+    None,
+    # 127
+    SVG_ICON_WIND,
+    # 128
+    SVG_ICON_WIND,
+    # 129
+    SVG_ICON_WIND,
+    # 130
+    SVG_ICON_FOG,
+    # 131
+    SVG_ICON_FOG,
+    # 132
+    SVG_ICON_FOG,
+    # 133
+    SVG_ICON_FOG,
+    # 134
+    SVG_ICON_FOG,
+    # 135 
+    SVG_ICON_FOG,
+    # 136
+    None,
+    # 137
+    None,
+    # 138
+    None,
+    # 139
+    None,
+    # 140
+    SVG_ICON_RAIN,
+    # 141
+    SVG_ICON_RAIN,
+    # 142
+    SVG_ICON_RAIN,
+    # 143
+    SVG_ICON_RAIN,
+    # 144
+    SVG_ICON_RAIN,
+    # 145
+    SVG_ICON_SNOW,
+    # 146
+    SVG_ICON_SNOW,
+    # 147
+    SVG_ICON_FREEZINGRAIN,
+    # 148
+    SVG_ICON_FREEZINGRAIN,
+    # 149
+    None,
+    # 150
+    SVG_ICON_DRIZZLE,
+    # 151
+    SVG_ICON_DRIZZLE,
+    # 152
+    SVG_ICON_DRIZZLE,
+    # 153
+    SVG_ICON_DRIZZLE,
+    # 154
+    SVG_ICON_FREEZINGDRIZZLE,
+    # 155
+    SVG_ICON_FREEZINGDRIZZLE,
+    # 156
+    SVG_ICON_FREEZINGDRIZZLE,
+    # 157
+    SVG_ICON_RAIN,
+    # 158
+    SVG_ICON_RAIN,
+    # 159
+    None,
+    # 160
+    SVG_ICON_RAIN,
+    # 161
+    SVG_ICON_RAIN,
+    # 162
+    SVG_ICON_RAIN,
+    # 163
+    SVG_ICON_RAIN,
+    # 164
+    SVG_ICON_FREEZINGRAIN,
+    # 165
+    SVG_ICON_FREEZINGRAIN,
+    # 166
+    SVG_ICON_FREEZINGRAIN,
+    # 167
+    SVG_ICON_SNOW,
+    # 168
+    SVG_ICON_SNOW,
+    # 169
+    None,
+    # 170
+    SVG_ICON_SNOW,
+    # 171
+    SVG_ICON_SNOW,
+    # 172
+    SVG_ICON_SNOW,
+    # 173
+    SVG_ICON_SNOW,
+    # 174
+    SVG_ICON_HAIL,
+    # 175
+    SVG_ICON_HAIL,
+    # 176
+    SVG_ICON_HAIL,
+    # 177
+    SVG_ICON_SNOW,
+    # 178
+    SVG_ICON_HAIL,
+    # 179
+    None,
+    # 180
+    SVG_ICON_RAIN,
+    # 181
+    SVG_ICON_RAIN,
+    # 182
+    SVG_ICON_RAIN,
+    # 183
+    SVG_ICON_RAIN,
+    # 184
+    SVG_ICON_RAIN,
+    # 185
+    SVG_ICON_SNOW,
+    # 186
+    SVG_ICON_SNOW,
+    # 187
+    SVG_ICON_SNOW,
+    # 188
+    None,
+    # 189
+    SVG_ICON_HAIL,
 ]
 
 def svg_icon_ww(ww, width=128, text=None, x=None, y=None):
     try:
         height = round(width * 0.78125,5)
         coord = ('x="%s" y="%s"' % (x,y)) if x is not None and y is not None else ''
-        if ww==19:
+        if ww==19 or ww==199:
             # Tornado
             return SVG_ICON_TORNADO % (coord,width,height)
         text = ('<title>%s</title><rect x="-64" y="-50" width="100%%" height="100%%" stroke="none" fill="#000000" fill-opacity="0" />' % text) if text else ''
+        # According to the BUFR specification codes below 100 are
+        # ww (table 4677) codes. With codes from 100 to 199 the
+        # last 2 digits are wawa (table 4680) codes.
+        if ww>=100:
+            if ww==190:
+                ww = 17
+            elif ww>=191 and ww<=196:
+                ww = 95
         return ((SVG_ICON_START % (coord,width,height,text))+
             SVG_ICON_WW[ww]+
             SVG_ICON_END)
@@ -1693,6 +1881,12 @@ if hasSearchList:
             elif self.wawa_list is not None:
                 if attr=='wi_icon':
                     return '<i class="wi wi-wmo4680-%02d"></i>' % max(self.wawa_list)
+                if attr=='svg_icon':
+                    try:
+                        ww = max(self.wawa_list)+100
+                        return SVGIconBinder(ww,n=self.nn,night=self.night,text=None)
+                    except (LookupError,ArithmeticError,TypeError,ValueError):
+                        return ""
                 if attr=='wmo_symbol':
                     return WMOSymbolBinder(max(self.wawa_list),4680)
                 if attr=='station':
@@ -1774,7 +1968,7 @@ if hasSearchList:
         def __str__(self):
             try:
                 if self.nn is not None:
-                    if self.ww is None or self.ww in (0,1,2,3,14,15,16,18,20,21,22,23,25,26,27,28,29,40):
+                    if self.ww is None or self.ww in (0,1,2,3,14,15,16,18,20,21,22,23,25,26,27,28,29,40,100,101,102,103,120,121,122,123,124,126):
                         return svg_icon_n(int(round(float(self.nn)/100.0*8.0,0)),night=self.night,text=self.text,wind=3 if self.ww==18 else 0)
                 return svg_icon_ww(self.ww,text=self.text)
             except (LookupError,ArithmeticError,TypeError,ValueError):
@@ -1783,7 +1977,7 @@ if hasSearchList:
         def __call__(self, width=128, x=None, y=None, with_tooltip=True):
             try:
                 if self.nn is not None:
-                    if self.ww is None or self.ww in (0,1,2,3,14,15,16,18,20,21,22,23,25,26,27,28,29,40):
+                    if self.ww is None or self.ww in (0,1,2,3,14,15,16,18,20,21,22,23,25,26,27,28,29,40,100,101,102,103,120,121,122,123,124,126):
                         return svg_icon_n(
                                    int(round(float(self.nn)/100.0*8.0,0)),
                                    night=self.night,
@@ -1797,6 +1991,7 @@ if hasSearchList:
                                    x=x,y=y)
             except (LookupError,ArithmeticError,TypeError,ValueError):
                 return ""
+        
 
     class WMOSymbolBinder(object):
         """ Helper class for $presentweather(...).wmo_symbol """
