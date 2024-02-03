@@ -444,6 +444,14 @@ class WildfireThread(BaseThread):
         return waiting
 
 
+    def random_time(self, waiting):
+        """ do a little bit of load balancing 
+        
+            let at least 10 seconds to ultimo to download an process
+            data
+        """
+        return -random.random()*60
+
     def process_data(self, reply, now):
         """ convert reply to internal structure """
         raise NotImplementedError
