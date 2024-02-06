@@ -26,7 +26,7 @@ Diese Daten können mit den Programmen bezogen werden:
   * aktuelle Meßwerte von offiziellen DWD-Wetterstationen
     (`user.weatherservices.DWDservice`)
   * Radarbilder und aktuelle Meßwerte aus den Radarmessungen
-    (Details siehe Wiki-Artikel
+    (`user.weatherservices.DWDservice`, Details siehe Wiki-Artikel
     [Niederschlagsradar](https://github.com/roe-dl/weewx-DWD/wiki/Niederschlagsradar))
 * von der Zentralanstalt für Meteorologie und Geodynamik (ZAMG)
   * aktuelle Meßwerte von offiziellen ZAMG-Wetterstationen
@@ -57,8 +57,8 @@ Wenn Sie Fehler melden wollen oder Hilfe benötigen,
 geben Sie bitte immer folgende Informationen mit an:
 * die komplette Zeile, mit der Sie das Programm aufgerufen haben
 * alles, was das Programm ausgegeben hat
-* den Abschnitt `[DeutscherWetterdienst]` aus `weewx.conf`, wenn
-  es den gibt
+* den Abschnitt `[DeutscherWetterdienst]` bzw. `[WeatherServices]`
+  aus `weewx.conf`, wenn es den gibt
 * Rufen Sie das Programm noch einmal auf und geben Sie dabei zusätzlich
   den Parameter `--verbose` an. (Nicht bei `wget-dwd`)
 

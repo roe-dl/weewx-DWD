@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# Copyright (C) 2022, 2023 Johanna Roedenbeck
+# Copyright (C) 2022, 2023, 2024 Johanna Roedenbeck
 
 """
 

@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # Weather Codes and Symbols
-# Copyright (C) 2023 Johanna Roedenbeck
+# Copyright (C) 2023, 2024 Johanna Roedenbeck
 # licensed under the terms of the General Public License (GPL) v3
 
 from __future__ import absolute_import
@@ -1354,7 +1354,7 @@ def get_ww(ww,n,night):
     # Otherwise use cloud coverage
     # see aerisweather for percentage values
     # https://www.aerisweather.com/support/docs/api/reference/weather-codes/
-    if wwcode[0]<=3 or (wwcode[0]>=20 and wwcode[0]<30) or wwcode[0] in (14,15,16):
+    if wwcode[0] in (0,1,2,3,14,15,16,18,20,21,22,23,25,26,27,28,29,40):
         night = 1 if night else 0
         cover = get_cloudcover(n)
         if cover is not None:
@@ -1377,7 +1377,11 @@ def get_ww(ww,n,night):
             except Exception:
                 n_str = str(n)
             wi = cover[night+5]
-            wwcode = (wwcode[0],wwcode[1]+' '+n_str,wwcode[2]+' '+str(n),wwcode[3],icon,dwd,aeicon,aecode,wi,icon.replace('.png','.svg'),WW_SYMBOLS[wwcode[0]])
+            if wwcode[0]==18:
+                svgiconfn = icon.replace('.png','-wind.svg')
+            else:
+                svgiconfn = icon.replace('.png','.svg')
+            wwcode = (wwcode[0],wwcode[1]+' '+n_str,wwcode[2]+' '+str(n),wwcode[3],icon,dwd,aeicon,aecode,wi,svgiconfn,WW_SYMBOLS[wwcode[0]])
     return wwcode
 
 def get_cloudcover(n):

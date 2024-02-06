@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# Copyright (C) 2023 Johanna Roedenbeck
+# Copyright (C) 2023, 2024 Johanna Roedenbeck
 
 """
 
@@ -65,6 +65,7 @@ import os.path
 import threading
 import random
 import math
+import struct
 from PIL import Image, ImageColor, ImageDraw, ImageFont
 
 # deal with differences between python 2 and python 3
@@ -431,6 +432,9 @@ class DwdRadar(object):
         }
     }
     
+    colors = dict()
+    class_lock = threading.Lock()
+    
     HEADER_FMT = {
         'BY':('I',10), # Produktlänge in Bytes
         'VS':('I',2),  # Formatversion
@@ -454,6 +458,7 @@ class DwdRadar(object):
     }
 
     def __init__(self, log_success=False, log_failure=True, verbose=0):
+        self.created = time.time()
         # logging settings
         self.log_success = log_success
         self.log_failure = log_failure
@@ -575,6 +580,8 @@ class DwdRadar(object):
             dwd.data = list(zip(hg.data,rv.data))
             dwd.no_data_value = rv.no_data_value
             dwd.out_of_range_value = rv.out_of_range_value
+            dwd.created_hg = hg.created
+            dwd.created_rv = rv.created
             dwd.init_coords()
             factor = pow(10,int(rv.header['PR'].strip()[1:]))
             yn = 100
@@ -668,14 +675,18 @@ class DwdRadar(object):
             x = fns[-1].split('_')
             fns = [fn for fn in fns if fn.startswith(x[0])]
         return fns
-    
+
     def read_data(self, in_data):
         """ read radar data and convert to internal data structure
         """
+        if self.verbose: start_ts = time.time()
         header = ""
         self.data = []
+        self.clutter_flag = []
+        self.station_flag = []
         isheader = True
         by = 0
+        by = b''
         ct = 1
         length = 0
         data_size = 1
@@ -690,27 +701,80 @@ class DwdRadar(object):
                 if self.verbose:
                     print('header',i)
                 header += reply[0:i].decode('ascii',errors='replace')
+                if not isheader:
+                    data_size, factor = self._decode_header(header)
                 if self.verbose:
                     print('---> %i' % reply[i])
                 reply = reply[i+1:]
             if not isheader:
                 try:
-                    data_size = DwdRadar.DATA_SIZE[header[0:2]]
+                    data_size = DwdRadar.DATA_SIZE[self.product]
                 except LookupError:
                     data_size = 256
+                '''
                 for ii in reply:
                     by += ii*ct
                     if ct==data_size:
+                        """
+                        if data_size==256:
+                            self.clutter_flag.append((by&0x8000)!=0)
+                            self.station_flag.append((by&0x1000)!=0)
+                        """
                         self.data.append(by)
                         by = 0
                         ct = 1
                     else:
                         ct *= 256
+                '''
+                if by:
+                    reply = by+reply
+                    by = b''
+                if data_size==1:
+                    format = '<%sB' % len(reply)
+                elif data_size==16777216:
+                    if len(reply)%4:
+                        by = reply[-len(reply)%4:]
+                        reply = reply[:-len(reply)%4]
+                    format = '<%sL' % int(len(reply)/4)
+                else: # data_size==256
+                    if len(reply)%2:
+                        by = reply[-1:]
+                        reply = reply[:-1]
+                    format = '<%sH' % int(len(reply)/2)
+                self.data.extend(struct.unpack(format,reply))
         if self.verbose:
             print('file length:',length)
-            print(header)
+            #print(header)
+            time1_ts = time.time()
+        
+        if data_size==256:
+            if self.header.get('VV',0)==0:
+                self.clutter_flag = [(x&0x8000)!=0 for x in self.data]
+                self.station_flag = [(x&0x1000)!=0 for x in self.data]
+            self.data = [(i&0x0FFF)*(-1 if (i&0x4000) else 1)*factor if (i&0xAFFF)<self.out_of_range_value else self.no_data_value for i in self.data]
+        
+        if self.verbose: time2_ts = time.time()
+        # radar reflectivity factor
+        if self.product in ('WN','WX','RX'):
+            self.data = [i/2-32.5 if i<self.no_data_value else i for i in self.data]
+        if self.verbose: time3_ts = time.time()
+        # initialize coordinate data
+        self.init_coords()
+        if self.verbose:
+            print(self.header)
+            print('data',len(self.data),min(self.data),max(self.data))
+            print('time elapsed %.2fs - %.2fs - %.2fs - %.2fs' % (time1_ts-start_ts,time2_ts-time1_ts,time3_ts-time2_ts,time.time()-time3_ts))
+    
+    def _decode_header(self, header):
+        """ decode the file header """
+        if self.verbose: start_ts = time.time()
         # product code
         self.product = header[0:2]
+        # data size
+        try:
+            data_size = DwdRadar.DATA_SIZE[self.product]
+        except LookupError:
+            data_size = 256
         # issued
         self.timestamp_dt = datetime.datetime(
             int('20'+header[15:17]), # YY
@@ -732,10 +796,8 @@ class DwdRadar(object):
             print('Zeitpunkt der Messung:',self.timestamp)
             print('WMO-Nummer:',self.wmo_nr)
             #print(header)
-        if data_size==256:
-            self.clutter_flag = [(x&0x8000)!=0 for x in self.data]
-            self.station_flag = [(x&0x1000)!=0 for x in self.data]
         header_vals = dict()
+        
         idx = ""
         val = ""
         ct = 0
@@ -795,7 +857,12 @@ class DwdRadar(object):
                 factor = pow(10,int(x[1:]))
                 if self.verbose:
                     print('Genauigkeitsfaktor:',factor)
-                self.data = [(i&0x0FFF)*(-1 if (i&0x4000) else 1)*factor if (i&0xAFFF)<self.out_of_range_value else self.no_data_value for i in self.data]
+                #self.data = [(i&0x0FFF)*(-1 if (i&0x4000) else 1)*factor if (i&0xAFFF)<self.out_of_range_value else self.no_data_value for i in self.data]
+            else:
+                factor = 1.0
+        else:
+            factor = 1.0
+        if self.verbose: time3_ts = time.time()
         # colors
         if self.product=='HG':
             self.colors = {i[0]:ImageColor.getrgb(i[1]) for i in DwdRadar.COLORS_HG.items()}
@@ -810,41 +877,22 @@ class DwdRadar(object):
                 self.colors[idx] = col+(0xD0,)
             self.colors[self.no_data_value] = (255,255,255,0xD0) # no data 0x29C4
         else:
-            self.colors = dict() # DwdRadar.COLORS_WN # 1...0x0FFF 1...4095
-            for i in range(4096):
-                if self.product=='WN':
-                    idx = i*factor/2-32.5
-                else:
-                    idx = i*factor
-                if i==0:
-                    col = (255,255,255)
-                else:
-                    if self.product=='RW':
-                        # RW factor 0.1 precipitation
-                        col = 240-math.log(i)/8.3*240
-                    elif self.product=='WN':
-                        # WN factor 0.1 dBZ
-                        col = 240-(idx if idx>0 else 0)/85*240
-                    else:
-                        # RV factor 0.01 precipitation
-                        #col = 256-math.log(i)/7.6*256
-                        col = 240-math.log(0.02425*i+0.03)*26.632997406928514-93.39014738656778
-                        if col<0 and col>-30:
-                            col += 360
-                    if col<0: col=330
-                    # The defined range for hue is 0 to 360 here.
-                    # 240 blue - 180 cyan - 120 green - 60 yellow - 0 red
-                    col = ImageColor.getrgb('hsv(%s,100%%,100%%)' % col)
-                self.colors[idx] = col+(0xD0,)
-            self.colors[self.no_data_value] = (255,255,255,0xD0) # no data 0x29C4
-        # radar reflectivity factor
-        if self.product in ('WN','WX','RX'):
-            self.data = [i/2-32.5 if i<self.no_data_value else i for i in self.data]
-        # initialize coordinate data
-        self.init_coords()
-        if self.verbose:
-            print(header_vals)
-            print('data',len(self.data),min(self.data),max(self.data))
+            try:
+                DwdRadar.class_lock.acquire()
+                self.colors = DwdRadar.colors.get(self.product,{}).get(factor,None)
+            finally:
+                DwdRadar.class_lock.release()
+            if self.colors is None:
+                self.colors = DwdRadar.init_colors_2byte(self.product,factor)
+                try:
+                    DwdRadar.class_lock.acquire()
+                    if self.product not in DwdRadar.colors:
+                        DwdRadar.colors[self.product] = dict()
+                    DwdRadar.colors[self.product][factor] = self.colors
+                finally:
+                    DwdRadar.class_lock.release()
+        if self.verbose: print('time elapsed in _decode_header: %.2fs' % (time.time()-start_ts))
+        return data_size, factor
     
     def init_coords(self):
         """ initialize coordinate data
@@ -866,6 +914,37 @@ class DwdRadar(object):
             self.lines = []
             if self.verbose:
                 print('Grid initialized to DE900 Kugel')
+
+    @staticmethod
+    def init_colors_2byte(product, factor):
+        colors = dict() # DwdRadar.COLORS_WN # 1...0x0FFF 1...4095
+        for i in range(4096):
+            if product=='WN':
+                idx = i*factor/2-32.5
+            else:
+                idx = i*factor
+            if i==0:
+                col = (255,255,255)
+            else:
+                if product=='RW':
+                    # RW factor 0.1 precipitation
+                    col = 240-math.log(i)/8.3*240
+                elif product=='WN':
+                    # WN factor 0.1 dBZ
+                    col = 240-(idx if idx>0 else 0)/85*240
+                elif product=='RV':
+                    # RV factor 0.01 precipitation
+                    #col = 256-math.log(i)/7.6*256
+                    col = 240-math.log(0.02425*i+0.03)*26.632997406928514-93.39014738656778
+                    if col<0 and col>-30:
+                        col += 360
+                if col<0: col=330
+                # The defined range for hue is 0 to 360 here.
+                # 240 blue - 180 cyan - 120 green - 60 yellow - 0 red
+                col = ImageColor.getrgb('hsv(%s,100%%,100%%)' % col)
+            colors[idx] = col+(0xD0,)
+        colors[0x29C4] = (255,255,255,0xD0) # no data 0x29C4
+        return colors
 
     def get_index(self, xy):
         """ get the index in self.data for a certain location
@@ -1334,6 +1413,10 @@ class DwdRadarThread(BaseThread):
         self.forecast = dict()
     
     def getRecord(self):
+        # Get the last 5 minutes border
+        last5m = time.time()
+        last5m -= last5m%300
+        # Download the radar data
         try:
             dwd = DwdRadar.wget(self.product,self.log_success,self.log_failure)
             if dwd is None: 
@@ -1358,7 +1441,7 @@ class DwdRadarThread(BaseThread):
                     vv = 0
                 # remember actual data record
                 if vv==0: 
-                    self.cache_readings(ii)
+                    self.cache_readings(ii,last5m)
                     self.queue_for_hgrv(ii)
                     break
             if dwd[0].product=='RV':
@@ -1410,7 +1493,7 @@ class DwdRadarThread(BaseThread):
         else:
             # actual data only
             # data
-            self.cache_readings(dwd)
+            self.cache_readings(dwd,last5m)
             # create map image
             for map in self.maps:
                 # test shutdown request
@@ -1468,7 +1551,7 @@ class DwdRadarThread(BaseThread):
                 if self.log_failure:
                     logerr("thread '%s': HGRV queue error %s %s" % (self.name,e.__class__.__name__,e))
     
-    def cache_readings(self, dwd):
+    def cache_readings(self, dwd, last5m):
         """ get readings and cache them
         
             process all the locations defined in configuration and get the
@@ -1476,6 +1559,20 @@ class DwdRadarThread(BaseThread):
             
         """
         logdbg("cache_readings %s" % dwd.timestamp)
+        # Is this record released after the last 5 minutes border?
+        if dwd.timestamp<last5m:
+            loginf("thread '%s': got data from previous interval. radar timestamp %s, last5m %s" % (
+                self.name,
+                time.strftime("%H:%M",time.localtime(dwd.timestamp)),
+                time.strftime("%H:%M",time.localtime(last5m))
+            ))
+            if dwd.product=='HGRV':
+                loginf("thread '%s': got data from previous interval. created HGRV %s, HG %s, RV %s" % (
+                    self.name,
+                    time.strftime("%H:%M:%S",time.localtime(dwd.created)),
+                    time.strftime("%H:%M:%S",time.localtime(dwd.created_hg)),
+                    time.strftime("%H:%M:%S",time.localtime(dwd.created_rv))
+                ))
         #start_ts = time.time()
         # Note: prefix is added in _to_weewx() in weatherservices.py, not here
         data = dict()
@@ -1597,18 +1694,35 @@ class HgRvThread(DwdRadarThread):
         super(HgRvThread,self).__init__(name, conf_dict, archive_interval)
         self.hg = None
         self.rv = None
+        self.data_processed = False
 
     def waiting_time(self):
-         """ How long to wait before the next getRecord() call 
-         
-             New data do not arrive earlier than 60 seconds before the next
-             5 minutes boundary. So we can easily waiting until then before
-             checking for new data in getRecord()
-         """
-         waiting = self.query_interval-time.time()%self.query_interval
-         if waiting>30: return waiting-30
-         if waiting<2: return 0.1
-         return 5
+        """ How long to wait before the next getRecord() call 
+        
+            New data do not arrive earlier than 60 seconds before the next
+            5 minutes boundary. So we can easily waiting until then before
+            checking for new data in getRecord()
+        """
+        process_time = 31
+        waiting = self.query_interval-time.time()%self.query_interval
+        if self.data_processed:
+            # Data is processed. We are about to wait for the next interval. 
+            self.data_processed = False
+            # Discard data received within the last interval if any.
+            self.hg = None
+            self.rv = None
+            # If data is processed before the end of the interval, we do
+            # not wait to the end of this interval, but the next one.
+            if waiting<=process_time:
+                waiting += self.query_interval
+        else:
+            # Time is reached, but data did not arrive so far.
+            if waiting>process_time:
+                # No data to process within this interval
+                self.data_processed = True
+        if waiting>process_time: return waiting-process_time
+        if waiting>10 or waiting<=0.3: return 0.1
+        return waiting-0.2
 
     def random_time(self, waiting):
         """ add a (random) additional amount of time to the waiting time 
@@ -1623,11 +1737,14 @@ class HgRvThread(DwdRadarThread):
     
     def getRecord(self):
         """ get data - in this case from the queue - and process it """
+        # get the last 5 minutes border
+        last5m = time.time()
+        last5m -= last5m%300
         # get a record of radar data from the queue
         ct = 0
         while self.running:
             try:
-                reply = self.hgrv_queue.get(block=False, timeout=10)
+                reply = self.hgrv_queue.get(timeout=10)
             except queue.Empty:
                 if ct: break
                 return
@@ -1658,14 +1775,18 @@ class HgRvThread(DwdRadarThread):
                                       log_success=self.log_success,
                                       log_failure=self.log_failure)
             if dwd:
-                self.cache_readings(dwd)
+                # Data received by the queue are processed. So we do not
+                # need them any more.
+                self.hg = None
+                self.rv = None
+                self.data_processed = True
+                # get observation types
+                self.cache_readings(dwd, last5m)
                 # create map image
                 for map in self.maps:
                     # test shutdown request
                     if not self.running: return
                     self.write_map(map,dwd,0,False)
-                # wait long enough to get after the archive interval end
-                self.evt.wait(70)
         except (LookupError,TypeError,ValueError,ArithmeticError,NameError) as e:
             if self.log_failure:
                 logerr("thread '%s': getRecord() %s %s" % (self.name,e.__class__.__name__,e))
