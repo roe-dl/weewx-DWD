@@ -249,7 +249,7 @@ AREAS = {
     'AT-8':(493,102,74,96),     # Vorarlberg
     'AT-7':(543,78,240,150),    # Tirol
     'LU':  (215,417,66,100),    # Lëtzebuerg
-    'Döbeln':(755,608,30,25),   # Döbelner Land
+    'Döbeln':(755,608,30,24),   # Döbelner Land
     'Fichtelberg':(727,526,44,28) # Fichtelberggebiet
 }
 
@@ -733,15 +733,16 @@ class DwdRadar(object):
                     format = '<%sB' % len(reply)
                 elif data_size==16777216:
                     if len(reply)%4:
-                        by = reply[-len(reply)%4:]
-                        reply = reply[:-len(reply)%4]
+                        by = reply[-(len(reply)%4):]
+                        reply = reply[:-(len(reply)%4)]
                     format = '<%sL' % int(len(reply)/4)
                 else: # data_size==256
                     if len(reply)%2:
                         by = reply[-1:]
                         reply = reply[:-1]
                     format = '<%sH' % int(len(reply)/2)
-                self.data.extend(struct.unpack(format,reply))
+                if reply:
+                    self.data.extend(struct.unpack(format,reply))
         if self.verbose:
             print('file length:',length)
             #print(header)
@@ -1197,8 +1198,8 @@ class DwdRadar(object):
                 if svg:
                     img += '<circle cx="%s" cy="%s" r="%.2f" fill="%s" />\n' % (cx,1200-cy,width/150,'#FFF' if dark_background else '#000')
                 else:
-                    cx -= x+0.5
-                    cy -= y+0.5
+                    cx -= x
+                    cy -= y
                     if cx>=0 and cy>=0:
                         draw.ellipse([cx*scale-2,(height-cy)*scale-2,cx*scale+2,(height-cy)*scale+2],fill=ImageColor.getrgb('#FFF' if dark_background else '#000'))
                         draw.text((cx*scale+x_off,(height-cy)*scale-y_off),location,fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),font=fnt)
@@ -1253,8 +1254,8 @@ class DwdRadar(object):
             for line in self.lines:
                 xy = []
                 for coord in line['coordinates']:
-                    xx = (coord['xy'][0]-self.coords['SW']['xy'][0])/1000-x-0.5
-                    yy = (coord['xy'][1]-self.coords['SW']['xy'][1])/1000-y-0.5
+                    xx = (coord['xy'][0]-self.coords['SW']['xy'][0])/1000-x
+                    yy = (coord['xy'][1]-self.coords['SW']['xy'][1])/1000-y
                     xy.append((xx*scale,(height-yy)*scale))
                 if svg:
                     pass
@@ -1946,6 +1947,9 @@ Coordinates go from west to east and south to north, respectively.
     group = optparse.OptionGroup(parser,'Commands')
     group.add_option("--write-map", dest="writemap", action="store_true",
                       help="write map image")
+    group.add_option("--get", dest="location", metavar="LOCATION",
+                     type="string",
+                     help="print reading for the specified location")
     group.add_option("--print-locations", dest="printlocations", action="store_true",
                       help="print locations list")
     group.add_option("--test-thread",dest="test",action="store_true",
@@ -2103,3 +2107,20 @@ Coordinates go from west to east and south to north, respectively.
                 f.write(img)
         else:
             dwd.save_map('radar-'+dwd.product+'.png',img)
+
+    if options.location:
+        if options.location in dwd.coords:
+            xy = dwd.coords[options.location]['xy']
+        else:
+            x = options.location.split(',')
+            xy = (float(x[0]),float(x[1]))
+        idx = dwd.get_index(xy)
+        print('parameter: %s' % options.location)
+        print('easting:   %10.3f   northing:   %10.3f   km' % (xy[0]/1000.0,xy[1]/1000.0))
+        print('datawidth: %6s       dataheight: %6s       km' % (dwd.data_width,dwd.data_height))
+        print('index: %10s' % idx)
+        print('index x:   %6s       index y:    %6s       km' % (idx%dwd.data_width,int(idx/dwd.data_width)))
+        cx = (xy[0]-dwd.coords['SW']['xy'][0])/1000
+        cy = (xy[1]-dwd.coords['SW']['xy'][1])/1000
+        print('map x:     %10.3f   map y:      %10.3f   km' % (cx,cy))
+        print('value: %s' % dwd.get_value(xy))
