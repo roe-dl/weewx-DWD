@@ -87,7 +87,7 @@ Installation unter WeeWX ab Version 5.0:
 
 ```shell
 sudo weectl extension install weewx-dwd.zip
-```shell
+```
 
 Manuelle Installation:
 
