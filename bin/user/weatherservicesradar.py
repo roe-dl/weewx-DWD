@@ -250,7 +250,7 @@ AREAS = {
     'AT-7':(543,78,240,150),    # Tirol
     'LU':  (215,417,66,100),    # Lëtzebuerg
     'Döbeln':(755,608,30,24),   # Döbelner Land
-    'Fichtelberg':(727,526,44,28) # Fichtelberggebiet
+    'Fichtelberg':(727,526,44,26) # Fichtelberggebiet
 }
 
 # Initialize default unit for the unit groups defined in this extension
@@ -1250,8 +1250,12 @@ class DwdRadar(object):
             img = newimg
         time4_ts = time.thread_time_ns()
         if not background_img:
-            col = ImageColor.getrgb('#FFF' if dark_background else '#000')
+            col0 = ImageColor.getrgb('#FFF' if dark_background else '#000')
             for line in self.lines:
+                if line['color']:
+                    col = line['color']
+                else:
+                    col = col0
                 xy = []
                 for coord in line['coordinates']:
                     xx = (coord['xy'][0]-self.coords['SW']['xy'][0])/1000-x
@@ -1347,14 +1351,27 @@ class DwdRadar(object):
         """ read a file containing line data to draw on maps """
         lines = []
         start = True
+        col = None
         with open(fn, "rt") as f:
             for line in f:
                 x = line.split()
                 if x[0]=='*':
                     start = True
+                    if len(x)>=3 and x[2].startswith('COLOR='):
+                        try:
+                            if '"' in x[2]:
+                                col = x[2].split('"')[1]
+                            elif "'" in x[2]:
+                                col = x[2].split("'")[1]
+                            else:
+                                raise ValueError('invalid COLOR specification')
+                            col = ImageColor.getrgb(col)
+                        except (LookupError,ValueError):
+                            # string is not a valid color specification
+                            pass
                 else:
                     if start:
-                        lines.append({'coordinates':[]})
+                        lines.append({'coordinates':[],'color':col})
                     lines[-1]['coordinates'].append({'xy':(float(x[0]),float(x[1]))})
                     start = False
         self.lines = lines
@@ -1860,7 +1877,7 @@ def create_thread(thread_name,config_dict,archive_interval):
     return None
 
 
-def convert_geojson(fni, fno, include_comment):
+def convert_geojson(fni, fno, include_comment, color):
     """ convert geojson file to list of coordinates for proj
     
         Args:
@@ -1898,6 +1915,8 @@ def convert_geojson(fni, fno, include_comment):
                 else:
                     if len(coords[-1])!=0:
                         coords.append({'name':name,'geometry':[]})
+        elif typ=='Point':
+            pass
         else:
             for y in x['geometry']['coordinates']:
                 if len(coords)==0 or len(coords[-1])!=0:
@@ -1911,6 +1930,8 @@ def convert_geojson(fni, fno, include_comment):
                         if len(coords[-1])!=0:
                             coords.append({'name':name,'geometry':[]})
     with open(fno,'wt') as f:
+        if color:
+            f.write('366 366 COLOR="%s"\n' % color)
         for x in coords:
             if include_comment:
                 f.write('366 366 %s - -\n' % x['name'].replace(' ','_'))
@@ -1929,6 +1950,7 @@ def convert_geojson(fni, fno, include_comment):
 if __name__ == "__main__":
 
     usage = """Usage: %prog [options] [file.bz2]
+       %prog --convert-geojson [options] sourcefile targetfile
 
 Direct call is for testing only."""
     epilog = """The maximum image size for HG, WN, and RV is 1100px wide and 1200px high,
@@ -1974,6 +1996,15 @@ Coordinates go from west to east and south to north, respectively.
     group.add_option("--svg", dest="svg", action="store_true",
                       help="output in SVG format")
     parser.add_option_group(group)
+    
+    group = optparse.OptionGroup(parser,'GEOJSON options')
+    group.add_option("--include-comment", dest="geojsoncomment",
+                     action="store_true",
+                     help = "include comments in list")
+    group.add_option("--color", dest="geojsoncolor", metavar="COLOR",
+                     type="string", default=None,
+                     help="line color")
+    parser.add_option_group(group)
 
     (options, args) = parser.parse_args()
 
@@ -1989,7 +2020,7 @@ Coordinates go from west to east and south to north, respectively.
         if not args[0] or not args[1]:
             print('--convert-geojson geojson_file output_file')
             exit(1)
-        convert_geojson(args[0],args[1],False)
+        convert_geojson(args[0],args[1],options.geojsoncomment,options.geojsoncolor)
         exit(0)
 
     # test thread class

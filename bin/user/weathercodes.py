@@ -585,9 +585,9 @@ SVG_ICON_WW = [
     # 166
     SVG_ICON_FREEZINGRAIN,
     # 167
-    SVG_ICON_SNOW,
+    SVG_ICON_SLEET,
     # 168
-    SVG_ICON_SNOW,
+    SVG_ICON_SLEET,
     # 169
     None,
     # 170
