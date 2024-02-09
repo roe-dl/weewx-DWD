@@ -1628,17 +1628,20 @@ class DWDOPENMETEOthread(BaseThread):
 
 class DWDservice(StdService):
 
-    def __init__(self, engine, config_dict):
-        super(DWDservice,self).__init__(engine, config_dict)
+    def __init__(self, engine, conf_dict):
+        super(DWDservice,self).__init__(engine, conf_dict)
         
-        if 'WeatherServices' in config_dict:
-            if 'include' in config_dict['WeatherServices']:
-                dire = os.path.dirname(config_dict.get('config_path','/'))
-                include_dict = configobj.ConfigObj(os.path.join(dire,config_dict['WeatherServices']['include']))
-                config_dict = weeutil.config.deep_copy(config_dict)
+        if 'WeatherServices' in conf_dict:
+            if 'include' in conf_dict['WeatherServices']:
+                dire = os.path.dirname(conf_dict.get('config_path','/'))
+                include_dict = configobj.ConfigObj(os.path.join(dire,conf_dict['WeatherServices']['include']))
+                config_dict = weeutil.config.deep_copy(conf_dict)
                 weeutil.config.merge_config(config_dict['WeatherServices'],include_dict)
+            else:
+                config_dict = conf_dict
             site_dict = weeutil.config.accumulateLeaves(config_dict.get('WeatherServices',configobj.ConfigObj()))
         else:
+            config_dict = conf_dict
             site_dict = weeutil.config.accumulateLeaves(config_dict.get('DeutscherWetterdienst',configobj.ConfigObj()))
         self.log_success = weeutil.weeutil.to_bool(site_dict.get('log_success',True))
         self.log_failure = weeutil.weeutil.to_bool(site_dict.get('log_failure',True))
