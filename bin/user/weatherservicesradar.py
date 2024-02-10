@@ -146,8 +146,8 @@ MAP_LOCATIONS_DE1200_WGS84 = {
     'Bremerhaven':{'xy':(445790.99,-303943.91),'lat':53.54446,'lon':8.57895,'scale':6.0},
     'Greifswald': {'xy': (771145.8, -235040.31), 'lat': '54.0960', 'lon': '13.3817', 'scale':1.0},
     'Wolfenbüttel': {'xy': (581351.05, -464637.09), 'lat': '52.16263', 'lon': '10.53484', 'scale':1.0},
-    'Brocken': {'xy': (587565.63, -506791.63), 'lat': '51.7991', 'lon': '10.6156', 'scale':1.0},
-    'Fichtelberg': {'xy': (764264.57, -661198.14), 'lat': '50.429444', 'lon': '12.954167', 'scale':1.0},
+    'Brocken': {'xy': (587565.63, -506791.63), 'lat': '51.7991', 'lon': '10.6156', 'scale':1.0, 'peak':True},
+    'Fichtelberg': {'xy': (764264.57, -661198.14), 'lat': '50.429444', 'lon': '12.954167', 'scale':1.0, 'peak':True},
     'Carlsfeld':{'xy':(738623.48,-662226.69),'lat':50.4314,'lon':12.6114,'scale':20.0},
     'Rittersgrün':{'xy':(752720.72,-656540.09),'lat':50.47409,'lon':12.8032,'scale':20.0},
     'Aue':{'xy':(744558.02,-643498.63),'lat':50.58865,'lon':12.70238,'scale':20.0},
@@ -175,7 +175,7 @@ MAP_LOCATIONS_DE1200_WGS84 = {
     'Cottbus/Chóśebuz': {'xy': (855632.43, -499673.59), 'lat': '51.76068', 'lon':'14.33429', 'scale':1.0},
     'Göttingen': {'xy': (538491.31, -538008.38), 'lat': '51.5328', 'lon': '9.9352', 'scale':2.0},
     'Kassel':{'xy':(506522.38,-563143.59), 'lat': '51.3157', 'lon': '9.498', 'scale':1.0},
-    'Zugspitze':{'xy':(623159.66,-1022123.31),'lat':47.42122,'lon':10.9863, 'scale':1.0},
+    'Zugspitze':{'xy':(623159.66,-1022123.31),'lat':47.42122,'lon':10.9863, 'scale':1.0, 'peak':True},
     'Schwerin':{'xy':(639938.73,-294247.94),'lat':53.62884,'lon': 11.41486, 'scale':2.0},
     'Leeuwarden':{'xy':(252164.35,-334194.25),'lat':53.19959,'lon':5.79331, 'scale':2.0},
     'Apeldoorn':{'xy':(255942.84,-448573.20),'lat':52.2154,'lon':5.9640, 'scale':1.0},
@@ -265,11 +265,18 @@ def load_places(fn,projection):
         with open(fn,'rt') as f:
             for line in f:
                 x = line.split()
-                places[x[2].replace('_',' ')] = {
+                if x[2] and x[2][0]=='^':
+                    loc = x[2][1:]
+                    peak = True
+                else:
+                    loc = x[2]
+                    peak = False
+                places[loc.replace('_',' ')] = {
                     'xy':(float(x[0]),float(x[1])),
                     'lat':x[3],
                     'lon':x[4],
-                    'scale':float(x[5])
+                    'scale':float(x[5]),
+                    'peak':peak
                 }
         if projection=='DE1200':
             MAP_LOCATIONS_DE1200_WGS84.update(places)
@@ -1183,6 +1190,7 @@ class DwdRadar(object):
             if location not in ('NW','NO','SW','SO') and location not in filter and scale>=coord['scale']:
                 cx = (coord['xy'][0]-self.coords['SW']['xy'][0])/1000
                 cy = (coord['xy'][1]-self.coords['SW']['xy'][1])/1000
+                peak = coord.get('peak',False)
                 if location in ('Dresden','Chemnitz'):
                     # label besides the dot
                     y_off = 4+font_size/4
@@ -1201,7 +1209,10 @@ class DwdRadar(object):
                     cx -= x
                     cy -= y
                     if cx>=0 and cy>=0:
-                        draw.ellipse([cx*scale-2,(height-cy)*scale-2,cx*scale+2,(height-cy)*scale+2],fill=ImageColor.getrgb('#FFF' if dark_background else '#000'))
+                        if peak:
+                            draw.polygon([cx*scale-2.30940108,(height-cy)*scale+1.333333,cx*scale+2.30940108,(height-cy)*scale+1.333333,cx*scale,(height-cy)*scale-2.666667],fill=ImageColor.getrgb('#FFF' if dark_background else '#000'))
+                        else:
+                            draw.ellipse([cx*scale-2,(height-cy)*scale-2,cx*scale+2,(height-cy)*scale+2],fill=ImageColor.getrgb('#FFF' if dark_background else '#000'))
                         draw.text((cx*scale+x_off,(height-cy)*scale-y_off),location,fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),font=fnt)
         time3_ts = time.thread_time_ns()
         try:
