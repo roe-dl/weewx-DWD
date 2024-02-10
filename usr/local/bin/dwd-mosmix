@@ -625,7 +625,7 @@ class DwdMosmix(object):
             self.belchertown_compasslang = 'en'
         # Database
         try:
-            self.SQLITE_ROOT = os.path.join(config_dict['WEEWX_ROOT'],config_dict['DatabaseTypes']['SQLite']['SQLITE_ROOT'])
+            self.SQLITE_ROOT = os.path.join(config_dict.get('WEEWX_ROOT','.'),config_dict['DatabaseTypes']['SQLite']['SQLITE_ROOT'])
         except LookupError:
             self.SQLITE_ROOT = None
         self.connection = None
