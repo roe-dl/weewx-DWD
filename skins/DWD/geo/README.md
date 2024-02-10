@@ -32,3 +32,17 @@ Don't forget to include the correct copyright notice.
   country and state boundaries, 
 
   Copyright: "OpenStreetMap, ODbL 1.0"
+
+* `erzgebirge-proj.txt`
+
+  Wasserläufe, Talsperren und der Grenzabschnitt für das Westerzgebirge
+
+  Copyright: "OpenStreetMap, ODbL 1.0"
+
+  Diese Datei kann zusammen mit `map = Fichtelberg` bzw. bei Aufruf
+  von der Kommandozeile `--image-size=Fichtelberg` benutzt werden.
+  Sie gibt ein Beispiel, wie man bei kleineren Ausschnitten die
+  Landschaft geeignet unterlegen kann. Im Gebirge sind die Täler
+  ein wesentliches Landschafts- und Orientierungsmerkmal. Die
+  Flüsse bzw. Bäche können den Verlauf der Täler auf einfache
+  Weise ohne eine unübersichtliche Detailfülle markieren.

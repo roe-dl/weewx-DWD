@@ -223,6 +223,8 @@ MAP_LOCATIONS_DE1200_WGS84 = {
     'Ulm':{'xy':(542686.17,-906655.24),'lat':48.39666,'lon':9.99354,'scale':3.0},
     'Freiburg im Breisgau':{'xy':(371457.19,-951050.08),'lat':47.99603,'lon':7.84956,'scale':2.0},
     'Strasbourg':{'xy':(365930.12,-881015.56),'lat':48.58339,'lon':7.74594,'scale':3.0},
+    'Großglockner':{'xy':(763478.42,-1059093.91),'lat':47.0745464,'lon':12.6938826,'scale':1.0,'peak':True},
+    'Śnieżka/Sněžka':{'xy':(968601.87,-609683.31),'lat':50.7359438,'lon':15.7397826,'scale':1.0,'peak':True},
 }
 
 # often used map dimensions
@@ -1267,6 +1269,7 @@ class DwdRadar(object):
                     col = line['color']
                 else:
                     col = col0
+                polygon = line['type']=='Polygon'
                 xy = []
                 for coord in line['coordinates']:
                     xx = (coord['xy'][0]-self.coords['SW']['xy'][0])/1000-x
@@ -1275,7 +1278,10 @@ class DwdRadar(object):
                 if svg:
                     pass
                 else:
-                    basedraw.line(xy,fill=col,width=1)
+                    if polygon:
+                        basedraw.polygon(xy,fill=col)
+                    else:
+                        basedraw.line(xy,fill=col,width=1)
         time5_ts = time.thread_time_ns()
         if svg:
             img += '</svg>\n'
@@ -1363,6 +1369,7 @@ class DwdRadar(object):
         lines = []
         start = True
         col = None
+        polygon = False
         with open(fn, "rt") as f:
             for line in f:
                 x = line.split()
@@ -1376,15 +1383,25 @@ class DwdRadar(object):
                                 col = x[2].split("'")[1]
                             else:
                                 raise ValueError('invalid COLOR specification')
-                            col = ImageColor.getrgb(col)
+                            if col.startswith('auto'):
+                                col = None
+                            else:
+                                col = ImageColor.getrgb(col)
                         except (LookupError,ValueError):
                             # string is not a valid color specification
                             pass
+                    elif len(x)>=3 and x[2].upper().startswith('POLYGON'):
+                        polygon = True
                 else:
                     if start:
-                        lines.append({'coordinates':[],'color':col})
+                        lines.append({
+                            'coordinates':[],
+                            'color':col,
+                            'type':'Polygon' if polygon else 'LineString'
+                        })
                     lines[-1]['coordinates'].append({'xy':(float(x[0]),float(x[1]))})
                     start = False
+                    polygon = False
         self.lines = lines
         self.lines_copyright = str(copyright)
     
