@@ -2860,6 +2860,10 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
             config['WeatherServices'].merge(include_dict)
         except LookupError:
             pass
+        if 'WEEWX_ROOT' not in config:
+            config['WEEWX_ROOT'] = os.path.dirname(os.path.abspath(config_path))
+        elif config['WEEWX_ROOT'][0]!='/':
+            config['WEEWX_ROOT'] = os.path.join(os.path.dirname(config_path),config['WEEWX_ROOT'])
     else:
         # test only
         print("Using test configuration")
