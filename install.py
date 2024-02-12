@@ -53,7 +53,7 @@ class DWDInstaller(ExtensionInstaller):
                         '#show_obs_description':'True',
                         '#show_placemark':'True'
                     },
-                    'warning': }
+                    'warning': {
                         'icons':'replace_me'
                     },
                     'Belchertown': {
