@@ -115,6 +115,9 @@
     station list:
     https://dataset.api.hub.zamg.ac.at/v1/station/current/tawes-v1-10min/metadata
     
+    API description:
+    https://dataset.api.hub.geosphere.at/v1/docs/
+    
     ----------------
     
     API Open-Meteo

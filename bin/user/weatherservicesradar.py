@@ -1054,7 +1054,7 @@ class DwdRadar(object):
         except (LookupError,AttributeError):
             return None
 
-    def map(self,x,y,width,height, filter=[], background_img=None, svg=False):
+    def map(self,x,y,width,height, filter=[], background_img=None, svg=False, credits=None):
         """ draw a map
         
             Args:
@@ -1193,13 +1193,13 @@ class DwdRadar(object):
                 cx = (coord['xy'][0]-self.coords['SW']['xy'][0])/1000
                 cy = (coord['xy'][1]-self.coords['SW']['xy'][1])/1000
                 peak = coord.get('peak',False)
-                if location in ('Dresden','Chemnitz'):
+                if location in ('Dresden','Chemnitz','Aschberg'):
                     # label besides the dot
                     y_off = 4+font_size/4
                     x_off = 6
-                elif location in ('Fichtelberg','Zugspitze'):
+                elif location in ('Fichtelberg','Zugspitze','Jelení','Weimar'):
                     # label right below the dot
-                    y_off = -font_size/4
+                    y_off = 4-font_size/4
                     x_off = 4
                 else: 
                     # label right above the dot
@@ -1235,7 +1235,7 @@ class DwdRadar(object):
             bcptxt = 'Geographie © %s\n' % (self.lines_copyright if self.lines_copyright else 'Kartendatenlieferant')
         else:
             bcptxt = ''
-        txt = '%sHerausgegeben %s\nDatenbasis Deutscher Wetterdienst\n%s© Wetterstation Wöllsdorf' % (product_str,ts_str,bcptxt)
+        txt = '%sHerausgegeben %s\nDatenbasis Deutscher Wetterdienst\n%s%s' % (product_str,ts_str,bcptxt,credits if credits else '© Wetterstation Wöllsdorf')
         if svg:
             pass
         else:
@@ -1441,7 +1441,6 @@ class DwdRadarThread(BaseThread):
         # locations to report
         self.locations = conf_dict['locations']
         self.maps = conf_dict['maps']
-        #loginf(self.maps)
         # target path
         self.target_path = conf_dict['path']
         # product
@@ -1521,7 +1520,7 @@ class DwdRadarThread(BaseThread):
                             imgs[0].save(fn,
                                      save_all=True,
                                      append_images=imgs[1:],
-                                     duration=80,
+                                     duration=[500]+[80]*(len(imgs)-2)+[1000],
                                      loop=0)
                         except (ValueError,OSError) as e:
                             if self.log_failure:
@@ -1690,7 +1689,8 @@ class DwdRadarThread(BaseThread):
                     size[2], # width
                     size[3], # height
                     filter=self.maps[map].get('filter',[]),
-                    background_img=self.maps[map]['background_img'])
+                    background_img=self.maps[map]['background_img'],
+                    credits=self.maps[map].get('credits'))
             if vv==0 or save_forecast:
                 dwd.save_map(fn, img)
             return img
@@ -1882,7 +1882,7 @@ def create_thread(thread_name,config_dict,archive_interval):
                     weewx.units.obs_group_dict.setdefault(p[:-4]+'Wawa','group_wmo_wawa')
                     weewx.units.obs_group_dict.setdefault(p[:-4]+'RainRate','group_rainrate')
             if 'map' in config_dict[section]:
-                conf_dict['maps'][section] = config_dict[section]
+                conf_dict['maps'][section] = weeutil.config.deep_copy(config_dict[section])
                 if isinstance(config_dict[section]['map'],list):
                     map = [weeutil.weeutil.to_int(x) for x in config_dict[section]['map']]
                 else:
