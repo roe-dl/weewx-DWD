@@ -38,9 +38,9 @@ class DWDInstaller(ExtensionInstaller):
                     'Calculations': {
                         'barometerDWD':'software, loop'
                     }
-                }
+                },
                 'DeutscherWetterdienst': {
-                }
+                },
                 'WeatherServices': {
                     'path': '/etc/weewx/skins/Belchertown/dwd',
                     'current': {
