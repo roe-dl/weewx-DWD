@@ -19,6 +19,7 @@
 from weecfg.extension import ExtensionInstaller
 import os
 import os.path
+import stat
 import shutil
 
 def loader():
@@ -80,32 +81,45 @@ class DWDInstaller(ExtensionInstaller):
       
     def configure(self, engine):
         # path of the user directory
-        user_root = engine.root_dict['USER_ROOT']
+        print(engine.root_dict)
+        user_root = engine.root_dict.get('USER_ROOT',engine.root_dict['USER_DIR'])
         # path for system wide commands
         bin = '/usr/local/bin'
         # links to create and files to copy
-        links = ['dwd-cap-warings','bbk-warings','msc-warnings']
+        links = ['dwd-cap-warnings','bbk-warnings','msc-warnings']
         cps = ['wget-dwd','html2ent.ansi']
         # complete path of capwarnings.py
-        capwarings_fn = os.path.join(user_root,'capwarnings.py')
+        capwarnings_fn = os.path.join(user_root,'capwarnings.py')
         # make capwarnings.py executable
-        engine.logger.log("chmod u=rwx,g=rx,o=rx %s" % capwarnings_fn)
+        try:
+            engine.logger.log("chmod u=rwx,g=rx,o=rx %s" % capwarnings_fn)
+        except AttributeError:
+            engine.printer.out("chmod u=rwx,g=rx,o=rx %s" % capwarnings_fn)
         if not engine.dry_run:
             os.chmod(capwarnings_fn,stat.S_IRWXU|stat.S_IRGRP|stat.S_IXGRP|stat.S_IROTH|stat.S_IXOTH)
         # create symbolic links 
         for li in links:
             fn = os.path.join(bin,li)
-            engine.logger.log("ln -s %s %s" % (capwarnings_fn,fn))
+            try:
+                engine.logger.log("ln -s %s %s" % (capwarnings_fn,fn))
+            except AttributeError:
+                engine.printer.out("ln -s %s %s" % (capwarnings_fn,fn))
             if not engine.dry_run:
                 os.symlink(capwarnings_fn,fn)
         # copy files
         for cp in cps:
-            fni = os.path.join(user_root,cp)
+            fni = os.path.join(user_root,'usr','local','bin',cp)
             fno = os.path.join(bin,cp)
-            engine.logger.log("cp %s %s" % (fni,fno))
+            try:
+                engine.logger.log("cp %s %s" % (fni,fno))
+            except AttributeError:
+                engine.printer.out("cp %s %s" % (fni,fno))
             if not engine.dry_run:
                 shutil.copy(fni,fno)
-            engine.logger.log("chmod u=rwx,g=rx,o=rx %s" % fno)
+            try:
+                engine.logger.log("chmod u=rwx,g=rx,o=rx %s" % fno)
+            except AttributeError:
+                engine.printer.out("chmod u=rwx,g=rx,o=rx %s" % fno)
             if not engine.dry_run:
                 os.chmod(fno,stat.S_IRWXU|stat.S_IRGRP|stat.S_IXGRP|stat.S_IROTH|stat.S_IXOTH)
         # no change of the configration file
