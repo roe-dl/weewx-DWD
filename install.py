@@ -29,7 +29,7 @@ class DWDInstaller(ExtensionInstaller):
     def __init__(self):
         super(DWDInstaller, self).__init__(
             version="0.x",
-            name='weather forecasts',
+            name='weatherforecasts',
             description='Service to retrieve data from weather services',
             author="Johanna Roedenbeck",
             author_email="",
