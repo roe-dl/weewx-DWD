@@ -872,6 +872,10 @@ werden. Sie wird automatisch eingebunden, wenn sie existiert:
 
 Der Name bezeichnet schon die Einfügestelle auf der Startseite.
 
+### Weather Data Center (WDC) Skin
+
+Siehe [Support for weewx DWD](https://github.com/Daveiano/weewx-wdc/wiki/Support-for-weewx-DWD).
+
 ### andere Skins
 
 Wenn es keine solchen vorbereiteten Einfügestellen gibt, müssen die

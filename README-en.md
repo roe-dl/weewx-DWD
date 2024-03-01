@@ -661,6 +661,10 @@ you want to display:
 The name of the file indicates the place where it is included in the
 web page.
 
+### Weather Data Center (WDC) skin
+
+See [Support for weewx DWD](https://github.com/Daveiano/weewx-wdc/wiki/Support-for-weewx-DWD).
+
 ### other skins
 
 Determine which include files are defined for that skin or include
