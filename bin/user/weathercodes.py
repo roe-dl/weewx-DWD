@@ -1316,6 +1316,62 @@ WMO_TABLES = {
   4680: WAWA_SYMBOLS
 }
 
+def _gen_wawa_list():
+    _WAWA = {
+        4:('trockener Dunst','',None,'fog.png','40.png','fog'),
+        5:('trockener Dunst, eingeschränkte Sichtweite','',None,'fog.png','40.png','fog'),
+        21:('nach Niederschlag','after precipitation',None,None,None,None),
+        27:('Sandfegen oder Schneefegen','',None,'wind.png','18.png','blowingsnow'),
+        28:('Sandfegen oder Schneefegen','',None,'wind.png','18.png','blowingsnow'),
+        29:('Sandfegen oder Schneefegen, eingeschränkte Sichtweite','',None,'wind.png','18.png','blowingsnow'),
+        30:('Nebel','fog',None,'fog.png','40.png','fog'),
+        35:('Nebel oder Eisnebel','fog',None,'fog.png','48.png'),
+        40:('Niederschlag','precipitation',21,'rain.png','8.png','rain'),
+        41:('leichter Niederschlag','slight precipitation',23,'rain.png','7.png','rain'),
+        42:('starker Niederschlag','heavy precipitation',21,'rain.png','9.png','rain'),
+        43:('leichter flüssiger Niederschlag','slight liquid precipitation',23,'rain.png','8.png','rain'),
+        44:('starker flüssiger Niederschlag','heavy liquid precipitation',23,'rain.png','9.png','rain'),
+        45:('leichter fester Niederschlag','slight solid precipitation',15,'snow.png','14.png','snow'),
+        46:('starker fester Niederschlag','heavy solid precipitation',13,'snow.png','16.png','snow'),
+        47:('leichter gefrierender Niederschlag','slight freezing precipitation',3,'sleet.png','66.png','freezingrain'),
+        48:('starker gefrierender Niederschlag','heavy freezing precipitation',2,'sleet.png','67.png','freezingrain'),
+        50:('Sprühregen','drizzle',18,'drizzle.png','7.png'),
+        55:('mäßiger gefrierender Sprühregen','moderate freezing drizzle',2,'sleet.png','66.png','freezingrain'),
+        56:('starker gefrierender Sprühregen','heavy freezing drizzle',2,'sleet.png','67.png','freezingrain'),
+        60:('Regen','rain',21,'rain.png','8.png','rain'),
+        65:('mäßiger gefrierender Regen','moderate freezing rain',4,'sleet.png','66.png','freezingrain'),
+        66:('starker gefrierender Regen','heavy freezing rain',4,'sleet.png','67.png','freezingrain'),
+        70:('Schneefall','snow',13,'snow.png','15.png','snow'),
+        80:('Regenschauer','rain shower',11,'rain.png','80.png','showers'),
+        89:('Hagel','hail',None,'hail.png','17.png','hail'),
+        90:('Gewitter','thunderstorm',1,'thunderstorm.png','27.png','tstorm'),
+        91:('leichtes Gewitter ohne Niederschlag','slight thunderstorm without precipitation',1,'thunderstorm.png','26.png','tstorm'),
+        94:('schweres Gewitter ohne Niederschlag','heavy thunderstorm without precipitation',1,'thunderstorm.png','26.png','tstorm'),
+    }
+    _WAWA_WW = {
+        0:0,1:1,2:2,3:3,18:18,
+        10:10,11:76,12:13,
+        20:28,22:20,23:21,24:22,25:24,26:27,
+        31:41,32:43,33:45,34:47,
+        51:51,52:53,53:55,54:56,57:58,58:59,
+        61:61,62:63,63:65,64:66,67:68,68:69,
+        71:71,72:73,73:75,77:77,78:78,
+        81:80,82:81,84:82,85:85,86:86,
+        92:95,93:96,95:97,96:99,99:19,
+    }
+    for i in range(100):
+        if i in _WAWA:
+            yield (i,)+_WAWA[i]
+        elif i in _WAWA_WW:
+            j = _WAWA_WW[i]
+            for k in WW_LIST:
+                if j==k[0]: break
+            yield (i,)+k[1:]
+        else:
+            yield (i,'reserviert','reserved')+(None,)*7
+
+WAWA_LIST = [i for i in _gen_wawa_list()]
+
 
 def get_ww(ww,n,night):
     """ get icon and description for the current weather 
@@ -1883,6 +1939,24 @@ if hasSearchList:
                     if attr=='station':
                         return StationBinder(ww=wwcode[0],n=self.nn,**self.kwargs)
             elif self.wawa_list is not None:
+                if attr=='wawa':
+                    return max(self.wawa_list)
+                if attr=='text':
+                    try:
+                        wawa_str = '1%02d' % max(self.wawa_list)
+                        if self.ww_texts and wawa_str in self.ww_texts:
+                            return self.ww_texts[wawa_str]
+                        elif self.lang=='de':
+                            return WAWA_LIST[max(self.wawa_list)][1]
+                        elif self.lang=='en':
+                            return WAWA_LIST[max(self.wawa_list)][2]
+                    except LookupError:
+                        return ''
+                if attr=='belchertown_icon':
+                    try:
+                        return WAWA_LIST[max(self.wawa_list)][4]
+                    except LookupError:
+                        return ''
                 if attr=='wi_icon':
                     return '<i class="wi wi-wmo4680-%02d"></i>' % max(self.wawa_list)
                 if attr=='svg_icon':
@@ -1959,6 +2033,7 @@ if hasSearchList:
                 if attr=='station':
                     return StationBinder(**self.kwargs)
             return super(PresentWeatherBinder,self).__getattr__(attr)
+
 
     class SVGIconBinder(object):
         """ Helper class for $presentweather(...).svg_icon """
@@ -2608,6 +2683,6 @@ Direct call is for testing only."""
         print('svg n',func(n=50).svg_icon)
         print('W',func(W=8).wmo_symbol)
         print('W',func(W=7).wmo_symbol(width=10))
+        print('wawa',func(wawa=50).belchertown_icon)
     else:
         print('nothing to do')
-
