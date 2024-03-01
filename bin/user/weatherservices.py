@@ -442,6 +442,8 @@ class DWDXType(weewx.xtypes.XType):
             if obs_type in forecast:
                 val = forecast[obs_type]
                 x = [x for x in val[0] if x is not None]
+                if aggregate_type=='not_null':
+                    return weewx.units.ValueTuple(True if x else False,'boolean','group_boolean')
                 if aggregate_type=='max':
                     return weewx.units.ValueTuple(max(x,default=None),val[1],val[2])
                 if aggregate_type=='min':
@@ -1836,7 +1838,20 @@ class DWDservice(StdService):
         self.station_altitude = weewx.units.convert(engine.stn_info.altitude_vt, 'meter')[0]
         self.dwdxtype = DWDXType(engine.stn_info.altitude_vt, rv_thread)
         if self.dwdxtype:
-            weewx.xtypes.xtypes.append(self.dwdxtype)
+            # Register the class
+            archive_seen = False
+            summaries_seen = False
+            for idx,xtype in enumerate(weewx.xtypes.xtypes):
+                if (isinstance(xtype,weewx.xtypes.XTypeTable) or
+                                            (archive_seen and summaries_seen)):
+                    weewx.xtypes.xtypes.insert(idx,self.dwdxtype)
+                    break
+                if isinstance(xtype,weewx.xtypes.ArchiveTable):
+                    archive_seen = True
+                elif isinstance(xtype,weewx.xtypes.DailySummaries):
+                    summaries_seen = True
+            else:
+                weewx.xtypes.xtypes.append(self.dwdxtype)
         weewx.units.obs_group_dict.setdefault('barometerDWD','group_pressure')
         weewx.units.obs_group_dict.setdefault('outSVPDWD','group_pressure')
 
