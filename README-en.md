@@ -33,6 +33,13 @@ Data will be processed to:
 * observation types in WeeWX
 * maps (in case of radar data)
 
+If you look for a skin that supports weewx-DWD directly, you may want to
+have a look at
+[Weather Data Center weewx-wdc](https://github.com/Daveiano/weewx-wdc).
+There is a detailed instruction how to configure this extension for 
+that skin in 
+[their wiki](https://github.com/Daveiano/weewx-wdc/wiki/Support-for-weewx-DWD).
+
 ## Trouble shooting
 
 If you need help, please make sure to provide:
