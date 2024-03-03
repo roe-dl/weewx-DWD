@@ -68,6 +68,9 @@ geben Sie bitte immer folgende Informationen mit an:
 * Rufen Sie das Programm noch einmal auf und geben Sie dabei zusätzlich
   den Parameter `--verbose` an. (Nicht bei `wget-dwd`)
 
+Bei Geschwindigkeitsproblemen bitte auch den Wiki-Artikel
+[XTypes performance](https://github.com/weewx/weewx/wiki/XTypes-performance)
+von Tom Keffer lesen.
 
 # Installation
 

@@ -49,6 +49,10 @@ If you need help, please make sure to provide:
 * the sections `[WeatherServices]` and `[DeutscherWetterdienst]` if any
 * Try to use the `--verbose` option to get more information
 
+In case of performance issues please additionally read the wiki article
+[XTypes performance](https://github.com/weewx/weewx/wiki/XTypes-performance)
+from Tom Keffer.
+
 ## Prerequisites
 
 You may install GeoPy:
