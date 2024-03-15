@@ -57,6 +57,39 @@ ansehen. Die Konfiguration ist im
 [dortigen Wiki](https://github.com/Daveiano/weewx-wdc/wiki/Support-for-weewx-DWD)
 ausführlich beschrieben.
 
+> [!IMPORTANT]
+> Wenn Sie Fehler melden wollen oder Hilfe benötigen, lesen Sie bitte
+> zuerst den Abschnitt [Melden von Fehlern](#melden-von-fehlern)
+
+* [Melden von Fehlern](#melden-von-fehlern)
+* [Installation](#installation)
+* [Programme](#programme)
+  * [wget-dwd](#wget-dwd)
+  * [dwd-warnings](#dwd-warnings) (veraltet)
+  * [dwd-cap-warnings](#dwd-cap-warnings)
+  * [dwd-mosmix](#dwd-mosmix)
+  * [bbk-warnings](#bbk-warnings)
+  * [/etc/cron.hourly/dwd](#etccronhourlydwd)
+* [WeeWX-Service](#weewx-service)
+  * [Wetterdienste und Produkte/Wettermodelle](#wetterdienste-und-produktewettermodelle)
+  * [Einbinden in WeeWX](#einbinden-in-weewx)
+  * [Meßgrößen](#meßgrößen)
+* [Searchlist-Erweiterung `$presentweather`](#searchlist-erweiterung-presentweather)
+* [Warnregionen](#warnregionen)
+* [Konfiguration](#konfiguration)
+  * [Verzeichnis anlegen](#verzeichnis-anlegen)
+  * [Konfiguration in weewx.conf](#konfiguration-in-weewxconf)
+  * [Wo können die nachfolgenden Beispiele eingefügt werden?](#wo-können-die-nachfolgenden-beispiele-eingefügt-werden)
+  * [Text-Vorhersage im HTML-Template](#text-vorhersage-im-html-template)
+  * [Wetterwarnungen im HTML-Template](#wetterwarnungen-im-html-template)
+  * [Wettervorhersage im HTML-Template](#wettervorhersage-im-html-template)
+  * [Waldbrandgefahrenstufe](#waldbrandgefahrenstufe)
+  * [DWD-Wettervorhersage in der Belchertown-Skin](#dwd-wettervorhersage-in-der-belchertown-skin)
+  * [Wettervorhersage als Diagramm](#wettervorhersage-als-diagramm)
+  * [Wettervorhersage bei wechselndem Standort](#wettervorhersage-bei-wechselndem-standort)
+  * [Wetterkarte im HTML-Template](#wetterkarte-im-html-template)
+* [Verweise](#verweise)
+
 # Melden von Fehlern
 
 Wenn Sie Fehler melden wollen oder Hilfe benötigen, 
