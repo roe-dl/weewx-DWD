@@ -50,16 +50,19 @@ Die Daten werden aufbereitet als:
 * Variablen (observation type) in WeeWX
 * bei Radardaten auch zu Landkarten
 
-Wenn Sie eine Visualisierung (Skin) suchen, die weewx-DWD direkt
-unterstützt, können Sie sich 
-[Weather Data Center skin weewx-wdc](https://github.com/Daveiano/weewx-wdc)
-ansehen. Die Konfiguration ist im 
-[dortigen Wiki](https://github.com/Daveiano/weewx-wdc/wiki/Support-for-weewx-DWD)
-ausführlich beschrieben.
+> [!TIP]
+> Wenn Sie eine Visualisierung (Skin) suchen, die weewx-DWD direkt
+> unterstützt, können Sie sich 
+> [Weather Data Center skin weewx-wdc](https://github.com/Daveiano/weewx-wdc)
+> ansehen. Die Konfiguration ist im 
+> [dortigen Wiki](https://github.com/Daveiano/weewx-wdc/wiki/Support-for-weewx-DWD)
+> ausführlich beschrieben.
 
 > [!IMPORTANT]
-> Wenn Sie Fehler melden wollen oder Hilfe benötigen, lesen Sie bitte
-> zuerst den Abschnitt [Melden von Fehlern](#melden-von-fehlern)
+> **Wenn Sie Fehler melden wollen oder Hilfe benötigen, lesen Sie bitte
+> zuerst den Abschnitt [Melden von Fehlern](#melden-von-fehlern).**
+
+# Inhalt
 
 * [Melden von Fehlern](#melden-von-fehlern)
 * [Installation](#installation)
