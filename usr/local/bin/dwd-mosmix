@@ -641,6 +641,8 @@ class DwdMosmix(object):
             print('station location: ','lat',self.latitude,'lon',self.longitude,'alt',self.altitude)
             print('aeris api id:     ',self.forecast_api_id)
             print('aeris api secret: ',self.forecast_api_secret)
+            print('aqi source:       ',self.belchertown_aqi_source)
+            print('WEEWX_ROOT:       ',config_dict.get('WEEWX_ROOT','undefined'))
             print('SQLITE_ROOT:      ',self.SQLITE_ROOT)
             print('--------------------------------------------------------')
 
@@ -1905,17 +1907,17 @@ class DwdMosmix(object):
                 print(e)
                 forecast['aqi'] = [{
                     'success':False,
-                    'error':{'code':e.__name__,
+                    'error':{'code':e.__class__.__name__,
                              'description':str(e)},
                     'response':[] }]
-        elif self.belchertown_aqi_source[0:3]=='uba':
+        elif self.belchertown_aqi_source and self.belchertown_aqi_source[0:3]=='uba':
             try:
                 forecast['aqi'] = self.download_uba('aqi',self.belchertown_aqi_source[3:])
             except Exception as e:
                 print(e)
                 forecast['aqi'] = [{
                     'success':False,
-                    'error':{'code':e.__name__,
+                    'error':{'code':e.__class__.__name__,
                              'description':str(e)},
                     'response':[] }]
         
@@ -1978,7 +1980,7 @@ class DwdMosmix(object):
             try:
                 return [json.loads(reply.content)]
             except Exception as e:
-                return [{'success':False,'error':{'code':e.__name__,'description':str(e)},'response':[]}]
+                return [{'success':False,'error':{'code':e.__class__.__name__,'description':str(e)},'response':[]}]
         else:
             if self.log_failure or self.verbose:
                 logerr('error downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
@@ -1986,7 +1988,7 @@ class DwdMosmix(object):
                 'success':False,
                 'error':{'code':reply.status_code,'description':reply.reason},
                 'response':[] }]
-
+    
     def download_uba(self, what, station, lang='de'):
         """ Download air quality data from Umweltbundesamt 
             
@@ -2019,6 +2021,10 @@ class DwdMosmix(object):
             try:
                 with open(fn,'r') as file:
                     components = json.load(file)
+                    for component in components:
+                        if 'component id' in component:
+                            raise LookupError('outdated file version')
+                        break
             except Exception:
                 components = self.download_uba('components',None,lang)
                 with open(fn,'w') as file:
@@ -2048,7 +2054,7 @@ class DwdMosmix(object):
             try:
                 rtn = json.loads(reply.content)
             except Exception as e:
-                return [{'success':False,'error':{'code':e.__name__,'description':str(e)},'response':[]}]
+                return [{'success':False,'error':{'code':e.__class__.__name__,'description':str(e)},'response':[]}]
             if what in ['aqi','airquality']:
                 res = dict()
                 comp = dict()
@@ -2089,15 +2095,15 @@ class DwdMosmix(object):
                     }
                     for ii in res['data']:
                         vals = res['data'][ii][-1]
-                        pols = [{'type':comp[vals[x]['component id']]['component code'],
-                                 'name':comp[vals[x]['component id']]['component name'],
+                        pols = [{'type':comp[vals[x]['component id']]['Code'],
+                                 'name':comp[vals[x]['component id']]['Translated name'],
                                  'valuePPB':None,
                                  'valueUGM3':vals[x]['value'],
                                  'uba_index':vals[x]['index'],
-                                 'aqi':epaaqi(comp[vals[x]['component id']]['component code'],vals[x]['value']),
+                                 'aqi':epaaqi(comp[vals[x]['component id']]['Code'],vals[x]['value']),
                                  'category':uba_category(vals[x]['index'],lang),
                                  'color':uba_category(vals[x]['index'],'color'),
-                                 'unit':comp[vals[x]['component id']]['component unit']
+                                 'unit':comp[vals[x]['component id']]['Unit']
                                  } for x in vals if isinstance(vals[x],dict)]
                         #aidx = max([vals[x]['index'] for x in vals if isinstance(vals[x],dict)])
                         uidx = max([x['uba_index'] for x in pols])
@@ -2133,13 +2139,39 @@ class DwdMosmix(object):
                 else:
                     res['components'] = comp
             elif 'indices' in rtn:
+                # normalize indices list
+                for idx,val in enumerate(rtn['indices']):
+                    if ':' in val and '-' in val:
+                        # new index names
+                        v1 = val.split(':')
+                        v2 = v1[1].strip().split('-')
+                        rtn['indices'][idx] = (v1[0].strip(),v2[0].strip(),v2[1].strip())
+                    else:
+                        # old index names
+                        nm = val
+                        if what=='components':
+                            # normalize index names
+                            if nm=='component id':
+                                nm = 'Id'
+                            elif nm=='component code':
+                                nm = 'Code'
+                            elif nm=='component symbol':
+                                nm = 'Symbol'
+                            elif nm=='component unit':
+                                nm = 'Unit'
+                            elif nm=='component name':
+                                nm = 'Translated name'
+                        rtn['indices'][idx] = (str(idx),val,'string')
+                    if self.verbose:
+                        loginf('index %s: %s' % (idx,rtn['indices'][idx]))
+                # convert to dict
                 res = dict()
                 for ii in rtn:
                     if ii not in ['indices','count','request']:
                         res[ii] = dict()
                         for idx,val in enumerate(rtn[ii]):
                             try:
-                                res[ii][rtn['indices'][idx]] = val
+                                res[ii][rtn['indices'][idx][1]] = val
                             except LookupError:
                                 pass
             else:
@@ -2868,6 +2900,7 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
         # test only
         print("Using test configuration")
         config = {
+            'WEEWX_ROOT':'.',
             'Station': {
                 'latitude':53.6059563,
                 'longitude':11.341407,
@@ -2876,6 +2909,11 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
             'DatabaseTypes': {
                 'SQLite': {
                     'SQLITE_ROOT':'.'
+                }
+            },
+            'StdReport': {
+                'Belchertown': {
+                    'HTML_ROOT':'.'
                 }
             },
             'WeatherServices': {
@@ -2901,7 +2939,7 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
         config[ws]['forecast']['icon_set'] = options.iconset
     if options.aqisource:
         if 'Belchertown' not in config['WeatherServices']:
-            config['WeatherServices']['Belchertown'] = dict()
+            config['WeatherServices']['Belchertown'] = {'section':'Belchertown','forecast':location,'warnings':None}
         config['WeatherServices']['Belchertown']['aqi_source'] = options.aqisource
     if options.hideplacemark is not None:
         config[ws]['forecast']['show_placemark'] = not options.hideplacemark
