@@ -66,7 +66,7 @@ import threading
 import random
 import math
 import struct
-from PIL import Image, ImageColor, ImageDraw, ImageFont
+from PIL import Image, ImageColor, ImageDraw, ImageFont, PngImagePlugin
 
 # deal with differences between python 2 and python 3
 try:
@@ -1299,10 +1299,10 @@ class DwdRadar(object):
         (time5_ts-time4_ts)/1000000000,
         (time.thread_time_ns()-time0_ts)/1000000000))
         baseimg.close()
-        return img, None
-        return img, baseimg
+        return img, None, product_str, txt
+        return img, baseimg, product_str, txt
     
-    def save_map(self, fn, img):
+    def save_map(self, fn, img, title=None, desc=None, credits=None):
         """ Save a previously created map to a file
             
             Args:
@@ -1313,8 +1313,32 @@ class DwdRadar(object):
                 nothing
         """
         if self.verbose: start_ts = time.time()
+        copyright = [
+            credits if credits else 'Wetterstation Wöllsdorf',
+            'Deutscher Wetterdienst'
+        ]
+        if self.lines and self.lines_copyright:
+            copyright.append(str(self.lines_copyright))
+        if fn.endswith('.png'):
+            try:
+                pnginfo = PngImagePlugin.PngInfo()
+                if title:
+                    pnginfo.add_text('Title',str(title))
+                if desc:
+                    pnginfo.add_text('Description',str(desc),zip=True)
+                pnginfo.add_text('Copyright',', '.join(copyright))
+                pnginfo.add_text('Software','weewx-DWD')
+                pnginfo.add_text('Source','Wetterradarverbund des Deutschen Wetterdienstes (DWD)')
+                ti = time.gmtime(self.timestamp)
+                mon = ('','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC')[ti.tm_mon]
+                pnginfo.add_text('Creation Time','%02d %s %04d %02d:%02d:%02d +0000' % (ti.tm_mday,mon,ti.tm_year,ti.tm_hour,ti.tm_min,ti.tm_sec))
+            except (ValueError,TypeError,LookupError):
+                pnginfo = None
         try:
-            img.save(fn)
+            if fn.endswith('.png') and pnginfo is not None:
+                img.save(fn,pnginfo=pnginfo)
+            else:
+                img.save(fn)
         except (ValueError,OSError) as e:
             if self.log_failure:
                 logerr("could not create '%s': %s %s" % (fn,e.__class__.__name__,e))
@@ -1498,6 +1522,7 @@ class DwdRadarThread(BaseThread):
                     # include forecast?
                     with_forecast = self.maps[map].get('forecast','none').lower()
                     imgs = []
+                    descs = []
                     for ii in dwd:
                         # test shutdown request
                         if not self.running: return
@@ -1507,9 +1532,10 @@ class DwdRadarThread(BaseThread):
                         if vv==0: dwd0 = ii
                         # create map image
                         if vv==0 or with_forecast in ('png','gif'):
-                            img = self.write_map(map,ii,vv,save_forecast=with_forecast=='png')
+                            img, desc = self.write_map(map,ii,vv,save_forecast=with_forecast=='png')
                             if img:
                                 imgs.append(img)
+                                descs.append(desc)
                     if with_forecast=='gif' and imgs:
                         if self.maps[map].get('prefix'):
                             fn = self.maps[map]['prefix']+'Radar-'+dwd0.product+'.gif'
@@ -1520,8 +1546,9 @@ class DwdRadarThread(BaseThread):
                             imgs[0].save(fn,
                                      save_all=True,
                                      append_images=imgs[1:],
-                                     duration=[500]+[80]*(len(imgs)-2)+[1000],
-                                     loop=0)
+                                     duration=[500]+[100]*(len(imgs)-2)+[1000],
+                                     loop=0,
+                                     comment=descs[0])
                         except (ValueError,OSError) as e:
                             if self.log_failure:
                                 logerr("thread '%s': error saving '%s' %s %s" % (self.name,fn,e.__class__.__name__,e)) 
@@ -1543,7 +1570,7 @@ class DwdRadarThread(BaseThread):
             for map in self.maps:
                 # test shutdown request
                 if not self.running: return
-                img = self.write_map(map,dwd,0,False)
+                img, _ = self.write_map(map,dwd,0,False)
                 if img: img.close()
             self.queue_for_hgrv(dwd)
 
@@ -1683,7 +1710,7 @@ class DwdRadarThread(BaseThread):
                 dwd.load_lines(os.path.join(self.target_path,self.maps[map]['borders']),self.maps[map].get('borders_copyright','Kartendatenlieferant'))
             else:
                 dwd.lines_copyright = self.maps[map].get('borders_copyright','Kartendatenlieferant')
-            img, self.maps[map]['background_img'] = dwd.map(
+            img, self.maps[map]['background_img'], title, desc = dwd.map(
                     size[0], # x
                     size[1], # y
                     size[2], # width
@@ -1692,12 +1719,14 @@ class DwdRadarThread(BaseThread):
                     background_img=self.maps[map]['background_img'],
                     credits=self.maps[map].get('credits'))
             if vv==0 or save_forecast:
-                dwd.save_map(fn, img)
-            return img
+                if self.maps[map].get('name'):
+                    title = '%s %s' % (title,self.maps[map]['name'])
+                dwd.save_map(fn, img, title=title, desc=desc, credits=self.maps[map].get('credits'))
+            return img, desc
         except (LookupError,ValueError,TypeError,ArithmeticError,NameError) as e:
             if self.log_failure:
                 logerr("thread '%s': error writing map %s %s" % (self.name,e.__class__.__name__,e))
-            return None
+            return None, None
 
     def get_data(self, ts):
         data = dict()
@@ -2160,12 +2189,12 @@ Coordinates go from west to east and south to north, respectively.
             xxx = [str(coord['xy']) for coord in line['coordinates']]
             print('    [%s],' % ','.join(xxx))
         """
-        img,_ = dwd.map(image_size[0],image_size[1],image_size[2],image_size[3],filter=filter,svg=options.svg)
+        img,_,title,desc = dwd.map(image_size[0],image_size[1],image_size[2],image_size[3],filter=filter,svg=options.svg)
         if options.svg:
             with open('radar-'+dwd.product+'.svg','wt') as f:
                 f.write(img)
         else:
-            dwd.save_map('radar-'+dwd.product+'.png',img)
+            dwd.save_map('radar-'+dwd.product+'.png',img,title=title,desc=desc)
 
     if options.location:
         if options.location in dwd.coords:
