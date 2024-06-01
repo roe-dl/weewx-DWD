@@ -812,6 +812,7 @@ Beispiel:
             model = MOSMIX
             # optional darzustellende Wetterelemente anstelle des defaults
             #observations_daily = ww, TTTmax, TTTmin, windchill, FFavg, DDavg, RR1c, Rd10, Neffavg, RSunD, Rad1hsum, VVmin
+            #observations_hourly = TTT, humidity , FF , DD , RR1c , R101 , PPPP , Rad1h
             # Was würde eine PV-Anlage an dem Tag bringen? 
             #pv_factor = 10.0 # Fläche * Wirkungsgrad
         [[[SN20]]]

@@ -524,9 +524,9 @@ class DwdMosmix(object):
         else:
             self.stations_dict = forecast_dict.get('stations',configobj.ConfigObj())
         # HTML config
-        self.show_obs_symbols = forecast_dict.get('show_obs_symbols',True)
-        self.show_obs_description = forecast_dict.get('show_obs_description',False)
-        self.show_placemark = forecast_dict.get('show_placemark',True)
+        self.show_obs_symbols = tobool(forecast_dict.get('show_obs_symbols',True))
+        self.show_obs_description = tobool(forecast_dict.get('show_obs_description',False))
+        self.show_placemark = tobool(forecast_dict.get('show_placemark',True))
         self.hourly_hours = int(forecast_dict.get('hourly_hours',11))
         # orientation of the HTML table
         orientation = forecast_dict.get('orientation','h,v')
@@ -2494,7 +2494,13 @@ class DwdMosmix(object):
             if 'hourly' in output:
                 if self.verbose:
                     loginf('output hourly forecast')
-                self.write_html(placemark,timesteps,daynights,['TTT','humidity','FF','DD','RR1c','R101','PPPP','Rad1h'],dryrun,range=self.hourly_hours,lang=lang)
+                try:
+                    obstypes = self.stations_dict[placemark['id']]['observations_hourly']
+                except LookupError:
+                    obstypes = None
+                if not isinstance(obstypes,list):
+                    obstypes = ['TTT','humidity','FF','DD','RR1c','R101','PPPP','Rad1h']
+                self.write_html(placemark,timesteps,daynights,obstypes,dryrun,range=self.hourly_hours,lang=lang)
         
         # create forecast in JSON format
         if 'json' in output:
