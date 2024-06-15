@@ -1526,7 +1526,7 @@ class DwdRadarThread(BaseThread):
                     scale = 1.0
                     for ii in dwd:
                         # test shutdown request
-                        if not self.running: return
+                        if not self.running: break
                         # forecast indicator
                         vv = int(ii.header['VV'])
                         # remember actual data record
@@ -1535,19 +1535,40 @@ class DwdRadarThread(BaseThread):
                         if vv==0 or with_forecast in ('png','gif'):
                             img, desc, scale = self.write_map(map,ii,vv,save_forecast=with_forecast=='png')
                             if img:
+                                # add the time at the bottom right corner
+                                try:
+                                    if ii.background and ii.background[0]=='#':
+                                        dark_background = ii.background[1]<='4'
+                                    else:
+                                        dark_background = ii.background=='dark'
+                                    txtdraw = ImageDraw.Draw(img)
+                                    txtdraw.text(
+                                        img.size,
+                                        time.strftime('%H:%M ',time.localtime(ii.timestamp+vv*60)),
+                                        fill=ImageColor.getrgb('#FFF' if dark_background else '#000'),
+                                        font=ImageFont.truetype(ii.font_file,int((img.height/1000.0)**0.25*32)),
+                                        anchor='rd')
+                                except (TypeError,ValueError,ArithmeticError,LookupError):
+                                    pass
+                                # add to the list of images and descriptions
                                 imgs.append(img)
                                 descs.append(desc)
-                    if with_forecast=='gif' and imgs:
+                    # animated GIF file
+                    if with_forecast=='gif' and imgs and self.running:
                         if self.maps[map].get('prefix'):
                             fn = self.maps[map]['prefix']+'Radar-'+dwd0.product+'.gif'
                         else:
                             fn = 'radar-'+dwd0.product+'.gif'
                         fn = os.path.join(self.target_path,fn)
                         try:
-                            wt = self.maps[map].get('animation_interval')
+                            # how long one image is shown
+                            wt = weeutil.weeutil.to_float(
+                                self.maps[map].get('animation_interval')
+                            )
                             if wt is None or wt<=1:
-                                wt = int(scale*100) if scale<5.0 else 500
-                            st = 500 if wt<=500 else 1000
+                                wt = int(scale*100) if scale<3.0 else 300
+                            st = wt+400
+                            # save as animated GIF
                             imgs[0].save(fn,
                                      save_all=True,
                                      append_images=imgs[1:],
@@ -1560,6 +1581,7 @@ class DwdRadarThread(BaseThread):
                         else:
                             if self.log_success:
                                 loginf("thread '%s': animated GIF %s saved" % (self.name,fn))
+                    # close images and free memory
                     while imgs:
                         img = imgs.pop()
                         if img: img.close()
