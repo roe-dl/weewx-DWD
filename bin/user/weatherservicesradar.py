@@ -1299,8 +1299,8 @@ class DwdRadar(object):
         (time5_ts-time4_ts)/1000000000,
         (time.thread_time_ns()-time0_ts)/1000000000))
         baseimg.close()
-        return img, None, product_str, txt
-        return img, baseimg, product_str, txt
+        return img, None, product_str, txt, scale
+        return img, baseimg, product_str, txt, scale
     
     def save_map(self, fn, img, title=None, desc=None, credits=None):
         """ Save a previously created map to a file
@@ -1326,7 +1326,7 @@ class DwdRadar(object):
                     pnginfo.add_text('Title',str(title))
                 if desc:
                     pnginfo.add_text('Description',str(desc),zip=True)
-                pnginfo.add_text('Copyright',', '.join(copyright))
+                pnginfo.add_text('Copyright','; '.join(copyright))
                 pnginfo.add_text('Software','weewx-DWD')
                 pnginfo.add_text('Source','Wetterradarverbund des Deutschen Wetterdienstes (DWD)')
                 ti = time.gmtime(self.timestamp)
@@ -1523,6 +1523,7 @@ class DwdRadarThread(BaseThread):
                     with_forecast = self.maps[map].get('forecast','none').lower()
                     imgs = []
                     descs = []
+                    scale = 1.0
                     for ii in dwd:
                         # test shutdown request
                         if not self.running: return
@@ -1532,7 +1533,7 @@ class DwdRadarThread(BaseThread):
                         if vv==0: dwd0 = ii
                         # create map image
                         if vv==0 or with_forecast in ('png','gif'):
-                            img, desc = self.write_map(map,ii,vv,save_forecast=with_forecast=='png')
+                            img, desc, scale = self.write_map(map,ii,vv,save_forecast=with_forecast=='png')
                             if img:
                                 imgs.append(img)
                                 descs.append(desc)
@@ -1543,10 +1544,14 @@ class DwdRadarThread(BaseThread):
                             fn = 'radar-'+dwd0.product+'.gif'
                         fn = os.path.join(self.target_path,fn)
                         try:
+                            wt = self.maps[map].get('animation_interval')
+                            if wt is None or wt<=1:
+                                wt = int(scale*100) if scale<5.0 else 500
+                            st = 500 if wt<=500 else 1000
                             imgs[0].save(fn,
                                      save_all=True,
                                      append_images=imgs[1:],
-                                     duration=[500]+[100]*(len(imgs)-2)+[1000],
+                                     duration=[st]+[wt]*(len(imgs)-2)+[1000],
                                      loop=0,
                                      comment=descs[0])
                         except (ValueError,OSError) as e:
@@ -1570,7 +1575,7 @@ class DwdRadarThread(BaseThread):
             for map in self.maps:
                 # test shutdown request
                 if not self.running: return
-                img, _ = self.write_map(map,dwd,0,False)
+                img, _, _ = self.write_map(map,dwd,0,False)
                 if img: img.close()
             self.queue_for_hgrv(dwd)
 
@@ -1710,7 +1715,7 @@ class DwdRadarThread(BaseThread):
                 dwd.load_lines(os.path.join(self.target_path,self.maps[map]['borders']),self.maps[map].get('borders_copyright','Kartendatenlieferant'))
             else:
                 dwd.lines_copyright = self.maps[map].get('borders_copyright','Kartendatenlieferant')
-            img, self.maps[map]['background_img'], title, desc = dwd.map(
+            img, self.maps[map]['background_img'], title, desc, scale = dwd.map(
                     size[0], # x
                     size[1], # y
                     size[2], # width
@@ -1722,11 +1727,11 @@ class DwdRadarThread(BaseThread):
                 if self.maps[map].get('name'):
                     title = '%s %s' % (title,self.maps[map]['name'])
                 dwd.save_map(fn, img, title=title, desc=desc, credits=self.maps[map].get('credits'))
-            return img, desc
+            return img, desc, scale
         except (LookupError,ValueError,TypeError,ArithmeticError,NameError) as e:
             if self.log_failure:
                 logerr("thread '%s': error writing map %s %s" % (self.name,e.__class__.__name__,e))
-            return None, None
+            return None, None, 1.0
 
     def get_data(self, ts):
         data = dict()
@@ -2189,7 +2194,7 @@ Coordinates go from west to east and south to north, respectively.
             xxx = [str(coord['xy']) for coord in line['coordinates']]
             print('    [%s],' % ','.join(xxx))
         """
-        img,_,title,desc = dwd.map(image_size[0],image_size[1],image_size[2],image_size[3],filter=filter,svg=options.svg)
+        img,_,title,desc,scale = dwd.map(image_size[0],image_size[1],image_size[2],image_size[3],filter=filter,svg=options.svg)
         if options.svg:
             with open('radar-'+dwd.product+'.svg','wt') as f:
                 f.write(img)
