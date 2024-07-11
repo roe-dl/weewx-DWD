@@ -250,6 +250,12 @@ except ImportError:
     has_wildfire = False
 
 try:
+    import user.weatherserviceshealth
+    has_health = True
+except ImportError:
+    has_health = False
+
+try:
     from user.weatherservicesdb import databasecreatethread, databaseput
     has_db = True
 except ImportError:
@@ -1767,6 +1773,15 @@ class DWDservice(StdService):
                     except (LookupError,ValueError,TypeError,ArithmeticError) as e:
                         logerr("error creating forecast thread '%s': %s %s" % (location,e.__class__.__name__,e))
                     continue
+            if has_health:
+                if provider.lower()=='dwd' and location_dict.get('model','-').lower() in user.weatherserviceshealth.models_dict:
+                    try:
+                        thread = user.weatherserviceshealth.create_thread(location,location_dict,archive_interval)
+                        if thread:
+                            self.threads[location] = thread
+                    except (LookupError,ValueError,TypeError,ArithmeticError) as e:
+                        logerr("error creating forecast thread '%s': %s %s" % (location,e.__class__.__name__,e))
+                    continue
         
         if has_radar:
             radar_dict = configobj.ConfigObj()
@@ -1987,7 +2002,10 @@ class DWDservice(StdService):
                     if data and has_db:
                         databaseput(self.database_q,datasource,self.threads[thread_name]['prefix'],[data]) 
                 else:
-                    data = None
+                    try:
+                        data,interval = self.threads[thread_name]['thread'].get_data(ts)
+                    except NotImplementedError:
+                        data,interval = None,None
                 #print(thread_name,data,interval)
                 if data:
                     x = data.get('dateTime',(ts,'unix_epoch','group_time'))[0]

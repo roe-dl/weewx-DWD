@@ -486,6 +486,20 @@ dann ein Wettermodell oder Produkt von diesem Anbieter.
   Sachsenforst erforderlich. Es werden keine Kosten erhoben,
   aber Auflagen erteilt.
 
+* DWD Biowettervorhersage
+
+  ```
+            provider = DWD
+            model = biowetter
+  ```
+
+* DWD Pollenflugvorhersage
+
+  ```
+            provider = DWD
+            model = pollen
+  ```
+
 ## Einbinden in WeeWX
 
 Um den Dienst in WeeWX zu aktivieren, muß er in `weewx.conf` 
@@ -527,6 +541,8 @@ es sich, im Präfix *keine* Unterstreichstriche zu verwenden,
 da diese in den MQTT-Topics zur Trennung von Meßgrößenname und Einheit 
 genutzt werden. Das gilt ganz besonders bei Nutzung der
 Belchertown-Skin.
+
+### aktuelle Meßwerte von Wetterstationen DWD-POI, DWD-CDC, ZAMG
 
 Folgende Meßgrößen sind definiert, aber nicht immer verfügbar:
 * immer: 
@@ -578,6 +594,23 @@ Folgende Meßgrößen sind definiert, aber nicht immer verfügbar:
 
 `icon`, `icontitle`, `station_id` und `MESS_DATUM_ENDE` sind 
 Textfelder, die nur mit `.raw` benutzt werden können.
+
+### aktuelle Werte aus den Biowetter- und Pollenvorhersagen
+
+* `biowetterLastUpdate`
+* `biowetterNextUpdate`
+* `biowetterIssued`
+* `biowetterValidFrom`
+* `biowetterValidTo`
+* `biowetterValue`
+
+* `pollenLastUpdate`
+* `pollenNextUpdate`
+* `pollenIssued`
+* `pollenValidFrom`
+* `pollenValidTo`
+* `pollen<Pflanzenart>Value`
+* `pollen<Pflanzenart>Text`
 
 # Searchlist-Erweiterung `$presentweather`
 
@@ -831,6 +864,30 @@ Beispiel:
             provider = Sachsenforst
             # Uhrzeit, zu der der Anbieter die Daten bereitstellt
             fetch_time = 04:20 UTC
+        [[[Health]]]
+            # Biowetter
+            log_sleeping = true
+            # Anbieter
+            provider = DWD
+            model = biowetter
+            # Vorhersageregion (Beispiel)
+            area = 'G'
+            # Dateiname der zu erzeugenden Datei health-biowetter-<file>*
+            file = 'G'
+            # Präfix für Meßgrößen
+            prefix = ''
+        [[[Pollen]]]
+            # Pollenflugvorhersage
+            log_sleeping = true
+            # Anbieter
+            provider = DWD
+            model = pollen
+            # Vorhersageregion (Beispiel)
+            area = 81
+            # Dateiname der zu erzeugenden Datei health-pollen-<file>*
+            file = '81'
+            # Präfix für Meßgrößen
+            prefix = ''
     # Warnungen (dwd-cap-warnings, bbk-warnings, msc-warnings)
     [[warning]]
         #icons = ... # Optional, für alle Provider

@@ -107,6 +107,7 @@ import datetime
 import json
 import random
 import time
+import os
 import os.path
 
 if __name__ == '__main__':
@@ -494,10 +495,16 @@ class WildfireThread(BaseThread):
                 print("-- JSON -- wbs-%s.json ------------------------------"%__ww)
                 print(json.dumps(data,indent=4,ensure_ascii=False))
             else:
-                with open(os.path.join(target_path,"wbs-%s.inc" % __ww),"w") as file:
+                fn = os.path.join(target_path,"wbs-%s.inc" % __ww)
+                fn_tmp = '%s.tmp' % fn
+                with open(fn_tmp,"w") as file:
                     file.write(s)
-                with open(os.path.join(target_path,"wbs-%s.json" % __ww),"w") as file:
+                os.rename(fn_tmp,fn)
+                fn = os.path.join(target_path,"wbs-%s.json" % __ww)
+                fn_tmp = '%s.tmp' % fn
+                with open(fn_tmp,"w") as file:
                     json.dump(data_list,file,indent=4,ensure_ascii=False)
+                os.rename(fn_tmp,fn)
 
     def write_html_bootstrap_modal(self, wwarn, target_path, dryrun):
         """ create link and modal window for Bootstrap framework """

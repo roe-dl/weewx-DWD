@@ -115,6 +115,7 @@ import json
 import time
 import datetime
 import configobj
+import os
 import os.path
 import requests
 import csv
@@ -1031,10 +1032,16 @@ class DWD(CAP):
                 print("-- JSON -- warn-%s.json -----------------------------"%__ww)
                 print(json.dumps(wwarn[__ww],indent=4,ensure_ascii=False))
             else:
-                with open("%s/warn-%s.inc" % (target_path,__ww),"w") as file:
+                fn = "%s/warn-%s.inc" % (target_path,__ww)
+                fn_tmp = "%s.tmp"
+                with open(fn_tmp,"w") as file:
                     file.write(s)
-                with open("%s/warn-%s.json" % (target_path,__ww),"w") as file:
+                os.rename(fn_tmp,fn)
+                fn = "%s/warn-%s.json" % (target_path,__ww)
+                fn_tmp = "%s.tmp"
+                with open(fn_tmp,"w") as file:
                     json.dump(wwarn[__ww],file,indent=4)
+                os.rename(fn_tmp,fn)
 
 
     def download_warncellids(self, target_path, dryrun=False):

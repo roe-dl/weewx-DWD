@@ -61,6 +61,7 @@ import bz2
 import tarfile
 import io
 import configobj
+import os
 import os.path
 import threading
 import random
@@ -1335,10 +1336,12 @@ class DwdRadar(object):
             except (ValueError,TypeError,LookupError):
                 pnginfo = None
         try:
+            fn_tmp = '%s.tmp%s' % (fn[:-4],fn[-4:])
             if fn.endswith('.png') and pnginfo is not None:
-                img.save(fn,pnginfo=pnginfo)
+                img.save(fn_tmp,pnginfo=pnginfo)
             else:
-                img.save(fn)
+                img.save(fn_tmp)
+            os.rename(fn_tmp,fn)
         except (ValueError,OSError) as e:
             if self.log_failure:
                 logerr("could not create '%s': %s %s" % (fn,e.__class__.__name__,e))

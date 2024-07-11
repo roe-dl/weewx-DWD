@@ -82,6 +82,21 @@ from weewx.engine import StdService
 import weeutil.weeutil
 import weewx.units
 
+# week day names
+WEEKDAY_SHORT = {
+    'de':['Mo','Di','Mi','Do','Fr','Sa','So'],
+    'en':['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    'fr':['lu','ma','me','je','ve','sa','di'],
+    'it':['lun.','mar.','mer.','gio.','ven.','sab.','dom.'],
+    'cz':['Po','Út','St','Čt','Pá','So','Ne'],
+    'pl':['pon.','wt.','śr.','czw.','pt.','sob.','niedz.']
+}
+
+WEEKDAY_LONG = {
+    'de':['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Sonnabend','Sonntag'],
+    'en':['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],
+}
+
 for group in weewx.units.std_groups:
     weewx.units.std_groups[group].setdefault('group_coordinate','degree_compass')
 
@@ -141,7 +156,7 @@ class BaseThread(threading.Thread):
     def random_time(self, waiting):
         """ do a little bit of load balancing 
         
-            let at least 10 seconds to ultimo to download an process
+            let at least 10 seconds to ultimo to download and process
             data
         """
         if waiting<=10: return 0.1-waiting
