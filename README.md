@@ -130,10 +130,18 @@ Installation unter WeeWX bis Version 4.X:
 sudo wee_extension --install weewx-dwd.zip
 ```
 
-Installation unter WeeWX ab Version 5.0:
+Installation unter WeeWX ab Version 5.0 bei WeeWX als Paketinstallation:
 
 ```shell
 sudo weectl extension install weewx-dwd.zip
+```
+
+Installation unter WeeWX ab Version 4.0 bei WeeWX als pip-Installation in eine
+virtuelle Umgebung:
+
+```shell
+source ~/weewx-venv/bin/activate
+weectl extension install weewx-dwd.zip
 ```
 
 Manuelle Installation:
