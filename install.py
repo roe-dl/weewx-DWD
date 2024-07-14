@@ -72,6 +72,7 @@ class DWDInstaller(ExtensionInstaller):
                 'bin/user/weatherservicesutil.py',
                 'bin/user/weatherservicesdb.py',
                 'bin/user/weatherservicesradar.py',
+                'bin/user/weatherserviceshealth.py',
                 'bin/user/weathercodes.py',
                 'bin/user/wildfire.py',
                 'bin/user/capwarnings.py',

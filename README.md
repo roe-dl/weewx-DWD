@@ -495,12 +495,16 @@ dann ein Wettermodell oder Produkt von diesem Anbieter.
             model = biowetter
   ```
 
+  [Liste der Vorhersagegebiete](https://github.com/roe-dl/weewx-DWD/wiki/Biowettervorhersage)
+
 * DWD Pollenflugvorhersage
 
   ```
             provider = DWD
             model = pollen
   ```
+
+  [Liste der Vorhersagegebiete](https://github.com/roe-dl/weewx-DWD/wiki/Pollenflugvorhersage)
 
 * DWD UV-Index-Vorhersage
 
