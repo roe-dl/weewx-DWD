@@ -1774,7 +1774,7 @@ class DWDservice(StdService):
                         logerr("error creating forecast thread '%s': %s %s" % (location,e.__class__.__name__,e))
                     continue
             if has_health:
-                if provider.lower()=='dwd' and location_dict.get('model','-').lower() in user.weatherserviceshealth.models_dict:
+                if user.weatherserviceshealth.is_provided(provider, location_dict.get('model','-')):
                     try:
                         thread = user.weatherserviceshealth.create_thread(location,location_dict,archive_interval)
                         if thread:

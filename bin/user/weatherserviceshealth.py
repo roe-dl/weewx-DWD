@@ -89,6 +89,51 @@ from user.weatherservicesutil import wget, BaseThread, WEEKDAY_LONG
 
 ACCUM_STRING = { 'accumulator':'firstlast','extractor':'last' }
 
+NEG_NEG_SYMBOL = (2.2,"-25 -25 110 50",
+"""  <circle cx="0" cy="0" r="25" fill="#e53210" stroke="none" />
+  <path fill="#ffffff" stroke="none"
+   d="m-19,-4 h38 v8 h-38 z" />
+  <circle cx="55" cy="0" r="25" fill="#e53210" stroke="none" />
+  <path fill="#ffffff" stroke="none"
+   d="m36,-4 h38 v8 h-38 z" />
+""")
+NEG_SYMBOL = (1.0,"-25 -25 50 50",
+"""  <circle cx="0" cy="0" r="25" fill="#f9e814" stroke="none" />
+  <path fill="#ffffff" stroke="none"
+   d="m-19,-4 h38 v8 h-38 z" />
+""")
+NEUTRAL_SYMBOL = (1.0,"-25 -25 50 50",
+"""  <circle cx="0" cy="0" r="25" fill="#3ea72d" stroke="none" />
+  <path fill="#ffffff" stroke="none" stroke-with="0.1"
+   d="m0,-19 a17,19 0 0 0 0,38 a17,19 0 0 0 0,-38 v7 a10,12 0 0 1 0,24 a10,12 0 0 1 0,-24 z" />
+""")
+POS_SYMBOL = (1.0,"-25 -25 50 50",
+"""  <circle cx="0" cy="0" r="25" fill="#006eff" stroke="none" />
+  <path fill="#ffffff" stroke="none"
+   d="m-19,-4 h15 v-15 h8 v15 h15 v8 h-15 v15 h-8 v-15 h-15 z" />
+""")
+SVG_START = """<svg
+   width="%s"
+   height="%s"
+   viewBox="%s"
+   version="1.1"
+   xmlns="http://www.w3.org/2000/svg">
+"""
+SVG_END = """</svg>
+"""
+VAL_SYMBOLS = {
+    'geringe Gefährdung': NEG_SYMBOL,
+    'hohe Gefährdung': NEG_NEG_SYMBOL,
+    'kein Einfluss': NEUTRAL_SYMBOL,
+    'positiver Einfluss': POS_SYMBOL,
+}
+
+def symbol(val, height):
+    if val not in VAL_SYMBOLS: return val
+    sym = VAL_SYMBOLS[val]
+    width = height*sym[0]
+    return '%s<title>%s</title>%s%s' % (SVG_START % (width,height,sym[1]),val,sym[2],SVG_END)
+
 class DwdHealthThread(BaseThread):
 
     BASE_URL = 'https://opendata.dwd.de/climate_environment/health'
@@ -97,7 +142,7 @@ class DwdHealthThread(BaseThread):
         'biowetter':'alerts/biowetter.json',
         'thermal':'alerts/gt.json',
         'pollen':'alerts/s31fg.json',
-        'UVI':'alerts/uvi.json'
+        'uvi':'alerts/uvi.json'
     }
     
     TIMESPANS1 = [
@@ -116,18 +161,18 @@ class DwdHealthThread(BaseThread):
     ]
     
     BIOWETTER_OBS = {
-        'biowetterValidFrom':('unix-epoch','group_time'),
-        'biowetterValidTo':('unix-epoch','group_time'),
-        'biowetterIssued':('unix-epoch','group_time'),
-        'biowetterNextUpdate':('unix-epoch','group_time'),
+        'biowetterValidFrom':('unix_epoch','group_time'),
+        'biowetterValidTo':('unix_epoch','group_time'),
+        'biowetterIssued':('unix_epoch','group_time'),
+        'biowetterNextUpdate':('unix_epoch','group_time'),
         'biowetterValue':(None,None),
     }
     
     POLLEN_OBS = {
-        'pollenValidFrom':('unix-epoch','group_time'),
-        'pollenValidTo':('unix-epoch','group_time'),
-        'pollenIssued':('unix-epoch','group_time'),
-        'pollenNextUpdate':('unix-epoch','group_time'),
+        'pollenValidFrom':('unix_epoch','group_time'),
+        'pollenValidTo':('unix_epoch','group_time'),
+        'pollenIssued':('unix_epoch','group_time'),
+        'pollenNextUpdate':('unix_epoch','group_time'),
     }
     
     POLLEN_TYPES = [
@@ -139,6 +184,16 @@ class DwdHealthThread(BaseThread):
         'Roggen',
         'Beifuss',
         'Ambrosia',
+    ]
+
+    POLLEN_COLORS = [
+        '#3ea72d',   # 0
+        '#dafac7',   # 0.5
+        '#fee391',   # 1
+        '#fec44e',   # 1.5
+        '#fe9929',   # 2
+        '#f03b20',   # 2.5
+        '#bd0026',   # 3
     ]
 
     @property
@@ -206,7 +261,8 @@ class DwdHealthThread(BaseThread):
                         _accum[prefix+obstype[0].upper()+obstype[1:]] = ACCUM_STRING
                     else:
                         _accum[obstype] = ACCUM_STRING
-        weewx.accum.accum_dict.maps.append(_accum)
+        if _accum:
+            weewx.accum.accum_dict.maps.append(_accum)
         # classes to include in <table> and surronding <div> tag
         self.horizontal_table_classes = 'table-striped'
         self.horizontal_main_effect_td_classes = 'records-header'
@@ -256,7 +312,7 @@ class DwdHealthThread(BaseThread):
         return data,5
     
     def convert_timestamp(self, val):
-        """ convert timestamp to unix-epoch """
+        """ convert timestamp to unix_epoch """
         if val is None: return None
         val = str(val)
         if 'T' in val:
@@ -323,9 +379,9 @@ class DwdHealthThread(BaseThread):
             dd = time.strftime('%d.%m.',time.localtime(start))
             ti = None
             data.append((start,end,{
-                'pollenIssued':(last_update,'unix-epoch','group_time'),
-                'pollenValidFrom':(start,'unix-epoch','group_time'),
-                'pollenValidTo':(end,'unix-epoch','group_time'),
+                'pollenIssued':(last_update,'unix_epoch','group_time'),
+                'pollenValidFrom':(start,'unix_epoch','group_time'),
+                'pollenValidTo':(end,'unix_epoch','group_time'),
             }))
             if end>=now:
                 timespans[(wday,dd,ti)] = None
@@ -386,9 +442,9 @@ class DwdHealthThread(BaseThread):
                 if end>=now:
                     timespans[(wday,dt,ti)] = val
                 _data = {
-                    'biowetterIssued':(last_update,'unix-epoch','group_time'),
-                    'biowetterValidTo':(end,'unix-epoch','group_time'),
-                    'biowetterValidFrom':(start,'unix-epoch','group_time'),
+                    'biowetterIssued':(last_update,'unix_epoch','group_time'),
+                    'biowetterValidTo':(end,'unix_epoch','group_time'),
+                    'biowetterValidFrom':(start,'unix_epoch','group_time'),
                     'biowetterValue':(val,None,None),
                 }
                 for effect in forecast['effect']:
@@ -420,6 +476,35 @@ class DwdHealthThread(BaseThread):
                         tab[recomm['name']][(wday,dt,ti)]['recomm'] = recomm['value']
                 #print('')
                 data.append((start,end,_data))
+        return data, (tab, timespans), area_name
+    
+    def process_uvi(self, zone, name, author, last_update, next_update, now, forecast_day):
+        """ process bioweather data """
+        lang = 'de'
+        data = []
+        tab = dict()
+        timespans = dict()
+        # name of the area data is valid for
+        area_name = zone.get('city','')
+        # forecast start timestamp
+        start_timestamp = self.convert_timestamp('%sT12:0:0' % forecast_day)
+        # process data
+        for idx, timespan in enumerate(DwdHealthThread.TIMESPANS1):
+            if timespan in zone.get('forecast',dict()):
+                val = zone['forecast'][timespan]
+                dt = start_timestamp+idx*86400
+                start, end = weeutil.weeutil.archiveDaySpan(dt)
+                dt = time.localtime(dt)
+                wday = WEEKDAY_LONG[lang][dt.tm_wday]
+                dt = time.strftime('%d.%m.',dt)
+                ti = None
+                timespans[(wday,dt,ti)] = val
+                data.append((start,end,{
+                    'uviforecastIssued':(last_update,'unix_epoch','group_time'),
+                    'uviforecastValidTo':(end,'unix_epoch','group_time'),
+                    'uviforecastValidFrom':(start,'unix_epoch','group_time'),
+                    'uviforecastValue':(val,'uv_index','group_uv')
+                }))
         return data, (tab, timespans), area_name
     
     def write_html(self, tabtimespans, area_name, last_update, now):
@@ -466,6 +551,14 @@ class DwdHealthThread(BaseThread):
                 for jj in timespans:
                     s += '<td style="vertical-align:%s">' % vertical_align
                     if jj in tab[ii]:
+                        if self.model=='pollen':
+                            col = tab[ii][jj].get('value')
+                            if col is not None:
+                                if col>3: col = 3
+                                if col<0: col = 0
+                                tcl = '#ffffff' if col<0.25 or col>1.75 else '#000000'
+                                col = DwdHealthThread.POLLEN_COLORS[int(round(col*2.0,0))]
+                                s += ('<span style="color:%s;background-color:%s">&nbsp;%s&nbsp;</span> ' % (tcl,col,tab[ii][jj]['value'])).replace('.',',')
                         effect = tab[ii][jj].get('effect','')
                         if effect=='geringe Gefährdung':
                             col = '#ffd879'
@@ -475,16 +568,29 @@ class DwdHealthThread(BaseThread):
                             col = '#7cb5ec'
                         else:
                             col = ''
+                        if self.model=='biowetter':
+                            effect = symbol(effect,20)
+                        if self.model=='pollen':
+                            s += '<span class="hidden-xs">'
                         if col:
                             s += '<span style="color:%s">%s</span>' % (col,effect)
                         else:
                             s += effect
                         if 'recomm' in tab[ii][jj] and tab[ii][jj]['recomm']!='keine':
                             s += '<br /><strong>%s:</strong><br />%s' % ('Empfehlung',tab[ii][jj]['recomm'])
+                        if self.model=='pollen':
+                            s += '</span>'
                     s += '</td>'
                 s += '</tr>'
             s += '</tbody>'
             s += '</table>\n'
+            if self.model=='biowetter':
+                s += '<ul style="list-style:none;width:100%;padding:0;margin-left:-1em;margin-bottom:auto">'
+                for ii in ('Legende:','hohe Gefährdung','geringe Gefährdung','kein Einfluss','positiver Einfluss'):
+                    sym = symbol(ii,20)
+                    txt = ii if sym==ii else '%s&nbsp;%s' % (sym,ii)
+                    s += '<li style="display:inline-block;padding-left:1em;padding-right:1em">%s</li>' % txt
+                s += '</ul>'
             s += '<p style="font-size:65%%">herausgegeben vom <a href="%s" target="_blank">%s</a> am %s | Vorhersage erstellt am %s</p>' % (
                 self.provider_url,self.provider_name,
                 time.strftime('%d.%m.%Y %H:%M',time.localtime(last_update)),
@@ -549,13 +655,11 @@ class DwdHealthThread(BaseThread):
                         zone['partregion_id']==area2):
                         data, tabtimespans, area_name = self.process_pollen(zone,reply.get('name'),reply.get('sender'),last_update,next_update,now,reply.get('legend'))
                         break
-            # Note: If the `dateTime` timestamp is more than 10800 seconds
-            #       ago, data is discarded and not used.
-            #if data:
-            #    if next_update is not None and now<next_update:
-            #        data['dateTime'] = (now,'unix_epoch','group_time')
-            #    else:
-            #        data['dateTime'] = (last_update,'unix_epoch','group_time')
+            elif self.model=='uvi':
+                for zone in reply['content']:
+                    if zone['city']==self.area:
+                        data, tabtimespans, area_name = self.process_uvi(zone,reply.get('name'),reply.get('sender'),last_update,next_update,now,reply.get('forecast_day'))
+                        break
         except Exception as e:
             if self.log_failure:
                 logerr("thread '%s': process %s - %s" % (self.name,e.__class__.__name__,e))
@@ -613,11 +717,10 @@ class DwdHealthThread(BaseThread):
         return -random.random()*(60 if w>60 else w)-60
 
 
-models_dict = {
-    'biowetter',
-    'pollen',
-    'uvi'
-}
+def is_provided(provided, model):
+    if provided.lower()=='dwd':
+        return DwdHealthThread.is_provided(model.lower())
+    return False
 
 def create_thread(thread_name,config_dict,archive_interval):
     """ create radar thread """
@@ -644,6 +747,8 @@ if __name__ == "__main__":
         print('Weatherservices Health start')
         conf = configobj.ConfigObj("health.conf")
         dwd = create_thread(conf['model'],conf,300)
+        if not dwd:
+            print('could not create thread')
         try:
             while True:
                 time.sleep(300-time.time()%300+15)

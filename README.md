@@ -28,6 +28,8 @@ Diese Daten können mit den Programmen bezogen werden:
   * Radarbilder und aktuelle Meßwerte aus den Radarmessungen
     (`user.weatherservices.DWDservice`, Details siehe Wiki-Artikel
     [Niederschlagsradar](https://github.com/roe-dl/weewx-DWD/wiki/Niederschlagsradar))
+  * Biowetter- und Pollenflugvorhersage
+    (`user.weatherservices.DWDservice`)
 * von der Zentralanstalt für Meteorologie und Geodynamik (ZAMG)
   * aktuelle Meßwerte von offiziellen ZAMG-Wetterstationen
     (`user.weatherservices.DWDservice`)
@@ -500,6 +502,16 @@ dann ein Wettermodell oder Produkt von diesem Anbieter.
             model = pollen
   ```
 
+* DWD UV-Index-Vorhersage
+
+  Diese Vorhersage wird nur für ausgewählte größere Städte und markante
+  Berge bereitgestellt.
+
+  ```
+            provider = DWD
+            model = uvi
+  ```
+
 ## Einbinden in WeeWX
 
 Um den Dienst in WeeWX zu aktivieren, muß er in `weewx.conf` 
@@ -597,20 +609,34 @@ Textfelder, die nur mit `.raw` benutzt werden können.
 
 ### aktuelle Werte aus den Biowetter- und Pollenvorhersagen
 
-* `biowetterLastUpdate`
-* `biowetterNextUpdate`
-* `biowetterIssued`
-* `biowetterValidFrom`
-* `biowetterValidTo`
-* `biowetterValue`
+Biowetter:
 
-* `pollenLastUpdate`
-* `pollenNextUpdate`
-* `pollenIssued`
-* `pollenValidFrom`
-* `pollenValidTo`
-* `pollen<Pflanzenart>Value`
-* `pollen<Pflanzenart>Text`
+* `biowetterLastUpdate`: Zeitstempel des letzten Updates
+* `biowetterNextUpdate`: wann das nächste Update geplant ist
+* `biowetterIssued`: Ausgabedatum der aktuellen Vorhersage
+* `biowetterValidFrom`: Werte gültig seit
+* `biowetterValidTo`: Werte gültig bis
+* `biowetterValue`: Code (Type String)
+
+Pollenflug:
+
+* `pollenLastUpdate`: Zeitstempel des letzten Updates
+* `pollenNextUpdate`: wann das nächste Update geplant ist
+* `pollenIssued`: Ausgabedatum der aktuellen Vorhersage
+* `pollenValidFrom`: Werte gültig seit
+* `pollenValidTo`: Werte gültig bis
+* `pollen<Pflanzenart>Value`: Wert als Zahl
+* `pollen<Pflanzenart>Text`: Wert als Text
+
+UV-Index-Vorhersage:
+
+* `uviforecastLastUpdate`: Zeitstempel des letzten Updates
+* `uviforecastNextUpdate`: wann das nächste Update geplant ist
+* `uviforecastIssued`: Ausgabedatum der aktuellen Vorhersage
+* `uviforecastValidFrom`: Werte gültig seit
+* `uviforecastValidTo`: Werte gültig bis
+* `uviforecastValue`: Vorhersage des maximalen UV-Indexes im
+  Vorhersagezeitraum
 
 # Searchlist-Erweiterung `$presentweather`
 
