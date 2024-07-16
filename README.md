@@ -67,6 +67,7 @@ Die Daten werden aufbereitet als:
 # Inhalt
 
 * [Melden von Fehlern](#melden-von-fehlern)
+* [Voraussetzungen](#voraussetzungen)
 * [Installation](#installation)
 * [Programme](#programme)
   * [wget-dwd](#wget-dwd)
@@ -110,13 +111,27 @@ Bei Geschwindigkeitsproblemen bitte auch den Wiki-Artikel
 [XTypes performance](https://github.com/weewx/weewx/wiki/XTypes-performance)
 von Tom Keffer lesen.
 
-# Installation
+# Voraussetzungen
 
 Für `dwd-mosmix` ist es vorteilhaft, `GeoPy` zu installieren.
+Wurde WeeWX mittels pip installiert, muß möglicherweise das Modul
+"requests" installiert werden.
+
+Wenn WeeWX über die Paketinstallation installiert wurde:
 
 ```shell
 sudo apt-get install python3-geopy
 ```
+
+Wenn WeeWX mittels pip in eine virtuelle Umgebung installiert wurde:
+
+```shell
+source ~/weewx-venv/bin/activate
+pip install geopy
+pip install requests
+```
+
+# Installation
 
 Herunterladen des Paketes von Github:
 
