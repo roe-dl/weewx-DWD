@@ -106,7 +106,15 @@ class DWDInstaller(ExtensionInstaller):
             except AttributeError:
                 engine.printer.out("ln -s %s %s" % (capwarnings_fn,fn))
             if not engine.dry_run:
-                os.symlink(capwarnings_fn,fn)
+                try:
+                    os.symlink(capwarnings_fn,fn)
+                except OSError as e:
+                    try:
+                        engine.logger.log("%s %s" % (e.__class__.__name__,e))
+                        engine.logger.log("try setting the link by hand")
+                    except AttributeError:
+                        engine.printer.out("%s %s" % (e.__class__.__name__,e))
+                        engine.printer.out("try setting the link by hand")
         # copy files
         for cp in cps:
             fni = os.path.join(user_root,'usr','local','bin',cp)
@@ -116,12 +124,28 @@ class DWDInstaller(ExtensionInstaller):
             except AttributeError:
                 engine.printer.out("cp %s %s" % (fni,fno))
             if not engine.dry_run:
-                shutil.copy(fni,fno)
+                try:
+                    shutil.copy(fni,fno)
+                except OSError as e:
+                    try:
+                        engine.logger.log("%s %s" % (e.__class__.__name__,e))
+                        engine.logger.log("try copying the file by hand")
+                    except AttributeError:
+                        engine.printer.out("%s %s" % (e.__class__.__name__,e))
+                        engine.printer.out("try copying the file by hand")
             try:
                 engine.logger.log("chmod u=rwx,g=rx,o=rx %s" % fno)
             except AttributeError:
                 engine.printer.out("chmod u=rwx,g=rx,o=rx %s" % fno)
             if not engine.dry_run:
-                os.chmod(fno,stat.S_IRWXU|stat.S_IRGRP|stat.S_IXGRP|stat.S_IROTH|stat.S_IXOTH)
+                try:
+                    os.chmod(fno,stat.S_IRWXU|stat.S_IRGRP|stat.S_IXGRP|stat.S_IROTH|stat.S_IXOTH)
+                except OSError:
+                    try:
+                        engine.logger.log("%s %s" % (e.__class__.__name__,e))
+                        engine.logger.log("try setting permissions by hand")
+                    except AttributeError:
+                        engine.printer.out("%s %s" % (e.__class__.__name__,e))
+                        engine.printer.out("try setting permissions by hand")
         # no change of the configration file
         return False
