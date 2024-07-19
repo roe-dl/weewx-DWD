@@ -33,9 +33,11 @@ import random
 import traceback
 
 if __name__ == '__main__':
-
     import sys
     sys.path.append('/usr/share/weewx')
+
+import __main__
+if __name__ == '__main__' or __main__.__file__.endswith('weatherservices.py'):
 
     def logdbg(x):
         print('DEBUG',x)
@@ -95,15 +97,78 @@ WEEKDAY_SHORT = {
 WEEKDAY_LONG = {
     'de':['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Sonnabend','Sonntag'],
     'en':['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],
+    'fr':['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'],
+    'it':['lunedì','martedì','mercoledì','giovedì','venerdì','sabato','domenica'],
+    'cz':['pondělí','úterý','středa','čtvrtek','pátek','sobota','neděle'],
+    'pl':['poniedziałek','wtorek','środa','czwartek','piątek','sobota','niedziela']
 }
+
+HTTP_MONTH = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
 for group in weewx.units.std_groups:
     weewx.units.std_groups[group].setdefault('group_coordinate','degree_compass')
 
-def wget(url, log_success=False, log_failure=True, session=requests):
-    """ download  """
+def http_timestamp_to_ts(s):
+    """ convert HTTP time to Unix epoch timestamp
+    
+        example: Wed, 17 Jul 2024 12:13:14 GMT
+        
+        Args:
+            s(str): timestamp string as found in HTTP headers
+        
+        Returns:
+            int: timestamp or None in case of errors
+    """
+    if not s: return None
+    try:
+        # split day of week
+        x = s.split(',')
+        # split the parts of date and time
+        dt = x[1].strip().split(' ')
+        # get the month number from abbreviated month name
+        mon = HTTP_MONTH.index(dt[1])+1
+        # hours since 0:0:0 UTC
+        hr = dt[3].split(':')
+        # return result
+        return weeutil.weeutil.utc_to_ts(
+            weeutil.weeutil.to_int(dt[2]),
+            mon,
+            weeutil.weeutil.to_int(dt[0]),
+            weeutil.weeutil.to_int(hr[0])+weeutil.weeutil.to_int(hr[1])/60.0+weeutil.weeutil.to_int(hr[2])/3600.0
+        )
+    except (ValueError,LookupError):
+        return None
+
+def ts_to_http_timestamp(ts):
+    """ convert Unix epoch timestamp to text as used in HTTP headers
+        
+        Args:
+            ts(int): Unix epoch timestamp
+            
+        Returns:
+            str: formatted timestamp
+    """
+    x = time.gmtime(ts)
+    return '%s, %02d %s %04d %02d:%02d:%02d GMT' % (
+            WEEKDAY_SHORT['en'][x.tm_wday],
+            x.tm_mday,HTTP_MONTH[x.tm_mon-1],x.tm_year,
+            x.tm_hour,x.tm_min,x.tm_sec)
+
+def wget(url, log_success=False, log_failure=True, session=requests, if_modified_since=None):
+    """ download  
+    
+        Args:
+            url(str): URL to retrieve
+            log_success(boolean): log in case of success or not
+            log_failure(boolean): log in case of failure or not
+            session(Session): http session
+            if_modified_since(int): download only if newer than this timestamp
+    """
     elapsed = time.time()
     headers={'User-Agent':'weewx-DWD'}
+    if if_modified_since is not None:
+        # add a If-Modified-Since header
+        headers['If-Modified-Since'] = ts_to_http_timestamp(if_modified_since)
     try:
         reply = session.get(url, headers=headers, timeout=5)
     except requests.exceptions.Timeout:
@@ -115,10 +180,19 @@ def wget(url, log_success=False, log_failure=True, session=requests):
     reply_url = reply.url.split('?')[0]
 
     if reply.status_code==200:
+        # success
         if log_success:
             loginf('successfully downloaded %s in %.2f seconds' % (reply_url,elapsed))
+        if if_modified_since is not None:
+            return (reply.headers.get('Etag'),http_timestamp_to_ts(reply.headers.get('Last-Modified')),reply.content)
         return reply.content
+    elif reply.status_code==304 and if_modified_since is not None:
+        # not changed
+        if log_success or log_failure:
+            logdbg('skipped, %s was not changed since %s' % (reply_url,headers['If-Modified-Since']))
+        return (reply.headers.get('Etag'),http_timestamp_to_ts(reply.headers.get('Last-Modified')),None)
     else:
+        # failure
         if log_failure:
             logerr('error downloading %s: %s %s' % (reply_url,reply.status_code,reply.reason))
         return None
@@ -191,3 +265,12 @@ class BaseThread(threading.Thread):
                     logerr("thread '%s': *** %s" % (self.name,jj.replace('\n',' ').strip()))
         finally:
             loginf("thread '%s' stopped" % self.name)
+
+if __name__ == '__main__':
+    ts = http_timestamp_to_ts('Mon, 17 Jul 2024 12:13:14 GMT')
+    print(ts)
+    print(time.strftime('%Y-%m-%d %H:%M:%S %z',time.gmtime(ts)))
+    url = 'https://opendata.dwd.de/weather/text_forecasts/html/VHDL50_DWLG_LATEST_html'
+    reply = wget(url,True,True,if_modified_since=1721229741-10)
+    print(reply[0],reply[1],time.strftime('%Y-%m-%d %H:%M:%S',time.gmtime(reply[1])))
+    print(reply[2].decode('iso8859-1'))
