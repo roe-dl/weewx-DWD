@@ -15,6 +15,11 @@ With this extension you can receive and process the following data:
   * actual readings of the DWD weather stations in Germany
     (`user.weatherservices.DWDservice`)
   * radar images and radar readings
+    (`user.weatherservices.DWDservice`, for details see
+    [Niederschlagsradar](https://github.com/roe-dl/weewx-DWD/wiki/Niederschlagsradar)
+    (german))
+  * health related forecast
+    (`user.weatherservices.DWDservice`)
 * from Zentralanstalt für Meteorologie und Geodynamik (ZAMG)
   * actual readings of the ZAMG weather stations in Austria
     (`user.weatherservices.DWDservice`)
@@ -55,10 +60,22 @@ from Tom Keffer.
 
 ## Prerequisites
 
-You may install GeoPy:
+You may install `GeoPy`. It is useful, but not required. 
+In case you installed WeeWX by `pip` you may have to install `requests`
+as well.
+
+If you installed WeeWX by packet installation:
 
 ```shell
 sudo apt-get install python3-geopy
+```
+
+If you installed WeeWX by pip installation into a virtual environment:
+
+```shell
+source ~/weewx-venv/bin/activate
+pip install geopy
+pip install requests
 ```
 
 ## Installation
@@ -75,11 +92,20 @@ Installation at WeeWX up to version 4.X:
 sudo wee_extension --install weewx-dwd.zip
 ```
 
-Installation at WeeWX from version 5.0 on:
+Installation at WeeWX from version 5.0 on after WeeWX packet installation:
 
 ```shell
 sudo weectl extension install weewx-dwd.zip
 ```
+
+Installation at WeeWX from version 5.0 on after WeeWX pip installation:
+
+```shell
+source ~/weewx-venv/bin/activate
+weectl extension install weewx-dwd.zip
+```
+
+You must not use `sudo` if you installed WeeWX by `pip`.
 
 Manual installation:
 
@@ -316,6 +342,42 @@ option `model` specifies a weather model or product of that provider.
   weather data out of different weather models of serveral big
   weather services of the world. The desired place is to be
   specified by geographic coordindates.
+
+* Staatsbetrieb Sachsenforst
+
+  ```
+            provider = Sachsenforst
+  ```
+
+  You need a contract to use these data. It is for free, but
+  there are requirements.
+
+* DWD health related forecast
+
+  ```
+            provider = DWD
+            model = biowetter
+  ```
+
+  [list of forecast areas](https://github.com/roe-dl/weewx-DWD/wiki/Biowettervorhersage)
+
+* DWD pollen forecast
+
+  ```
+            provider = DWD
+            model = pollen
+  ```
+
+  [list of forecast areas](https://github.com/roe-dl/weewx-DWD/wiki/Pollenflugvorhersage)
+
+* DWD UV index forecast
+
+  This forecast is provided for selected cities and mountains only.
+
+  ```
+            provider = DWD
+            model = uvi
+  ```
 
 ### Activating the service in WeeWX
 

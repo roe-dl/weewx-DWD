@@ -21,7 +21,7 @@ Diese Daten können mit den Programmen bezogen werden:
     für die nächsten 10 Tage für
     fast 6000 Orte überall auf der Welt (`dwd-mosmix`)
   * Warnmeldungen für Landkreise und Orte in Deutschland
-    (`dwd-warnings` und `dwd-cap-warnings`)
+    (`dwd-cap-warnings`)
   * Wetterkarten (`wget-dwd`)
   * aktuelle Meßwerte von offiziellen DWD-Wetterstationen
     (`user.weatherservices.DWDservice`)
@@ -43,6 +43,10 @@ Diese Daten können mit den Programmen bezogen werden:
   * Warnmeldungen (`msc-warnings`)
 * vom Staatsbetrieb Sachsenforst
   * Waldbrandgefahrenstufe (`user.weatherservices.DWDservice`)
+* von beliebigen Wetterdiensten
+  * auf deren Servern als Bilddateien gespeicherte Karten u.ä.
+  * auf deren Servern als Text- oder HTML-Dateien gespeicherte
+    Vorhersagen u.ä. (bei Bedarf mit Formatkonvertierung)
 
 Die Daten werden aufbereitet als:
 * HTML-Dateien (`*.inc`) zum Einbinden in Skins mittels `#include`
@@ -114,8 +118,8 @@ von Tom Keffer lesen.
 # Voraussetzungen
 
 Für `dwd-mosmix` ist es vorteilhaft, `GeoPy` zu installieren.
-Wurde WeeWX mittels pip installiert, muß möglicherweise das Modul
-"requests" installiert werden.
+Wurde WeeWX mittels `pip` installiert, muß möglicherweise das Modul
+`requests` nachinstalliert werden.
 
 Wenn WeeWX über die Paketinstallation installiert wurde:
 
@@ -123,7 +127,7 @@ Wenn WeeWX über die Paketinstallation installiert wurde:
 sudo apt-get install python3-geopy
 ```
 
-Wenn WeeWX mittels pip in eine virtuelle Umgebung installiert wurde:
+Wenn WeeWX mittels `pip` in eine virtuelle Umgebung installiert wurde:
 
 ```shell
 source ~/weewx-venv/bin/activate
@@ -151,13 +155,16 @@ Installation unter WeeWX ab Version 5.0 bei WeeWX als Paketinstallation:
 sudo weectl extension install weewx-dwd.zip
 ```
 
-Installation unter WeeWX ab Version 4.0 bei WeeWX als pip-Installation in eine
+Installation unter WeeWX ab Version 5.0 bei WeeWX als pip-Installation in eine
 virtuelle Umgebung:
 
 ```shell
 source ~/weewx-venv/bin/activate
 weectl extension install weewx-dwd.zip
 ```
+
+`sudo` darf auf keinen Fall verwendet werden, wenn WeeWX mittels `pip`
+installiert wurde.
 
 Manuelle Installation:
 
@@ -193,9 +200,13 @@ Die Icons (Symbole) können beim DWD heruntergeladen werden:
 
 ## wget-dwd
 
+*VERALTET*
+
 Dieses Script lädt die Wetterkarten sowie die nötigen Dateien für `dwd-warnings` vom Webserver des DWD herunter und speichert sie. Dabei wird eine Log-Datei unter /var/log/ abgelegt, aus der man ersehen kann, ob es geklappt hat.
 
 ## dwd-warnings
+
+*VERALTET*
 
 Dieses Python-Script bereitet die JSONP-Datei des DWD mit den Wetterwarnungen auf und erzeugt daraus HTML-Texte.
 Dazu müssen die gewünschten Landkreise in der vom DWD benutzten Schreibweise
@@ -231,7 +242,7 @@ Usage: dwd-cap-warnings [options] [zip_file_name [CAP_file_name]]
 Options:
   -h, --help            show this help message and exit
   --config=CONFIG_FILE  Use configuration file CONFIG_FILE.
-  --weewx               Read config from weewx.conf.
+  --weewx               Read config from /etc/weewx/weewx.conf.
   --diff                Use diff files instead of status files.
   --resolution=VALUE    Overwrite configuration setting for resolution.
                         Possible values are 'county' and 'city'.
@@ -252,6 +263,10 @@ Options:
     --print-cap         Convert one CAP file to JSON and print the result.
                         Requires zip file name and CAP file name as arguments
 ```
+
+> [!CAUTION]
+> Wurde WeeWX mittels `pip` installiert, muß die Option `--config` anstelle
+> von `--weewx` werden. 
 
 ## dwd-mosmix
 
@@ -279,7 +294,7 @@ Usage: dwd-mosmix [options] [station]
 Options:
   -h, --help            show this help message and exit
   --config=CONFIG_FILE  Use configuration file CONFIG_FILE.
-  --weewx               Read config from weewx.conf.
+  --weewx               Read config from /etc/weewx/weewx.conf.
   --orientation=H,V     HTML table orientation horizontal, vertial, or both
   --icon-set=SET        icon set to use, default is 'belchertown', possible
                         values are 'dwd', 'belchertown', 'aeris', and 'svg'
@@ -312,6 +327,10 @@ Options:
 
 Es können mehrere der unter "Commands" aufgeführten Optionen gleichzeitig
 benutzt werden. 
+
+> [!CAUTION]
+> Wurde WeeWX mittels `pip` installiert, muß die Option `--config` anstelle
+> von `--weewx` werden. 
 
 Der DWD bietet eine Liste der 
 [Stationscodes](https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg?view=nasPublication&nn=16102)
@@ -411,9 +430,9 @@ python3 /pfad/zur/Programmdatei/capwarnings.py --config=/pfad/zur/Konfigurations
 
 ## /etc/cron.hourly/dwd
 
-Dieses Script sorgt dafür, daß die beiden Scripte `wget-dwd` und `dwd-warnings` regelmäßig aufgerufen werden.
+Dieses Script sorgt dafür, daß Scripte regelmäßig aufgerufen werden.
 
-Der Aufruf von `dwd-warnings` kann auch durch 
+Zum Abruf von Wetterwarnungen wird
 ```shell
 /usr/local/bin/dwd-cap-warnings --weewx --resolution=city
 ``` 
@@ -421,29 +440,34 @@ bzw.
 ```shell
 /usr/local/bin/dwd-cap-warnings --weewx --resolution=county
 ```
-ersetzt werden.
+verwendet.
 
 Soll `dwd-mosmix` benutzt werden, muß dafür in der Datei die Zeile
 ```shell
 /usr/local/bin/dwd-mosmix --weewx Station
 ```
 hinzugefügt werden. Wenn die Vorhersage für mehrere Stationen benötigt wird, ist für jede Station ein Aufruf einzutragen.
+Mehrere Ausgabeformate für ein und dieselbe Station sind aber in einem
+Aufruf zusammenzufassen.
 
 # WeeWX-Service
 
 Neben den eigenständigen Programmen, die im vorigen Abschnitt beschrieben
-sind, gibt es jetzt noch einen WeeWX-Service, der in der für WeeWX
+sind, gibt es noch einen WeeWX-Service, der in der für WeeWX
 üblichen Weise in das System integriert ist. Längerfristig soll er
 die Aufgabe der separaten Programme oder zumindeste deren Aufruf 
-übernehmen. Im Moment liefert er eine zusätzliche Funktion, die in den 
-Programmen nicht enthalten ist, nämlich den Abruf von Istwerten von 
-DWD- und ZAMG-Wetterstationen.
+übernehmen. Im Moment liefert er den Abruf von Istwerten von 
+DWD- und ZAMG-Wetterstationen, Waldbrandgefahrenvorhersage,
+Biowetter- und Pollenvorhersage, Radarbilder und eine allgemeine 
+Download-Funktion.
 
 ## Wetterdienste und Produkte/Wettermodelle
 
 Mit der Option `provider` wird eingestellt, von welchem Anbieter
 die Daten bezogen werden sollen. Die Option `model` spezifiziert
 dann ein Wettermodell oder Produkt von diesem Anbieter. 
+
+im Abschnitt `[[current]]` einzutragen:
 
 * DWD POI
 
@@ -472,13 +496,6 @@ dann ein Wettermodell oder Produkt von diesem Anbieter.
 
   [Liste der Stationen](https://opendata.dwd.de/climate_environment/CDC/help/wetter_tageswerte_Beschreibung_Stationen.txt)
 
-* DWD-Wetterradar
-
-  Hiermit können Meßwerte der Radarstationen eingelesen und Radarbilder
-  erzeugt werden. Details und die Konfiguration sind im Wiki-Artikel
-  [Niederschlagsradar](https://github.com/roe-dl/weewx-DWD/wiki/Niederschlagsradar)
-  beschrieben.
-
 * ZAMG
 
   ```
@@ -501,6 +518,33 @@ dann ein Wettermodell oder Produkt von diesem Anbieter.
   Wetterdaten aus den Wettermodellen der großen Wetterdienste bereit. 
   Der gewünschte Ort ist in Form von Koordinaten anzugeben.
 
+im Abschnitt `[[radar]]` einzutragen:
+
+* DWD-Wetterradar
+
+  Hiermit können Meßwerte der Radarstationen eingelesen und Radarbilder
+  erzeugt werden. Details und die Konfiguration sind im Wiki-Artikel
+  [Niederschlagsradar](https://github.com/roe-dl/weewx-DWD/wiki/Niederschlagsradar)
+  beschrieben.
+
+im Abschnitt `[[forecast]]` einzutragen:
+
+* DWD-Text-Wettervorhersagen
+
+  ```
+            provider = DWD
+            model = text
+  ```
+
+  Für den aktuellen und die drei folgenden Tage stellt der DWD eine
+  Vorhersage auf Bundeslandbasis in Textform bereit. Die Bereitstellung
+  erfolgt unregelmäßig mehrmals am Tag. 
+  Die hier gültigen Kennungen der Bundesländer sind im Wiki-Artikel
+  [Abkürzungen der Bundesländer beim Deutschen Wetterdienst](https://github.com/roe-dl/weewx-DWD/wiki/Abkürzungen-der-Bundesländer-beim-Deutschen-Wetterdienst)
+  in Spalte VHDL zu finden. Immer zum Ende des Archiv-Intervalls
+  und rechtzeitig vor dem Reporterzeugungslauf
+  wird geprüft, ob es ein Update der Vorhersagen gibt
+
 * Staatsbetrieb Sachsenforst
 
   ```
@@ -518,6 +562,9 @@ dann ein Wettermodell oder Produkt von diesem Anbieter.
             model = biowetter
   ```
 
+  Es werden eine HTML-Tabelle zum Einfügen und Meßwerte
+  (observation type) mit den aktuellen Werten erzeugt.
+
   [Liste der Vorhersagegebiete](https://github.com/roe-dl/weewx-DWD/wiki/Biowettervorhersage)
 
 * DWD Pollenflugvorhersage
@@ -526,6 +573,9 @@ dann ein Wettermodell oder Produkt von diesem Anbieter.
             provider = DWD
             model = pollen
   ```
+
+  Es werden eine HTML-Tabelle zum Einfügen und Meßwerte
+  (observation type) mit den aktuellen Werten erzeugt.
 
   [Liste der Vorhersagegebiete](https://github.com/roe-dl/weewx-DWD/wiki/Pollenflugvorhersage)
 
@@ -538,6 +588,55 @@ dann ein Wettermodell oder Produkt von diesem Anbieter.
             provider = DWD
             model = uvi
   ```
+
+im Abschnit `[[download]]` einzutragen:
+
+* DWD Bodenwerkarte
+
+  ```
+            provider = DWD
+            model = bwk-map
+  ```
+
+  Wetterkarte mit Luftdruck und Frontensystemen als Graphikdatei
+
+* DWD Warnkarte mit straßenschildähnlichen Symbolen
+
+  ```
+            provider = DWD
+            model = warning-map-with-symbols
+  ```
+
+  Mit dem Schlüssel `area` wird das Gebiet bestimmt, das auf der Karte
+  dargestellt sein soll.
+
+* DWD Warnkarte
+
+  ```
+            provider = DWD
+            model = warning-map
+  ```
+
+  Mit dem Schlüssel `area` wird das Gebiet bestimmt, das auf der Karte
+  dargestellt sein soll.
+
+* allgemeiner Download
+
+  ```
+            url = "..."
+            from_encoding = "..."
+            to_encoding = "..."
+  ```
+
+  Es können beliebige Dateien von Webservern heruntergeladen werden.
+  Jeweils kurz vor dem Ende des Archiv-Intervalls wird geprüft, ob es
+  von der Datei auf dem Server ein Update gibt. Wenn ja, wird es 
+  heruntergeladen und gespeichert, wenn nein, bleibt alles, wie es ist.
+  Das Herunterladen geschieht so rechtzeitig, daß die Datei beim nächsten
+  Reporterzeugungslauf verarbeitet werden kann. `from_encoding` 
+  beschreibt die Codierung der Datei auf dem Server, `to_encoding` die
+  Codierung, in der die Datei gespeichert werden soll. Fehlen die
+  beiden Schlüssel, wird die Datei unverändert gespeichert. 
 
 ## Einbinden in WeeWX
 
@@ -788,7 +887,9 @@ kann eine HTML-Tabelle der Symbole zum Einfügen in Webseiten erzeugt werden.
 
 # Warnregionen
 
-Die Warnungen in der JSONP-Datei `warnings.json` ist nach Landkreisen gegliedert. Manche Landkreise sind dann noch weiter nach Landschaftsmerkmalen wie etwa Bergland und Tiefland unterteilt. Andere Dateien sind nach Bundesländern gegliedert. Im Wiki sind die vom Deutschen Wetterdienst verwendeten Bezeichnungen und Abkürzungen beschrieben:
+Warnungen können auf Gemeinde- oder Landkreisbasis bezogen werden.
+
+Die Warnungen in der JSONP-Datei `warnings.json` sind nach Landkreisen gegliedert. Manche Landkreise sind dann noch weiter nach Landschaftsmerkmalen wie etwa Bergland und Tiefland unterteilt. Andere Dateien sind nach Bundesländern gegliedert. Im Wiki sind die vom Deutschen Wetterdienst verwendeten Bezeichnungen und Abkürzungen beschrieben:
 
 * [Abkürzungen der Bundesländer](https://github.com/roe-dl/weewx-DWD/wiki/Abkürzungen-der-Bundesländer-beim-Deutschen-Wetterdienst)
 * [Bezeichnungen der Warnregionen](https://github.com/roe-dl/weewx-DWD/wiki/Namen-der-Landkreise-in-der-Schreibweise-des-Deutschen-Wetterdienstes)
@@ -800,6 +901,7 @@ Die Warnungen in der JSONP-Datei `warnings.json` ist nach Landkreisen gegliedert
 Im Verzeichnis der Visualisierung (skin), wo die Meldungen des DWD 
 angezeigt werden sollen, muß ein Unterverzeichnis (Ordner) `dwd` angelegt 
 werden. (Es sind auch andere Namen möglich.) In das Skript `wget-dwd` 
+(soweit noch verwendet, es ist veraltet)
 sowie die Konfigurationsdatei `weewx.conf` (siehe unten) muß der 
 komplette Pfad dieses Verzeichnisses eingetragen werden.
 
@@ -819,6 +921,9 @@ Vorhersage-Dateien.
 Die Eintragungen in weewx.conf müssen mit der Hand vorgenommen werden. Es
 gibt gegenwärtig kein Installationsprogramm dafür. Nur für Funktionen,
 die tatsächlich genutzt werden, müssen die Abschnitte vorhanden sein.
+
+> [!CAUTION]
+> Bitte keine unbenutzten Beispiele in die echte `weewx.conf` aufnehmen!
 
 Beispiel:
 ```
@@ -941,6 +1046,11 @@ Beispiel:
             file = '81'
             # Präfix für Meßgrößen
             prefix = ''
+        [[[Sachsen]]]
+            # Text-Vorhersage für Sachsen
+            provider = DWD
+            model = text
+            area = DWLG
     # Warnungen (dwd-cap-warnings, bbk-warnings, msc-warnings)
     [[warning]]
         #icons = ... # Optional, für alle Provider
@@ -981,6 +1091,34 @@ Beispiel:
         # Sprache für die Himmelsrichtungen (optional)
         # mögliche Werte: de, en, fr, it, cz, es, nl, no, gr
         #compass_lang = 'de' # optional
+    [[download]]
+        # allgemeines Download-Interface zum Herunterladen von Karten und
+        # Vorhersagen, die die Wetterdienste bereitstellen
+        [[[Download1]]]
+            # was heruntergeladen werden soll
+            url = "https://www.example.com/pfad/datei"
+            # welche Codierung die Originaldatei hat, wenn es eine Textdatei
+            # ist
+            # optional
+            #from_encoding = iso8859-1
+            # in welcher Codierung die Datei gespeichert werden soll, wenn
+            # es eine Textdatei ist
+            # optional
+            #to_encoding = html_entities
+        [[[Download2]]]
+            # Bodenwetterkarte vom DWD
+            provider = DWD
+            model = bwk-map
+        [[[Download3]]]
+            # Warnkarte mit straßenschildähnlichen Symbolen
+            provider = DWD
+            model = warning-map-with-symbols
+            area = LZ
+        [[[Download4]]]
+            # Warnkarte nur mit Farben
+            provider = DWD
+            model = warning-map
+            area = sac
 ```
 
 Der Eintrag `path` muß auf das im ersten Schritt angelegte Verzeichnis

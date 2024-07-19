@@ -2818,7 +2818,7 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
                       default=None,
                       help="Use configuration file CONFIG_FILE.")
     parser.add_option("--weewx", action="store_true",
-                      help="Read config from weewx.conf.")
+                      help="Read config from /etc/weewx/weewx.conf.")
     parser.add_option("--orientation", type=str, metavar="H,V",
                       help="HTML table orientation horizontal, vertial, or both")
     parser.add_option("--icon-set", dest="iconset", type=str, metavar="SET",

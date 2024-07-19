@@ -1839,7 +1839,7 @@ if __name__ == "__main__" or invoke_fn in standalone:
                       default=None,
                       help="Use configuration file CONFIG_FILE.")
     parser.add_option("--weewx", action="store_true",
-                      help="Read config from weewx.conf.")
+                      help="Read config from /etc/weewx/weewx.conf.")
     parser.add_option("--lang", dest="lang", type=str,
                       metavar="ISO639",
                       default='de',
