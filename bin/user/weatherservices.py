@@ -1637,140 +1637,98 @@ class DWDOPENMETEOthread(BaseThread):
             self.lock.release()
 
 
-class DWDTextForecastThread(BaseThread):
-    """ download and save text forecasts 
-    
-        There is no predefined schudule for these forecasts. So
-        we have to check every archive interval.
-    """
-
-    BASE_URL="https://opendata.dwd.de/weather/text_forecasts/html"
-    FILES = ('50', '51', '52', '53', '54')
-    
-    @property
-    def provider_name(self):
-        return 'DWD'
-        
-    @property
-    def provider_url(self):
-        return 'https://www.dwd.de'
-
-    def __init__(self, name, location_dict, query_interval):
-        log_success = weeutil.weeutil.to_bool(location_dict.get('log_success',True))
-        log_failure = weeutil.weeutil.to_bool(location_dict.get('log_failure',True))
-        super(DWDTextForecastThread,self).__init__('DWD-Text-%s' % name,log_success,log_failure)
-        # base URL
-        self.server_url = location_dict.get('server_url',DWDTextForecastThread.BASE_URL)
-        # target path
-        self.path = str(location_dict.get('path','.'))
-        # forecast area
-        self.area = str(location_dict.get('area',name)).upper()
-        # whether to log the sleeping time
-        self.log_sleeping = weeutil.weeutil.to_bool(location_dict.get('log_sleeping',False))
-        # whether to log the URL of successful downloaded files
-        self.log_download = weeutil.weeutil.to_bool(location_dict.get('log_download',log_success))
-        # debug mode
-        if weeutil.weeutil.to_int(location_dict.get('debug',0)):
-            self.log_success = True
-            self.log_failure = True
-            self.log_sleeping = True
-            self.log_download = True
-        # archive interval
-        self.query_interval = weeutil.weeutil.to_int(query_interval)
-        self.last_modified = dict()
-        if __name__ == '__main__':
-            logdbg("thread '%s': log_success=%s" % (self.name,self.log_success))
-            logdbg("thread '%s': log_failure=%s" % (self.name,self.log_failure))
-            logdbg("thread '%s': log_sleeping=%s" % (self.name,self.log_sleeping))
-            logdbg("thread '%s': log_download=%s" % (self.name,self.log_download))
-            logdbg("thread '%s': path='%s'" % (self.name,self.path))
-            logdbg("thread '%s': area='%s'" % (self.name,self.area))
-    
-    def get_data(self, ts):
-        """ no observation types provided """
-        return dict(),5
-    
-    def getRecord(self):
-        """ fetch and process data """
-        ct = 0
-        with requests.Session() as session:
-            for file in DWDTextForecastThread.FILES:
-                fn = 'VHDL%s_%s_LATEST' % (file,self.area)
-                url = '%s/%s_html' % (self.server_url,fn)
-                reply = wget(url,
-                             log_success=self.log_download,
-                             log_failure=self.log_failure,
-                             session=session,
-                             if_modified_since=self.last_modified.get(url,0))
-                if reply is not None and reply[2] is not None:
-                    self.last_modified[url] = reply[1]
-                    text = self.format_text(reply[2].decode('iso8859-1'))
-                    ct += 1
-                    try:
-                        # where to save the file
-                        fno = os.path.join(self.path, '%s.html' % fn)
-                        fno_temp = '%s.tmp' % fno
-                        # first write forecast to temporary file
-                        with open(fno_temp,'wb') as f:
-                            f.write(text)
-                        # change file time to that on the server
-                        if reply[1] is not None:
-                            os.utime(fno_temp,times=(reply[1],reply[1]))
-                        # overwrite previous version of the file within
-                        # one single atomic action for thread safety
-                        os.rename(fno_temp,fno)
-                    except (ValueError,OSError) as e:
-                        if self.log_failure:
-                            logerr("thread '%s': could not write %s: %s %s" % (
-                                self.name,fno,e.__class__.__name__,e))
-        if self.log_success and not self.log_download:
-            loginf("thread '%s': got %s new files and processed them" % (
-                self.name,ct))
-    
-    def format_text(self, text):
-        """ convert forecast text to HTML """
-        if not text: return ''
-        text = text.replace('</pre>','')
-        while '<pre' in text:
-            i = text.find('<pre')
-            j = text.find('>',i)
-            text = '%s%s' % (text[:i],text[j+1:] if j>i else '')
-        return text.encode(encoding='ascii', errors='xmlcharrefreplace')
-    
-
 class DownloadThread(BaseThread):
     
     # https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/objekteinbindung_node.html
     DWD_BWK="https://www.dwd.de/DWD/wetter/wv_spez/hobbymet/wetterkarten/bwk_bodendruck_na_ana.png"
     DWD_WARNSTATUS="https://www.dwd.de/DWD/warnungen/warnstatus/Schilder%s.jpg"
     DWD_WARN_BL="https://www.dwd.de/DWD/warnungen/warnapp_gemeinden/json/warnungen_gemeinde_map_%s.png"
+    DWD_TEXT="https://opendata.dwd.de/weather/text_forecasts/html"
+    DWD_TEXT_FILES = ('50', '51', '52', '53', '54')
     
-    def __init__(self, name, config_dict, query_interval):
-        log_success = weeutil.weeutil.to_bool(config_dict.get('log_success',True))
-        log_failure = weeutil.weeutil.to_bool(config_dict.get('log_failure',True))
+    @property
+    def provider_name(self):
+        return self.provider[0]
+
+    @property
+    def provider_url(self):
+        return self.provider[1]
+
+    def __init__(self, name, config_dict, query_interval, sections=None):
+        """ init
+        
+            Args:
+                name(str): thread name
+                config_dict(ConfigObj): configuration
+                query_interval(int): query interval in seconds
+                sections(list): sections to process; all if not provided
+        """
+        if sections is not None and len(sections)==1:
+            conf_dict = weeutil.config.accumulateLeaves(config_dict[sections[0]])
+        else:
+            conf_dict = weeutil.config.accumulateLeaves(config_dict)
+        log_success = weeutil.weeutil.to_bool(conf_dict.get('log_success',True))
+        log_failure = weeutil.weeutil.to_bool(conf_dict.get('log_failure',True))
         super(DownloadThread,self).__init__('WeatherServices-%s' % name,log_success,log_failure)
+        self.provider = ('','')
         # whether to log the sleeping time
-        self.log_sleeping = weeutil.weeutil.to_bool(config_dict.get('log_sleeping',False))
+        self.log_sleeping = weeutil.weeutil.to_bool(conf_dict.get('log_sleeping',False))
         # whether to log the URL of successful downloaded files
-        self.log_download = weeutil.weeutil.to_bool(config_dict.get('log_download',log_success))
+        self.log_download = weeutil.weeutil.to_bool(conf_dict.get('log_download',log_success))
+        # debug mode
+        if weeutil.weeutil.to_int(conf_dict.get('debug',0))>0:
+            self.log_success = True
+            self.log_failure = True
+            self.log_sleeping = True
+            self.log_download = True
+        # query interval
+        self.query_interval = query_interval
         # URLs to download
         self.urls = dict()
-        for section in config_dict.sections:
+        providers = dict()
+        if sections:
+            conf_sections = sections
+        else:
+            conf_sections = config_dict.sections
+        for section in conf_sections:
             # get the options from the section
             url_dict = weeutil.config.accumulateLeaves(config_dict[section])
-            if config_dict[section].get('provider','--').upper()=='DWD':
+            provider = config_dict[section].get('provider','--')
+            if provider.upper()=='DWD':
+                # shortcuts for DWD products
+                providers['DWD'] = 'https://www.dwd.de'
                 model = config_dict[section].get('model','--')
                 area = config_dict[section].get('area','--')
                 if model=='bwk-map':
+                    # DWD Bodenwetterkarte
                     url = DownloadThread.DWD_BWK
                 elif model=='warning-map-with-symbols':
+                    # DWD warning map with traffic sign like symbols
                     url = DownloadThread.DWD_WARNSTATUS % area
                 elif model=='warning-map':
+                    # DWD warning map
                     url = DownloadThread.DWD_WARN_BL % area
+                elif model=='text':
+                    # DWD text forecast
+                    # There are 5 files to download. So this is handled
+                    # separately.
+                    confs = self.init_dwd_text_forecast(
+                        area,
+                        config_dict[section].get('server_url',
+                                                     DownloadThread.DWD_TEXT),
+                        url_dict.get('path','.')
+                    )
+                    if confs:
+                        self.urls.update(confs)
+                    continue
                 else:
+                    # no product that can be processed here
                     continue
             else:
-                # The URL to retrieve is found in key `url` or the section title
+                # general interface
+                providers[provider] = config_dict[section].get('provider_url','')
+                # The URL to retrieve is found in key `url` or the section 
+                # title.
                 url = config_dict[section].get('url',section)
             # compose the target file and path
             path = url_dict.pop('path','.')
@@ -1782,8 +1740,32 @@ class DownloadThread(BaseThread):
             url_dict.update({'target':os.path.join(path,file)})
             # add a new file to download to the dictionary
             self.urls[url] = url_dict
+        if len(providers)==1:
+            for ii in providers.items(): self.provider = ii
         self.last_modified = dict()
+        logdbg("thread '%s': provider '%s', url '%s'" % (self.name,self.provider_name,self.provider_url))
+        logdbg("thread '%s': log_success=%s" % (self.name,self.log_success))
+        logdbg("thread '%s': log_failure=%s" % (self.name,self.log_failure))
+        logdbg("thread '%s': log_sleeping=%s" % (self.name,self.log_sleeping))
+        logdbg("thread '%s': log_download=%s" % (self.name,self.log_download))
+        logdbg("thread '%s': conf='%s'" % (self.name,self.urls))
 
+    def init_dwd_text_forecast(self, area, server_url, path):
+        """ DWD text forecasts """
+        confs = dict()
+        for file in DownloadThread.DWD_TEXT_FILES:
+            fn = 'VHDL%s_%s_LATEST' % (file,area)
+            url = '%s/%s_html' % (server_url,fn)
+            fno = os.path.join(path, '%s.html' % fn)
+            confs[url] = configobj.ConfigObj({
+                'provider':'DWD',
+                'model':'text',
+                'target':fno,
+                'from_encoding':'iso8859-1',
+                'to_encoding':'dwd_text_forecast'
+            })
+        return confs
+    
     def get_data(self, ts):
         """ no observation types provided """
         return dict(),5
@@ -1792,8 +1774,7 @@ class DownloadThread(BaseThread):
         """ fetch and process data """
         ct = 0
         with requests.Session() as session:
-            for url in self.urls:
-                options = self.urls[url]
+            for url, options in self.urls.items():
                 encoding = options.get('to_encoding')
                 from_encoding = options.get('from_encoding','utf-8')
                 reply = wget(url,
@@ -1812,6 +1793,8 @@ class DownloadThread(BaseThread):
                             data = data.encode('ascii','ignore')
                         elif encoding=='html_entities':
                             data = data.encode('ascii','xmlcharrefreplace')
+                        elif encoding=='dwd_text_forecast':
+                            data = self.format_dwd_text_forecast(data)
                         else:
                             data = data.encode(encoding,'ignore')
                     ct += 1
@@ -1835,6 +1818,16 @@ class DownloadThread(BaseThread):
         if self.log_success and not self.log_download:
             loginf("thread '%s': got %s new files and saved them" % (
                 self.name,ct))
+
+    def format_dwd_text_forecast(self, text):
+        """ convert forecast text to HTML """
+        if not text: return b''
+        text = text.replace('</pre>','')
+        while '<pre' in text:
+            i = text.find('<pre')
+            j = text.find('>',i)
+            text = '%s%s' % (text[:i],text[j+1:] if j>i else '')
+        return text.encode(encoding='ascii', errors='xmlcharrefreplace')
 
 
 class DWDservice(StdService):
@@ -1969,10 +1962,11 @@ class DWDservice(StdService):
                     thread = {
                         'datasource':'DWD-text',
                         'prefix':'',
-                        'thread':DWDTextForecastThread(
+                        'thread':DownloadThread(
                             location,
-                            location_dict,
-                            archive_interval)
+                            site_dict,
+                            archive_interval,
+                            (location,))
                     }
                     if thread['thread']:
                         thread['thread'].start()

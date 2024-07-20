@@ -22,7 +22,7 @@ Diese Daten können mit den Programmen bezogen werden:
     fast 6000 Orte überall auf der Welt (`dwd-mosmix`)
   * Warnmeldungen für Landkreise und Orte in Deutschland
     (`dwd-cap-warnings`)
-  * Wetterkarten (`wget-dwd`)
+  * Wetterkarten (`user.weatherservices.DWDservice`)
   * aktuelle Meßwerte von offiziellen DWD-Wetterstationen
     (`user.weatherservices.DWDservice`)
   * Radarbilder und aktuelle Meßwerte aus den Radarmessungen
@@ -163,8 +163,9 @@ source ~/weewx-venv/bin/activate
 weectl extension install weewx-dwd.zip
 ```
 
-`sudo` darf auf keinen Fall verwendet werden, wenn WeeWX mittels `pip`
-installiert wurde.
+> [!CAUTION]
+> `sudo` darf auf keinen Fall verwendet werden, wenn WeeWX mittels `pip`
+> installiert wurde.
 
 Manuelle Installation:
 
@@ -266,7 +267,7 @@ Options:
 
 > [!CAUTION]
 > Wurde WeeWX mittels `pip` installiert, muß die Option `--config` anstelle
-> von `--weewx` werden. 
+> von `--weewx` verwendet werden. 
 
 ## dwd-mosmix
 
@@ -330,7 +331,7 @@ benutzt werden.
 
 > [!CAUTION]
 > Wurde WeeWX mittels `pip` installiert, muß die Option `--config` anstelle
-> von `--weewx` werden. 
+> von `--weewx` verwendet werden. 
 
 Der DWD bietet eine Liste der 
 [Stationscodes](https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg?view=nasPublication&nn=16102)
@@ -411,12 +412,13 @@ des ARS auf der Kommandozeile angegeben werden:
 * `lhp`: Meldungen des länderübergreifenden Hochwasserportals
 * `police`: Polizeiliche Meldungen
 
-Aufruf im WeeWX-Umfeld:
+Aufruf bei WeeWX-Paketinstallation:
 ```shell
 bbk-warnings --weewx
 ```
 
-Aufruf ohne WeeWX oder bei mehreren WeeWX-Installationen auf dem Rechner:
+Aufruf ohne WeeWX oder bei mehreren WeeWX-Installationen auf dem Rechner
+oder `pip`-Installation:
 ```shell
 bbk-warnings --config=/pfad/zur/Konfigurationsdatei
 ```

@@ -75,9 +75,7 @@ class DWDInstaller(ExtensionInstaller):
                 'bin/user/weatherserviceshealth.py',
                 'bin/user/weathercodes.py',
                 'bin/user/wildfire.py',
-                'bin/user/capwarnings.py',
-                'usr/local/bin/html2ent.ansi',
-                'usr/local/bin/wget-dwd']),]
+                'bin/user/capwarnings.py']),]
             )
       
     def configure(self, engine):
@@ -88,7 +86,6 @@ class DWDInstaller(ExtensionInstaller):
         bin = '/usr/local/bin'
         # links to create and files to copy
         links = ['dwd-cap-warnings','bbk-warnings','msc-warnings']
-        cps = ['wget-dwd','html2ent.ansi']
         # complete path of capwarnings.py
         capwarnings_fn = os.path.join(user_root,'capwarnings.py')
         # make capwarnings.py executable
@@ -115,37 +112,5 @@ class DWDInstaller(ExtensionInstaller):
                     except AttributeError:
                         engine.printer.out("%s %s" % (e.__class__.__name__,e))
                         engine.printer.out("try setting the link by hand")
-        # copy files
-        for cp in cps:
-            fni = os.path.join(user_root,'usr','local','bin',cp)
-            fno = os.path.join(bin,cp)
-            try:
-                engine.logger.log("cp %s %s" % (fni,fno))
-            except AttributeError:
-                engine.printer.out("cp %s %s" % (fni,fno))
-            if not engine.dry_run:
-                try:
-                    shutil.copy(fni,fno)
-                except OSError as e:
-                    try:
-                        engine.logger.log("%s %s" % (e.__class__.__name__,e))
-                        engine.logger.log("try copying the file by hand")
-                    except AttributeError:
-                        engine.printer.out("%s %s" % (e.__class__.__name__,e))
-                        engine.printer.out("try copying the file by hand")
-            try:
-                engine.logger.log("chmod u=rwx,g=rx,o=rx %s" % fno)
-            except AttributeError:
-                engine.printer.out("chmod u=rwx,g=rx,o=rx %s" % fno)
-            if not engine.dry_run:
-                try:
-                    os.chmod(fno,stat.S_IRWXU|stat.S_IRGRP|stat.S_IXGRP|stat.S_IROTH|stat.S_IXOTH)
-                except OSError:
-                    try:
-                        engine.logger.log("%s %s" % (e.__class__.__name__,e))
-                        engine.logger.log("try setting permissions by hand")
-                    except AttributeError:
-                        engine.printer.out("%s %s" % (e.__class__.__name__,e))
-                        engine.printer.out("try setting permissions by hand")
         # no change of the configration file
         return False
