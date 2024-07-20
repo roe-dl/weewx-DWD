@@ -74,7 +74,7 @@ Die Daten werden aufbereitet als:
 * [Voraussetzungen](#voraussetzungen)
 * [Installation](#installation)
 * [Programme](#programme)
-  * [wget-dwd](#wget-dwd)
+  * [wget-dwd](#wget-dwd) (veraltet)
   * [dwd-warnings](#dwd-warnings) (veraltet)
   * [dwd-cap-warnings](#dwd-cap-warnings)
   * [dwd-mosmix](#dwd-mosmix)
@@ -611,6 +611,9 @@ im Abschnit `[[download]]` einzutragen:
 
   Mit dem Schlüssel `area` wird das Gebiet bestimmt, das auf der Karte
   dargestellt sein soll.
+  Details und die Konfiguration sind im Wiki-Artikel
+  [Warnstatuskarten](https://github.com/roe-dl/weewx-DWD/wiki/Warnstatuskarten)
+  beschrieben.
 
 * DWD Warnkarte
 
@@ -621,6 +624,9 @@ im Abschnit `[[download]]` einzutragen:
 
   Mit dem Schlüssel `area` wird das Gebiet bestimmt, das auf der Karte
   dargestellt sein soll.
+  Details und die Konfiguration sind im Wiki-Artikel
+  [Warnstatuskarten](https://github.com/roe-dl/weewx-DWD/wiki/Warnstatuskarten)
+  beschrieben.
 
 * allgemeiner Download
 
