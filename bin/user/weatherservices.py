@@ -235,7 +235,7 @@ import weeutil.weeutil
 import weewx.accum
 import weewx.units
 import weewx.wxformulas
-from user.weatherservicesutil import wget, BaseThread
+from user.weatherservicesutil import wget, wget_extended, BaseThread
 
 try:
     import user.weatherservicesradar
@@ -1694,7 +1694,7 @@ class DownloadThread(BaseThread):
             # get the options from the section
             url_dict = weeutil.config.accumulateLeaves(config_dict[section])
             provider = config_dict[section].get('provider','--')
-            if provider.upper()=='DWD':
+            if provider.upper()=='DWD' and 'model' in config_dict[section]:
                 # shortcuts for DWD products
                 providers['DWD'] = 'https://www.dwd.de'
                 model = config_dict[section].get('model','--')
@@ -1777,11 +1777,16 @@ class DownloadThread(BaseThread):
             for url, options in self.urls.items():
                 encoding = options.get('to_encoding')
                 from_encoding = options.get('from_encoding','utf-8')
-                reply = wget(url,
+                try:
+                    reply = wget_extended(url,
                              log_success=self.log_download,
                              log_failure=self.log_failure,
                              session=session,
                              if_modified_since=self.last_modified.get(url,0))
+                except Exception as e:
+                    if self.log_failure:
+                        logerr("thread '%s': download error %s %s" % (self.name,e.__class__.__name__,e))
+                    reply = None
                 if reply is not None and reply[2] is not None:
                     self.last_modified[url] = reply[1]
                     data = reply[2]
@@ -1811,7 +1816,7 @@ class DownloadThread(BaseThread):
                         # overwrite previous version of the file within
                         # one single atomic action for thread safety
                         os.rename(fno_temp,fno)
-                    except (ValueError,OSError) as e:
+                    except (TypeError,ValueError,OSError) as e:
                         if self.log_failure:
                             logerr("thread '%s': could not write %s: %s %s" % (
                                 self.name,fno,e.__class__.__name__,e))

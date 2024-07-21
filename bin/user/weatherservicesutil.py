@@ -154,7 +154,7 @@ def ts_to_http_timestamp(ts):
             x.tm_mday,HTTP_MONTH[x.tm_mon-1],x.tm_year,
             x.tm_hour,x.tm_min,x.tm_sec)
 
-def wget(url, log_success=False, log_failure=True, session=requests, if_modified_since=None):
+def wget_extended(url, log_success=False, log_failure=True, session=requests, if_modified_since=None):
     """ download  
     
         Args:
@@ -163,6 +163,9 @@ def wget(url, log_success=False, log_failure=True, session=requests, if_modified
             log_failure(boolean): log in case of failure or not
             session(Session): http session
             if_modified_since(int): download only if newer than this timestamp
+        
+        Returns:
+            tuple: Etag, Last-Modified, data received, status code
     """
     elapsed = time.time()
     headers={'User-Agent':'weewx-DWD'}
@@ -174,7 +177,7 @@ def wget(url, log_success=False, log_failure=True, session=requests, if_modified
     except requests.exceptions.Timeout:
         if log_failure:
             logerr('timeout downloading %s' % url)
-        return None
+        return (None,None,None,None)
     elapsed = time.time()-elapsed
 
     reply_url = reply.url.split('?')[0]
@@ -183,20 +186,41 @@ def wget(url, log_success=False, log_failure=True, session=requests, if_modified
         # success
         if log_success:
             loginf('successfully downloaded %s in %.2f seconds' % (reply_url,elapsed))
-        if if_modified_since is not None:
-            return (reply.headers.get('Etag'),http_timestamp_to_ts(reply.headers.get('Last-Modified')),reply.content)
-        return reply.content
+        return (
+                reply.headers.get('Etag'),
+                http_timestamp_to_ts(reply.headers.get('Last-Modified')),
+                reply.content,
+                reply.status_code
+        )
     elif reply.status_code==304 and if_modified_since is not None:
         # not changed
         if log_success or log_failure:
             logdbg('skipped, %s was not changed since %s' % (reply_url,headers['If-Modified-Since']))
-        return (reply.headers.get('Etag'),http_timestamp_to_ts(reply.headers.get('Last-Modified')),None)
+        return (
+            reply.headers.get('Etag'),
+            http_timestamp_to_ts(reply.headers.get('Last-Modified')),
+            None,
+            reply.status_code
+        )
     else:
         # failure
         if log_failure:
             logerr('error downloading %s: %s %s' % (reply_url,reply.status_code,reply.reason))
-        return None
+        return (None,None,None,reply.status_code)
 
+def wget(url, log_success=False, log_failure=True, session=requests):
+    """ download  
+    
+        Args:
+            url(str): URL to retrieve
+            log_success(boolean): log in case of success or not
+            log_failure(boolean): log in case of failure or not
+            session(Session): http session
+        
+        Returns:
+            bytes: data received or None in case of failure
+    """
+    return wget_extended(url, log_success, log_failure, session)[2]
 
 class BaseThread(threading.Thread):
 
