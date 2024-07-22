@@ -649,7 +649,7 @@ class DwdHealthThread(BaseThread):
                 else:
                     # main region
                     area2 = -1
-                print('area',area1,area2)
+                #print('area',area1,area2)
                 for zone in reply['content']:
                     if (zone['region_id']==area1 and 
                         zone['partregion_id']==area2):
