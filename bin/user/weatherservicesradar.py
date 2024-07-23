@@ -1776,10 +1776,12 @@ class DwdRadarThread(BaseThread):
     
     def get_forecast(self):
         try:
-            self.lock.acquire()
+            if not self.lock.acquire(timeout=5):
+                raise RuntimeError("thread '%s': could not acquire lock for reading data" % self.name)
             forecast = self.forecast
         finally:
-            self.lock.release()
+            if self.lock.locked():
+                self.lock.release()
         return forecast
     
     def random_time(self, waiting):
