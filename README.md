@@ -112,7 +112,7 @@ geben Sie bitte immer folgende Informationen mit an:
   den Parameter `--verbose` an. (Nicht bei `wget-dwd`)
 
 Bei Geschwindigkeitsproblemen bitte auch den Wiki-Artikel
-[XTypes performance](https://github.com/weewx/weewx/wiki/XTypes-performance)
+[V5 Performance Troubleshooting](https://github.com/weewx/weewx/wiki/v5-performance-troubleshooting)
 von Tom Keffer lesen.
 
 # Voraussetzungen

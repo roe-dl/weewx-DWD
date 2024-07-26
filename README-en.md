@@ -55,7 +55,7 @@ If you need help, please make sure to provide:
 * Try to use the `--verbose` option to get more information
 
 In case of performance issues please additionally read the wiki article
-[XTypes performance](https://github.com/weewx/weewx/wiki/XTypes-performance)
+[V5 Performance Troubleshooting](https://github.com/weewx/weewx/wiki/v5-performance-troubleshooting)
 from Tom Keffer.
 
 ## Prerequisites

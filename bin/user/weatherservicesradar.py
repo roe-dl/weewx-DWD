@@ -78,13 +78,17 @@ except ImportError:
     # noinspection PyUnresolvedReferences
     import Queue as queue
 
+import __main__
+
 if __name__ == '__main__':
     import optparse
     import json
     import sys
     sys.path.append('/usr/share/weewx')
+    x = os.path.dirname(os.path.abspath(os.path.dirname(__main__.__file__)))
+    if x!='/usr/share/weewx':
+        sys.path.append(x)
 
-import __main__
 if __name__ == '__main__' or __main__.__file__.endswith('weatherservices.py'):
 
     def logdbg(x):
@@ -1760,13 +1764,14 @@ class DwdRadarThread(BaseThread):
 
     def get_data(self, ts):
         data = dict()
-        try:
-            self.lock.acquire()
-            for dd in self.data:
-                if dd[0]>=ts: break
-                data = dd[1]
-        finally:
-            self.lock.release()
+        if self.is_alive():
+            try:
+                self.lock.acquire()
+                for dd in self.data:
+                    if dd[0]>=ts: break
+                    data = dd[1]
+            finally:
+                self.lock.release()
         try:
             interval = data['interval'][0]
         except LookupError:
@@ -1775,6 +1780,7 @@ class DwdRadarThread(BaseThread):
         return data,interval
     
     def get_forecast(self):
+        if not self.is_alive(): return None
         try:
             if not self.lock.acquire(timeout=5):
                 raise RuntimeError("thread '%s': could not acquire lock for reading data" % self.name)

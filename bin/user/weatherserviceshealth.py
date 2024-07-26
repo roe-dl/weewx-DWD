@@ -34,12 +34,15 @@ import os.path
 import random
 import copy
 
+import __main__
 if __name__ == '__main__':
     import optparse
     import sys
     sys.path.append('/usr/share/weewx')
+    x = os.path.dirname(os.path.abspath(os.path.dirname(__main__.__file__)))
+    if x!='/usr/share/weewx':
+        sys.path.append(x)
 
-import __main__
 if __name__ == '__main__' or __main__.__file__.endswith('weatherservices.py'):
 
     def logdbg(x):

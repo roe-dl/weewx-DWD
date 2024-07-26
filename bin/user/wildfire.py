@@ -113,7 +113,11 @@ import os.path
 if __name__ == '__main__':
 
     import sys
+    import __main__
     sys.path.append('/usr/share/weewx')
+    x = os.path.dirname(os.path.abspath(os.path.dirname(__main__.__file__)))
+    if x!='/usr/share/weewx':
+        sys.path.append(x)
 
     def logdbg(x):
         print('DEBUG',x)

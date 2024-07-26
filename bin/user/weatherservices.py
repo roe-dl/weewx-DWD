@@ -184,7 +184,11 @@ except ImportError:
 if __name__ == '__main__':
 
     import sys
+    import __main__
     sys.path.append('/usr/share/weewx')
+    x = os.path.dirname(os.path.abspath(os.path.dirname(__main__.__file__)))
+    if x!='/usr/share/weewx':
+        sys.path.append(x)
 
     def logdbg(x):
         print('DEBUG',x)
@@ -445,6 +449,8 @@ class DWDXType(weewx.xtypes.XType):
         """ aggregations out of precipitation forecast for the next 2 hours """
         if self.rv_thread:
             forecast = self.rv_thread.get_forecast()
+            if not forecast:
+                raise weewx.CannotCalculate('no data available in RV thread')
             if obs_type in forecast:
                 val = forecast[obs_type]
                 x = [x for x in val[0] if x is not None]
@@ -1840,6 +1846,11 @@ class DWDservice(StdService):
     def __init__(self, engine, conf_dict):
         super(DWDservice,self).__init__(engine, conf_dict)
         
+        logdbg('sub-module db %sloaded' % ('' if has_db else 'not '))
+        logdbg('sub-module radar %sloaded' % ('' if has_radar else 'not '))
+        logdbg('sub-module wildfire %sloaded' % ('' if has_wildfire else 'not '))
+        logdbg('sub-module health %sloaded' % ('' if has_health else 'not '))
+        
         if 'WeatherServices' in conf_dict:
             if 'include' in conf_dict['WeatherServices']:
                 dire = os.path.dirname(conf_dict.get('config_path','/'))
@@ -2169,15 +2180,26 @@ class DWDservice(StdService):
     
     def shutDown(self):
         """ shutdown threads """
+        logdbg("request to shutdown threads")
         if self.dwdxtype:
             weewx.xtypes.xtypes.remove(self.dwdxtype)
         if has_db:
+            logdbg("request to shutdown database thread")
             self.database_thread.shutDown()
         for ii in self.threads:
             try:
+                logdbg("request to shutdown thread '%s'" % ii)
                 self.threads[ii]['thread'].shutDown()
             except Exception:
                 pass
+        if self.debug>0:
+            time.sleep(10)
+            if has_db:
+                if self.database_thread.is_alive():
+                    logdbg("database thread still alive")
+            for ii in self.threads:
+                if self.threads[ii]['thread'].is_alive():
+                    logdbg("thread '%s' is still alive." % ii)
 
 
     def new_loop_packet(self, event):
