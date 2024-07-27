@@ -1722,7 +1722,8 @@ class DownloadThread(BaseThread):
                         area,
                         config_dict[section].get('server_url',
                                                      DownloadThread.DWD_TEXT),
-                        url_dict.get('path','.')
+                        url_dict.get('path','.'),
+                        url_dict.get('insert_lf_after_summary',False)
                     )
                     if confs:
                         self.urls.update(confs)
@@ -1756,8 +1757,9 @@ class DownloadThread(BaseThread):
         logdbg("thread '%s': log_download=%s" % (self.name,self.log_download))
         logdbg("thread '%s': conf='%s'" % (self.name,self.urls))
 
-    def init_dwd_text_forecast(self, area, server_url, path):
+    def init_dwd_text_forecast(self, area, server_url, path, insert_lf):
         """ DWD text forecasts """
+        ins_lf = weeutil.weeutil.to_bool(insert_lf)
         confs = dict()
         for file in DownloadThread.DWD_TEXT_FILES:
             fn = 'VHDL%s_%s_LATEST' % (file,area)
@@ -1768,7 +1770,8 @@ class DownloadThread(BaseThread):
                 'model':'text',
                 'target':fno,
                 'from_encoding':'iso8859-1',
-                'to_encoding':'dwd_text_forecast'
+                'to_encoding':'dwd_text_forecast',
+                'insert_lf_after_summary':ins_lf
             })
         return confs
     
@@ -1805,7 +1808,7 @@ class DownloadThread(BaseThread):
                         elif encoding=='html_entities':
                             data = data.encode('ascii','xmlcharrefreplace')
                         elif encoding=='dwd_text_forecast':
-                            data = self.format_dwd_text_forecast(data)
+                            data = self.format_dwd_text_forecast(data,options)
                         else:
                             data = data.encode(encoding,'ignore')
                     ct += 1
@@ -1830,7 +1833,7 @@ class DownloadThread(BaseThread):
             loginf("thread '%s': got %s new files and saved them" % (
                 self.name,ct))
 
-    def format_dwd_text_forecast(self, text):
+    def format_dwd_text_forecast(self, text, options):
         """ convert forecast text to HTML """
         if not text: return b''
         text = text.replace('</pre>','')
@@ -1838,6 +1841,8 @@ class DownloadThread(BaseThread):
             i = text.find('<pre')
             j = text.find('>',i)
             text = '%s%s' % (text[:i],text[j+1:] if j>i else '')
+        if options.get('insert_lf_after_summary',False):
+            text = text.replace('</strong>','</strong><br />',1)
         return text.encode(encoding='ascii', errors='xmlcharrefreplace')
 
 
