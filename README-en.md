@@ -80,32 +80,55 @@ pip install requests
 
 ## Installation
 
-Download the extension from Github:
+1) Download the extension from Github
 
 ```shell
 wget -O weewx-dwd.zip https://github.com/roe-dl/weewx-DWD/archive/master.zip
 ```
 
-Installation at WeeWX up to version 4.X:
+2) Installation
 
-```shell
-sudo wee_extension --install weewx-dwd.zip
-```
+   Installation at WeeWX up to version 4.X:
 
-Installation at WeeWX from version 5.0 on after WeeWX packet installation:
+   ```shell
+   sudo wee_extension --install weewx-dwd.zip
+   ```
 
-```shell
-sudo weectl extension install weewx-dwd.zip
-```
+   Installation at WeeWX from version 5.0 on after WeeWX packet installation:
 
-Installation at WeeWX from version 5.0 on after WeeWX pip installation:
+   ```shell
+   sudo weectl extension install weewx-dwd.zip
+   ```
 
-```shell
-source ~/weewx-venv/bin/activate
-weectl extension install weewx-dwd.zip
-```
+   Installation at WeeWX from version 5.0 on after WeeWX pip installation:
 
-You must not use `sudo` if you installed WeeWX by `pip`.
+   ```shell
+   source ~/weewx-venv/bin/activate
+   weectl extension install weewx-dwd.zip
+   ```
+
+   You must not use `sudo` if you installed WeeWX by `pip`.
+
+3) Adapt configuration
+
+   see section [Configuration](#configuration)
+
+4) restart weewx
+
+   for SysVinit systems:
+
+   ```shell
+   sudo /etc/init.d/weewx stop
+   sudo /etc/init.d/weewx start
+   ```
+
+   for systemd systems:
+
+   ```shell
+   sudo systemctl stop weewx
+   sudo systemctl start weewx
+   ```
+
 
 Manual installation:
 

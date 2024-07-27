@@ -137,40 +137,63 @@ pip install requests
 
 # Installation
 
-Herunterladen des Paketes von Github:
+1) Herunterladen des Paketes von Github
 
-```shell
-wget -O weewx-dwd.zip https://github.com/roe-dl/weewx-DWD/archive/master.zip
-```
+   ```shell
+   wget -O weewx-dwd.zip https://github.com/roe-dl/weewx-DWD/archive/master.zip
+   ```
 
-Installation unter WeeWX bis Version 4.X:
+2) Aufrufen des Installationsprogramms
 
-```shell
-sudo wee_extension --install weewx-dwd.zip
-```
+   Installation unter WeeWX bis Version 4.X:
 
-Installation unter WeeWX ab Version 5.0 bei WeeWX als Paketinstallation:
+   ```shell
+   sudo wee_extension --install weewx-dwd.zip
+   ```
 
-```shell
-sudo weectl extension install weewx-dwd.zip
-```
+   Installation unter WeeWX ab Version 5.0 bei WeeWX als Paketinstallation:
 
-Installation unter WeeWX ab Version 5.0 bei WeeWX als pip-Installation in eine
-virtuelle Umgebung:
+   ```shell
+   sudo weectl extension install weewx-dwd.zip
+   ```
 
-```shell
-source ~/weewx-venv/bin/activate
-weectl extension install weewx-dwd.zip
-```
+   Installation unter WeeWX ab Version 5.0 bei WeeWX als `pip`-Installation 
+   in eine virtuelle Umgebung:
 
-> [!CAUTION]
-> `sudo` darf auf keinen Fall verwendet werden, wenn WeeWX mittels `pip`
-> installiert wurde.
+   ```shell
+   source ~/weewx-venv/bin/activate
+   weectl extension install weewx-dwd.zip
+   ```
 
-Bei der `pip`-Installation muß in `capwarnings.py` der Pfad
-`/usr/share/weewx` durch den tatsächlichen Pfad der WeeWX-Installation
-ersetzt werden. Für den manuellen Aufruf gilt das auch für die
-anderen Dateien.
+   > [!CAUTION]
+   > `sudo` darf auf keinen Fall verwendet werden, wenn WeeWX mittels `pip`
+   > installiert wurde.
+
+   Bei der `pip`-Installation muß in `capwarnings.py` der Pfad
+   `/usr/share/weewx` durch den tatsächlichen Pfad der WeeWX-Installation
+   ersetzt werden. Für den manuellen Aufruf gilt das auch für die
+   anderen Dateien.
+
+3) Anpassen der Konfiguration
+
+   siehe Abschnitt [Konfiguration](#konfiguration)
+
+4) Neustart von WeeWX
+
+   bei SysVinit-Systemen:
+
+   ```shell
+   sudo /etc/init.d/weewx stop
+   sudo /etc/init.d/weewx start
+   ```
+
+   bei systemd-Systemen:
+
+   ```shell
+   sudo systemctl stop weewx
+   sudo systemctl start weewx
+   ```
+
 
 Manuelle Installation:
 
