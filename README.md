@@ -165,9 +165,9 @@ pip install requests
    weectl extension install weewx-dwd.zip
    ```
 
-   > [!CAUTION]
-   > `sudo` darf auf keinen Fall verwendet werden, wenn WeeWX mittels `pip`
-   > installiert wurde.
+> [!CAUTION]
+> `sudo` darf auf keinen Fall verwendet werden, wenn WeeWX mittels `pip`
+> installiert wurde.
 
    Bei der `pip`-Installation muß in `capwarnings.py` der Pfad
    `/usr/share/weewx` durch den tatsächlichen Pfad der WeeWX-Installation
