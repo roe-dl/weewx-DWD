@@ -169,14 +169,14 @@ pip install requests
 > `sudo` darf auf keinen Fall verwendet werden, wenn WeeWX mittels `pip`
 > installiert wurde.
 
+3) Anpassen der Konfiguration
+
+   siehe Abschnitt [Konfiguration](#konfiguration)
+
    Bei der `pip`-Installation muß in `capwarnings.py` der Pfad
    `/usr/share/weewx` durch den tatsächlichen Pfad der WeeWX-Installation
    ersetzt werden. Für den manuellen Aufruf gilt das auch für die
    anderen Dateien.
-
-3) Anpassen der Konfiguration
-
-   siehe Abschnitt [Konfiguration](#konfiguration)
 
 4) Neustart von WeeWX
 
@@ -575,6 +575,9 @@ im Abschnitt `[[forecast]]` einzutragen:
   in Spalte VHDL zu finden. Immer zum Ende des Archiv-Intervalls
   und rechtzeitig vor dem Reporterzeugungslauf
   wird geprüft, ob es ein Update der Vorhersagen gibt
+
+  Mit der Option `insert_lf_after_summary = true` kann ein Zeilenwechsel
+  nach der fettgedruckten Überschrift eingefügt werden.
 
 * Staatsbetrieb Sachsenforst
 
@@ -1114,6 +1117,7 @@ Beispiel:
             provider = DWD
             model = text
             area = DWLG
+            insert_lf_after_summary = false # optional
     # Warnungen (dwd-cap-warnings, bbk-warnings, msc-warnings)
     [[warning]]
         #icons = ... # Optional, für alle Provider
