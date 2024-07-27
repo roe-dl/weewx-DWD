@@ -167,12 +167,18 @@ weectl extension install weewx-dwd.zip
 > `sudo` darf auf keinen Fall verwendet werden, wenn WeeWX mittels `pip`
 > installiert wurde.
 
+Bei der `pip`-Installation muß in `capwarnings.py` der Pfad
+`/usr/share/weewx` durch den tatsächlichen Pfad der WeeWX-Installation
+ersetzt werden. Für den manuellen Aufruf gilt das auch für die
+anderen Dateien.
+
 Manuelle Installation:
 
 Packen Sie die ZIP-Datei aus.
 
 Kopieren Sie alle Dateien aus dem Verzeichnis `bin/user/` ins 
-Erweiterungsverzeichnis von WeeWX, typischerweise `/usr/share/weewx/user`.
+Erweiterungsverzeichnis von WeeWX, typischerweise `/usr/share/weewx/user`
+bei WeeWX 4 und `/etc/weewx/bin/user` bei WeeWX 5.
 
 Kopieren Sie `usr/local/bin/dwd-mosmix`, `usr/local/bin/dwd-warnings`,
 `usr/local/bin/html2ent.ansi` und `usr/local/bin/wget-dwd` nach
@@ -673,6 +679,32 @@ Dazu ist in `weewx.conf` einzutragen:
         ...
         barometerDWD = software, loop
 ```
+
+Wird die Reporterzeugung dabei zu langsam, sollte `barometerDWD`
+in die Datenbank aufgenommen werden. Dazu ist zuerst WeeWX zu
+stoppen und ein Backup der Datenbank anzulegen. Anschließend kann 
+die Größe mit dem folgenden Befehl in die Datenbank aufgenommen werden:
+
+Bei WeeWX 4.X:
+
+```shell
+sudo wee_database --add-column=barometerDWD
+```
+
+Bei WeeWX 5.X Paketinstallation:
+
+```shell
+sudo weectl database add-column barometerDWD
+```
+
+Bei WeeWX 5.X `pip`-Installation:
+
+```shell
+source ~/weewx-venv/bin/activate
+weectl database add-column barometerDWD
+```
+
+Zum Schluß muß WeeWX neu gestartet werden.
 
 ## Meßgrößen
 

@@ -112,8 +112,9 @@ Manual installation:
 Unpack the file
 
 Copy all files in `bin/user/` 
-into the extension directory of WeeWX. That is often
-`/usr/share/weewx/user`.
+into the extension directory of WeeWX. For WeeWX 4 that is often
+`/usr/share/weewx/user`. For WeeWX 5 `/etc/weewx/bin/user` 
+is common.
 
 Copy `usr/local/bin/dwd-mosmix`, `usr/local/bin/dwd-warnings`,
 `usr/local/bin/html2ent.ansi`, and `usr/local/bin/wget-dwd` to

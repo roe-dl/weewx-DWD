@@ -187,7 +187,7 @@ if __name__ == '__main__':
     import __main__
     sys.path.append('/usr/share/weewx')
     x = os.path.dirname(os.path.abspath(os.path.dirname(__main__.__file__)))
-    if x!='/usr/share/weewx':
+    if x not in sys.path:
         sys.path.append(x)
 
     def logdbg(x):
