@@ -270,6 +270,9 @@ class DwdHealthThread(BaseThread):
         self.show_placemark = weeutil.weeutil.to_bool(
             conf_dict.get('show_placemark',True)
         )
+        self.plusminus_icon_size = weeutil.weeutil.to_int(
+            conf_dict.get('plusminus_icon_size',20)
+        )
         # orientation of the HTML table
         orientation = conf_dict.get('orientation','h,v')
         if not isinstance(orientation,list):
@@ -615,7 +618,7 @@ class DwdHealthThread(BaseThread):
                         else:
                             col = ''
                         if self.model=='biowetter':
-                            effect = symbol(effect,20)
+                            effect = symbol(effect,self.plusminus_icon_size)
                         if self.model=='pollen':
                             s += '<span class="hidden-xs">'
                         if col:
