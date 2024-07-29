@@ -266,9 +266,46 @@ class DwdHealthThread(BaseThread):
                         _accum[obstype] = ACCUM_STRING
         if _accum:
             weewx.accum.accum_dict.maps.append(_accum)
+        # HTML config
+        self.show_placemark = weeutil.weeutil.to_bool(
+            conf_dict.get('show_placemark',True)
+        )
+        # orientation of the HTML table
+        orientation = conf_dict.get('orientation','h,v')
+        if not isinstance(orientation,list):
+            if orientation.lower()=='both': orientation = 'h,v'
+            orientation = orientation.split(',')
+        orientation = [ii[0].lower() for ii in orientation]
+        self.horizontal_table = 'h' in orientation
+        self.vertical_table = 'v' in orientation
         # classes to include in <table> and surronding <div> tag
-        self.horizontal_table_classes = 'table-striped'
-        self.horizontal_main_effect_td_classes = 'records-header'
+        self.horizontal_table_classes = conf_dict.get(
+            'horizontal_table_classes',
+            'dwd%stable table-striped' % self.model
+        )
+        self.horizontal_div_classes = conf_dict.get(
+            'horizontal_div_classes',
+            'dwd%s-horizontal' % self.model
+        )
+        self.horizontal_main_effect_td_classes = conf_dict.get(
+            'horizontal_main_effect_td_classes',
+            'records-header'
+        )
+        self.vertical_table_classes = conf_dict.get(
+            'vertical_table_classes',
+            'dwd%stable table-striped' % self.model
+        )
+        self.vertical_div_classes = conf_dict.get(
+            'vertical_div_classes',
+            'dwd%s-vertical' % self.model
+        )
+        # visibility according to viewport size
+        class_hidden = conf_dict.get('class_hidden','hidden-xs')
+        class_visible = conf_dict.get('class_visible','visible-xs-block')
+        if self.horizontal_table and self.vertical_table:
+            # both tables are included, so we need to set visibility
+            self.horizontal_div_classes = ((self.horizontal_div_classes+' ') if self.horizontal_div_classes else '')+class_hidden
+            self.vertical_div_classes = ((self.vertical_div_classes+' ') if self.vertical_div_classes else '')+class_visible
         # test output
         if __name__ == "__main__":
             print('obs_group_dict')
@@ -515,13 +552,19 @@ class DwdHealthThread(BaseThread):
             tab = tabtimespans[0]
             timespans = tabtimespans[1]
             colwidth = 100/(len(timespans)+1)
-            s = '<p><strong>%s</strong></p>\n' % area_name
+            s = ''
+            if self.show_placemark:
+                s += '<p><strong>%s</strong></p>\n' % area_name
+            #if self.horizontal_div_classes:
+            #    s += '<div class="%s">\n' % self.horizontal_div_classes
             s += '<table class="%s">' % self.horizontal_table_classes
             s += '<thead style="position:sticky;top:0">'
             s += '<tr><th width="%d%%"></th>' % colwidth
             timespansvalue = False
             for ii,val in timespans.items():
-                s += '<th width="%d%%" scope="col">%s<br />%s<br />%s</th>' % (colwidth,ii[0],ii[1],ii[2])
+                s += '<th width="%d%%" scope="col">%s<br />%s' % (colwidth,ii[0],ii[1])
+                if ii[2]: s += '<br />%s' % ii[2]
+                s += '</th>'
                 if val is not None: timespansvalue = True
             s += '</tr>'
             s += '</thead><tbody>'
@@ -587,6 +630,8 @@ class DwdHealthThread(BaseThread):
                 s += '</tr>'
             s += '</tbody>'
             s += '</table>\n'
+            #if self.horizontal_div_classes:
+            #    s += '</div>\n'
             if self.model=='biowetter':
                 s += '<ul style="list-style:none;width:100%;padding:0;margin-left:-1em;margin-bottom:auto">'
                 for ii in ('Legende:','hohe Gefährdung','geringe Gefährdung','kein Einfluss','positiver Einfluss'):
