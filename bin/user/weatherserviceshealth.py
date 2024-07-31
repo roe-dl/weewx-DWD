@@ -638,7 +638,7 @@ class DwdHealthThread(BaseThread):
             if self.model=='biowetter':
                 s += '<ul style="list-style:none;width:100%;padding:0;margin-left:-1em;margin-bottom:auto">'
                 for ii in ('Legende:','hohe Gefährdung','geringe Gefährdung','kein Einfluss','positiver Einfluss'):
-                    sym = symbol(ii,20)
+                    sym = symbol(ii,self.plusminus_icon_size)
                     txt = ii if sym==ii else '%s&nbsp;%s' % (sym,ii)
                     s += '<li style="display:inline-block;padding-left:1em;padding-right:1em">%s</li>' % txt
                 s += '</ul>'
