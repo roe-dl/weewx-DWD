@@ -228,7 +228,7 @@ class DwdHealthThread(BaseThread):
         self.area = conf_dict.get('area')
         self.target_path = conf_dict.get('path','.')
         self.filename = '%s-%s' % (self.model,conf_dict.get('file',self.area))
-        self.data = dict()
+        self.data = []
         self.tab = (dict(),dict())
         loginf("thread '%s': area '%s', URL '%s'" % (self.name,self.area,self.url))
         self.last_update = 0
@@ -721,18 +721,25 @@ class DwdHealthThread(BaseThread):
             except Exception as e:
                 if self.log_failure:
                     logerr("thread '%s': write HTML %s - %s" % (self.name,e.__class__.__name__,e))
+            data.sort()
             try:
                 self.lock.acquire()
                 self.last_update = last_update
                 self.next_update = next_update
                 self.area_name = area_name
-                if self.data:
-                    self.data = [self.data[-1]] + data
+                x = None
+                for i in self.data:
+                    if i[1]==data[0][0]:
+                        x = i
+                        break
+                if x:
+                    self.data = [x] + data
                 else:
                     self.data = data
                 self.tab = tabtimespans
             finally:
                 self.lock.release()
+            #loginf("getRecord %s" % ','.join(['(%s,%s)' % (i[0],i[1]) for i in self.data]))
 
     def waiting_time(self):
         now = time.time()
