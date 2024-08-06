@@ -137,6 +137,102 @@ def symbol(val, height):
     width = height*sym[0]
     return '%s<title>%s</title>%s%s' % (SVG_START % (width,height,sym[1]),val,sym[2],SVG_END)
 
+OK_SYMBOL = """  <path
+     stroke="#3ea72d" stroke-width="2" stroke-linecap="round" 
+     stroke-linejoin="round" fill="none"
+     d="m12.5,12.5 a15,15 0 0 1 3,6 a30,30 0 0 1 6,-12" />
+"""
+THERMO_TEXT = """  <g
+     font-family="sans-serif"
+     font-size="%spx">
+      <text x="17" y="12.5" text-anchor="middle" dominant-baseline="middle" stroke="#000000" stroke-width="0.2" fill="%s">%s</text>
+    </g>
+"""
+THERMO_SMILEY = """  <circle cx="17" cy="12.5" r="6" stroke="#000" stroke-width="0.2" fill="%s" />
+  <circle cx="19" cy="11" r="1" fill="#000" />
+  <circle cx="15" cy="11" r="1" fill="#000" />
+  <path
+     stroke="#000" stroke-width="1.0" stroke-linecap="round" fill="none"
+     d="m14.5,15 a%s,%s 0 0 1 5,0" />
+"""
+
+THERMO_SYMBOLS = {
+    'starke Kältebelastung':-3,
+    'mäßige Kältebelastung':-2,
+    'schwache Kältebelastung':-1,
+    'keine':0,
+    'schwache Wärmebelastung':1,
+    'mäßige Wärmebelastung':2,
+    'starke Wärmebelastung':3,
+    'extreme Wärmebelastung':4,
+}
+
+THERMO_COLORS = [
+    '#0000ff', # -4
+    '#006eff', # -3
+    '#00cdff', # -2
+    '#82ffff', # -1
+    '#3ea72d', # 0
+    '#f9e814', # 1
+    '#f18b00', # 2
+    '#e53210', # 3
+    '#b567a4', # 4
+]
+
+def thermometer(x, y, color, value):
+    v = round(value*0.12+0.206264,6)
+    return """  <path
+     stroke="none" fill="%s"
+     d="m%s,%s m-0.75,-4.701288 v%s h2 v%s a2.5,2.5 0 1 1 -2,0 z" />
+  <path
+     stroke="currentColor" stroke-width="0.75" fill="none"
+     d="m%s,%s m-0.75,-4.791288 v-12.206264 a1,1 0 0 1 2,0 v12.206264 a2.5,2.5 0 1 1 -2,0 z m2,-2.206264 h1 m-1,-4 h1 m-1,-4 h1" />
+
+""" % (color,x,y,-v,v,x,y)
+
+def thermalstress_symbol(val, height):
+    if isinstance(val,int):
+        v = val
+    else:
+        if val not in THERMO_SYMBOLS: return val
+        v = THERMO_SYMBOLS[val]
+    if v<=-4: 
+        col = THERMO_COLORS[-4+4]
+    elif v>=4:
+        col = THERMO_COLORS[4+4]
+    else:
+        col = THERMO_COLORS[int(round(v,0))+4]
+    """
+    if v<-1.5:
+        v = thermometer(6,21.5,col,16.6666666666)
+        w = thermometer(19,21.5,col,16.66666666666666)
+    """
+    if v<-0.5:
+        r = 40/v/v if v>-3.65 else 3
+        v = thermometer(5,21.5,col,16.66666666666)
+        w = THERMO_SMILEY % (col,r,r)
+    elif v<=0.5:
+        v = thermometer(6,21.5,col,50)
+        w = OK_SYMBOL
+    else:
+        r = 40/v/v if v<3.65 else 3
+        v = thermometer(5,21.5,col,83.33333333333)
+        # w = THERMO_TEXT % (0.5*height,col,v)
+        w = THERMO_SMILEY % (col,r,r)
+    """
+    elif v<=2.5:
+        v = thermometer(6,21.5,col,83.33333333333)
+        w = thermometer(19,21.5,col,83.3333333333333)
+    else:
+        v = '%s%s%s' % (
+            thermometer(5,21.5,col,83.33333333333),
+            thermometer(12.5,21.5,col,83.33333333333),
+            thermometer(20,21.5,col,83.3333333333333)
+        )
+    """
+    return '%s<title>%s</title>%s%s%s' % (SVG_START % (height,height,'0 0 25 25'),val,v,w,SVG_END)
+
+
 class DwdHealthThread(BaseThread):
 
     BASE_URL = 'https://opendata.dwd.de/climate_environment/health'
@@ -471,6 +567,18 @@ class DwdHealthThread(BaseThread):
                 dt = forecast['date']
                 ti = forecast['name']
                 val = forecast['value']
+                val_list = str(val).split('-')
+                try:
+                    if val_list[2]=='00':
+                        thermalstress = 0
+                    elif val_list[2].startswith('w'):
+                        thermalstress = int(val_list[2][1:])
+                    elif val_list[2].startswith('k'):
+                        thermalstress = -int(val_list[2][1:])
+                    else:
+                        raise ValueError("unknown heat stress %s" % val_list[2])
+                except (ValueError,TypeError):
+                    thermalstress = None
                 #print(name,dt,ti,val)
                 if ti.startswith('1'):
                     start = self.convert_timestamp('%sT0:0:0' % dt)
@@ -489,6 +597,7 @@ class DwdHealthThread(BaseThread):
                     'biowetterValidTo':(end,'unix_epoch','group_time'),
                     'biowetterValidFrom':(start,'unix_epoch','group_time'),
                     'biowetterValue':(val,None,None),
+                    'biowetterExpectedThermalStress':(thermalstress,None,None),
                 }
                 for effect in forecast['effect']:
                     #print(effect['name'],effect['value'])
@@ -618,7 +727,10 @@ class DwdHealthThread(BaseThread):
                         else:
                             col = ''
                         if self.model=='biowetter':
-                            effect = symbol(effect,self.plusminus_icon_size)
+                            if ii=='Thermische Belastung':
+                                effect = thermalstress_symbol(effect,self.plusminus_icon_size*2)
+                            else:
+                                effect = symbol(effect,self.plusminus_icon_size)
                         if self.model=='pollen':
                             s += '<span class="hidden-xs">'
                         if col:
@@ -639,6 +751,12 @@ class DwdHealthThread(BaseThread):
                 s += '<ul style="list-style:none;width:100%;padding:0;margin-left:-1em;margin-bottom:auto">'
                 for ii in ('Legende:','hohe Gefährdung','geringe Gefährdung','kein Einfluss','positiver Einfluss'):
                     sym = symbol(ii,self.plusminus_icon_size)
+                    txt = ii if sym==ii else '%s&nbsp;%s' % (sym,ii)
+                    s += '<li style="display:inline-block;padding-left:1em;padding-right:1em">%s</li>' % txt
+                s += '</ul>'
+                s += '<ul style="list-style:none;width:100%;padding:0;margin-left:-1em;margin-bottom:auto">'
+                for ii in ('Wärmebelastung:','keine','schwach','mäßig','stark','extrem'):
+                    sym = thermalstress_symbol(ii+'e Wärmebelastung' if ii not in ('Wärmebelastung:','keine') else ii,self.plusminus_icon_size*2)
                     txt = ii if sym==ii else '%s&nbsp;%s' % (sym,ii)
                     s += '<li style="display:inline-block;padding-left:1em;padding-right:1em">%s</li>' % txt
                 s += '</ul>'
