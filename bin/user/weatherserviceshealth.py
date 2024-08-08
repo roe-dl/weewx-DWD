@@ -369,6 +369,9 @@ class DwdHealthThread(BaseThread):
         self.plusminus_icon_size = weeutil.weeutil.to_int(
             conf_dict.get('plusminus_icon_size',20)
         )
+        self.thermalstress_icon_size = weeutil.weeutil.to_int(
+            conf_dict.get('thermalstress_icon_size', self.plusminus_icon_size*2)
+        )
         # orientation of the HTML table
         orientation = conf_dict.get('orientation','h,v')
         if not isinstance(orientation,list):
@@ -675,7 +678,7 @@ class DwdHealthThread(BaseThread):
             timespansvalue = False
             for ii,val in timespans.items():
                 s += '<th width="%d%%" scope="col">%s<br />%s' % (colwidth,ii[0],ii[1])
-                if ii[2]: s += '<br />%s' % ii[2]
+                if ii[2]: s += '<br />%s' % ii[2].replace('Tageshälfte','Tages&shy;hälfte')
                 s += '</th>'
                 if val is not None: timespansvalue = True
             s += '</tr>'
@@ -728,7 +731,7 @@ class DwdHealthThread(BaseThread):
                             col = ''
                         if self.model=='biowetter':
                             if ii=='Thermische Belastung':
-                                effect = thermalstress_symbol(effect,self.plusminus_icon_size*2)
+                                effect = thermalstress_symbol(effect,self.thermalstress_icon_size)
                             else:
                                 effect = symbol(effect,self.plusminus_icon_size)
                         if self.model=='pollen':
@@ -738,7 +741,7 @@ class DwdHealthThread(BaseThread):
                         else:
                             s += effect
                         if 'recomm' in tab[ii][jj] and tab[ii][jj]['recomm']!='keine':
-                            s += '<br /><strong>%s:</strong><br />%s' % ('Empfehlung',tab[ii][jj]['recomm'])
+                            s += '<span class="hidden-xs hidden-sm"><br /><strong>%s:</strong><br />%s</span>' % ('Empfehlung',tab[ii][jj]['recomm'])
                         if self.model=='pollen':
                             s += '</span>'
                     s += '</td>'
@@ -759,6 +762,14 @@ class DwdHealthThread(BaseThread):
                     sym = thermalstress_symbol(ii+'e Wärmebelastung' if ii not in ('Wärmebelastung:','keine') else ii,self.plusminus_icon_size*2)
                     txt = ii if sym==ii else '%s&nbsp;%s' % (sym,ii)
                     s += '<li style="display:inline-block;padding-left:1em;padding-right:1em">%s</li>' % txt
+                s += '</ul>'
+            elif self.model=='pollen':
+                s += '<ul class="visible-xs-block" style="list-style:none;width:100%;padding:0;margin-left:-1em;margin-bottom:auto">'
+                s += '<li style="display:inline-block;padding-left:1em;padding-right:1em">Belastung:</li>'
+                for idx, col in enumerate(DwdHealthThread.POLLEN_COLORS):
+                    txt = ('keine','keine bis gering','gering','gering bis mittel','mittel','mittel bis hoch','hoch')[idx]
+                    tcl = '#ffffff' if idx==0 or idx>3 else '#000000'
+                    s += ('<li style="display:inline-block;padding-left:1em;padding-right:1em"><span style="background-color:%s;color:%s">&nbsp;%3.1f&nbsp;</span> %s</li>' % (col,tcl,idx*0.5,txt)).replace('.',',')
                 s += '</ul>'
             s += '<p style="font-size:65%%">herausgegeben vom <a href="%s" target="_blank">%s</a> am %s | Vorhersage erstellt am %s</p>' % (
                 self.provider_url,self.provider_name,
