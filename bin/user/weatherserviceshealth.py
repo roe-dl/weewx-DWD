@@ -265,6 +265,7 @@ class DwdHealthThread(BaseThread):
         'biowetterIssued':('unix_epoch','group_time'),
         'biowetterNextUpdate':('unix_epoch','group_time'),
         'biowetterValue':(None,None),
+        'biowetterExpectedThermalStress':('count','group_count'),
     }
     
     POLLEN_OBS = {
@@ -600,7 +601,7 @@ class DwdHealthThread(BaseThread):
                     'biowetterValidTo':(end,'unix_epoch','group_time'),
                     'biowetterValidFrom':(start,'unix_epoch','group_time'),
                     'biowetterValue':(val,None,None),
-                    'biowetterExpectedThermalStress':(thermalstress,None,None),
+                    'biowetterExpectedThermalStress':(thermalstress,'count','group_count'),
                 }
                 for effect in forecast['effect']:
                     #print(effect['name'],effect['value'])
