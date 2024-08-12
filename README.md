@@ -411,6 +411,7 @@ gem_seamless    | CA      | MSC-CMC | GEM
 gem_global      | CA      | MSC-CMC | GEM
 gem_regional    | CA      | MSC-CMC | GEM
 gem_hrdps_continental | CA      | MSC-CMC | GEM-HRDPS
+ukmo_seamless | GB | UK Met Office | UKMO Seamless
 
 Bei der Darstellung der Werte sind die Nutzungsbedingungen sowohl
 von Open-Meteo als auch der betreffenden Wetterdienste zu beachten.

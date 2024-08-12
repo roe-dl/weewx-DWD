@@ -2672,7 +2672,8 @@ class DwdMosmix(object):
         'gem_seamless':('CA','MSC-CMC','GEM','forecast'),
         'gem_global':('CA','MSC-CMC','GEM','forecast'),
         'gem_regional':('CA','MSC-CMC','GEM','forecast'),
-        'gem_hrdps_continental':('CA','MSC-CMC','GEM-HRDPS','forecast')
+        'gem_hrdps_continental':('CA','MSC-CMC','GEM-HRDPS','forecast'),
+        'ukmo_seamless':('GB','UK Met Office','UKMO Global','forecast'),
     }
 
     def download_openmeteo(self, lat, lon, model):
