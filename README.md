@@ -30,7 +30,8 @@ Diese Daten können mit den Programmen bezogen werden:
     [Niederschlagsradar](https://github.com/roe-dl/weewx-DWD/wiki/Niederschlagsradar))
   * Biowetter- und Pollenflugvorhersage
     (`user.weatherservices.DWDservice`)
-* von der Zentralanstalt für Meteorologie und Geodynamik (ZAMG)
+* von der Zentralanstalt für Meteorologie und Geodynamik (ZAMG) / GeoSphere
+  Austria
   * aktuelle Meßwerte von offiziellen ZAMG-Wetterstationen
     (`user.weatherservices.DWDservice`)
 * über das Open-Meteo-API
@@ -528,14 +529,14 @@ im Abschnitt `[[current]]` einzutragen:
 
   [Liste der Stationen](https://opendata.dwd.de/climate_environment/CDC/help/wetter_tageswerte_Beschreibung_Stationen.txt)
 
-* ZAMG
+* ZAMG / GeoSphere Austria
 
   ```
             provider = ZAMG
   ```
 
-  Auch der österreichische Wetterdienst ZAMG stellt aktuelle Meßwerte
-  seiner Stationen im Internet zur Verfügung
+  Auch der österreichische Wetterdienst ZAMG (seit 2023 GeoSphere Austria)
+  stellt aktuelle Meßwerte seiner Stationen im Internet zur Verfügung.
 
   [Liste der Stationen](https://dataset.api.hub.zamg.ac.at/v1/station/current/tawes-v1-10min/metadata)
 

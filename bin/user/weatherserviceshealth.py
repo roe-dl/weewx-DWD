@@ -157,6 +157,7 @@ THERMO_SMILEY = """  <circle cx="17" cy="12.5" r="6" stroke="#000" stroke-width=
 """
 
 THERMO_SYMBOLS = {
+    'extreme Kältebelastung':-4,
     'starke Kältebelastung':-3,
     'mäßige Kältebelastung':-2,
     'schwache Kältebelastung':-1,
@@ -752,15 +753,24 @@ class DwdHealthThread(BaseThread):
             #if self.horizontal_div_classes:
             #    s += '</div>\n'
             if self.model=='biowetter':
+                # danger
                 s += '<ul style="list-style:none;width:100%;padding:0;margin-left:-1em;margin-bottom:auto">'
                 for ii in ('Legende:','hohe Gefährdung','geringe Gefährdung','kein Einfluss','positiver Einfluss'):
                     sym = symbol(ii,self.plusminus_icon_size)
                     txt = ii if sym==ii else '%s&nbsp;%s' % (sym,ii)
                     s += '<li style="display:inline-block;padding-left:1em;padding-right:1em">%s</li>' % txt
                 s += '</ul>'
+                # heat stress
                 s += '<ul style="list-style:none;width:100%;padding:0;margin-left:-1em;margin-bottom:auto">'
                 for ii in ('Wärmebelastung:','keine','schwach','mäßig','stark','extrem'):
                     sym = thermalstress_symbol(ii+'e Wärmebelastung' if ii not in ('Wärmebelastung:','keine') else ii,self.plusminus_icon_size*2)
+                    txt = ii if sym==ii else '%s&nbsp;%s' % (sym,ii)
+                    s += '<li style="display:inline-block;padding-left:1em;padding-right:1em">%s</li>' % txt
+                s += '</ul>'
+                # cold stress
+                s += '<ul style="list-style:none;width:100%;padding:0;margin-left:-1em;margin-bottom:auto">'
+                for ii in ('Kältebelastung:','keine','schwach','mäßig','stark','extrem'):
+                    sym = thermalstress_symbol(ii+'e Kältebelastung' if ii not in ('Kältebelastung:','keine') else ii,self.plusminus_icon_size*2)
                     txt = ii if sym==ii else '%s&nbsp;%s' % (sym,ii)
                     s += '<li style="display:inline-block;padding-left:1em;padding-right:1em">%s</li>' % txt
                 s += '</ul>'

@@ -1700,7 +1700,17 @@ class DownloadThread(BaseThread):
             # get the options from the section
             url_dict = weeutil.config.accumulateLeaves(config_dict[section])
             provider = config_dict[section].get('provider','--')
-            if provider.upper()=='DWD' and 'model' in config_dict[section]:
+            if provider!='--' and config_dict[section].get('model')=='wms':
+                # OGC WMS
+                confs = self.init_wms(
+                    provider,
+                    config_dict[section],
+                    url_dict
+                )
+                if confs:
+                    self.urls.update(confs)
+                continue
+            elif provider.upper()=='DWD' and 'model' in config_dict[section]:
                 # shortcuts for DWD products
                 providers['DWD'] = 'https://www.dwd.de'
                 model = config_dict[section].get('model','--')
@@ -1773,6 +1783,72 @@ class DownloadThread(BaseThread):
                 'to_encoding':'dwd_text_forecast',
                 'insert_lf_after_summary':ins_lf
             })
+        return confs
+        
+    def init_wms(self, provider, section_dict, accumulated_dict):
+        """ DWD GeoServer OGC WMS """
+        loginf("INIT WMS")
+        if provider.upper()=='DWD':
+            base_url = 'https://maps.dwd.de/geoserver/dwd/ows'
+            provider = 'DWD'
+        else:
+            base_url = ''
+        # map bounding box
+        # key 'map': west, south, east-west, north-south
+        # parameter 'bbox': west, south, east, north
+        bbox = section_dict.get('map')
+        if bbox:
+            bbox[2] = str(float(bbox[0])+float(bbox[2]))
+            bbox[3] = str(float(bbox[1])+float(bbox[3]))
+            bbox[0] = str(bbox[0])
+            bbox[1] = str(bbox[1])
+        # list of warn cell IDs to use for placeholder $warncellids
+        warncellids = section_dict.get('warncellids')
+        if warncellids is None:
+            # key 'warncellids' is not present
+            warncellids = ''
+        elif isinstance(warncellids,list):
+            # It is a list of IDs.
+            warncellids = ','.join(["'%s'" % str(i).replace("'",'_') for i in warncellids])
+        else:
+            # It is one single ID only.
+            warncellids = "'%s'" % str(warncellids).replace("'",'_')
+        # URL parameters
+        parameters = {
+            'service':'WMS',
+            'version':'1.3',
+        }
+        # The key 'map' is defined. That means we want to get a map.
+        if bbox:
+            parameters['request'] = 'GetMap'
+            parameters['bbox'] = ','.join(bbox)
+        # get more URL parameters
+        for i,j in section_dict.get('parameters',dict()).items():
+            if isinstance(j,list):
+                k = ','.join([str(jj).replace(',','_') for jj in j])
+            else:
+                k = j
+            k = k.replace('$warncellids',warncellids).replace("'",'%27').replace('/','%2F').replace(' ','%20')
+            parameters[i] = k
+        # URL to query
+        url = '%s?%s' % (
+            section_dict.get('server_url',base_url),
+            '&'.join(['%s=%s' % (i,j) for i,j in parameters.items()])
+        )
+        # target path
+        fno = os.path.join(
+            accumulated_dict.get('path','.'),
+            section_dict.get('file','')
+        )
+        # put configuration together
+        confs = dict()
+        if url.startswith('http') and fno!='.':
+            confs[url] = configobj.ConfigObj({
+                'provider': provider,
+                'model': 'OGC-WMS',
+                'target': fno,
+            })
+            loginf(url)
         return confs
     
     def get_data(self, ts):
