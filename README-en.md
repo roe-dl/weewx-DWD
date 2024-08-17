@@ -6,6 +6,8 @@ download weather and warning data and use them in WeeWX and skins.
 <p align="center"><img src="Wettervorhersage-Warnungen-Fichtelberg.png" width="600px" /></p>
 
 With this extension you can receive and process the following data:
+* from OGC servers of several weather services like NOAA, DWD, etc.
+  * maps, satellite pictures, etc. (see [Query Open Geospatial Consortium (OGC) Servers](https://github.com/roe-dl/weewx-DWD/wiki/Query-Open-Geospatial-Consortium-(OGC)-Servers-(English)))
 * from Deutscher Wetterdienst (DWD)
   * pre-calculated weather forecasts based on hours, three-hours, and days
     for the next 10 days for about 6000 places around the world (`dwd-mosmix`)

@@ -15,6 +15,8 @@ Völlig unabhängig von einzelnen Wetterdiensten können mittels
 mehrerer Anbieter werden unterstützt.
 
 Diese Daten können mit den Programmen bezogen werden:
+* von OGC-Servern verschiedener Wetterdienste, darunter DWD, NOAA
+  * Karten, Satellitenbilder etc. (siehe [Open Geospatial Consortium (OGC) Server abfragen](https://github.com/roe-dl/weewx-DWD/wiki/Open-Geospatial-Consortium-(OGC)-Server-abfragen))
 * vom Deutschen Wetterdienst (DWD)
   * vorberechnete Wettervorhersagen auf Stunden-, 3-Stunden- und
     Tagesbasis
