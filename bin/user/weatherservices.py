@@ -1847,6 +1847,7 @@ class DownloadThread(BaseThread):
                 'provider': provider,
                 'model': 'OGC-WMS',
                 'target': fno,
+                'compare_content': accumulated_dict.get('compare_content',True),
             })
             loginf(url)
         return confs
@@ -1873,8 +1874,8 @@ class DownloadThread(BaseThread):
                         logerr("thread '%s': download error %s %s" % (self.name,e.__class__.__name__,e))
                     reply = None
                 if reply is not None and reply[2] is not None:
-                    self.last_modified[url] = reply[1]
                     data = reply[2]
+                    # convert encoding if specified
                     if encoding:
                         data = data.decode(from_encoding,'ignore')
                         if encoding=='utf8':
@@ -1887,27 +1888,60 @@ class DownloadThread(BaseThread):
                             data = self.format_dwd_text_forecast(data,options)
                         else:
                             data = data.encode(encoding,'ignore')
-                    ct += 1
-                    try:
-                        # where to save the file
-                        fno = options['target']
-                        fno_temp = '%s.tmp' % fno
-                        # first write to temporary file
-                        with open(fno_temp,'wb') as f:
-                            f.write(data)
-                        # change file time to that on the server
-                        if reply[1] is not None:
-                            os.utime(fno_temp,times=(reply[1],reply[1]))
-                        # overwrite previous version of the file within
-                        # one single atomic action for thread safety
-                        os.rename(fno_temp,fno)
-                    except (TypeError,ValueError,OSError) as e:
-                        if self.log_failure:
-                            logerr("thread '%s': could not write %s: %s %s" % (
-                                self.name,fno,e.__class__.__name__,e))
+                    if options.get('compare_content',False):
+                        # If the server does not provide a valid modification
+                        # timestamp, we can compare the file content with the
+                        # newly downloaded data to find out whether it is
+                        # changed or not.
+                        vgl = self.compare_target(data,options.get('target'))
+                        logdbg("file content comparison result: %s" % vgl)
+                    else:
+                        # Otherwise we assume a different modification 
+                        # timestamp indicates an update of the file for
+                        # sure.
+                        vgl = True
+                    if vgl:
+                        self.last_modified[url] = reply[1]
+                        ct += 1
+                        try:
+                            # where to save the file
+                            fno = options['target']
+                            fno_temp = '%s.tmp' % fno
+                            # first write to temporary file
+                            with open(fno_temp,'wb') as f:
+                                f.write(data)
+                            # change file time to that on the server
+                            if reply[1] is not None:
+                                os.utime(fno_temp,times=(reply[1],reply[1]))
+                            # overwrite previous version of the file within
+                            # one single atomic action for thread safety
+                            os.rename(fno_temp,fno)
+                        except (TypeError,ValueError,OSError) as e:
+                            if self.log_failure:
+                                logerr("thread '%s': could not write %s: %s %s" % (
+                                    self.name,fno,e.__class__.__name__,e))
         if self.log_success and not self.log_download:
             loginf("thread '%s': got %s new files and saved them" % (
                 self.name,ct))
+    
+    def compare_target(self, data, fno):
+        """ compare data with the content of file fno """
+        fdata = None
+        try:
+            fsize = os.stat(fno).st_size
+            if fsize!=len(data):
+                raise ValueError("different size")
+            # Prevent memory overflow
+            if fsize>10000000:
+                raise ValueError("file too large to compare")
+            # Read file `fno`
+            with open(fno,'rb') as f:
+                fdata = f.read()
+        except (TypeError,ValueError,OSError):
+            # In case of errors we assume `data` is not identical to the
+            # file `fno`.
+            fdata = None
+        return data!=fdata
 
     def format_dwd_text_forecast(self, text, options):
         """ convert forecast text to HTML """
