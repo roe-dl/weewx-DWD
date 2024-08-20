@@ -1176,6 +1176,10 @@ Beispiel:
             # es eine Textdatei ist
             # optional
             #to_encoding = html_entities
+            # Soll der Dateiinhalt verglichen werden, wenn der Server keinen
+            # Änderungszeitstempel liefert?
+            # optional
+            #compare_content = false
         [[[Download2]]]
             # Bodenwetterkarte vom DWD
             provider = DWD

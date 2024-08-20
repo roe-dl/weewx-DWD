@@ -737,6 +737,32 @@ Example:
         # compass direction language (optional)
         # possible values: de, en, fr, it, cz, es, nl, no, gr
         #compass_lang = 'en' # optional
+    [[download]]
+        # general download interface to download maps and forecasts and
+        # other files
+        [[[Download1]]]
+            # what to download
+            url = "https://www.example.com/pfad/datei"
+            # what encoding the original file is in
+            # optional
+            #from_encoding = iso8859-1
+            # what encoding is to used to save the file
+            # optional
+            #to_encoding = html_entities
+        [[[Download2]]]
+            # wather map from DWD
+            provider = DWD
+            model = bwk-map
+        [[[Download3]]]
+            # warnings map 
+            provider = DWD
+            model = warning-map-with-symbols
+            area = LZ
+        [[[Download4]]]
+            # another warnings map
+            provider = DWD
+            model = warning-map
+            area = sac
 ```
 
 The key `path` has to point to the directory created before.
