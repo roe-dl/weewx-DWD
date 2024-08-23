@@ -8,6 +8,8 @@ download weather and warning data and use them in WeeWX and skins.
 With this extension you can receive and process the following data:
 * from OGC servers of several weather services like NOAA, DWD, etc.
   * maps, satellite pictures, etc. (see [Query Open Geospatial Consortium (OGC) Servers](https://github.com/roe-dl/weewx-DWD/wiki/Query-Open-Geospatial-Consortium-(OGC)-Servers-(English)))
+* from OpenWeather
+  * actual calculated weather data for every point on earth
 * from Deutscher Wetterdienst (DWD)
   * pre-calculated weather forecasts based on hours, three-hours, and days
     for the next 10 days for about 6000 places around the world (`dwd-mosmix`)
@@ -320,6 +322,16 @@ by actual data of official or governmental weather stations.
 
 The option `provider` selects the provider to receive data from. The
 option `model` specifies a weather model or product of that provider.
+
+* OpenWeather
+
+  ```
+            provider = OpenWeather
+  ```
+
+  OpenWeather provides calculated data for every point on earth. You have
+  to specifiy the geographic coordinates of the location, you want data
+  for.
 
 * DWD POI
 
@@ -684,6 +696,13 @@ Example:
             provider = Open-Meteo
             model = dwd-icon
             prefix = observation_type_prefix
+        [[[OpenWeather-Example]]]
+            provider = OpenWeather
+            latitude = latitude_of_the_location
+            longitude = longitude_of_the_location
+            station = station_name # (optional)
+            lang = 'en' # language
+            api_key = 'api key received from the provider'
     # configuration for dwd-mosmix
     [[forecast]]
         # location of the icons on the web server

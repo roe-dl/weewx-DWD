@@ -984,7 +984,7 @@ class ZAMGthread(BaseThread):
         'GLOW':('radiation','watt_per_meter_squared','group_radiation'),
         'P':('pressure','hPa','group_pressure'),
         'PRED':('pred','hPa','group_pressure'), # altimeter or barometer?
-        'RFAM':('humidity','percent','group_humidity'),
+        'RFAM':('humidity','percent','group_percent'),
         'SCHNEE':('snowDepth','cm','group_distance'),
         'S0':('sunshineDur','second','group_deltatime'),
         'TL':('outTemp','degree_C','group_temperature'),
@@ -1643,6 +1643,297 @@ class DWDOPENMETEOthread(BaseThread):
             self.lock.release()
 
 
+class OpenWeatherMapThread(BaseThread):
+
+    BASE_URL = 'https://api.openweathermap.org/data/2.5/weather'
+
+    OBS = {
+        'coord.lon':('longitude','degree_compass','group_coordinate'),
+        'coord.lat':('latitude','degree_compass','group_coordinate'),
+        'main.temp':('outTemp','degree_C','group_temperature'),
+        'main.feels_like':('appTemp','degree_C','group_temperature'),
+        'main.temp_min':('minTemp','degree_C','group_temperature'),
+        'main.temp_max':('maxTemp','degree_C','group_temperature'),
+        'main.pressure':('altimeter','hPa','group_pressure'),
+        'main.sea_level':('barometer','hPa','group_pressure'),
+        'main.grnd_level':('pressure','hPa','group_pressure'),
+        'main.humidity':('outHumidity','percent','group_percent'),
+        'visibility':('visibility','meter','group_distance'),
+        'wind.speed':('windSpeed','meter_per_second','group_speed'),
+        'wind.deg':('windDir','degree_compass','group_direction'),
+        'wind.gust':('windGust','meter_per_second','group_speed'),
+        'clouds.all':('cloudcover','percent','group_percent'),
+        'dt':('dateTime','unix_epoch','group_time'),
+        'sys.sunrise':('sunrise','unix_epoch','group_time'),
+        'sys.sunset':('sunset','unix_epoch','group_time'),
+        'timezone':('utcoffset','second','group_deltatime'),
+    }
+    
+    # weather conditions
+    WW_WAWA = {
+        200: (95,92), # thunderstorm with light rain
+        201: (97,95), # thunderstorm with rain
+        202: (97,95), # thunderstorm with heavy rain
+        210: (17,90), # light thunderstorm
+        211: (17,90), # thunderstorm
+        212: (17,90), # heavy thunderstorm
+        221: (17,90), # ragged thunderstorm
+        230: (95,92), # thunderstorm with light drizzle
+        231: (97,95), # thunderstorm with drizzle
+        232: (97,95), # thunderstorm with heavy drizzle
+        300: (51,51), # light intensity drizzle
+        301: (53,52), # drizzle
+        302: (55,53), # heavy intensity drizzle
+        310: (58,57), # light intensity drizzle rain
+        311: (59,58), # drizzle rain
+        312: (59,58), # heavy intensity drizzle rain
+        313: (58,57), # shower rain and drizzle
+        314: (59,58), # heavy shower rain and drizzle
+        321: (80,80), # shower drizzle
+        500: (61,61), # light rain
+        501: (63,62), # moderate rain
+        502: (65,63), # heavy intensity rain
+        503: (65,63), # very heavy rain
+        504: (65,63), # extreme rain
+        511: (67,65), # freezing rain
+        520: (80,81), # light intensity shower rain
+        521: (81,82), # shower rain
+        522: (82,84), # heavy intensity shower rain
+        531: (62,80), # ragged shower rain
+        600: (71,71), # light snow
+        601: (73,72), # snow
+        602: (75,73), # heavy snow
+        611: (68,67), # sleet
+        612: (83,80), # light shower sleet
+        613: (84,80), # shower sleet
+        615: (68,67), # light rain and snow
+        616: (69,68), # rain and snow
+        620: (85,85), # light shower snow
+        621: (86,86), # shower snow
+        622: (86,87), # heavy shower snow
+        701: (10,10), # mist
+        711: ( 4,None), # smoke
+        721: ( 5,None), # haze
+        731: ( 7,27),  # sand/dust whirls
+        741: (45,33),  # fog
+        751: ( 6,None), # sand
+        761: ( 6,None), # dust
+        762: ( 4,None), # volcanic ash
+        771: (18,18),  # squalls
+        781: (19,99),  # tornado
+        800: (0,0),    # clear sky
+        801: (0,0),    # few clouds 11...25%
+        802: (0,0),    # scattered clouds 25...50%
+        803: (0,0),    # broken clouds 51...84%
+        804: (0,0),    # overcast clouds 85...100%
+    }
+
+    @property
+    def provider_name(self):
+        return 'OpenWeather'
+   
+    @property
+    def provider_url(self):
+        return 'https://openweather.co.uk'
+    
+    def __init__(self, name, prefix, config_dict, query_interval):
+        conf_dict = weeutil.config.accumulateLeaves(config_dict)
+        log_success = weeutil.weeutil.to_bool(conf_dict.get('log_success',True))
+        log_failure = weeutil.weeutil.to_bool(conf_dict.get('log_failure',True))
+        # whether to log the sleeping time
+        self.log_sleeping = weeutil.weeutil.to_bool(conf_dict.get('log_sleeping',False))
+        # query interval
+        self.query_interval = query_interval
+        super(OpenWeatherMapThread,self).__init__('OpenWeather-%s' % name,log_success,log_failure)
+        # debug mode
+        if weeutil.weeutil.to_int(conf_dict.get('debug',0))>0:
+            self.log_success = True
+            self.log_failure = True
+            self.log_sleeping = True
+            self.log_download = True
+        # query interval
+        self.query_interval = query_interval
+        # API key
+        self.api_key = config_dict.get('api_key')
+        # location
+        self.latitude = config_dict.get('latitude')
+        self.longitude = config_dict.get('longitude')
+        # language
+        self.lang = conf_dict.get('lang','en')
+        # icon set
+        self.iconset = weeutil.weeutil.to_int(conf_dict.get('iconset',4))
+        # URL
+        self.base_url = config_dict.get('server_url',OpenWeatherMapThread.BASE_URL)
+        _accum = dict()
+        weewx.units.obs_group_dict.setdefault(prefix+'DateTime','group_time')
+        weewx.units.obs_group_dict.setdefault(prefix+'Dewpoint','group_temperature')
+        for key, obs in OpenWeatherMapThread.OBS.items():
+            obstype = obs[0]
+            obsgroup = obs[2]
+            if obsgroup:
+                # number variable
+                weewx.units.obs_group_dict.setdefault(prefix+obstype[0].upper()+obstype[1:],obsgroup)
+            else:
+                # string variable
+                _accum[prefix+obstype[0].upper()+obstype[1:]] = { 'accumulator':'firstlast','extractor':'last' }
+        if _accum:
+            weewx.accum.accum_dict.maps.append(_accum)
+        if not self.api_key:
+            logerr('no API key present')
+        self.lock = threading.Lock()
+        self.data = []
+    
+    def set_current_location(self, latitude, longitude):
+        """ set current location in case of a mobile station """
+        try:
+            self.lock.acquire()
+            self.latitude = latitude
+            self.longitude = longitude
+        finally:
+            self.lock.release()
+    
+    def get_data(self, ts):
+        _data = dict()
+        _interval = 5
+        try:
+            self.lock.acquire()
+            if len(self.data)>=2:
+                _interval = (self.data[-1]['dateTime'][0]-self.data[-2]['dateTime'][0])/60
+            if ts is None:
+                _data = self.data
+            else:
+                for val in self.data:
+                    key = val['dateTime'][0]
+                    if key>ts: break
+                    _data = val
+                if not _data and self.data:
+                    _data = self.data[-1]
+        finally:
+            self.lock.release()
+        return _data, _interval
+
+    def getRecord(self):
+        """ fetch and process data """
+        try:
+            self.lock.acquire()
+            latitude = self.latitude
+            longitude = self.longitude
+        finally:
+            self.lock.release()
+        url = '%s?lat=%s&lon=%s&appid=%s&lang=%s&units=metric' % (
+            self.base_url,
+            latitude,
+            longitude,
+            self.api_key,
+            self.lang
+        )
+        try:
+            reply = wget(url,
+                     log_success=self.log_success,
+                     log_failure=self.log_failure)
+            reply = json.loads(reply)
+        except Exception as e:
+            logerr("thread '%s': wget %s - %s" % (self.name,e.__class__.__name__,e))
+            return
+        _data = dict()
+        for sec in ('coord','main','wind','clouds','rain','snow','sys'):
+            for key,val in reply.get(sec,dict()).items():
+                if ('%s.%s' % (sec,key)) in OpenWeatherMapThread.OBS:
+                    obs = OpenWeatherMapThread.OBS['%s.%s' % (sec,key)]
+                    _data[obs[0]] = (val,obs[1],obs[2])
+        for key in ('visibility','dt'):
+            if key in reply:
+                obs = OpenWeatherMapThread.OBS[key]
+                _data[obs[0]] = (reply[key],obs[1],obs[2])
+        for idx, weather in enumerate(reply.get('weather',[])):
+            owm_id = weather['id']
+            owm_code = weather['main']
+            _data['icontitle'] = (weather['description'],None,None)
+            owm_icon = weather['icon']
+            _data['weatherId%s' % idx] = (owm_id,None,None)
+            if owm_icon[2]=='n':
+                daynight='night'
+            else:
+                daynight='day'
+            if self.iconset==41:
+                current_obs_icon = '%s.png' % owm_icon
+            elif owm_id==804:
+                current_obs_icon='cloudy.png'
+            elif owm_id==803:
+                current_obs_icon='mostly-cloudy-'+daynight+'.png'
+            elif owm_id==802:
+                current_obs_icon='partly-cloudy-'+daynight+'.png'
+            elif owm_id==801:
+                current_obs_icon='mostly-clear-'+daynight+'.png'
+            elif owm_id==800:
+                current_obs_icon='clear-'+daynight+'.png'
+            elif (owm_id>=600 and owm_id<610) or owm_id==511:
+                current_obs_icon='snow.png'
+            elif owm_id==611 or owm_id==612 or owm_id==613:
+                current_obs_icon='sleet.png'
+            elif (owm_id>=600 and owm_id<700) or owm_id==511:
+                current_obs_icon='snow.png'
+            elif owm_id==741:
+                current_obs_icon='fog.png'
+            elif owm_id==781:
+                current_obs_icon='tornado.png'
+            elif owm_id>=500 and owm_id<511:
+                current_obs_icon='rain.png'
+            elif owm_id>=520 and owm_id<=531:
+                current_obs_icon='rainy.png'
+            elif owm_id>=200 and owm_id<300:
+                current_obs_icon='thunderstorm.png'
+            else:
+                current_obs_icon = 'openweathermap-icon.png'
+            if self.iconset==40:
+                current_obs_icon = current_obs_icon.replace('.png','.svg')
+            _data['icon'] = (current_obs_icon,None,None)
+            w = OpenWeatherMapThread.WW_WAWA.get(owm_id,(None,None))
+            _data['ww'] = (w[0],'byte','group_wmo_ww')
+            _data['wawa'] = (w[1],'byte','group_wmo_wawa')
+        # If the dewpoint is not in _data, calculate it.
+        if 'dewpoint' not in _data:
+            try:
+                _data['dewpoint'] = (
+                    weewx.wxformulas.dewpointC(
+                        _data['outTemp'][0],
+                        _data['outHumidity'][0]
+                    ),
+                    'degree_C',
+                    'group_temperature')
+            except (LookupError,ArithmeticError):
+                pass
+        # debug output
+        logdbg(_data)
+        # cache data
+        try:
+            self.lock.acquire()
+            # remove outdated elements
+            while self.data and self.data[0]['dateTime'][0]<(time.time()-10800):
+                del self.data[0]
+            # add new data
+            if not self.data or reply['dt']>self.data[-1]['dateTime'][0]:
+                # append new data
+                if self.data:
+                    _data['interval'] = ((_data['dateTime'][0]-self.data[-1]['dateTime'][0])/60,'minute','group_interval')
+                else:
+                    _data['interval'] = (5,'minute','group_interval')
+                self.data.append(_data)
+            elif self.data and reply['dt']==self.data[-1]['dateTime'][0]:
+                # update data
+                if len(self.data)>=2:
+                    _data['interval'] = ((_data['dateTime'][0]-self.data[-2]['dateTime'][0])/60,'minute','group_interval')
+                self.data[-1] = _data
+            else:
+                # ignore older records
+                logdbg("thread '%s': record is older than previous record" % self.name)
+        except LookupError as e:
+            if self.log_failure:
+                logerr("thread %s: %s %s" % (self.name,e.__class__.__name__,e))
+        finally:
+            self.lock.release()
+
+
 class DownloadThread(BaseThread):
     
     # https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/objekteinbindung_node.html
@@ -2051,6 +2342,8 @@ class DWDservice(StdService):
                 if iconset=='belchertown': location_dict['iconset'] = 4
                 if iconset=='dwd': location_dict['iconset'] = 5
                 if iconset=='aeris': location_dict['iconset'] = 6
+                if iconset=='svg': location_dict['iconset'] = 40
+                if iconset=='openweather': location_dict['iconset'] = 41
             # Station 
             # Note: Latitude and Longitude (if needed) are already in dict()
             station = location_dict.get('station',location)
@@ -2081,6 +2374,8 @@ class DWDservice(StdService):
                         location_dict.get('user'), zamg_dict.get('password'))
                 elif provider=='open-meteo':
                     self._create_openmeteo_thread(location, location_dict)
+                elif provider=='openweather':
+                    self._create_openweather_thread(location, station, location_dict)
                 else:
                     logerr("unknown weather service provider '%s'" % provider)
         
@@ -2286,12 +2581,26 @@ class DWDservice(StdService):
         self.threads[thread_name] = dict()
         self.threads[thread_name]['datasource'] = 'OPENMETEO'
         self.threads[thread_name]['prefix'] = prefix
+        self.threads[thread_name]['mobile'] = False
         self.threads[thread_name]['thread'] = DWDOPENMETEOthread(thread_name,
                     openmeteo_dict,
                     log_success=weeutil.weeutil.to_bool(openmeteo_dict.get('log_success',False)),
                     log_failure=weeutil.weeutil.to_bool(openmeteo_dict.get('log_failure',True)))
         self.threads[thread_name]['thread'].start()
     
+    def _create_openweather_thread(self, thread_name, station, config_dict):
+        prefix = config_dict.get('prefix','id'+thread_name)
+        self.threads[thread_name] = {
+            'datasource': 'OpenWeather',
+            'prefix': prefix,
+            'mobile': station=='mobile'
+        }
+        self.threads[thread_name]['thread'] = OpenWeatherMapThread(
+            thread_name,
+            prefix,
+            config_dict,
+            300)
+        self.threads[thread_name]['thread'].start()
     
     def shutDown(self):
         """ shutdown threads """
@@ -2315,6 +2624,16 @@ class DWDservice(StdService):
             for ii in self.threads:
                 if self.threads[ii]['thread'].is_alive():
                     logdbg("thread '%s' is still alive." % ii)
+    
+    def set_current_location(self, latitude, longitude):
+        """ remember current location for mobile stations """
+        if latitude is not None and longitude is not None:
+            for _, ii in self.threads.items():
+                if ii.get('mobile',False):
+                    try:
+                        ii['thread'].set_current_location(latitude,longitude)
+                    except (LookupError,TypeError,ValueError,ArithmeticError):
+                        pass
 
 
     def new_loop_packet(self, event):
@@ -2324,6 +2643,10 @@ class DWDservice(StdService):
         try:
             if self.dwdxtype:
                 self.dwdxtype.remember(event.packet)
+            self.set_current_location(
+                event.packet.get('latitude'),
+                event.packet.get('longitude')
+            )
         except (LookupError,TypeError,ValueError,ArithmeticError,OSError) as e:
             # reported once every 5 minutes only
             if self.next_loop_error_ts<time.time():
@@ -2367,6 +2690,16 @@ class DWDservice(StdService):
                     logdbg('user.DWD.radar %s' % data)
                     if data and has_db:
                         databaseput(self.database_q,datasource,self.threads[thread_name]['prefix'],[data]) 
+                elif datasource=='OpenWeather':
+                    data, interval = self.threads[thread_name]['thread'].get_data(None)
+                    if data:
+                        if has_db:
+                            databaseput(self.database_q,datasource,self.threads[thread_name]['prefix'],data) 
+                        try:
+                            data = data[-1]
+                        except (TypeError,LookupError) as e:
+                            logerr("error processing data of thread '%s' for the new archive record: CDC data error. maxtime=%s %s %s" % (thread_name,maxtime,e.__class__.__name__,e))
+                            data = None
                 else:
                     try:
                         data,interval = self.threads[thread_name]['thread'].get_data(ts)

@@ -105,8 +105,13 @@ WEEKDAY_LONG = {
 
 HTTP_MONTH = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
-for group in weewx.units.std_groups:
-    weewx.units.std_groups[group].setdefault('group_coordinate','degree_compass')
+# Initialize default unit for the unit groups defined in this extension
+for _,ii in weewx.units.std_groups.items():
+    ii.setdefault('group_wmo_ww','byte')
+    ii.setdefault('group_wmo_wawa','byte')
+    ii.setdefault('group_wmo_W','byte')
+    ii.setdefault('group_wmo_Wa','byte')
+    ii.setdefault('group_coordinate','degree_compass')
 
 def http_timestamp_to_ts(s):
     """ convert HTTP time to Unix epoch timestamp
@@ -242,7 +247,11 @@ class BaseThread(threading.Thread):
 
     def get_data(self, ts):
         raise NotImplementedError
-                
+    
+    def set_current_location(self, latitude, longitude):
+        """ remember current location for mobile stations """
+        pass
+    
     def getRecord(self):
         """ download and process data """
         raise NotImplementedError

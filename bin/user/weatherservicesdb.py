@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# Copyright (C) 2023 Johanna Roedenbeck
+# Copyright (C) 2023, 2024 Johanna Roedenbeck
 
 """
 
@@ -51,9 +51,11 @@ import sqlite3
 import time
 
 if __name__ == '__main__':
-
     import sys
     sys.path.append('/usr/share/weewx')
+
+import __main__
+if __name__ == '__main__' or __main__.__file__.endswith('weatherservices.py'):
 
     def logdbg(x):
         print('DEBUG',x)
@@ -92,6 +94,7 @@ except ImportError:
 
 def sqlstr(x):
     if x is None: return 'NULL'
+    if isinstance(x,str): return "'%s'" % x.replace("'","_")
     return str(x)
 
 class DatabaseThread(threading.Thread):
@@ -143,40 +146,53 @@ class DatabaseThread(threading.Thread):
             self.close_db()
             loginf("thread '%s' stopped" % self.name)
     
+    def db_name(self, datasource, data):
+        """ get database name out of provider and interval """
+        if datasource.lower() in ('poi','cdc','zamg','openmeteo','met','radolanhg','radolanwn','radolanrv'):
+            # non-varying interval
+            try:
+                interval = weewx.units.convert(data[0].get('interval'),'minute')[0]
+            except (TypeError,ValueError,LookupError,ArithmeticError) as e:
+                if self.log_failure:
+                    logerr("thread '%s': error converting interval %s %s" % (self.name,e.__class__.__name__))
+                return None
+            file = 'weatherservices-readings-%s-%s' % (self.name, interval)
+        else:
+            # varying interval
+            file = 'weatherservices-readings-%s' % datasource
+        return file
 
-    def open_create_db(self, provider, interval):
-        """ open or create the database for a given interval """
-        if interval not in self.databases:
-            if provider.lower() in ('poi','cdc','zamg','openmeteo','met','radolanhg','radolanwn','radolanrv'):
-                file = 'weatherservices-readings-%s-%s.sdb' % (self.name,interval)
-            else:
-                file = '%s.sdb' % provider
-            file = os.path.join(self.db_pth, file)
+    def open_create_db(self, dbname):
+        """ open or create the database """
+        if dbname not in self.databases:
+            file = os.path.join(self.db_pth, '%s.sdb' % dbname)
             logdbg("thread '%s': database file %s" % (self.name,file))
             try:
-                self.databases[interval] = sqlite3.connect(file)
-                self.filenames[interval] = file
-                cur = self.databases[interval].cursor()
+                self.databases[dbname] = sqlite3.connect(file)
+                self.filenames[dbname] = file
+                cur = self.databases[dbname].cursor()
                 cur.execute('CREATE TABLE IF NOT EXISTS archive(`dateTime` INTEGER PRIMARY KEY NOT NULL, `usUnits` INTEGER NOT NULL, `interval` INTEGER)')
             except sqlite3.Error as e:
                 if self.log_failure:
                     logerr("thread '%s': could not open or create database %s %s - %s" % (self.name,file,e.__class__.__name__,e))
-        return self.databases.get(interval)
+        return self.databases.get(dbname)
 
     
     def close_db(self):
         """ close open databases """
-        for interval in self.databases:
+        for dbname in self.databases:
             try:
-                self.databases[interval].close()
+                self.databases[dbname].close()
             except sqlite3.Error as e:
                 if self.log_failure:
-                    logerr("thread '%s': error closing database '%s' %s %s" % (self.name,self.filenames.get(interval,'N/A'),e.__class__.__name__,e))
+                    logerr("thread '%s': error closing database '%s' %s %s" % (self.name,self.filenames.get(dbname,'N/A'),e.__class__.__name__,e))
 
 
     def check_and_add_columns(self, con, data, logtext):
         """ check if required columns exist """
-        required_columns = [key for key in data[-1] if key not in ('dateTime','interval','usUnits')]
+        required_columns = set()
+        for el in data:
+            required_columns.update([key for key in el if key not in ('dateTime','interval','usUnits')])
         logdbg("check_and_add_columns(): required_columns = %s" % required_columns)
         try:
             cur = con.cursor()
@@ -189,7 +205,14 @@ class DatabaseThread(threading.Thread):
                 logdbg("check_and_add_columns(): columns already present")
                 return True
             for column in new_columns:
-                cur.execute('ALTER TABLE archive ADD COLUMN %s REAL' % column)
+                val = data[-1][column]
+                if isinstance(val,int):
+                    obstype = 'INT'
+                elif isinstance(val,float):
+                    obstype = 'REAL'
+                else:
+                    obstype = 'VARCHAR(255)'
+                cur.execute('ALTER TABLE archive ADD COLUMN %s %s' % (column,obstype))
             con.commit()
             if self.log_success:
                 loginf("thread '%s', %s: successfully added columns %s to database" % (self.name,logtext,new_columns))
@@ -256,8 +279,9 @@ class DatabaseThread(threading.Thread):
             Returns:
                 nothing
         """
-        interval = weewx.units.convert(data[0].get('interval'),'minute')[0]
-        con = self.open_create_db(datasource, interval)
+        dbname = self.db_name(datasource, data)
+        if not dbname: return
+        con = self.open_create_db(dbname)
         x = self.convert(prefix, data)
         if prefix:
             logtxt = "prefix '%s'" % prefix

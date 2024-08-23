@@ -40,6 +40,8 @@ Diese Daten können mit den Programmen bezogen werden:
   * vorberechnete Wettervorhersagen auf der Basis von Modellen 
     verschiedener großer Wetterdienste für jeden Punkt der Erde
     (`dwd-mosmix`)
+* von OpenWeather
+  * berechnete aktuelle Wetterwerte für jeden Punkt auf der Erde
 * vom Bundesamt für Bevölkerungsschutz und Katastrophenhilfe (BBK)
   * Warnmeldungen (`bbk-warnings`)
 * von Meteorological Service Canada (MSC)
@@ -503,6 +505,16 @@ die Daten bezogen werden sollen. Die Option `model` spezifiziert
 dann ein Wettermodell oder Produkt von diesem Anbieter. 
 
 im Abschnitt `[[current]]` einzutragen:
+
+* OpenWeather
+
+  ```
+            provider = OpenWeather
+  ```
+
+  OpenWeather bietet aus einem Wettermodell berechnete Werte für jeden
+  Ort der Erde an. Dazu müssen die geographischen Koordinaten angegeben
+  werden.
 
 * DWD POI
 
@@ -1052,6 +1064,13 @@ Beispiel:
             provider = Open-Meteo
             model = dwd-icon
             prefix = observation_type_prefix
+        [[[OpenWeather-Beispiel]]]
+            provider = OpenWeather
+            latitude = geographische Breite
+            longitude = geographische Länge
+            station = Stationsname # (optional)
+            lang = 'de' # Sprache
+            api_key = '....' # vom Provider mitgeteilter API-Key
     # Konfiguration für dwd-mosmix
     [[forecast]]
         # Speicherort der Symbole auf dem Web-Server
