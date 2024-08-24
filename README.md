@@ -1,6 +1,6 @@
 # weewx-DWD
 
-[German version](https://github.com/roe-dl/weewx-DWD/blob/master/README.md)
+[German version](https://github.com/roe-dl/weewx-DWD/blob/master/README-de.md)
 
 display weather icons in WeeWX as well as
 download weather and warning data and use them in WeeWX and skins.
