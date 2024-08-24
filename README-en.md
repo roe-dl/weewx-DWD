@@ -6,8 +6,8 @@ download weather and warning data and use them in WeeWX and skins.
 <p align="center"><img src="Wettervorhersage-Warnungen-Fichtelberg.png" width="600px" /></p>
 
 Independent of certain weather services you can display weather
-icons and symbols in skins by using the `$presentweather` tag,
-provided by this WeeWX extension.
+icons and symbols in skins by using the searchlist extension
+`$presentweather`, provided by this WeeWX extension.
 
 With this extension you can receive and process the following data:
 * from OGC servers of several weather services like NOAA, DWD, etc.
@@ -54,6 +54,41 @@ have a look at
 There is a detailed instruction how to configure this extension for 
 that skin in 
 [their wiki](https://github.com/Daveiano/weewx-wdc/wiki/Support-for-weewx-DWD).
+
+For icons and symbols in SVG vector graphic format see [images](https://github.com/roe-dl/weathericons).
+
+## Contents
+
+* [Trouble shooting](#trouble-shooting)
+* [Prerequisites](#prerequisites)
+* [Installation](#installation)
+* [Programs](#programs)
+  * [dwd-mosmix](#dwd-mosmix)
+  * [dwd-cap-warnings](#dwd-cap-warnings)
+  * [wget-dwd](#wget-dwd) (DEPRECATED)
+  * [dwd-warnings](#dwd-warnings) (DEPRECATED)
+  * [/etc/cron.hourly/dwd](#etccronhourlydwd)
+* [WeeWX service](#weewx-service)
+  * [Weather services and products/weather models](#weather-services-and-products-weather-models)
+  * [Activating the service in WeeWX](#activating-the-service-in-weewx)
+  * [Observation types](#observation-types)
+* Searchlist extension `$presentweather`](#searchlist-extension-presentweather)
+  (for displaying weather symbols and icons in skins)
+* [Configuration](#configuration)
+  * [Create directory](#create-directory)
+  * [Configuration in `weewx.conf`](#configuration-in-weewxconf)
+* [Where can you include the following examples?](#where-can-you-include-the-following-examples)
+  * [Belchertown skin](#belchertown-skin)
+  * [Weather Data Center (WDC) skin](#weather-data-center-wdc-skin)
+  * [other skins](#other-skins)
+* [Weather forecast in HTML template](#weather-forecast-in-html-template)
+* [Forecast in Belchertown skin](#forecast-in-belchertown-skin)
+* [weather forecast diagram](#weather-forecast-diagram)
+  * [Belchertown skin](#belchertown-skin)
+  * [other skins](#other-skins)
+* [Weather map in HTML template](#weather-map-in-html-template)
+* [Links](#links)
+
 
 ## Trouble shooting
 
@@ -286,11 +321,15 @@ Downloads CAP warning alerts and creates HTML and JSON files out of them.
 
 ### wget-dwd
 
+*DEPRECATED*
+
 This script downloads the weather maps "Europe-North Atlantic" and
 "Western and middle Europe" as well as the files needed for the
 `dwd-warnings` script.
 
 ### dwd-warnings
+
+*DEPRECATED*
 
 Uses the `warnings.json` file downloaded by `wget-dwd` to create
 county wide warnings for counties in Germany. See german version
@@ -1085,7 +1124,7 @@ Instead of `bwk_bodendruck_na_ana.png` (Europe-Northern Atlantics) you can
 also use `bwk_bodendruck_weu_ana.png` (western and middle Europe). Both
 those files are downlaoded by `wget-dwd`.
 
-# Links
+## Links
 
 * [WeeWX Homepage](http://weewx.com) - [WeeWX Wiki](https://github.com/weewx/weewx/wiki)
 * [page "Homepagewetter" from Deutscher Wetterdienst](https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/objekteinbindung_node.html)
