@@ -5,17 +5,27 @@ download weather and warning data and use them in WeeWX and skins.
 
 <p align="center"><img src="Wettervorhersage-Warnungen-Fichtelberg.png" width="600px" /></p>
 
+Independent of certain weather services you can display weather
+icons and symbols in skins by using the `$presentweather` tag,
+provided by this WeeWX extension.
+
 With this extension you can receive and process the following data:
 * from OGC servers of several weather services like NOAA, DWD, etc.
-  * maps, satellite pictures, etc. (see [Query Open Geospatial Consortium (OGC) Servers](https://github.com/roe-dl/weewx-DWD/wiki/Query-Open-Geospatial-Consortium-(OGC)-Servers-(English)))
+  * maps, satellite pictures, etc. 
+    (see [Query Open Geospatial Consortium (OGC) Servers](https://github.com/roe-dl/weewx-DWD/wiki/Query-Open-Geospatial-Consortium-(OGC)-Servers-(English)))
 * from OpenWeather
   * actual calculated weather data for every point on earth
+* by using the Open-Meteo weather API
+  * pre-calculated weather forecasts based on different weather models for
+    all over the world (`dwd-mosmix`)
+* from Meteorological Service Canada (MSC)
+  * weather alerts for counties (`msc-warnings`)
 * from Deutscher Wetterdienst (DWD)
   * pre-calculated weather forecasts based on hours, three-hours, and days
     for the next 10 days for about 6000 places around the world (`dwd-mosmix`)
   * weather alerts for counties and places in Germany (`dwd-warnings` and
     `dwd-cap-warnings`)
-  * weather maps of Europe (`wget-dwd`)
+  * weather maps of Europe (`user.weatherservices.DWDservice`)
   * actual readings of the DWD weather stations in Germany
     (`user.weatherservices.DWDservice`)
   * radar images and radar readings
@@ -24,14 +34,10 @@ With this extension you can receive and process the following data:
     (german))
   * health related forecast
     (`user.weatherservices.DWDservice`)
-* from Zentralanstalt für Meteorologie und Geodynamik (ZAMG)
+* from Zentralanstalt für Meteorologie und Geodynamik (ZAMG) / GeoSphere
+  Austria
   * actual readings of the ZAMG weather stations in Austria
     (`user.weatherservices.DWDservice`)
-* from Meteorological Service Canada (MSC)
-  * weather alerts for counties (`msc-warnings`)
-* by using the Open-Meteo weather API
-  * pre-calculated weather forecasts based on different weather models for
-    all over the world (`dwd-mosmix`)
 * from Bundesanstalt für Bevölkerungsschutz und Katastrophenhilfe (BBK)
   * homeland security alerts for counties in Germany (`bbk-warnings`)
 
