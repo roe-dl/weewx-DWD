@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # Wettervorhersage
-# Copyright (C) 2022, 2023 Johanna Roedenbeck
+# Copyright (C) 2022, 2023, 2024 Johanna Roedenbeck
 # licensed under the terms of the General Public License (GPL) v3
 
 from __future__ import absolute_import
@@ -1478,6 +1478,8 @@ class DwdMosmix(object):
             s += '<p style="font-size:65%">'
             if issue.get('Issuer','')=='Open-Meteo':
                 s += 'bereitgestellt von <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a>'
+            elif issue.get('Issuer','')=='OpenWeather':
+                s += 'bereitgestellt von <a href="https://openweather.co.uk" target="_blank">OpenWeather</a>'
             else:
                 s += 'herausgegeben vom <a href="https://www.dwd.de" target="_blank">DWD</a>'
             s += ' am %s' % time.strftime('%d.%m.%Y %H:%M',time.localtime(issue['IssueTime']/1000.0))
@@ -2470,7 +2472,10 @@ class DwdMosmix(object):
         if ('daily' in output) or ('json' in output) or ('belchertown' in output):
             if self.verbose:
                 loginf('calculate daily forecast')
-            days = self.calculate_daily_forecast(placemark,timesteps,daynights,lang=lang)
+            if 'OpenWeather-daily' in placemark:
+                days = placemark['OpenWeather-daily']
+            else:
+                days = self.calculate_daily_forecast(placemark,timesteps,daynights,lang=lang)
         
         # calculate 3 hour forecast out of forecast data
         if ('json' in output) or ('belchertown' in output):
@@ -2801,6 +2806,187 @@ class DwdMosmix(object):
                 model[2])
         return s
     
+    OPENWEATHER_OBS = {
+        'main.temp':'TTT',
+        'main.humidity':'RHEL',
+        'pressure':'PPPP',
+        'clouds.all':'Neff',
+        'wind.speed':'FF',
+        'wind.deg':'DD',
+        'wind.gust':'FX1',
+        'visibility':'VV',
+        'rain.1h':'RR1c',
+        # one call api
+        'temp':'TTT',
+        'temp.min':'TTTmin',
+        'temp.max':'TTTmax',
+        'humidity':'RHEL',
+        'dew_point':'Td',
+        'wind_speed':'FFavg',
+        'wind_deg':'DDavg',
+        'wind_gust':'FX1',
+        'clouds':'Neff',
+        'pop':'R101',
+    }
+    
+    def download_openweather(self, lat, lon, lang, api_key, use_one_call_api=True):
+        """ download forecast from OpenWeather """
+        if use_one_call_api:
+            url = 'https://api.openweathermap.org/data/3.0/onecall?lat=%s&lon=%s&appid=%s&lang=%s' % (lat,lon,api_key,lang)
+        else:
+            url = 'https://pro.openweathermap.org/data/2.5/forecast/hourly?lat=%s&lon=%s&appid=%s&lang=%s' % (lat,lon,api_key,lang)
+        headers={'User-Agent':'weewx-DWD'}
+        try:
+            reply = requests.get(url,headers=headers)
+        except ConnectionError as e:
+            if self.log_failure:
+                logerr(e)
+            return None
+        if reply.status_code==200:
+            if self.log_success or self.verbose:
+                loginf('successfully downloaded %s' % reply.url)
+            content = json.loads(reply.text)
+        else:
+            if self.log_failure or self.verbose:
+                logerr('error downloading %s: %s %s' % (reply.url,reply.status_code,reply.reason))
+            return None
+        return (content,use_one_call_api)
+    
+    def process_openweather(self, reply, lat, lon, lang):
+        """ convert json file from OpenWeather to internal structure """
+        content = reply[0]
+        use_one_call_api = reply[1]
+        # TODO: use file time from HTTP header
+        issuetime = time.time()
+        issuetimeISO = time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime(issuetime))
+        if use_one_call_api:
+            hourly = content['hourly']
+            daily = content['daily']
+            reply_lat = content.get('lat',lat)
+            reply_lon = content.get('lon',lon)
+        else:
+            hourly = content['list']
+            daily = []
+            reply_lat = content['city']['coord']['lat']
+            reply_lon = content['city']['coord']['lon']
+        geodata = self.geo(reply_lat,reply_lon)
+        if not geodata: geodata = dict()
+        town = geodata.get('town')
+        if not town: town = '%s %s' % (reply_lat,reply_lon)
+        mmos = {
+            'Issuer':'OpenWeather',
+            'ProductID':'OpenWeather',
+            'GeneratingProcess':'',
+            'IssueTime': issuetime*1000,
+            'IssueTimeISO': issuetimeISO,
+            'ReferenceModel': {
+                'name':'OpenWeather',
+                'ReferenceTime': issuetime*1000,
+                'ReferenceTimeISO': issuetimeISO
+            },
+            'ForecastTimeSteps':[ts['dt']*1000 for ts in hourly],
+            'ForecastTimeStepsISO':[time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime(ts['dt'])) for ts in hourly],
+            'DefaultUndefSign':'null',
+            'Placemark':[
+                {
+                    'query': {
+                        'coordinates': [lon,lat,None],
+                        'model': 'OpenWeather',
+                        'variables': '',
+                    },
+                    'id':'OpenWeather-%s-%s' % (lat,lon),
+                    'description':town,
+                    'Forecast': dict(),
+                    'coordinates': [reply_lon,reply_lat,None]
+                }
+            ]
+        }
+        vals = {'ww':[],'icon':[],'icontitle':[]}
+        for hour in hourly:
+            for obs1,val1 in hour.items():
+                if obs1=='weather':
+                    ww = None
+                    icon = None
+                    icontitle = None
+                    for i in val1:
+                        ww = self.openweather_id_to_ww(i['id'])
+                        icon = i['icon']
+                        icontitle = i['description']
+                    vals['ww'].append(ww)
+                    vals['icon'].append(icon)
+                    vals['icontitle'].append(icontitle)
+                elif isinstance(val1,dict):
+                    for obs2,val2 in val1:
+                        obs = '%s.%s' % (obs1,obs2)
+                        mobs = DwdMosmix.OPENWEATHER_OBS.get(obs,obs)
+                        if mobs not in vals: vals[mobs] = []
+                        vals[mobs].append(val2)
+                else:
+                    mobs = DwdMosmix.OPENWEATHER_OBS.get(obs1,obs1)
+                    if mobs not in vals: vals[mobs] = []
+                    if mobs in OBS_DICT:
+                        val1 = OBS_DICT[mobs](val1)
+                    vals[mobs].append(val1)
+        mmos['Placemark'][0]['Forecast'] = vals
+        if use_one_call_api:
+            # OpenWeather provides the hourly forecast for 48 hours
+            # only. But they provide a separate daily forecast.
+            # It will be converted and safed for later use.
+            vals = dict()
+            for day in daily:
+                daydt = time.strftime('%d.%m.',time.localtime(day['dt']))
+                _wday = time.localtime(day['dt']).tm_wday
+                val = {
+                    'timestamp':int(day['dt']*1000),
+                    'day':daydt,
+                    'weekday':_wday,
+                    'weekdayshortname':WEEKDAY[lang][_wday],
+                    'ww':[],
+                }
+                for obs1,val1 in day.items():
+                    if obs1=='weather':
+                        for i in val1:
+                            val['icontitle'] = i['description']
+                            val['icon'] = '%s.png' % i['icon']
+                            val['ww'].append(self.openweather_id_to_ww(i['id']))
+                    elif isinstance(val1,dict):
+                        for obs2,val2 in val1.items():
+                            obs = '%s.%s' % (obs1,obs2)
+                            mobs = DwdMosmix.OPENWEATHER_OBS.get(obs,obs)
+                            if obs1 in ('temp','feels_like'):
+                                val2 -= 273.15
+                            val[mobs] = val2
+                    else:
+                        mobs = DwdMosmix.OPENWEATHER_OBS.get(obs1,obs1)
+                        if obs1=='dew_point': val1 -= 273.15
+                        val[mobs] = val1
+                vals[daydt] = val
+            mmos['Placemark'][0]['OpenWeather-daily'] = vals
+        return mmos
+    
+    def openweather_id_to_ww(self, id):
+        """ convert OpenWeather weather condition codes to ww
+        
+            Note: For the forecast a reduced set of ww codes is used.
+        """
+        # TODO: convert id to ww
+        if id>=800: return 0
+        if id>=700 and id<770: return 45
+        if id>=200 and id<300: return 95
+        if id in (300,310): return 51
+        if id in (301,311): return 53
+        if id in (302,312): return 55
+        if id==511: return 67
+        if id==500: return 61
+        if id==501: return 63
+        if id in (502,503,504): return 65
+        if id==600: return 71
+        if id==601: return 73
+        if id==602: return 75
+        if id in (611,612): return 83
+        if id==613: return 84
+        return id
+
 
 if __name__ == "__main__":
 
@@ -2842,6 +3028,11 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
                       metavar="MODEL",
                       default=None,
                       help="get forecast from Open-Meteo")
+    parser.add_option("--openweather", dest="openweather",
+                      metavar="APIKEY",
+                      default=None,
+                      help="get forecast from OpenWeather")
+                      
 
     group = optparse.OptionGroup(parser,"Output and logging options")
     group.add_option("--dry-run", action="store_true",
@@ -2962,19 +3153,34 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
         exit()
 
     # download forecast
-    if options.openmeteo is None:
+    if options.openmeteo is None and options.openweather is None:
         # DWD forecast
         zz = dwd.download_kml(location,'l')
         mmos = dwd.process_kml(zz,options.log_tags)
+    elif location.startswith('/') or location.startswith('./'):
+        # OpenWeather test
+        if options.openweather is not None:
+            with open(location,'rb') as f:
+                content = json.load(f)
+            mmos = dwd.process_openweather((content,'daily' in content),content.get('lat'),content.get('lon'),options.lang)
     else:
-        # Open-Meteo forecast
+        # Open-Meteo and OpenWeather forecast
         loc = location.split(',')
         lat = float(loc[0])
         lon = float(loc[1])
-        om = options.openmeteo
-        if isinstance(om,str) and ',' in om:
-            om = om.split(',')
-        mmos = dwd.download_openmeteo(lat,lon,om)
+        if options.openmeteo is not None:
+            # Open-Meteo forecast
+            om = options.openmeteo
+            if isinstance(om,str) and ',' in om:
+                om = om.split(',')
+            mmos = dwd.download_openmeteo(lat,lon,om)
+        elif options.openweather is not None:
+            # OpenWeather forecast
+            reply = dwd.download_openweather(lat,lon,options.lang,options.openweather)
+            if reply:
+                mmos = dwd.process_openweather(reply,lat,lon,options.lang)
+            else:
+                mmos = None
     #print(json.dumps(mmos,indent=4,ensure_ascii=False))
     if not mmos:
         print('no data')
