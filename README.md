@@ -1,6 +1,6 @@
 # weewx-DWD
 
-[German version](https://github.com/roe-dl/weewx-DWD/blob/master/README-de.md)
+[deutsche Version](https://github.com/roe-dl/weewx-DWD/blob/master/README-de.md)
 
 display weather icons in WeeWX as well as
 download weather and warning data and use them in WeeWX and skins.
@@ -12,17 +12,18 @@ icons and symbols in skins by using the searchlist extension
 `$presentweather`, provided by this WeeWX extension.
 
 With this extension you can receive and process the following data:
-* from OGC servers of several weather services like NOAA, DWD, etc.
+* from **OGC servers** of several weather services like NOAA, DWD, etc.
   * maps, satellite pictures, etc. 
     (see [Query Open Geospatial Consortium (OGC) Servers](https://github.com/roe-dl/weewx-DWD/wiki/Query-Open-Geospatial-Consortium-(OGC)-Servers-(English)))
-* from OpenWeather
+* from **OpenWeather**
   * actual calculated weather data for every point on earth
-* by using the Open-Meteo weather API
+    (see [OpenWeather wiki article](https://github.com/roe-dl/weewx-DWD/wiki/OpenWeather-(English)))
+* by using the **Open-Meteo** weather API
   * pre-calculated weather forecasts based on different weather models for
     all over the world (`dwd-mosmix`)
-* from Meteorological Service Canada (MSC)
+* from **Meteorological Service Canada** (MSC)
   * weather alerts for counties (`msc-warnings`)
-* from Deutscher Wetterdienst (DWD)
+* from **Deutscher Wetterdienst** (DWD)
   * pre-calculated weather forecasts based on hours, three-hours, and days
     for the next 10 days for about 6000 places around the world (`dwd-mosmix`)
   * weather alerts for counties and places in Germany (`dwd-warnings` and
@@ -36,11 +37,11 @@ With this extension you can receive and process the following data:
     (german))
   * health related forecast
     (`user.weatherservices.DWDservice`)
-* from Zentralanstalt für Meteorologie und Geodynamik (ZAMG) / GeoSphere
-  Austria
+* from Zentralanstalt für Meteorologie und Geodynamik (ZAMG) / **GeoSphere
+  Austria**
   * actual readings of the ZAMG weather stations in Austria
     (`user.weatherservices.DWDservice`)
-* from Bundesanstalt für Bevölkerungsschutz und Katastrophenhilfe (BBK)
+* from Bundesanstalt für Bevölkerungsschutz und Katastrophenhilfe (**BBK**)
   * homeland security alerts for counties in Germany (`bbk-warnings`)
 
 Data will be processed to:
@@ -154,7 +155,8 @@ wget -O weewx-dwd.zip https://github.com/roe-dl/weewx-DWD/archive/master.zip
    weectl extension install weewx-dwd.zip
    ```
 
-   You must not use `sudo` if you installed WeeWX by `pip`.
+> [!CAUTION]
+> You must not use `sudo` if you installed WeeWX by `pip`.
 
 3) Adapt configuration
 
@@ -341,7 +343,10 @@ This script is deprecated.
 
 ### /etc/cron.hourly/dwd
 
-This script takes care to invoke all the scripts hourly. It should
+If you only use the WeeWX service and/or the searchlist extension
+out of this package, you do not need this script. 
+
+The script takes care to invoke all the scripts hourly. It should
 contain:
 
 ```
@@ -370,6 +375,8 @@ by actual data of official or governmental weather stations.
 The option `provider` selects the provider to receive data from. The
 option `model` specifies a weather model or product of that provider.
 
+to put into section `[[current]]`:
+
 * OpenWeather
 
   ```
@@ -378,7 +385,9 @@ option `model` specifies a weather model or product of that provider.
 
   OpenWeather provides calculated data for every point on earth. You have
   to specifiy the geographic coordinates of the location, you want data
-  for.
+  for. See 
+  [OpenWeather wiki article](https://github.com/roe-dl/weewx-DWD/wiki/OpenWeather-(English))
+  for details.
 
 * DWD POI
 
@@ -406,7 +415,7 @@ option `model` specifies a weather model or product of that provider.
 
   [list of stations](https://opendata.dwd.de/climate_environment/CDC/help/wetter_tageswerte_Beschreibung_Stationen.txt)
 
-* ZAMG
+* ZAMG / GeoSphere Austria
 
   ```
             provider = ZAMG
@@ -429,6 +438,16 @@ option `model` specifies a weather model or product of that provider.
   weather services of the world. The desired place is to be
   specified by geographic coordindates.
 
+to put into section `[[radar]]`:
+
+* DWD weather radar
+
+  This is to download ground based weather radar data. See wiki article
+  [Niederschlagsradar](https://github.com/roe-dl/weewx-DWD/wiki/Niederschlagsradar)
+  (german) for details.
+
+to put in section `[[forecast]]`:
+
 * Staatsbetrieb Sachsenforst
 
   ```
@@ -437,6 +456,23 @@ option `model` specifies a weather model or product of that provider.
 
   You need a contract to use these data. It is for free, but
   there are requirements.
+
+* DWD text forecast
+
+  ```
+            provider = DWD
+            model = text
+  ```
+
+  For the current day and the following three days the German Weather
+  Service (DWD) provides text forecasts for the german federal states. 
+  They are updated serveral times a day. See the abbrevations of the
+  states to use for this purpose in the wiki article
+  [Abkürzungen der Bundesländer beim Deutschen Wetterdienst](https://github.com/roe-dl/weewx-DWD/wiki/Abkürzungen-der-Bundesländer-beim-Deutschen-Wetterdienst)
+  (german).
+
+  Using the option `insert_lf_after_summary = true` you can insert a
+  line feed between the header and the text.
 
 * DWD health related forecast
 
@@ -464,6 +500,58 @@ option `model` specifies a weather model or product of that provider.
             provider = DWD
             model = uvi
   ```
+
+to put into section `[[download]]`:
+
+* DWD ground level weather map
+
+  ```
+            provider = DWD
+            model = bwk-map
+  ```
+
+  weather map including barometer pressure and weather fronts.
+
+* DWD warning map using traffic sign like symbols
+
+  ```
+            provider = DWD
+            model = warning-map-with-symbols
+  ```
+
+  The area to display is specified within the `area` key. See wiki article
+  [Warnstatuskarten](https://github.com/roe-dl/weewx-DWD/wiki/Warnstatuskarten)
+  (german) for more details and configuration instructions.
+
+* DWD warning map
+
+  ```
+            provider = DWD
+            model = warning-map
+  ```
+
+  The area to display is specified by the key `area`. See wiki article
+  [Warnstatuskarten](https://github.com/roe-dl/weewx-DWD/wiki/Warnstatuskarten)
+  (german) for more details and configuration instructions.
+
+* general download
+
+
+  ```
+            url = "..."
+            from_encoding = "..."
+            to_encoding = "..."
+  ```
+
+  You can download all files that you can get by an URL. Just in time before
+  the end of the archive interval the server is asked for an update of the
+  file. If there is an update, it is downloaded and safed to disk. If
+  the previously downloaded version of the file is still up to date,
+  nothing happens.
+
+  `from_encoding` specifies the encoding the file is stored on the server.
+  `to_encoding` specifies the encoding the file should be safed to disk
+  locally. If the keys are missing, no decoding nor encoding is performed.
 
 ### Activating the service in WeeWX
 
