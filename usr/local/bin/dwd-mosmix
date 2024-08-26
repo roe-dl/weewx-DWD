@@ -1271,7 +1271,7 @@ class DwdMosmix(object):
                 if end_day<30: suffix += '-'+str(start_day)
                 with open("%s/forecast-%s-%s.inc" % (self.target_path,fn,suffix),"w") as file:
                     file.write(s)
-        
+    
     def write_html_daily(self, placemark, days, timesteps, issue, obstypes, dryrun, lang='de'):
         """ make daily values out of hourly ones and create HTML and JSON """
         # config
@@ -1286,11 +1286,17 @@ class DwdMosmix(object):
                  station_dict = configobj.ConfigObj()
             has_windchill = False
             has_heatindex = False
+            has_RR1c = False
+            has_RSunD = False
+            has_Rad1hsum =False
             for day,item in days.items():
                 if item.get('heatindex') is not None:
                     has_heatindex = True
                 if item.get('TTTmin') is not None and item['TTTmin']<=10 and item.get('windchill') is not None:
                     has_windchill = True
+                if item.get('RR1c') is not None: has_RR1c = True
+                if item.get('RSunD') is not None: has_RSunD = True
+                if item.get('Rad1hsum') is not None: has_Rad1hsum = True
             if self.verbose:
                 loginf("station config: %s" % station_dict)
                 loginf("include windchill: %s" % has_windchill)
@@ -1326,7 +1332,11 @@ class DwdMosmix(object):
                     obs = ['ww','TTTmax','TTTmin']
                     if has_heatindex: obs += ['heatindex']
                     if has_windchill: obs += ['windchill']
-                    obs += ['FFavg','DDavg','RR1c','Rd10','PPPPavg','Neffavg','RSunD','Rad1hsum']
+                    obs += ['FFavg','DDavg']
+                    if has_RR1c: obs += ['RR1c']
+                    obs += ['Rd10','PPPPavg','Neffavg']
+                    if has_RSunD: obs += ['RSunD']
+                    if has_Rad1hsum: obs += ['Rad1hsum']
                     if self.verbose:
                         loginf("default observations: %s" % obs)
                 for ii in obs:
@@ -2283,7 +2293,20 @@ class DwdMosmix(object):
                 # append new record to the list
                 recs.append(vals)
         return recs
-                
+    
+    def adjust_daily_forecast(self, days):
+        for day in days:
+            if self.iconset==41:
+                days[day]['icon'] = '%s/%s' % (self.icon_pth,days[day]['icon'])
+            else:
+                wwcode = get_ww(days[day]['ww'],days[day]['Neffavg'],False)
+                if self.iconset==40:
+                    days[day]['icon'] = self.icon_pth+'/'+WW_SVG_LIST.get(wwcode[0],wwcode[4].replace('.png','.svg'))
+                elif wwcode[self.iconset] is None:
+                    days[day]['icon'] = 'unknown.png'
+                else:
+                    days[day]['icon'] = self.icon_pth+'/'+wwcode[self.iconset]+('.png' if self.iconset==6 else '')
+        return days
     
     def calculate_daily_forecast(self, placemark, timesteps, daynights, lang='de'):
         # observation types to calculate average for
@@ -2473,7 +2496,7 @@ class DwdMosmix(object):
             if self.verbose:
                 loginf('calculate daily forecast')
             if 'OpenWeather-daily' in placemark:
-                days = placemark['OpenWeather-daily']
+                days = self.adjust_daily_forecast(placemark['OpenWeather-daily'])
             else:
                 days = self.calculate_daily_forecast(placemark,timesteps,daynights,lang=lang)
         
@@ -2816,8 +2839,26 @@ class DwdMosmix(object):
         'wind.gust':'FX1',
         'visibility':'VV',
         'rain.1h':'RR1c',
+    }
+    
+    OPENWEATHER_OBS_HOURLY = {
         # one call api
         'temp':'TTT',
+        'temp.min':'TTTmin',
+        'temp.max':'TTTmax',
+        'humidity':'RHEL',
+        'dew_point':'Td',
+        'wind_speed':'FF',
+        'wind_deg':'DD',
+        'wind_gust':'FX1',
+        'clouds':'Neff',
+        'pop':'R101',
+        'pressure':'PPPP',
+        'rain':'RR1c',
+    }
+    
+    OPENWEATHER_OBS_DAILY = {
+        # one call api
         'temp.min':'TTTmin',
         'temp.max':'TTTmax',
         'humidity':'RHEL',
@@ -2825,8 +2866,10 @@ class DwdMosmix(object):
         'wind_speed':'FFavg',
         'wind_deg':'DDavg',
         'wind_gust':'FX1',
-        'clouds':'Neff',
-        'pop':'R101',
+        'clouds':'Neffavg',
+        'pop':'Rd10',
+        'pressure':'PPPPavg',
+        'rain':'RR1c',
     }
     
     def download_openweather(self, lat, lon, lang, api_key, use_one_call_api=True):
@@ -2858,17 +2901,20 @@ class DwdMosmix(object):
         use_one_call_api = reply[1]
         # TODO: use file time from HTTP header
         issuetime = time.time()
-        issuetimeISO = time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime(issuetime))
         if use_one_call_api:
+            issuetime = content.get('current',{}).get('dt',issuetime)
             hourly = content['hourly']
             daily = content['daily']
             reply_lat = content.get('lat',lat)
             reply_lon = content.get('lon',lon)
+            obs_dict = DwdMosmix.OPENWEATHER_OBS_HOURLY
         else:
             hourly = content['list']
             daily = []
             reply_lat = content['city']['coord']['lat']
             reply_lon = content['city']['coord']['lon']
+            obs_dict = DwdMosmix.OPENWEATHER_OBS
+        issuetimeISO = time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime(issuetime))
         geodata = self.geo(reply_lat,reply_lon)
         if not geodata: geodata = dict()
         town = geodata.get('town')
@@ -2897,7 +2943,7 @@ class DwdMosmix(object):
                     'id':'OpenWeather-%s-%s' % (lat,lon),
                     'description':town,
                     'Forecast': dict(),
-                    'coordinates': [reply_lon,reply_lat,None]
+                    'coordinates': [reply_lon,reply_lat,geodata.get('alt')]
                 }
             ]
         }
@@ -2918,11 +2964,11 @@ class DwdMosmix(object):
                 elif isinstance(val1,dict):
                     for obs2,val2 in val1:
                         obs = '%s.%s' % (obs1,obs2)
-                        mobs = DwdMosmix.OPENWEATHER_OBS.get(obs,obs)
+                        mobs = obs_dict.get(obs,obs)
                         if mobs not in vals: vals[mobs] = []
                         vals[mobs].append(val2)
                 else:
-                    mobs = DwdMosmix.OPENWEATHER_OBS.get(obs1,obs1)
+                    mobs = obs_dict.get(obs1,obs1)
                     if mobs not in vals: vals[mobs] = []
                     if mobs in OBS_DICT:
                         val1 = OBS_DICT[mobs](val1)
@@ -2952,12 +2998,12 @@ class DwdMosmix(object):
                     elif isinstance(val1,dict):
                         for obs2,val2 in val1.items():
                             obs = '%s.%s' % (obs1,obs2)
-                            mobs = DwdMosmix.OPENWEATHER_OBS.get(obs,obs)
+                            mobs = DwdMosmix.OPENWEATHER_OBS_DAILY.get(obs,obs)
                             if obs1 in ('temp','feels_like'):
                                 val2 -= 273.15
                             val[mobs] = val2
                     else:
-                        mobs = DwdMosmix.OPENWEATHER_OBS.get(obs1,obs1)
+                        mobs = DwdMosmix.OPENWEATHER_OBS_DAILY.get(obs1,obs1)
                         if obs1=='dew_point': val1 -= 273.15
                         val[mobs] = val1
                 vals[daydt] = val
