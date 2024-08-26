@@ -81,7 +81,10 @@ class DWDInstaller(ExtensionInstaller):
     def configure(self, engine):
         # path of the user directory
         print(engine.root_dict)
-        user_root = engine.root_dict.get('USER_ROOT',engine.root_dict['USER_DIR'])
+        user_root = engine.root_dict.get('USER_ROOT',engine.root_dict.get('USER_DIR'))
+        if not user_root:
+            print('user directory not found. Create links manually.')
+            return False
         # path for system wide commands
         bin = '/usr/local/bin'
         # links to create and files to copy
