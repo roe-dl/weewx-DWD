@@ -20,9 +20,12 @@ With this extension you can receive and process the following data:
     (see [OpenWeather wiki article](https://github.com/roe-dl/weewx-DWD/wiki/OpenWeather-(English)))
 * by using the **Open-Meteo** weather API
   * pre-calculated weather forecasts based on different weather models for
-    all over the world (`dwd-mosmix`)
+    all over the world (`dwd-mosmix`, see
+    [Open-Meteo](https://github.com/roe-dl/weewx-DWD/wiki/Open%E2%80%90Meteo-(English))
+    wiki article for details)
 * from **Meteorological Service Canada** (MSC)
   * weather alerts for counties (`msc-warnings`)
+  * forecast via Open-Meteo
 * from **Deutscher Wetterdienst** (DWD)
   * pre-calculated weather forecasts based on hours, three-hours, and days
     for the next 10 days for about 6000 places around the world (`dwd-mosmix`)
