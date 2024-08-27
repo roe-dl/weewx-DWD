@@ -20,7 +20,12 @@ from __future__ import with_statement
 """
 
 """
-   station list see:
+   supported weather services:
+   * German Weather Service (DWD)
+   * Open-Meteo
+   * OpenWeather
+   
+   DWD station list see:
    https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg?view=nasPublication&nn=16102
    
 """
@@ -76,6 +81,10 @@ if __name__ == "__main__":
     def logerr(x):
         print("ERROR", x, file=sys.stderr)
 
+def decimal_separator(lang):
+    if lang is None: return False
+    x = lang.split('-')
+    return x[0].lower() not in ('en','zh','mt','jp','he')
 
 DEFAULT_LOCAL_FORECAST_URL = "https://opendata.dwd.de/weather/local_forecasts"
 
@@ -152,10 +161,21 @@ WW_LIST = [
 ]
 
 WW_SVG_LIST = {
+    30:'sandstorm.svg',
+    31:'sandstorm.svg',
+    32:'sandstorm.svg',
+    33:'sandstorm.svg',
+    34:'sandstorm.svg',
+    35:'sandstorm.svg',
+    36:'blowingsnow.svg',
+    37:'blowingsnow.svg',
+    38:'blowingsnow.svg',
+    39:'blowingsnow.svg',
     56:'freezingdrizzle.svg',
     57:'freezingdrizzle.svg',
     66:'freezingrain.svg',
     67:'freezingrain.svg',
+    98:'thunderstorm-duststorm.svg',
 }
 
 N_ICON_LIST = [
@@ -324,7 +344,7 @@ dwd_schema_dict = {
     'heatindex':'heatindex',
     'spread':'outSpread',
     'svp':'outSVP',
-    'humidity':'outHumidity'}
+    'UUU':'outHumidity'}
 
 def dwd_obs_to_weewx_obs(x):
     if x is None: return None
@@ -863,7 +883,7 @@ class DwdMosmix(object):
         placemark['Forecast']['windchill'+suffix] = windchill_C
         placemark['Forecast']['spread'+suffix] = spread_list
         placemark['Forecast']['svp'+suffix] = svp_list
-        placemark['Forecast']['humidity'+suffix] = rh_list
+        placemark['Forecast']['UUU'+suffix] = rh_list
         placemark['Forecast']['heatindex'+suffix] = heatindex_list
     
     @staticmethod
@@ -970,14 +990,18 @@ class DwdMosmix(object):
     OBS_LABEL = {
         'ww':('','',''),
         'TTT':('<i class="wi wi-thermometer"></i>','Temperatur 2m','&deg;C'),
-        'TTTmax':('<i class="wi wi-thermometer"></i>','Maximaltemperatur','&deg;C'),
-        'TTTmin':('<i class="wi wi-thermometer"></i>','Minimaltemperatur','&deg;C'),
+        # maximum temperature of the day
+        'TX24':('<i class="wi wi-thermometer"></i>','Maximaltemperatur','&deg;C'),
+        # minimum temperature of the day
+        'TN24':('<i class="wi wi-thermometer"></i>','Minimaltemperatur','&deg;C'),
         'TTTavg':('<i class="wi wi-thermometer"></i>','Durchschnittstemperatur','&deg;C'),
         'T5cm':('<i class="wi wi-thermometer"></i>','Temperatur 5cm','&deg;C'),
         'Td':('<i class="wi wi-thermometer"></i>','Taupunkt 2m','&deg;C'),
         'TG':('<i class="wi wi-thermometer"></i>','Minimaltemperatur 5cm','&deg;C'),
         'TM':('<i class="wi wi-thermometer"></i>','Durchschnittstemperatur','&deg;C'),
+        # minimum temperature last 12 hours
         'TN':('<i class="wi wi-thermometer"></i>','Minimaltemperatur','&deg;C'),
+        # maximum temperature last 12 hours
         'TX':('<i class="wi wi-thermometer"></i>','Maximaltemperatur','&deg;C'),
         'FF':('<i class="wi wi-strong-wind"></i>','Wind','km/h'),
         'DD':('<i class="wi wi-strong-wind"></i>','Windrichtung','&deg;'),
@@ -999,7 +1023,9 @@ class DwdMosmix(object):
         'VVmin':('Sicht','minimale Sichtweite','km'),
         'VVmax':('Sicht','maximale Sichtweite','km'),
         'VVavg':('Sicht','Sichtweite','km'),
-        'humidity':('<i class="wi wi-humidity"></i>','Luftfeuchte','%'),
+        # relative humidity (not included in MOSMIX)
+        'UUU':('<i class="wi wi-humidity"></i>','Luftfeuchte','%'),
+        # derived values
         'heatindex':('HI','Hitzeindex','&deg;C'),
         'windchill':('WCT','Windchill','&deg;C')}
 
@@ -1223,19 +1249,22 @@ class DwdMosmix(object):
                     try:
                         # temperature column
                         temp = placemark['Forecast']['TTT'][idx]
-                        temp_s = ('%.1f' % temp).replace('.',',')
+                        temp_s = ('%.1f' % temp)
+                        if decimal_separator(lang): temp_s = temp_s.replace('.',',')
                         s += '<td style="color:%s">%s<span style="font-size:50%%"> °C</span></td>' % (DwdMosmix._temp_color(temp),temp_s)
                     except (ValueError,TypeError,LookupError):
                         s += '<td>?</td>'
                     try:
                         # wind column
-                        wind_s = ('%.0f' % placemark['Forecast']['FF'][idx]).replace('.',',')
+                        wind_s = ('%.0f' % placemark['Forecast']['FF'][idx])
+                        if decimal_separator(lang): wind_s = wind_s.replace('.',',')
                         s += '<td>%s<span style="font-size:50%%"> km/h</span></td>' % wind_s
                     except (ValueError,TypeError,LookupError):
                         s += '<td>?</td>'
                     try:
                         # rain
-                        rain = ('%.1f' % placemark['Forecast']['RR1c'][idx]).replace('.',',')
+                        rain = ('%.1f' % placemark['Forecast']['RR1c'][idx])
+                        if decimal_separator(lang): rain = rain.replace('.',',')
                         s += '<td style="color:#7cb5ec">%s<span style="font-size:50%%"> mm</span></td>' % rain
                     except (ValueError,TypeError,LookupError):
                         s += '<td>?</td>'
@@ -1284,6 +1313,7 @@ class DwdMosmix(object):
                 station_dict = self.stations_dict[placemark['id']]
             except Exception:
                  station_dict = configobj.ConfigObj()
+            has_humidity = False
             has_windchill = False
             has_heatindex = False
             has_RR1c = False
@@ -1292,11 +1322,12 @@ class DwdMosmix(object):
             for day,item in days.items():
                 if item.get('heatindex') is not None:
                     has_heatindex = True
-                if item.get('TTTmin') is not None and item['TTTmin']<=10 and item.get('windchill') is not None:
+                if item.get('TN24') is not None and item['TN24']<=10 and item.get('windchill') is not None:
                     has_windchill = True
                 if item.get('RR1c') is not None: has_RR1c = True
                 if item.get('RSunD') is not None: has_RSunD = True
                 if item.get('Rad1hsum') is not None: has_Rad1hsum = True
+                if item.get('UUU') is not None: has_humidity = True
             if self.verbose:
                 loginf("station config: %s" % station_dict)
                 loginf("include windchill: %s" % has_windchill)
@@ -1329,9 +1360,10 @@ class DwdMosmix(object):
                     if self.verbose:
                         loginf("observations from config: %s" % obs)
                 else:
-                    obs = ['ww','TTTmax','TTTmin']
+                    obs = ['ww','TX24','TN24']
                     if has_heatindex: obs += ['heatindex']
                     if has_windchill: obs += ['windchill']
+                    if has_humidity: obs += ['UUU']
                     obs += ['FFavg','DDavg']
                     if has_RR1c: obs += ['RR1c']
                     obs += ['Rd10','PPPPavg','Neffavg']
@@ -1352,14 +1384,14 @@ class DwdMosmix(object):
                     if prec_color: color = ';color:%s' % prec_color
                     if symbols:
                         s += '<td class="%s" style="text-align:left%s" title="%s">%s' % (self.symbols_td_classes,color,self.OBS_LABEL.get(ii,('',ii,''))[1],self.OBS_LABEL.get(ii,('',ii,''))[0])
-                        if not desc and ii=='TTTmax': s+='&nbsp;max'
-                        if not desc and ii=='TTTmin': s+='&nbsp;min'
+                        if not desc and ii in ('TX','TX24'): s+='&nbsp;max'
+                        if not desc and ii in ('TN','TN24'): s+='&nbsp;min'
                         s += '</td>'
                     if desc:
                         s += '<td class="%s" style="text-align:left%s">%s</td>' % (self.description_td_classes,color,self.OBS_LABEL.get(ii,('',ii,''))[1])
                     if prec_color: color = ' style="color:%s"' % prec_color
                     s += '<td class="'+self.unit_td_classes+'"'+color+'>'+self.OBS_LABEL.get(ii,('',ii,''))[2]+'</td>'
-                    dp = 1 if ii in ['TTTmin','TTTmax','TTTavg','SunD1','Rad1hsum'] else 0
+                    dp = 1 if ii in ['TN','TX','TN24','TX24','TTTavg','SunD1','Rad1hsum'] else 0
                     for day in days:
                         htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
                         try:
@@ -1370,16 +1402,18 @@ class DwdMosmix(object):
                                 #s += '<td%s><i class="fa fa-arrow-down" style="transform:rotate(%sdeg)"></i></td>' % (htmlclass,days[day][ii])
                                 s += '<td%s><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%" title="%s"></i></td>' % (htmlclass,days[day][ii],compass(days[day][ii],lang))
                             elif ii in ('VV','VVmin','VVmax','VVavg'):
-                                val = ('%.1f' % (days[day].get(ii,float("NaN"))*0.001)).replace('.',',')
+                                val = ('%.1f' % (days[day].get(ii,float("NaN"))*0.001))
+                                if decimal_separator(lang): val = val.replace('.',',')
                                 s += '<td%s%s>%s</td>' % (htmlclass,color,val)
                             else:
                                 color = ''
-                                if ii[0:3]=='TTT': color = ' style="color:%s"' % DwdMosmix._temp_color(days[day][ii])
+                                if ii in ('TTT','TX','TN','TX24','TN24'): color = ' style="color:%s"' % DwdMosmix._temp_color(days[day][ii])
                                 if prec_color: color = ' style="color:%s"' % prec_color
                                 if ii=='heatindex' and days[day][ii] is not None and days[day][ii]>=27.0:
                                     color = ' style="color:%s"' % DwdMosmix._heatindex_color(days[day][ii])
-                                val = ('%.*f' % (dp,days[day].get(ii,float("NaN")))).replace('.',',')
-                                if ii=='windchill' and days[day]['TTTmin']>10:
+                                val = ('%.*f' % (dp,days[day].get(ii,float("NaN"))))
+                                if decimal_separator(lang): val = val.replace('.',',')
+                                if ii=='windchill' and days[day]['TN24']>10:
                                     val = '&ndash;'
                                 s += '<td%s%s>%s</td>' % (htmlclass,color,val)
                         except (ValueError,TypeError):
@@ -1403,7 +1437,9 @@ class DwdMosmix(object):
                                 ertrag = ''
                             else:
                                 # from tomorrow on
-                                ertrag = ('%.1f' % (days[day]['Rad1hsum']*pv_factor)).replace('.',',')
+                                ertrag = ('%.1f' % (days[day]['Rad1hsum']*pv_factor))
+                                if decimal_separator(lang): 
+                                    ertrag = ertrag.replace('.',',')
                             s += '<td%s>%s</td>' % (htmlclass,ertrag)
                         except (ValueError,TypeError):
                             s += '<td%s>NaN</td>' % htmlclass
@@ -1420,7 +1456,7 @@ class DwdMosmix(object):
                 # header line
                 s += '<tr>'
                 s += '<th></th><th class="%s">ww</th>' % self.symbols_td_classes
-                for ii in ['TTTmin','FFavg','RR1c','PPPPavg']:
+                for ii in ['TN24','FFavg','RR1c','PPPPavg']:
                     color = ' style="color:#7cb5ec"' if ii=='RR1c' else ''
                     s += '<th class="%s"%s>%s</th>' % (self.symbols_td_classes,color,self.OBS_LABEL[ii][0])
                 s += '</tr>\n'
@@ -1437,11 +1473,13 @@ class DwdMosmix(object):
                         s += '<td>%s</td>' % days[day].get('','')
                     try:
                         # max temp
-                        color = ' style="color:%s"' % DwdMosmix._temp_color(days[day]['TTTmax'])
-                        temp_s = ('%.1f' % days[day].get('TTTmax',float("NaN"))).replace('.',',')
+                        color = ' style="color:%s"' % DwdMosmix._temp_color(days[day]['TX24'])
+                        temp_s = ('%.1f' % days[day].get('TX24',float("NaN")))
+                        if decimal_separator(lang): 
+                            temp_s = temp_s.replace('.',',')
                         s += '<td%s%s>%s<span style="font-size:50%%"> °C</span></td>' % (htmlclass,color,temp_s)
                     except (ValueError,TypeError):
-                        s += '<td>%s</td>' % days[day].get('TTTmax','')
+                        s += '<td>%s</td>' % days[day].get('TX24','')
                     try:
                         # wind
                         color = ''
@@ -1464,11 +1502,13 @@ class DwdMosmix(object):
                     s += '</tr>\n<tr>'
                     try:
                         # min temp
-                        color = ' style="color:%s"' % DwdMosmix._temp_color(days[day]['TTTmin'])
-                        temp_s = ('%.1f' % days[day].get('TTTmin',float("NaN"))).replace('.',',')
+                        color = ' style="color:%s"' % DwdMosmix._temp_color(days[day]['TN24'])
+                        temp_s = ('%.1f' % days[day].get('TN24',float("NaN")))
+                        if decimal_separator(lang):
+                            temp_s = temp_s.replace('.',',')
                         s += '<td%s%s>%s<span style="font-size:50%%"> °C</span></td>' % (htmlclass,color,temp_s)
                     except (ValueError,TypeError):
-                        s += '<td>%s</td>' % days[day].get('TTTmin','')
+                        s += '<td>%s</td>' % days[day].get('TN24','')
                     try:
                         # wind direction
                         s += '<td%s><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%" title="%s"></i></td>' % (htmlclass,days[day]['DDavg'],compass(days[day]['DDavg'],lang))
@@ -1487,7 +1527,7 @@ class DwdMosmix(object):
             # Copyright notice
             s += '<p style="font-size:65%">'
             if issue.get('Issuer','')=='Open-Meteo':
-                s += 'bereitgestellt von <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a>'
+                s += 'bereitgestellt von <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a> CC BY 4.0'
             elif issue.get('Issuer','')=='OpenWeather':
                 s += 'bereitgestellt von <a href="https://openweather.co.uk" target="_blank">OpenWeather</a>'
             else:
@@ -1675,10 +1715,10 @@ class DwdMosmix(object):
                 'timestamp':days[day]['timestamp'],
                 'validTime':DwdMosmix.isoformat(days[day]['timestamp']),
                 'dateTimeISO':DwdMosmix.isoformat(days[day]['timestamp']),
-                'maxTempC':nround(days[day]['TTTmax'],1),
-                'maxTempF':nround(fahrenheit(days[day]['TTTmax']),1),
-                'minTempC':nround(days[day]['TTTmin'],1),
-                'minTempF':nround(fahrenheit(days[day]['TTTmin']),1),
+                'maxTempC':nround(days[day]['TX24'],1),
+                'maxTempF':nround(fahrenheit(days[day]['TX24']),1),
+                'minTempC':nround(days[day]['TN24'],1),
+                'minTempF':nround(fahrenheit(days[day]['TN24']),1),
                 'avgTempC':nround(days[day]['TTTavg'],1),
                 'avgTempF':nround(fahrenheit(days[day]['TTTavg']),1),
                 'tempC':None,
@@ -2303,7 +2343,7 @@ class DwdMosmix(object):
                 if self.iconset==40:
                     days[day]['icon'] = self.icon_pth+'/'+WW_SVG_LIST.get(wwcode[0],wwcode[4].replace('.png','.svg'))
                 elif wwcode[self.iconset] is None:
-                    days[day]['icon'] = 'unknown.png'
+                    days[day]['icon'] = self.icon_pth+'/'+'unknown.png'
                 else:
                     days[day]['icon'] = self.icon_pth+'/'+wwcode[self.iconset]+('.png' if self.iconset==6 else '')
         return days
@@ -2331,8 +2371,8 @@ class DwdMosmix(object):
                     'day':day,
                     'weekday':_wday,
                     'weekdayshortname':WEEKDAY[lang][_wday],
-                    'TTTmin':1000.0,
-                    'TTTmax':-273.15,
+                    'TN24':1000.0,
+                    'TX24':-273.15,
                     'Tdmin':1000.0,
                     'Tdmax':-273.15,
                     'windchill':1000.0,
@@ -2351,8 +2391,8 @@ class DwdMosmix(object):
             # min and max temperature
             ttt = vals.get('TTT')
             if ttt is not None:
-                if ttt>days[day]['TTTmax']: days[day]['TTTmax'] = ttt
-                if ttt<days[day]['TTTmin']: days[day]['TTTmin'] = ttt
+                if ttt>days[day]['TX24']: days[day]['TX24'] = ttt
+                if ttt<days[day]['TN24']: days[day]['TN24'] = ttt
             # min and max dewpoint
             td = vals.get('Td')
             if td is not None:
@@ -2527,7 +2567,7 @@ class DwdMosmix(object):
                 except LookupError:
                     obstypes = None
                 if not isinstance(obstypes,list):
-                    obstypes = ['TTT','humidity','FF','DD','RR1c','R101','PPPP','Rad1h']
+                    obstypes = ['TTT','UUU','FF','DD','RR1c','R101','PPPP','Rad1h']
                 self.write_html(placemark,timesteps,daynights,obstypes,dryrun,range=self.hourly_hours,lang=lang)
         
         # create forecast in JSON format
@@ -2664,7 +2704,7 @@ class DwdMosmix(object):
     OPENMETEO_OBS = {
         # Open-Meteo name: DWD-MOSMIX name
         'temperature_2m':'TTT',
-        'relativehumidity_2m':'RHEL',
+        'relativehumidity_2m':'UUU',
         'dewpoint_2m':'Td',
         'pressure_msl':'PPPP',
         'cloudcover':'N',
@@ -2831,7 +2871,7 @@ class DwdMosmix(object):
     
     OPENWEATHER_OBS = {
         'main.temp':'TTT',
-        'main.humidity':'RHEL',
+        'main.humidity':'UUU',
         'pressure':'PPPP',
         'clouds.all':'Neff',
         'wind.speed':'FF',
@@ -2844,9 +2884,9 @@ class DwdMosmix(object):
     OPENWEATHER_OBS_HOURLY = {
         # one call api
         'temp':'TTT',
-        'temp.min':'TTTmin',
-        'temp.max':'TTTmax',
-        'humidity':'RHEL',
+        'temp.min':'TN',
+        'temp.max':'TX',
+        'humidity':'UUU',
         'dew_point':'Td',
         'wind_speed':'FF',
         'wind_deg':'DD',
@@ -2859,9 +2899,9 @@ class DwdMosmix(object):
     
     OPENWEATHER_OBS_DAILY = {
         # one call api
-        'temp.min':'TTTmin',
-        'temp.max':'TTTmax',
-        'humidity':'RHEL',
+        'temp.min':'TN24',
+        'temp.max':'TX24',
+        'humidity':'UUU',
         'dew_point':'Td',
         'wind_speed':'FFavg',
         'wind_deg':'DDavg',
