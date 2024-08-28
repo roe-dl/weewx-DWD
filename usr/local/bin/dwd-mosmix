@@ -1029,7 +1029,7 @@ class DwdMosmix(object):
         'heatindex':('HI','Hitzeindex','&deg;C'),
         'windchill':('WCT','Windchill','&deg;C')}
 
-    def write_html(self, placemark, timesteps, daynights, obstypes, dryrun, range=None, lang='de'):
+    def write_html(self, placemark, timesteps, daynights, obstypes, dryrun, range=None, lang='de', usunits=False):
         """ create HTML hourly """
         #timesteps = mos['ForecastTimeSteps']
         try:
@@ -1173,7 +1173,11 @@ class DwdMosmix(object):
                             s += '<td class="%s">%s</td>' % (self.description_td_classes,ii)
                     # measuring unit column
                     color = ' style="color:%s"' % prec_color if prec_color else ''
-                    s += '<td class="%s"%s>%s</td>' % (self.unit_td_classes,color,self.OBS_LABEL.get(ii,(ii,'',''))[2])
+                    unit = self.OBS_LABEL.get(ii,(ii,'',''))[2]
+                    if usunits:
+                        if unit=='&deg;C': unit = '&deg;F'
+                        if unit=='mbar': unit = 'inHG'
+                    s += '<td class="%s"%s>%s</td>' % (self.unit_td_classes,color,unit)
                     # values columns
                     for idx,jj in enumerate(placemark['Forecast'].get(ii,[])):
                         if idx<start_ct: continue
@@ -1182,11 +1186,24 @@ class DwdMosmix(object):
                             color = ' style="color:%s"' % prec_color if prec_color else ''
                             if ii=='TTT': color = ' style="color:%s"' % DwdMosmix._temp_color(jj)
                             dp = 1 if ii[0]=='T' or (ii in ['RR1c','RRL1c','RRS1c','RR3c','RR6c']) else 0
+                            if unit=='&deg;F': 
+                                val = fahrenheit(jj)
+                            elif unit=='inHG': 
+                                val = inchHG(jj)
+                                dp = 2
+                            elif unit=='mph':
+                                val = mph(jj)
+                            elif unit=='in':
+                                val = mm_to_inch(jj)
+                            else:
+                                val = jj
                             if ii=='DD':
-                                s += '<td><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%" title="%s"></i></td>' % (jj,compass(jj,lang))
+                                s += '<td><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%" title="%s"></i></td>' % (val,compass(val,lang))
                                 #s += '<td><i class="wi wi-wind-direction" style="transform:rotate(%sdeg);font-size:150%%"></i></td>' % ((jj+180)%360)
                             else:
-                                s += '<td%s>%.*f</td>' % (color,dp,jj)
+                                val = '%.*f' % (dp,val)
+                                if decimal_separator(lang): val = val.replace('.',',')
+                                s += '<td%s>%s</td>' % (color,val)
                         except Exception:
                             s += '<td>%s</td>' % jj
                     s += '</tr>\n'
@@ -1301,7 +1318,7 @@ class DwdMosmix(object):
                 with open("%s/forecast-%s-%s.inc" % (self.target_path,fn,suffix),"w") as file:
                     file.write(s)
     
-    def write_html_daily(self, placemark, days, timesteps, issue, obstypes, dryrun, lang='de'):
+    def write_html_daily(self, placemark, days, timesteps, issue, obstypes, dryrun, lang='de', usunits=False):
         """ make daily values out of hourly ones and create HTML and JSON """
         # config
         symbols = self.show_obs_symbols
@@ -1390,7 +1407,13 @@ class DwdMosmix(object):
                     if desc:
                         s += '<td class="%s" style="text-align:left%s">%s</td>' % (self.description_td_classes,color,self.OBS_LABEL.get(ii,('',ii,''))[1])
                     if prec_color: color = ' style="color:%s"' % prec_color
-                    s += '<td class="'+self.unit_td_classes+'"'+color+'>'+self.OBS_LABEL.get(ii,('',ii,''))[2]+'</td>'
+                    unit = self.OBS_LABEL.get(ii,('',ii,''))[2]
+                    if usunits:
+                        if unit=='&deg;C': unit = '&deg;F'
+                        if unit=='mbar': unit = 'inHG'
+                        if unit=='km/h': unit = 'mph'
+                        if unit=='mm': unit = 'in'
+                    s += '<td class="'+self.unit_td_classes+'"'+color+'>'+unit+'</td>'
                     dp = 1 if ii in ['TN','TX','TN24','TX24','TTTavg','SunD1','Rad1hsum'] else 0
                     for day in days:
                         htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
@@ -1411,7 +1434,18 @@ class DwdMosmix(object):
                                 if prec_color: color = ' style="color:%s"' % prec_color
                                 if ii=='heatindex' and days[day][ii] is not None and days[day][ii]>=27.0:
                                     color = ' style="color:%s"' % DwdMosmix._heatindex_color(days[day][ii])
-                                val = ('%.*f' % (dp,days[day].get(ii,float("NaN"))))
+                                if unit=='inHG':
+                                    val = ('%.*f' % (dp,inchHG(days[day].get(ii,float("NaN")))))
+                                    dp = 2
+                                elif unit=='&deg;F':
+                                    val = ('%.*f' % (dp,fahrenheit(days[day].get(ii,float("NaN")))))
+                                elif unit=='mph':
+                                    val = ('%.*f' % (dp,mph(days[day].get(ii,float("NaN")))))
+                                elif unit=='in':
+                                    val = ('%.*f' % (dp,mm_to_inch(days[day].get(ii,float("NaN")))))
+                                    dp = 2
+                                else:
+                                    val = ('%.*f' % (dp,days[day].get(ii,float("NaN"))))
                                 if decimal_separator(lang): val = val.replace('.',',')
                                 if ii=='windchill' and days[day]['TN24']>10:
                                     val = '&ndash;'
@@ -1474,28 +1508,61 @@ class DwdMosmix(object):
                     try:
                         # max temp
                         color = ' style="color:%s"' % DwdMosmix._temp_color(days[day]['TX24'])
-                        temp_s = ('%.1f' % days[day].get('TX24',float("NaN")))
+                        if usunits:
+                            temp_s = ('%.1f' % fahrenheit(days[day].get('TX24',float("NaN"))))
+                        else:
+                            temp_s = ('%.1f' % days[day].get('TX24',float("NaN")))
                         if decimal_separator(lang): 
                             temp_s = temp_s.replace('.',',')
-                        s += '<td%s%s>%s<span style="font-size:50%%"> °C</span></td>' % (htmlclass,color,temp_s)
+                        s += '<td%s%s>%s<span style="font-size:50%%"> %s</span></td>' % (htmlclass,color,temp_s,'&deg;F' if usunits else '&degC')
                     except (ValueError,TypeError):
                         s += '<td>%s</td>' % days[day].get('TX24','')
                     try:
                         # wind
                         color = ''
-                        s += ('<td%s%s>%.*f<span style="font-size:50%%"> km/h</span></td>' % (htmlclass,color,0,days[day].get('FFavg',float("NaN")))).replace('.',',')
+                        speed = days[day].get('FFavg',float("NaN"))
+                        if usunits:
+                            speed = mph(speed)
+                            unit = 'mph'
+                        else:
+                            unit = 'km/h'
+                        speed_s = '%.*f' % (0,speed)
+                        if decimal_separator(lang): speed_s = speed_s.replace('.',',')
+                        s += ('<td%s%s>%s<span style="font-size:50%%"> %s</span></td>' % (htmlclass,color,speed_s,unit))
                     except (ValueError,TypeError):
                         s += '<td>%s</td>' % days[day].get('FFavg','')
                     try:
                         # precipitation
                         color = ' style="color:#7cb5ec"' 
-                        s += ('<td%s%s>%.*f<span style="font-size:50%%"> mm</span></td>' % (htmlclass,color,0,days[day].get('RR1c',float("NaN")))).replace('.',',')
+                        prec = days[day].get('RR1c',float("NaN"))
+                        if usunits:
+                            prec = mm_to_inch(prec)
+                            unit = 'in'
+                            dp = 2
+                        else:
+                            unit = 'mm'
+                            dp = 0
+                        prec_s = '%.*f' % (dp,prec)
+                        if decimal_separator(lang):
+                            prec_s = prec_s.replace('.',',')
+                        s += ('<td%s%s>%s<span style="font-size:50%%"> %s</span></td>' % (htmlclass,color,prec_s,unit))
                     except (ValueError,TypeError):
                         s += '<td>%s</td>' % days[day].get('RR1c','')
                     try:
                         # pressure
                         color = ''
-                        s += ('<td%s%s rowspan="2">%.*f<span style="font-size:50%%"> mbar</span></td>' % (htmlclass,color,0,days[day].get('PPPPavg',float("NaN")))).replace('.',',')
+                        p = days[day].get('PPPPavg',float("NaN"))
+                        if usunits: 
+                            p = inchHG(p)
+                            unit = 'inHG'
+                            dp = 2
+                        else:
+                            unit = 'mbar'
+                            dp = 0
+                        p_s = '%.*f' % (dp,p)
+                        if decimal_separator(lang):
+                            p_s = p_s.replace('.',',')
+                        s += ('<td%s%s rowspan="2">%s<span style="font-size:50%%"> %s</span></td>' % (htmlclass,color,p_s,unit))
                     except (ValueError,TypeError):
                         s += '<td>%s</td>' % days[day].get('PPPPavg','')
                     # next line
@@ -1503,10 +1570,13 @@ class DwdMosmix(object):
                     try:
                         # min temp
                         color = ' style="color:%s"' % DwdMosmix._temp_color(days[day]['TN24'])
-                        temp_s = ('%.1f' % days[day].get('TN24',float("NaN")))
+                        if usunits:
+                            temp_s = ('%.1f' % fahrenheit(days[day].get('TN24',float("NaN"))))
+                        else:
+                            temp_s = ('%.1f' % days[day].get('TN24',float("NaN")))
                         if decimal_separator(lang):
                             temp_s = temp_s.replace('.',',')
-                        s += '<td%s%s>%s<span style="font-size:50%%"> °C</span></td>' % (htmlclass,color,temp_s)
+                        s += '<td%s%s>%s<span style="font-size:50%%"> %s</span></td>' % (htmlclass,color,temp_s,'&deg;F' if usunits else '&deg;C')
                     except (ValueError,TypeError):
                         s += '<td>%s</td>' % days[day].get('TN24','')
                     try:
@@ -2508,7 +2578,7 @@ class DwdMosmix(object):
             self.dbm_close()
 
 
-    def forecast_placemark(self, placemark, timesteps, issue, output, dryrun, lang='de'):
+    def forecast_placemark(self, placemark, timesteps, issue, output, dryrun, lang='de', usunits=False):
         """ create forecast for placemark placemark 
             
             Args:
@@ -2552,12 +2622,12 @@ class DwdMosmix(object):
             if 'all' in output:
                 if self.verbose:
                     loginf('output all data')
-                self.write_html(placemark,timesteps,daynights,None,dryrun,lang=lang)
+                self.write_html(placemark,timesteps,daynights,None,dryrun,lang=lang,usunits=usunits)
 
             if 'daily' in output:
                 if self.verbose:
                     loginf('output daily forecast')
-                self.write_html_daily(placemark,days,timesteps,issue,None,dryrun,lang=lang)
+                self.write_html_daily(placemark,days,timesteps,issue,None,dryrun,lang=lang,usunits=usunits)
 
             if 'hourly' in output:
                 if self.verbose:
@@ -2568,7 +2638,7 @@ class DwdMosmix(object):
                     obstypes = None
                 if not isinstance(obstypes,list):
                     obstypes = ['TTT','UUU','FF','DD','RR1c','R101','PPPP','Rad1h']
-                self.write_html(placemark,timesteps,daynights,obstypes,dryrun,range=self.hourly_hours,lang=lang)
+                self.write_html(placemark,timesteps,daynights,obstypes,dryrun,range=self.hourly_hours,lang=lang,usunits=usunits)
         
         # create forecast in JSON format
         if 'json' in output:
@@ -2592,7 +2662,7 @@ class DwdMosmix(object):
             loginf('placemark id "%s" processed' % placemark.get('id'))
 
 
-    def forecast_all(self, mos, output, dryrun, lang='de'):
+    def forecast_all(self, mos, output, dryrun, lang='de',usunits=False):
         """ create forecast for all placemarks found 
         
             Args:
@@ -2615,7 +2685,7 @@ class DwdMosmix(object):
             'IssueTimeISO':mos.get('IssueTimeISO'),
             'ReferenceModel':mos.get('ReferenceModel')}
         for placemark in mos.get('Placemark'):
-            self.forecast_placemark(placemark, mos['ForecastTimeSteps'], issue, output, dryrun, lang)
+            self.forecast_placemark(placemark, mos['ForecastTimeSteps'], issue, output, dryrun, lang, usunits)
         if self.verbose:
             loginf('end loop over placemarks')
     
@@ -3100,6 +3170,9 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
                       metavar="ISO639",
                       default='de',
                       help="Forecast language. Default 'de'")
+    parser.add_option("--us", action="store_true",
+                      default=False,
+                      help="use US units instead of metric units")
     parser.add_option("--aqi-source", dest="aqisource", type=str, metavar="PROVIDER",
                       default=None,
                       help="Provider for Belchertown AQI section")
@@ -3287,4 +3360,4 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
             output.append('json')
     
     # create forecast for all placemarks in mmos
-    dwd.forecast_all(mmos,output,options.dry_run,lang=options.lang)
+    dwd.forecast_all(mmos,output,options.dry_run,lang=options.lang,usunits=options.us)

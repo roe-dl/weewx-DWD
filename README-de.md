@@ -336,6 +336,7 @@ Options:
   --hide-placemark      No placemark caption over forecast table
   --hours=COUNT         amount of hours in hourly forecast, default 11
   --open-meteo=MODEL    use Open-Meteo API instead of DWD MOSMIX
+  --openweather=API_KEY use OpenWeather API instead of DWD MOSMIX
 
   Output and logging options:
     --dry-run           Print what would happen but do not do it. Default is

@@ -247,6 +247,7 @@ Options:
   --hide-placemark      No placemark caption over forecast table
   --hours=COUNT         amount of hours in hourly forecast, default 11
   --open-meteo=MODEL    use Open-Meteo API instead of DWD MOSMIX
+  --openweather=API_KEY use OpenWeather API instead of DWD MOSMIX
 
   Output and logging options:
     --dry-run           Print what would happen but do not do it. Default is
@@ -273,7 +274,7 @@ You can use several options of section "Commands" at the same time.
 
 To specifiy the location you need a station code or a set of geographic
 coordinates. Geographic coordinates are to be used together with the
-option `--open-meteo`, station codes otherwise. See
+options `--open-meteo` and `--openweather`, station codes otherwise. See
 [Wiki](https://github.com/roe-dl/weewx-DWD/wiki) for lists of
 station codes.
 
