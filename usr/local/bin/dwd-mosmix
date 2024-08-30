@@ -1357,25 +1357,18 @@ class DwdMosmix(object):
                 station_dict = self.stations_dict[placemark['id']]
             except Exception:
                  station_dict = configobj.ConfigObj()
-            has_humidity = False
+            has = dict()
             has_windchill = False
-            has_heatindex = False
-            has_RR1c = False
-            has_RSunD = False
-            has_Rad1hsum =False
             for day,item in days.items():
-                if item.get('heatindex') is not None:
-                    has_heatindex = True
                 if item.get('TN') is not None and item['TN']<=10 and item.get('windchill') is not None:
                     has_windchill = True
-                if item.get('RR1c') is not None: has_RR1c = True
-                if item.get('RSunD') is not None: has_RSunD = True
-                if item.get('Rad1hsum') is not None: has_Rad1hsum = True
-                if item.get('UUU') is not None: has_humidity = True
+                for obs,val in item.items():
+                    if val is not None:
+                        has[obs] = True
+            has['windchill'] = has_windchill
             if self.verbose:
                 loginf("station config: %s" % station_dict)
-                loginf("include windchill: %s" % has_windchill)
-                loginf("include heatindex: %s" % has_heatindex)
+                loginf("available readings: %s " % [i for i in has if has[i]])
             # HTML 
             s = ""
             if self.show_placemark:
@@ -1410,15 +1403,7 @@ class DwdMosmix(object):
                     if self.verbose:
                         loginf("observations from config: %s" % obs)
                 else:
-                    obs = ['ww','TX','TN']
-                    if has_heatindex: obs += ['heatindex']
-                    if has_windchill: obs += ['windchill']
-                    if has_humidity: obs += ['UUU']
-                    obs += ['FFavg','DDavg']
-                    if has_RR1c: obs += ['RR1c']
-                    obs += ['Rd10','PPPPavg','Neffavg']
-                    if has_RSunD: obs += ['RSunD']
-                    if has_Rad1hsum: obs += ['Rad1hsum']
+                    obs = [i for i in ['ww','TX','TN','heatindex','windchill','UUU','FFavg','DDavg','RR1c','Rd10','PPPPavg','Neffavg','RSunD','Rad1hsum'] if has.get(i,False)]
                     if self.verbose:
                         loginf("default observations: %s" % obs)
                 for ii in obs:
@@ -1672,7 +1657,7 @@ class DwdMosmix(object):
             'herausgegeben': 'vydává',
             'am': 'dne',
             'format': '%d.%m.%Y %H:%M',
-            'erstellt': 'předpověď vytvořená dne'
+            'erstellt': 'předpověď vytvořená'
         }
     }
     
