@@ -240,13 +240,23 @@ def get_cloudcover(n):
     return icon
 
 # week day names
-WEEKDAY = {
+WEEKDAY_SHORT = {
     'de':['Mo','Di','Mi','Do','Fr','Sa','So'],
     'en':['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
     'fr':['lu','ma','me','je','ve','sa','di'],
     'it':['lun.','mar.','mer.','gio.','ven.','sab.','dom.'],
     'cz':['Po','Út','St','Čt','Pá','So','Ne'],
-    'pl':['pon.','wt.','śr.','czw.','pt.','sob.','niedz.']
+    'pl':['pon.','wt.','śr.','czw.','pt.','sob.','niedz.'],
+    'nl':['Ma','Di','Wo','Do','Vr','Za','Zo'],
+}
+WEEKDAY_LONG = {
+    'de':['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Sonnabend','Sonntag'],
+    'en':['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],
+    'fr':['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'],
+    'it':['lunedì','martedì','mercoledì','giovedì','venerdì','sabato','domenica'],
+    'cz':['pondělí','úterý','středa','čtvrtek','pátek','sobota','neděle'],
+    'pl':['poniedziałek','wtorek','środa','czwartek','piątek','sobota','niedziela'],
+    'nl':['maansdag','dinsdag','woensdag','donderdag','vrijdag','zaterdag','zondag'],
 }
 
 # compass directions
@@ -990,18 +1000,12 @@ class DwdMosmix(object):
     OBS_LABEL = {
         'ww':('','',''),
         'TTT':('<i class="wi wi-thermometer"></i>','Temperatur 2m','&deg;C'),
-        # maximum temperature of the day
-        'TX24':('<i class="wi wi-thermometer"></i>','Maximaltemperatur','&deg;C'),
-        # minimum temperature of the day
-        'TN24':('<i class="wi wi-thermometer"></i>','Minimaltemperatur','&deg;C'),
-        'TTTavg':('<i class="wi wi-thermometer"></i>','Durchschnittstemperatur','&deg;C'),
+        'TM':('<i class="wi wi-thermometer"></i>','Durchschnittstemperatur','&deg;C'),
         'T5cm':('<i class="wi wi-thermometer"></i>','Temperatur 5cm','&deg;C'),
         'Td':('<i class="wi wi-thermometer"></i>','Taupunkt 2m','&deg;C'),
         'TG':('<i class="wi wi-thermometer"></i>','Minimaltemperatur 5cm','&deg;C'),
         'TM':('<i class="wi wi-thermometer"></i>','Durchschnittstemperatur','&deg;C'),
-        # minimum temperature last 12 hours
         'TN':('<i class="wi wi-thermometer"></i>','Minimaltemperatur','&deg;C'),
-        # maximum temperature last 12 hours
         'TX':('<i class="wi wi-thermometer"></i>','Maximaltemperatur','&deg;C'),
         'FF':('<i class="wi wi-strong-wind"></i>','Wind','km/h'),
         'DD':('<i class="wi wi-strong-wind"></i>','Windrichtung','&deg;'),
@@ -1028,6 +1032,29 @@ class DwdMosmix(object):
         # derived values
         'heatindex':('HI','Hitzeindex','&deg;C'),
         'windchill':('WCT','Windchill','&deg;C')}
+    
+    WEEWX_TO_WMO = {
+        'outTemp': 'TTT',
+        'outTemp.max': 'TX',
+        'outTemp.min': 'TN',
+        'outTemp.avg': 'TM',
+        'dewpoint': 'Td',
+        'dewpoint.max': 'Tdmax',
+        'dewpoint.min': 'Tdmin',
+        'dewpoint.avg': 'Tdavg',
+        'outHumidity': 'UUU',
+        'windchill.min': 'windchill',
+        'heatindex.max': 'heatindex',
+        'windSpeed': 'FF',
+        'windSpeed.avg': 'FFavg',
+        'windDir': 'DD',
+        'windDir.avg': 'DDavg',
+        'visibility': 'VV',
+        'visibility.min': 'VVmin',
+        'cloudcover.avg': 'Neffavg',
+        'barometer': 'PPPP',
+        'barometer.avg': 'PPPPavg',
+    }
 
     def write_html(self, placemark, timesteps, daynights, obstypes, dryrun, range=None, lang='de', usunits=False):
         """ create HTML hourly """
@@ -1098,7 +1125,7 @@ class DwdMosmix(object):
                 for idx,ii in enumerate(timesteps):
                     # day of week
                     try:
-                        wd = WEEKDAY[lang][time.localtime(ii*0.001).tm_wday]
+                        wd = WEEKDAY_SHORT[lang][time.localtime(ii*0.001).tm_wday]
                     except Exception:
                         wd = ''
                     # count days
@@ -1225,7 +1252,7 @@ class DwdMosmix(object):
                 for idx,ii in enumerate(timesteps):
                     # day of week
                     try:
-                        wd = WEEKDAY[lang][time.localtime(ii*0.001).tm_wday]
+                        wd = WEEKDAY_SHORT[lang][time.localtime(ii*0.001).tm_wday]
                     except Exception:
                         wd = ''
                     # count days
@@ -1339,7 +1366,7 @@ class DwdMosmix(object):
             for day,item in days.items():
                 if item.get('heatindex') is not None:
                     has_heatindex = True
-                if item.get('TN24') is not None and item['TN24']<=10 and item.get('windchill') is not None:
+                if item.get('TN') is not None and item['TN']<=10 and item.get('windchill') is not None:
                     has_windchill = True
                 if item.get('RR1c') is not None: has_RR1c = True
                 if item.get('RSunD') is not None: has_RSunD = True
@@ -1366,18 +1393,24 @@ class DwdMosmix(object):
                 s += '<td class="%s"></td>' % self.unit_td_classes
                 for day in days:
                     htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
-                    s += '<td%s><strong>%s</strong><br />%s</td>' % (htmlclass,WEEKDAY[lang][days[day]['weekday']],day)
+                    wday = days[day]['weekday']
+                    s += '<td%s><span title="%s"><strong>%s</strong></span><br />%s</td>' % (
+                        htmlclass,
+                        WEEKDAY_LONG[lang][wday],
+                        WEEKDAY_SHORT[lang][wday],
+                        day
+                    )
                 s += '</tr>\n'
                 if obstypes:
                     obs = obstypes 
                     if self.verbose:
                         loginf("observations from parameter: %s" % obs)
                 elif 'observations_daily' in station_dict:
-                    obs = station_dict['observations_daily']
+                    obs = [DwdMosmix.WEEWX_TO_WMO.get(i,i) for i in station_dict['observations_daily']]
                     if self.verbose:
                         loginf("observations from config: %s" % obs)
                 else:
-                    obs = ['ww','TX24','TN24']
+                    obs = ['ww','TX','TN']
                     if has_heatindex: obs += ['heatindex']
                     if has_windchill: obs += ['windchill']
                     if has_humidity: obs += ['UUU']
@@ -1401,8 +1434,8 @@ class DwdMosmix(object):
                     if prec_color: color = ';color:%s' % prec_color
                     if symbols:
                         s += '<td class="%s" style="text-align:left%s" title="%s">%s' % (self.symbols_td_classes,color,self.OBS_LABEL.get(ii,('',ii,''))[1],self.OBS_LABEL.get(ii,('',ii,''))[0])
-                        if not desc and ii in ('TX','TX24'): s+='&nbsp;max'
-                        if not desc and ii in ('TN','TN24'): s+='&nbsp;min'
+                        if not desc and ii=='TX': s+='&nbsp;max'
+                        if not desc and ii=='TN': s+='&nbsp;min'
                         s += '</td>'
                     if desc:
                         s += '<td class="%s" style="text-align:left%s">%s</td>' % (self.description_td_classes,color,self.OBS_LABEL.get(ii,('',ii,''))[1])
@@ -1414,7 +1447,7 @@ class DwdMosmix(object):
                         if unit=='km/h': unit = 'mph'
                         if unit=='mm': unit = 'in'
                     s += '<td class="'+self.unit_td_classes+'"'+color+'>'+unit+'</td>'
-                    dp = 1 if ii in ['TN','TX','TN24','TX24','TTTavg','SunD1','Rad1hsum'] else 0
+                    dp = 1 if ii in ['TN','TX','TM','SunD1','Rad1hsum'] else 0
                     for day in days:
                         htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
                         try:
@@ -1430,7 +1463,7 @@ class DwdMosmix(object):
                                 s += '<td%s%s>%s</td>' % (htmlclass,color,val)
                             else:
                                 color = ''
-                                if ii in ('TTT','TX','TN','TX24','TN24'): color = ' style="color:%s"' % DwdMosmix._temp_color(days[day][ii])
+                                if ii in ('TTT','TX','TN'): color = ' style="color:%s"' % DwdMosmix._temp_color(days[day][ii])
                                 if prec_color: color = ' style="color:%s"' % prec_color
                                 if ii=='heatindex' and days[day][ii] is not None and days[day][ii]>=27.0:
                                     color = ' style="color:%s"' % DwdMosmix._heatindex_color(days[day][ii])
@@ -1447,7 +1480,7 @@ class DwdMosmix(object):
                                 else:
                                     val = ('%.*f' % (dp,days[day].get(ii,float("NaN"))))
                                 if decimal_separator(lang): val = val.replace('.',',')
-                                if ii=='windchill' and days[day]['TN24']>10:
+                                if ii=='windchill' and days[day]['TN']>10:
                                     val = '&ndash;'
                                 s += '<td%s%s>%s</td>' % (htmlclass,color,val)
                         except (ValueError,TypeError):
@@ -1490,7 +1523,7 @@ class DwdMosmix(object):
                 # header line
                 s += '<tr>'
                 s += '<th></th><th class="%s">ww</th>' % self.symbols_td_classes
-                for ii in ['TN24','FFavg','RR1c','PPPPavg']:
+                for ii in ['TN','FFavg','RR1c','PPPPavg']:
                     color = ' style="color:#7cb5ec"' if ii=='RR1c' else ''
                     s += '<th class="%s"%s>%s</th>' % (self.symbols_td_classes,color,self.OBS_LABEL[ii][0])
                 s += '</tr>\n'
@@ -1498,7 +1531,13 @@ class DwdMosmix(object):
                     htmlclass = ' class="weekend"' if days[day]['weekday']>=5 else ''
                     s += '<tr>'
                     # weekday and date
-                    s += '<td%s rowspan="2"><strong>%s</strong><br />%s</td>' % (htmlclass,WEEKDAY[lang][days[day]['weekday']],day)
+                    wday = days[day]['weekday']
+                    s += '<td%s rowspan="2"><span title="%s"><strong>%s</strong></span><br />%s</td>' % (
+                        htmlclass,
+                        WEEKDAY_LONG[lang][wday],
+                        WEEKDAY_SHORT[lang][wday],
+                        day
+                    )
                     try:
                         # weather icon
                         icontitle = days[day]['icontitle'].replace('ö','&ouml;').replace('ü','&uuml;')
@@ -1507,16 +1546,16 @@ class DwdMosmix(object):
                         s += '<td>%s</td>' % days[day].get('','')
                     try:
                         # max temp
-                        color = ' style="color:%s"' % DwdMosmix._temp_color(days[day]['TX24'])
+                        color = ' style="color:%s"' % DwdMosmix._temp_color(days[day]['TX'])
                         if usunits:
-                            temp_s = ('%.1f' % fahrenheit(days[day].get('TX24',float("NaN"))))
+                            temp_s = ('%.1f' % fahrenheit(days[day].get('TX',float("NaN"))))
                         else:
-                            temp_s = ('%.1f' % days[day].get('TX24',float("NaN")))
+                            temp_s = ('%.1f' % days[day].get('TX',float("NaN")))
                         if decimal_separator(lang): 
                             temp_s = temp_s.replace('.',',')
                         s += '<td%s%s>%s<span style="font-size:50%%"> %s</span></td>' % (htmlclass,color,temp_s,'&deg;F' if usunits else '&degC')
                     except (ValueError,TypeError):
-                        s += '<td>%s</td>' % days[day].get('TX24','')
+                        s += '<td>%s</td>' % days[day].get('TX','')
                     try:
                         # wind
                         color = ''
@@ -1569,16 +1608,16 @@ class DwdMosmix(object):
                     s += '</tr>\n<tr>'
                     try:
                         # min temp
-                        color = ' style="color:%s"' % DwdMosmix._temp_color(days[day]['TN24'])
+                        color = ' style="color:%s"' % DwdMosmix._temp_color(days[day]['TN'])
                         if usunits:
-                            temp_s = ('%.1f' % fahrenheit(days[day].get('TN24',float("NaN"))))
+                            temp_s = ('%.1f' % fahrenheit(days[day].get('TN',float("NaN"))))
                         else:
-                            temp_s = ('%.1f' % days[day].get('TN24',float("NaN")))
+                            temp_s = ('%.1f' % days[day].get('TN',float("NaN")))
                         if decimal_separator(lang):
                             temp_s = temp_s.replace('.',',')
                         s += '<td%s%s>%s<span style="font-size:50%%"> %s</span></td>' % (htmlclass,color,temp_s,'&deg;F' if usunits else '&deg;C')
                     except (ValueError,TypeError):
-                        s += '<td>%s</td>' % days[day].get('TN24','')
+                        s += '<td>%s</td>' % days[day].get('TN','')
                     try:
                         # wind direction
                         s += '<td%s><i class="wi wi-direction-down" style="transform:rotate(%sdeg);font-size:150%%" title="%s"></i></td>' % (htmlclass,days[day]['DDavg'],compass(days[day]['DDavg'],lang))
@@ -1595,15 +1634,16 @@ class DwdMosmix(object):
                 if self.vertical_div_classes:
                     s += '</div>\n'
             # Copyright notice
+            notice = DwdMosmix.COPYRIGHT_NOTICE.get(lang,DwdMosmix.COPYRIGHT_NOTICE['en'])
             s += '<p style="font-size:65%">'
             if issue.get('Issuer','')=='Open-Meteo':
-                s += 'bereitgestellt von <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a> CC BY 4.0'
+                s += '%s <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a> CC BY 4.0' % notice['bereitgestellt']
             elif issue.get('Issuer','')=='OpenWeather':
-                s += 'bereitgestellt von <a href="https://openweather.co.uk" target="_blank">OpenWeather</a>'
+                s += '%s <a href="https://openweather.co.uk" target="_blank">OpenWeather</a>' % notice['herausgegeben']
             else:
-                s += 'herausgegeben vom <a href="https://www.dwd.de" target="_blank">DWD</a>'
-            s += ' am %s' % time.strftime('%d.%m.%Y %H:%M',time.localtime(issue['IssueTime']/1000.0))
-            s += ' | Vorhersage erstellt am %s' % time.strftime('%d.%m.%Y %H:%M')
+                s += '%s <a href="https://www.dwd.de" target="_blank">DWD</a>' % notice['herausgegeben']
+            s += ' %s %s' % (notice['am'],time.strftime(notice['format'],time.localtime(issue['IssueTime']/1000.0)))
+            s += ' | %s %s %s' % (notice['erstellt'],notice['am'],time.strftime(notice['format']))
             s += '</p>\n'
             fn = os.path.join(self.target_path,'forecast-'+placemark['id'].replace(',','_').replace(' ','_')+'.inc')
             if dryrun:
@@ -1611,6 +1651,30 @@ class DwdMosmix(object):
             else:
                 with open(fn,"w") as file:
                     file.write(s)
+    
+    COPYRIGHT_NOTICE = {
+        'de': {
+            'bereitgestellt': 'bereitgestellt von',
+            'herausgegeben': 'herausgegeben vom',
+            'am': 'am',
+            'format': '%d.%m.%Y %H:%M',
+            'erstellt': 'Vorhersage erstellt'
+        },
+        'en': {
+            'bereitgestellt': 'compiled by',
+            'herausgegeben': 'issued by',
+            'am': 'on',
+            'format': '%Y-%m-%d %H:%M',
+            'erstellt': 'forecast compiled'
+        },
+        'cz': {
+            'bereitgestellt': 'sestavil',
+            'herausgegeben': 'vydává',
+            'am': 'dne',
+            'format': '%d.%m.%Y %H:%M',
+            'erstellt': 'předpověď vytvořená dne'
+        }
+    }
     
     def dump(self, placemark, days, recs3hr, timesteps, daynights, issue, dryrun, lang='de'):
         fn = os.path.join(self.target_path,'forecast-'+placemark['id'].replace(',','_').replace(' ','_')+'.json')
@@ -1785,12 +1849,12 @@ class DwdMosmix(object):
                 'timestamp':days[day]['timestamp'],
                 'validTime':DwdMosmix.isoformat(days[day]['timestamp']),
                 'dateTimeISO':DwdMosmix.isoformat(days[day]['timestamp']),
-                'maxTempC':nround(days[day]['TX24'],1),
-                'maxTempF':nround(fahrenheit(days[day]['TX24']),1),
-                'minTempC':nround(days[day]['TN24'],1),
-                'minTempF':nround(fahrenheit(days[day]['TN24']),1),
-                'avgTempC':nround(days[day]['TTTavg'],1),
-                'avgTempF':nround(fahrenheit(days[day]['TTTavg']),1),
+                'maxTempC':nround(days[day]['TX'],1),
+                'maxTempF':nround(fahrenheit(days[day]['TX']),1),
+                'minTempC':nround(days[day]['TN'],1),
+                'minTempF':nround(fahrenheit(days[day]['TN']),1),
+                'avgTempC':nround(days[day]['TM'],1),
+                'avgTempF':nround(fahrenheit(days[day]['TM']),1),
                 'tempC':None,
                 'tempF':None,
                 'maxDewpointC':nround(days[day]['Tdmax'],1),
@@ -2405,6 +2469,12 @@ class DwdMosmix(object):
         return recs
     
     def adjust_daily_forecast(self, days):
+        """ adjust some elements of the daily forecast
+        
+            This is called if the downloaded file already contains a daily
+            forecast. So we do not need to calculate it out of hourly
+            data.
+        """
         for day in days:
             if self.iconset==41:
                 days[day]['icon'] = '%s/%s' % (self.icon_pth,days[day]['icon'])
@@ -2416,9 +2486,16 @@ class DwdMosmix(object):
                     days[day]['icon'] = self.icon_pth+'/'+'unknown.png'
                 else:
                     days[day]['icon'] = self.icon_pth+'/'+wwcode[self.iconset]+('.png' if self.iconset==6 else '')
+            if self.verbose:
+                print(days[day])
         return days
     
     def calculate_daily_forecast(self, placemark, timesteps, daynights, lang='de'):
+        """ calculate daily forecast
+        
+            The downloaded file contains hourly readings only. So we have to 
+            calculate daily values.
+        """
         # observation types to calculate average for
         AVGS = ['TTT','Td','FF','DD','PPPP','N','Neff','VV']
         days = dict()
@@ -2440,9 +2517,10 @@ class DwdMosmix(object):
                     'timestamp':int(val*0.001),
                     'day':day,
                     'weekday':_wday,
-                    'weekdayshortname':WEEKDAY[lang][_wday],
-                    'TN24':1000.0,
-                    'TX24':-273.15,
+                    'weekdayshortname':WEEKDAY_SHORT[lang][_wday],
+                    'weekdaylongname':WEEKDAY_LONG[lang][_wday],
+                    'TN':1000.0,
+                    'TX':-273.15,
                     'Tdmin':1000.0,
                     'Tdmax':-273.15,
                     'windchill':1000.0,
@@ -2461,8 +2539,8 @@ class DwdMosmix(object):
             # min and max temperature
             ttt = vals.get('TTT')
             if ttt is not None:
-                if ttt>days[day]['TX24']: days[day]['TX24'] = ttt
-                if ttt<days[day]['TN24']: days[day]['TN24'] = ttt
+                if ttt>days[day]['TX']: days[day]['TX'] = ttt
+                if ttt<days[day]['TN']: days[day]['TN'] = ttt
             # min and max dewpoint
             td = vals.get('Td')
             if td is not None:
@@ -2523,10 +2601,12 @@ class DwdMosmix(object):
         for day in days:
             # calculate averages
             for ii in AVGS:
+                obs = ii+'avg'
+                if obs=='TTTavg': obs = 'TM'
                 try:
-                    days[day][ii+'avg'] = days[day][ii+'sum']/days[day][ii+'ct']
+                    days[day][obs] = days[day][ii+'sum']/days[day][ii+'ct']
                 except (TypeError,ArithmeticError,LookupError,ValueError):
-                    days[day][ii+'avg'] = None
+                    days[day][obs] = None
                 try:
                     del days[day][ii+'sum']
                     del days[day][ii+'ct']
@@ -2543,6 +2623,8 @@ class DwdMosmix(object):
             days[day]['icontitle'] = wwcode[2] if lang=='en' else wwcode[1]
             if days[day]['heatindex']==-273.15:
                 days[day]['heatindex'] = None
+            if self.verbose:
+                print(days[day])
         return days
 
 
@@ -2633,7 +2715,7 @@ class DwdMosmix(object):
                 if self.verbose:
                     loginf('output hourly forecast')
                 try:
-                    obstypes = self.stations_dict[placemark['id']]['observations_hourly']
+                    obstypes = [DwdMosmix.WEEWX_TO_WMO.get(i,i) for i in self.stations_dict[placemark['id']]['observations_hourly']]
                 except LookupError:
                     obstypes = None
                 if not isinstance(obstypes,list):
@@ -2969,8 +3051,8 @@ class DwdMosmix(object):
     
     OPENWEATHER_OBS_DAILY = {
         # one call api
-        'temp.min':'TN24',
-        'temp.max':'TX24',
+        'temp.min':'TN',
+        'temp.max':'TX',
         'humidity':'UUU',
         'dew_point':'Td',
         'wind_speed':'FFavg',
@@ -3093,10 +3175,11 @@ class DwdMosmix(object):
                 daydt = time.strftime('%d.%m.',time.localtime(day['dt']))
                 _wday = time.localtime(day['dt']).tm_wday
                 val = {
-                    'timestamp':int(day['dt']*1000),
+                    'timestamp':int(day['dt']),
                     'day':daydt,
                     'weekday':_wday,
-                    'weekdayshortname':WEEKDAY[lang][_wday],
+                    'weekdayshortname':WEEKDAY_SHORT[lang][_wday],
+                    'weekdaylongname':WEEKDAY_LONG[lang][_wday],
                     'ww':[],
                 }
                 for obs1,val1 in day.items():

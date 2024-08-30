@@ -91,7 +91,8 @@ WEEKDAY_SHORT = {
     'fr':['lu','ma','me','je','ve','sa','di'],
     'it':['lun.','mar.','mer.','gio.','ven.','sab.','dom.'],
     'cz':['Po','Út','St','Čt','Pá','So','Ne'],
-    'pl':['pon.','wt.','śr.','czw.','pt.','sob.','niedz.']
+    'pl':['pon.','wt.','śr.','czw.','pt.','sob.','niedz.'],
+    'nl':['Ma','Di','Wo','Do','Vr','Za','Zo'],
 }
 
 WEEKDAY_LONG = {
@@ -100,7 +101,8 @@ WEEKDAY_LONG = {
     'fr':['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'],
     'it':['lunedì','martedì','mercoledì','giovedì','venerdì','sabato','domenica'],
     'cz':['pondělí','úterý','středa','čtvrtek','pátek','sobota','neděle'],
-    'pl':['poniedziałek','wtorek','środa','czwartek','piątek','sobota','niedziela']
+    'pl':['poniedziałek','wtorek','środa','czwartek','piątek','sobota','niedziela'],
+    'nl':['maansdag','dinsdag','woensdag','donderdag','vrijdag','zaterdag','zondag'],
 }
 
 HTTP_MONTH = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
