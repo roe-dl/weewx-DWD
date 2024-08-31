@@ -1808,7 +1808,7 @@ class DwdMosmix(object):
                     'windSpeedMPH':nround(mph(placemark['Forecast']['FF'][idx])),
                     'windDir':compass(nround(placemark['Forecast']['DD'][idx]),self.belchertown_compasslang,False),
                     'windDirDEG':nround(placemark['Forecast']['DD'][idx]),
-                    'visibilityKM':placemark['Forecast']['VV'][idx]*0.001 if 'VV' in placemark['Forecast'] else None,
+                    'visibilityKM':placemark['Forecast']['VV'][idx]*0.001 if 'VV' in placemark['Forecast'] and placemark['Forecast']['VV'][idx] is not None else None,
                     'weather':wwcode[1],
                     'weatherCoded':wwcode[7],
                     'weatherPrimary':wwcode[1],
@@ -3234,6 +3234,9 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
                       help="HTML table orientation horizontal, vertial, or both")
     parser.add_option("--icon-set", dest="iconset", type=str, metavar="SET",
                       help="icon set to use, default is 'belchertown', possible values are 'dwd', 'belchertown', 'aeris', and 'svg'")
+    parser.add_option("--icon-path", dest="iconpath", type=str, metavar="PATH",
+                      default=None,
+                      help="path of icon files on the web server, must not start with /")
     parser.add_option("--lang", dest="lang", type=str,
                       metavar="ISO639",
                       default='de',
@@ -3248,18 +3251,28 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
                       action="store_true",
                       default=None,
                       help="no placemark caption over forecast table")
+    parser.add_option("--hide-obs-symbols", dest="hideobssymbols",
+                      action="store_true",
+                      help="no observation type symbols in HTML")
+    parser.add_option("--show-obs-description", dest="showobsdesc",
+                      action="store_true",
+                      help="show observation type description in HTML")
     parser.add_option("--hours", dest="hours", type=int,
                       default=None,
                       help="count of hours in hourly forecast")
-    parser.add_option("--open-meteo", dest="openmeteo",
+
+    group = optparse.OptionGroup(parser,"Provider")
+    group.add_option("--dwd", action="store_true",
+                     help="get forecast from DWD (default, if omitted)")
+    group.add_option("--open-meteo", dest="openmeteo",
                       metavar="MODEL",
                       default=None,
                       help="get forecast from Open-Meteo")
-    parser.add_option("--openweather", dest="openweather",
+    group.add_option("--openweather", dest="openweather",
                       metavar="APIKEY",
                       default=None,
                       help="get forecast from OpenWeather")
-                      
+    parser.add_option_group(group)
 
     group = optparse.OptionGroup(parser,"Output and logging options")
     group.add_option("--dry-run", action="store_true",
@@ -3362,12 +3375,18 @@ https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/mosmix_stationskatalog.cfg
         config[ws]['forecast']['orientation'] = options.orientation
     if options.iconset:
         config[ws]['forecast']['icon_set'] = options.iconset
+    if options.iconpath:
+        config[ws]['forecast']['icons'] = options.iconpath
     if options.aqisource:
         if 'Belchertown' not in config['WeatherServices']:
             config['WeatherServices']['Belchertown'] = {'section':'Belchertown','forecast':location,'warnings':None}
         config['WeatherServices']['Belchertown']['aqi_source'] = options.aqisource
     if options.hideplacemark is not None:
         config[ws]['forecast']['show_placemark'] = not options.hideplacemark
+    if options.hideobssymbols:
+        config[ws]['forecast']['show_obs_symbols'] = False
+    if options.showobsdesc:
+        config[ws]['forecast']['show_obs_description'] = True
     if options.hours is not None:
         config[ws]['forecast']['hourly_hours'] = int(options.hours)
 
