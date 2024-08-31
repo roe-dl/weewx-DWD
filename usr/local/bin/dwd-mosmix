@@ -1667,8 +1667,9 @@ class DwdMosmix(object):
             hours = []
             for idx,val in enumerate(timesteps):
                 hour = {'timestamp':int(val*0.001),'night':daynights[idx]}
-                for ii in placemark['Forecast']:
-                    hour[ii] = placemark['Forecast'][ii][idx]
+                for ii,jj in placemark['Forecast'].items():
+                    if len(jj)>idx:
+                        hour[ii] = jj[idx]
 
                 wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],daynights[idx])
                 if self.iconset==40:
@@ -2379,7 +2380,7 @@ class DwdMosmix(object):
             else:
                 ok = (val%10800000)==0
             if ok:
-                vals = {ii:placemark['Forecast'][ii][idx] for ii in placemark['Forecast'] if placemark['Forecast'][ii][idx] is not None}
+                vals = {ii:jj[idx] for ii,jj in placemark['Forecast'].items() if len(jj)>idx and jj[idx] is not None}
                 vals['timestamp'] = int(val*0.001)
                 try:
                     ww = []
