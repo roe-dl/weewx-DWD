@@ -1997,7 +1997,7 @@ class DwdMosmix(object):
                 'weatherPrimary':wwcode[1],
                 'weatherPrimaryCoded':wwcode[7],
                 'icon':wwcode[6]+('n' if night else '')+'.png',
-                'visibilityKM':placemark['Forecast']['VV'][idx]*0.001 if 'VV' in placemark['Forecast'] else None,
+                'visibilityKM':placemark['Forecast']['VV'][idx]*0.001 if 'VV' in placemark['Forecast'] and placemark['Forecast']['VV'][idx] is not None else None,
                 'solradWM2':placemark['Forecast']['Rad1h'][idx] if 'Rad1h' in placemark['Forecast'] else None,
                 'solradMinWM2':placemark['Forecast']['Rad1hmin'][idx] if 'Rad1hmin' in placemark['Forecast'] else None,
                 'solradMaxWM2':placemark['Forecast']['Rad1hmax'][idx] if 'Rad1hmax' in placemark['Forecast'] else None,
