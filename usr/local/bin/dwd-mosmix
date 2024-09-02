@@ -735,7 +735,12 @@ class DwdMosmix(object):
             return int(ts)
         except Exception:
             return None
-        
+    
+    @staticmethod
+    def isobsindict(obs_dict,obs,idx):
+        """ test if obs in obs_dict and not None"""
+        return obs in obs_dict and len(obs_dict[obs])>idx and obs_dict[obs][idx] is not None
+    
     def download_kml(self, location, mosmix):
         """ download MOSMIX KML file from DWD server """
 
@@ -1769,7 +1774,8 @@ class DwdMosmix(object):
                 break
         #night = self.is_night(location,timesteps[idx]*0.001)
         night = daynights[idx]
-        wwcode = get_ww([placemark['Forecast']['ww'][idx]],placemark['Forecast']['Neff'][idx],night)
+        curr = placemark['Forecast']
+        wwcode = get_ww([curr['ww'][idx]],curr['Neff'][idx] if DwdMosmix.isobsindict(curr,'Neff',idx) else None,night)
         forecast['current'] = [{
             'success':True,
             'error':None,
@@ -1795,30 +1801,30 @@ class DwdMosmix(object):
                 'ob':{
                     'timestamp':int(timesteps[idx]*0.001),
                     'dateTimeISO':DwdMosmix.isoformat(timesteps[idx]*0.001),
-                    'tempC':nround(placemark['Forecast']['TTT'][idx],1),
-                    'tempF':nround(fahrenheit(placemark['Forecast']['TTT'][idx]),1),
-                    'dewpointC':nround(placemark['Forecast']['Td'][idx],1) if 'Td' in placemark['Forecast'] else None,
-                    'dewpointF':nround(fahrenheit(placemark['Forecast']['Td'][idx]),1) if 'Td' in placemark['Forecast'] else None,
-                    'pressureMB':nround(placemark['Forecast']['PPPP'][idx]),
-                    'pressureIN':nround(inchHG(placemark['Forecast']['PPPP'][idx]),2),
-                    'windKTS':nround(knoten(placemark['Forecast']['FF'][idx])),
-                    'windKPH':nround(placemark['Forecast']['FF'][idx]),
-                    'windMPH':nround(mph(placemark['Forecast']['FF'][idx])),
-                    'windSpeedKTS':nround(knoten(placemark['Forecast']['FF'][idx])),
-                    'windSpeedKPH':nround(placemark['Forecast']['FF'][idx]),
-                    'windSpeedMPH':nround(mph(placemark['Forecast']['FF'][idx])),
-                    'windDir':compass(nround(placemark['Forecast']['DD'][idx]),self.belchertown_compasslang,False),
-                    'windDirDEG':nround(placemark['Forecast']['DD'][idx]),
-                    'visibilityKM':placemark['Forecast']['VV'][idx]*0.001 if 'VV' in placemark['Forecast'] and placemark['Forecast']['VV'][idx] is not None else None,
+                    'tempC':nround(curr['TTT'][idx],1),
+                    'tempF':nround(fahrenheit(curr['TTT'][idx]),1),
+                    'dewpointC':nround(curr['Td'][idx],1) if DwdMosmix.isobsindict(curr,'Td',idx) else None,
+                    'dewpointF':nround(fahrenheit(curr['Td'][idx]),1) if DwdMosmix.isobsindict(curr,'Td',idx) else None,
+                    'pressureMB':nround(curr['PPPP'][idx]),
+                    'pressureIN':nround(inchHG(curr['PPPP'][idx]),2),
+                    'windKTS':nround(knoten(curr['FF'][idx])),
+                    'windKPH':nround(curr['FF'][idx]),
+                    'windMPH':nround(mph(curr['FF'][idx])),
+                    'windSpeedKTS':nround(knoten(curr['FF'][idx])),
+                    'windSpeedKPH':nround(curr['FF'][idx]),
+                    'windSpeedMPH':nround(mph(curr['FF'][idx])),
+                    'windDir':compass(nround(curr['DD'][idx]),self.belchertown_compasslang,False),
+                    'windDirDEG':nround(curr['DD'][idx]),
+                    'visibilityKM':curr['VV'][idx]*0.001 if DwdMosmix.isobsindict(curr,'VV',idx) else None,
                     'weather':wwcode[1],
                     'weatherCoded':wwcode[7],
                     'weatherPrimary':wwcode[1],
                     'weatherPrimaryCoded':wwcode[7],
-                    'cloudsCoded':get_cloudcover(placemark['Forecast']['N'][idx])[3],
+                    'cloudsCoded':get_cloudcover(curr['N'][idx])[3] if DwdMosmix.isobsindict(curr,'N',idx) else None,
                     'icon':wwcode[6]+('n' if night else '')+'.png',
-                    'solradWM2':placemark['Forecast']['Rad1h'][idx] if 'Rad1h' in placemark['Forecast'] else None,
+                    'solradWM2':curr['Rad1h'][idx] if DwdMosmix.isobsindict(curr,'Rad1h',idx) else None,
                     'isDay':not night,
-                    'sky':int(placemark['Forecast']['N'][idx])
+                    'sky':int(curr['N'][idx]) if DwdMosmix.isobsindict(curr,'N',idx) else None,
                 },
                 'raw':'',
                 'relativeTo':{
@@ -1969,17 +1975,17 @@ class DwdMosmix(object):
                 'avgTempF':fahrenheit(placemark['Forecast']['TTT'][idx]),
                 'tempC':placemark['Forecast']['TTT'][idx],
                 'tempF':fahrenheit(placemark['Forecast']['TTT'][idx]),
-                'maxDewpointC':placemark['Forecast']['Td'][idx] if 'Td' in placemark['Forecast'] else None,
-                'maxDewpointF':fahrenheit(placemark['Forecast']['Td'][idx]) if 'Td' in placemark['Forecast'] else None,
-                'minDewpointC':placemark['Forecast']['Td'][idx] if 'Td' in placemark['Forecast'] else None,
-                'minDewpointF':fahrenheit(placemark['Forecast']['Td'][idx]) if 'Td' in placemark['Forecast'] else None,
-                'avgDewpointC':placemark['Forecast']['Td'][idx] if 'Td' in placemark['Forecast'] else None,
-                'avgDewpointF':fahrenheit(placemark['Forecast']['Td'][idx]) if 'Td' in placemark['Forecast'] else None,
-                'dewpointC':placemark['Forecast']['Td'][idx] if 'Td' in placemark['Forecast'] else None,
-                'dewpointF':fahrenheit(placemark['Forecast']['Td'][idx]) if 'Td' in placemark['Forecast'] else None,
-                'pop':placemark['Forecast']['R101'][idx] if 'R101' in placemark['Forecast'] else None,
-                'precipMM':placemark['Forecast']['RR1c'][idx] if 'RR1c' in placemark['Forecast'] else None,
-                'precipIN':mm_to_inch(placemark['Forecast']['RR1c'][idx]) if 'RR1c' in placemark['Forecast'] else None,
+                'maxDewpointC':placemark['Forecast']['Td'][idx] if DwdMosmix.isobsindict(placemark['Forecast'],'Td',idx) else None,
+                'maxDewpointF':fahrenheit(placemark['Forecast']['Td'][idx]) if DwdMosmix.isobsindict(placemark['Forecast'],'Td',idx) else None,
+                'minDewpointC':placemark['Forecast']['Td'][idx] if DwdMosmix.isobsindict(placemark['Forecast'],'Td',idx) else None,
+                'minDewpointF':fahrenheit(placemark['Forecast']['Td'][idx]) if DwdMosmix.isobsindict(placemark['Forecast'],'Td',idx) else None,
+                'avgDewpointC':placemark['Forecast']['Td'][idx] if DwdMosmix.isobsindict(placemark['Forecast'],'Td',idx) else None,
+                'avgDewpointF':fahrenheit(placemark['Forecast']['Td'][idx]) if DwdMosmix.isobsindict(placemark['Forecast'],'Td',idx) else None,
+                'dewpointC':placemark['Forecast']['Td'][idx] if DwdMosmix.isobsindict(placemark['Forecast'],'Td',idx) else None,
+                'dewpointF':fahrenheit(placemark['Forecast']['Td'][idx]) if DwdMosmix.isobsindict(placemark['Forecast'],'Td',idx) else None,
+                'pop':placemark['Forecast']['R101'][idx] if DwdMosmix.isobsindict(placemark['Forecast'],'R101',idx) else None,
+                'precipMM':placemark['Forecast']['RR1c'][idx] if DwdMosmix.isobsindict(placemark['Forecast'],'RR1c',idx) else None,
+                'precipIN':mm_to_inch(placemark['Forecast']['RR1c'][idx]) if DwdMosmix.isobsindict(placemark['Forecast'],'RR1c',idx) else None,
                 'pressureMB':placemark['Forecast']['PPPP'][idx],
                 'pressureIN':nround(inchHG(placemark['Forecast']['PPPP'][idx]),2),
                 'windDir':compass(placemark['Forecast']['DD'][idx],self.belchertown_compasslang,False),
@@ -1987,20 +1993,20 @@ class DwdMosmix(object):
                 'windSpeedKTS':nround(knoten(placemark['Forecast']['FF'][idx])),
                 'windSpeedKPH':placemark['Forecast']['FF'][idx],
                 'windSpeedMPH':nround(mph(placemark['Forecast']['FF'][idx])),
-                'windGustKTS':nround(knoten(placemark['Forecast']['FX1'][idx])) if 'FX1' in placemark['Forecast'] else None,
-                'windGustKPH':placemark['Forecast']['FX1'][idx] if 'FX1' in placemark['Forecast'] else None,
-                'windGustMPH':nround(mph(placemark['Forecast']['FX1'][idx])) if 'FX1' in placemark['Forecast'] else None,
-                'sky':int(placemark['Forecast']['Neff'][idx]),
-                'cloudsCoded':get_cloudcover(placemark['Forecast']['Neff'][idx])[3],
+                'windGustKTS':nround(knoten(placemark['Forecast']['FX1'][idx])) if DwdMosmix.isobsindict(placemark['Forecast'],'FX1',idx) else None,
+                'windGustKPH':placemark['Forecast']['FX1'][idx] if DwdMosmix.isobsindict(placemark['Forecast'],'FX1',idx) else None,
+                'windGustMPH':nround(mph(placemark['Forecast']['FX1'][idx])) if DwdMosmix.isobsindict(placemark['Forecast'],'FX1',idx) else None,
+                'sky':int(placemark['Forecast']['Neff'][idx]) if DwdMosmix.isobsindict(placemark['Forecast'],'Neff',idx) else None,
+                'cloudsCoded':get_cloudcover(placemark['Forecast']['Neff'][idx])[3] if DwdMosmix.isobsindict(placemark['Forecast'],'Neff',idx) else None,
                 'weather':wwcode[1],
                 'weatherCoded':wwcode[7],
                 'weatherPrimary':wwcode[1],
                 'weatherPrimaryCoded':wwcode[7],
                 'icon':wwcode[6]+('n' if night else '')+'.png',
-                'visibilityKM':placemark['Forecast']['VV'][idx]*0.001 if 'VV' in placemark['Forecast'] and placemark['Forecast']['VV'][idx] is not None else None,
-                'solradWM2':placemark['Forecast']['Rad1h'][idx] if 'Rad1h' in placemark['Forecast'] else None,
-                'solradMinWM2':placemark['Forecast']['Rad1hmin'][idx] if 'Rad1hmin' in placemark['Forecast'] else None,
-                'solradMaxWM2':placemark['Forecast']['Rad1hmax'][idx] if 'Rad1hmax' in placemark['Forecast'] else None,
+                'visibilityKM':placemark['Forecast']['VV'][idx]*0.001 if DwdMosmix.isobsindict(placemark['Forecast'],'VV',idx) else None,
+                'solradWM2':placemark['Forecast']['Rad1h'][idx] if DwdMosmix.isobsindict(placemark['Forecast'],'Rad1h',idx) else None,
+                'solradMinWM2':placemark['Forecast']['Rad1hmin'][idx] if DwdMosmix.isobsindict(placemark['Forecast'],'Rad1hmin',idx) else None,
+                'solradMaxWM2':placemark['Forecast']['Rad1hmax'][idx] if DwdMosmix.isobsindict(placemark['Forecast'],'Rad1hmax',idx) else None,
                 'isDay':not night
                 }
             belchertown_hours.append(hour)
