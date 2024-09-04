@@ -239,7 +239,7 @@ import weeutil.weeutil
 import weewx.accum
 import weewx.units
 import weewx.wxformulas
-from user.weatherservicesutil import wget, wget_extended, BaseThread
+from user.weatherservicesutil import wget, wget_extended, BaseThread, KNMIAuth
 
 try:
     import user.weatherservicesradar
@@ -1942,6 +1942,8 @@ class DownloadThread(BaseThread):
     DWD_WARN_BL="https://www.dwd.de/DWD/warnungen/warnapp_gemeinden/json/warnungen_gemeinde_map_%s.png"
     DWD_TEXT="https://opendata.dwd.de/weather/text_forecasts/html"
     DWD_TEXT_FILES = ('50', '51', '52', '53', '54')
+    KNMI_DATAPLATFORM = 'https://api.dataplatform.knmi.nl/open-data/v1'
+    KNMI_TEXT_FILES = ('short_term_weather_forecast','waarschuwingen_nederland_48h','waarschuwingen_kustdistricten','marifoon')
     
     @property
     def provider_name(self):
@@ -2032,12 +2034,25 @@ class DownloadThread(BaseThread):
                 else:
                     # no product that can be processed here
                     continue
+            elif provider=='KNMI':
+                providers[provider] = config_dict[section].get('provider_url','https://www.knmi.nl')
+                model = config_dict[section].get('model','--')
+                if model in DownloadThread.KNMI_TEXT_FILES:
+                    url = '%s/datasets/%s/versions/1.0' % (DownloadThread.KNMI_DATAPLATFORM,model)
+                    url_dict['model'] = 'dataplatform'
+                else:
+                    url = config_dict[section].get('url',section)
+                # authentication
+                if 'auth' in url_dict: url_dict.pop('auth')
+                if 'api_key' in url_dict:
+                    url_dict['auth'] = KNMIAuth(url_dict.pop('api_key'))
             else:
                 # general interface
                 providers[provider] = config_dict[section].get('provider_url','')
                 # The URL to retrieve is found in key `url` or the section 
                 # title.
                 url = config_dict[section].get('url',section)
+                if 'auth' in url_dict: url_dict.pop('auth')
             # compose the target file and path
             path = url_dict.pop('path','.')
             file = url_dict.pop('file',None)
@@ -2147,6 +2162,54 @@ class DownloadThread(BaseThread):
         """ no observation types provided """
         return dict(),5
     
+    def wget_knmi(self, base_url, options, session):
+        """ download files from KNMI dataplatform """
+        # get the files available for a given dataset
+        reply = wget_extended(
+            '%s/files?maxKeys=5&orderBy=lastModified&sorting=desc' % base_url,
+            log_success=self.log_download,
+            log_failure=self.log_failure,
+            session=session,
+            auth=options.get('auth')
+        )
+        if not reply: return None
+        data = json.loads(reply[2].decode('utf-8','ignore'))
+        # find the newest file of a given content type
+        latest_file = data['files'][0].get('filename')
+        if options.get('content_type'):
+            base_name = latest_file.split('/')[-1].split('.')
+            base_name = base_name[:-1] if len(base_name)>1 else base_name[0]
+            for files in data['files']:
+                last_modified = files.get('lastModified')
+                file = files.get('filename')
+                name = file.split('/')[-1].split('.')
+                if len(name)>1:
+                    ext = name[-1]
+                    name = name[:-1] if len(name)>1 else name[0]
+                else:
+                    ext = ''
+                    name = name[0]
+                if name!=base_name: return None
+                if ext==options.get('content_type'): 
+                    latest_file = files.get('filename')
+                    break
+        # get the URL where the file is stored
+        reply = wget_extended('%s/files/%s/url' % (base_url,latest_file),
+                             log_success=self.log_download,
+                             log_failure=self.log_failure,
+                             session=session,
+                             auth=options.get('auth'))
+        if not reply: return None
+        data = json.loads(reply[2].decode('utf-8','ignore'))
+        url = data['temporaryDownloadUrl']
+        # download the file (no authentication here)
+        reply = wget_extended(url,
+                             log_success=self.log_download,
+                             log_failure=self.log_failure,
+                             session=session,
+                             if_modified_since=self.last_modified.get(url,0))
+        return reply
+    
     def getRecord(self):
         """ fetch and process data """
         ct = 0
@@ -2155,11 +2218,16 @@ class DownloadThread(BaseThread):
                 encoding = options.get('to_encoding')
                 from_encoding = options.get('from_encoding','utf-8')
                 try:
-                    reply = wget_extended(url,
+                    if (options.get('provider','--').upper()=='KNMI' and 
+                        options.get('model','--')=='dataplatform'):
+                        reply = self.wget_knmi(url,options,session)
+                    else:
+                        reply = wget_extended(url,
                              log_success=self.log_download,
                              log_failure=self.log_failure,
                              session=session,
-                             if_modified_since=self.last_modified.get(url,0))
+                             if_modified_since=self.last_modified.get(url,0),
+                             auth=options.get('auth'))
                 except Exception as e:
                     if self.log_failure:
                         logerr("thread '%s': download error %s %s" % (self.name,e.__class__.__name__,e))

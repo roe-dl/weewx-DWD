@@ -23,6 +23,7 @@ VERSION = "0.x"
 import threading
 import configobj
 import requests
+from requests.auth import AuthBase
 import csv
 import io
 import zipfile
@@ -161,7 +162,16 @@ def ts_to_http_timestamp(ts):
             x.tm_mday,HTTP_MONTH[x.tm_mon-1],x.tm_year,
             x.tm_hour,x.tm_min,x.tm_sec)
 
-def wget_extended(url, log_success=False, log_failure=True, session=requests, if_modified_since=None):
+class KNMIAuth(AuthBase):
+    def __init__(self, api_key):
+        super(KNMIAuth,self).__init__()
+        self.api_key = str(api_key)
+    
+    def __call__(self, r):
+        r.headers['Authorization'] = self.api_key
+        return r
+
+def wget_extended(url, log_success=False, log_failure=True, session=requests, if_modified_since=None, auth=None):
     """ download  
     
         Args:
@@ -175,12 +185,12 @@ def wget_extended(url, log_success=False, log_failure=True, session=requests, if
             tuple: Etag, Last-Modified, data received, status code
     """
     elapsed = time.time()
-    headers={'User-Agent':'weewx-DWD'}
+    headers = {'User-Agent':'weewx-DWD'}
     if if_modified_since is not None:
         # add a If-Modified-Since header
         headers['If-Modified-Since'] = ts_to_http_timestamp(if_modified_since)
     try:
-        reply = session.get(url, headers=headers, timeout=5)
+        reply = session.get(url, headers=headers, auth=auth, timeout=5)
     except requests.exceptions.Timeout:
         if log_failure:
             logerr('timeout downloading %s' % url)
