@@ -1936,12 +1936,14 @@ class OpenWeatherMapThread(BaseThread):
 
 class DownloadThread(BaseThread):
     
+    # German Weather Service DWD
     # https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/objekteinbindung_node.html
     DWD_BWK="https://www.dwd.de/DWD/wetter/wv_spez/hobbymet/wetterkarten/bwk_bodendruck_na_ana.png"
     DWD_WARNSTATUS="https://www.dwd.de/DWD/warnungen/warnstatus/Schilder%s.jpg"
     DWD_WARN_BL="https://www.dwd.de/DWD/warnungen/warnapp_gemeinden/json/warnungen_gemeinde_map_%s.png"
     DWD_TEXT="https://opendata.dwd.de/weather/text_forecasts/html"
     DWD_TEXT_FILES = ('50', '51', '52', '53', '54')
+    # Royal Netherlands Meteorological Institute
     KNMI_DATAPLATFORM = 'https://api.dataplatform.knmi.nl/open-data/v1'
     KNMI_TEXT_FILES = ('short_term_weather_forecast','waarschuwingen_nederland_48h','waarschuwingen_kustdistricten','marifoon')
     KNMI_CONTENTTYPE = {'image/gif':'gif','text/html':'html','text/plain':'txt'}
@@ -2098,6 +2100,9 @@ class DownloadThread(BaseThread):
         if provider.upper()=='DWD':
             base_url = 'https://maps.dwd.de/geoserver/dwd/ows'
             provider = 'DWD'
+        elif provider.upper()=='KNMI':
+            base_url = 'https://anonymous.api.dataplatform.knmi.nl/wms/adaguc-server'
+            provider = 'KNMI'
         else:
             base_url = ''
         # map bounding box
@@ -2121,10 +2126,12 @@ class DownloadThread(BaseThread):
             # It is one single ID only.
             warncellids = "'%s'" % str(warncellids).replace("'",'_')
         # URL parameters
-        parameters = {
-            'service':'WMS',
-            'version':'1.3',
-        }
+        parameters = dict()
+        if provider=='KNMI':
+            parameters['DATASET'] = section_dict.get('dataset')
+        parameters['service'] = 'WMS'
+        if provider=='DWD':
+            parameters['version'] = '1.3'
         # The key 'map' is defined. That means we want to get a map.
         if bbox:
             parameters['request'] = 'GetMap'
@@ -2612,6 +2619,7 @@ class DWDservice(StdService):
         if has_db:
             self.database_q, self.database_thread = databasecreatethread('DWDsave',config_dict)
         
+        # [[download]]
         site_dict = config_dict.get('WeatherServices',configobj.ConfigObj()).get('download',configobj.ConfigObj())
         if site_dict:
             try:
