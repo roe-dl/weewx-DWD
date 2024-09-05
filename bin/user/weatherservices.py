@@ -2040,7 +2040,7 @@ class DownloadThread(BaseThread):
                 model = config_dict[section].get('model','--')
                 if model in DownloadThread.KNMI_TEXT_FILES:
                     url = '%s/datasets/%s/versions/1.0' % (DownloadThread.KNMI_DATAPLATFORM,model)
-                    url_dict['model'] = 'dataplatform'
+                    url_dict['model'] = 'opendata'
                 else:
                     url = config_dict[section].get('url',section)
                 # authentication
@@ -2164,7 +2164,7 @@ class DownloadThread(BaseThread):
         return dict(),5
     
     def wget_knmi(self, base_url, options, session):
-        """ download files from KNMI dataplatform 
+        """ download files from KNMI open data API
         
             URL structure:
             https://api.dataplatform.knmi.nl/open-data/v1/datasets/{datasetName}/versions/{versionId}/files/{filename}
@@ -2202,7 +2202,6 @@ class DownloadThread(BaseThread):
             # get the newest file that's file name starts with the given name
             for file in data['files']:
                 name = file.get('filename')
-                loginf('xxx %s' % name)
                 if name and name.startswith(req_file_name):
                     latest_file = name
                     break
@@ -2262,7 +2261,7 @@ class DownloadThread(BaseThread):
                 from_encoding = options.get('from_encoding','utf-8')
                 try:
                     if (options.get('provider','--').upper()=='KNMI' and 
-                        options.get('model','--')=='dataplatform'):
+                        options.get('model','--')=='opendata'):
                         reply = self.wget_knmi(url,options,session)
                     else:
                         reply = wget_extended(url,
