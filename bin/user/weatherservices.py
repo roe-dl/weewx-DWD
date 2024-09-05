@@ -2400,6 +2400,7 @@ class DWDservice(StdService):
             self._create_zamg_thread(station, station, station_dict, zamg_dict.get('user'), zamg_dict.get('password'))
         
         # General interface
+        # [[current]]
         site_dict = config_dict.get('WeatherServices',configobj.ConfigObj()).get('current',configobj.ConfigObj())
         for location in site_dict.sections:
             location_dict = weeutil.config.accumulateLeaves(site_dict[location])
@@ -2447,10 +2448,15 @@ class DWDservice(StdService):
                 else:
                     logerr("unknown weather service provider '%s'" % provider)
         
+        # [[forecast]]
         site_dict = config_dict.get('WeatherServices',configobj.ConfigObj()).get('forecast',configobj.ConfigObj())
+        knmi = []
         for location in site_dict.sections:
             location_dict = weeutil.config.accumulateLeaves(site_dict[location])
             provider = location_dict.get('provider')
+            if provider.upper()=='KNMI' and location_dict.get('model','-') in DownloadThread.KNMI_TEXT_FILES:
+                knmi.append(location)
+                continue
             if provider.upper()=='DWD' and location_dict.get('model','-').lower()=='text':
                 try:
                     thread = {
@@ -2486,6 +2492,23 @@ class DWDservice(StdService):
                     except (LookupError,ValueError,TypeError,ArithmeticError) as e:
                         logerr("error creating forecast thread '%s': %s %s" % (location,e.__class__.__name__,e))
                     continue
+        if knmi:
+            try:
+                thread = {
+                    'datasource':'KNMI-text',
+                    'prefix':'',
+                    'thread':DownloadThread(
+                        'KNMI',
+                        site_dict,
+                        archive_interval,
+                        knmi)
+                }
+                if thread['thread']:
+                    thread['thread'].start()
+                    self.threads[location] = thread
+            except (LookupError,ValueError,TypeError,ArithmeticError) as e:
+                logerr("error creating forecast thread '%s': %s %s" % ('KNMI',e.__class__.__name__,e))
+            
         
         if has_radar:
             radar_dict = configobj.ConfigObj()
