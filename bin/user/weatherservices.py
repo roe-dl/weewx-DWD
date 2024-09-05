@@ -1944,6 +1944,7 @@ class DownloadThread(BaseThread):
     DWD_TEXT_FILES = ('50', '51', '52', '53', '54')
     KNMI_DATAPLATFORM = 'https://api.dataplatform.knmi.nl/open-data/v1'
     KNMI_TEXT_FILES = ('short_term_weather_forecast','waarschuwingen_nederland_48h','waarschuwingen_kustdistricten','marifoon')
+    KNMI_CONTENTTYPE = {'image/gif':'gif','text/html':'html','text/plain':'txt'}
     
     @property
     def provider_name(self):
@@ -2163,10 +2164,32 @@ class DownloadThread(BaseThread):
         return dict(),5
     
     def wget_knmi(self, base_url, options, session):
-        """ download files from KNMI dataplatform """
+        """ download files from KNMI dataplatform 
+        
+            URL structure:
+            https://api.dataplatform.knmi.nl/open-data/v1/datasets/{datasetName}/versions/{versionId}/files/{filename}
+            
+            The part "/files/{filename}" is only required if there are 
+            different files in the dataset, that do not only represent
+            different content types. The file name often includes a
+            timestamp. The timestamp is stripped off for the comparison.
+            
+        """
+        # check if the URL contains a file name
+        x = base_url.split('/')
+        if len(x)>6 and x[-2]=='files':
+            # The dataset contains different files, not only different
+            # content types --> remove the file part from the URL
+            url = '/'.join(x[:-2])
+            req_file_name = x[-1]
+        else:
+            # The dataset contains one file only, but possibly in different
+            # content types
+            url = base_url
+            req_file_name = None
         # get the files available for a given dataset
         reply = wget_extended(
-            '%s/files?maxKeys=5&orderBy=lastModified&sorting=desc' % base_url,
+            '%s/files?maxKeys=5&orderBy=lastModified&sorting=desc' % url,
             log_success=self.log_download,
             log_failure=self.log_failure,
             session=session,
@@ -2174,15 +2197,35 @@ class DownloadThread(BaseThread):
         )
         if not reply: return None
         data = json.loads(reply[2].decode('utf-8','ignore'))
+        # find the newest file
+        if req_file_name:
+            # get the newest file that's file name starts with the given name
+            for file in data['files']:
+                name = file.get('filename')
+                loginf('xxx %s' % name)
+                if name and name.startswith(req_file_name):
+                    latest_file = name
+                    break
+            else:
+                return None
+        else:
+            # no required file name specified
+            latest_file = data['files'][0].get('filename')
+        # required content type
+        # Note: The MIME type (media type) is case-insensitive.
+        req_extension = options.get('content_type')
+        req_extension = DownloadThread.KNMI_CONTENTTYPE.get(str(req_extension).lower(),req_extension)
         # find the newest file of a given content type
-        latest_file = data['files'][0].get('filename')
-        if options.get('content_type'):
+        if req_extension:
             base_name = latest_file.split('/')[-1].split('.')
             base_name = base_name[:-1] if len(base_name)>1 else base_name[0]
             for files in data['files']:
                 last_modified = files.get('lastModified')
                 file = files.get('filename')
-                name = file.split('/')[-1].split('.')
+                name = file.split('/')[-1]
+                if req_file_name and not name.startswith(req_file_name):
+                    continue
+                name = name.split('.')
                 if len(name)>1:
                     ext = name[-1]
                     name = name[:-1] if len(name)>1 else name[0]
@@ -2190,11 +2233,11 @@ class DownloadThread(BaseThread):
                     ext = ''
                     name = name[0]
                 if name!=base_name: return None
-                if ext==options.get('content_type'): 
+                if ext==req_extension:
                     latest_file = files.get('filename')
                     break
         # get the URL where the file is stored
-        reply = wget_extended('%s/files/%s/url' % (base_url,latest_file),
+        reply = wget_extended('%s/files/%s/url' % (url,latest_file),
                              log_success=self.log_download,
                              log_failure=self.log_failure,
                              session=session,
