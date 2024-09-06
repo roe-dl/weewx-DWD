@@ -161,6 +161,7 @@ VERSION = "0.x"
 import threading
 import configobj
 import requests
+from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 import csv
 import io
 import zipfile
@@ -1996,6 +1997,28 @@ class DownloadThread(BaseThread):
             # get the options from the section
             url_dict = weeutil.config.accumulateLeaves(config_dict[section])
             provider = config_dict[section].get('provider','--')
+            # authentication
+            url_dict.pop('auth',None)
+            auth_method = url_dict.pop('auth_method',None)
+            if auth_method:
+                auth_method = auth_method.lower()
+                username = url_dict.pop('username',None)
+                password = url_dict.pop('password',None)
+                if auth_method=='basic':
+                    # basic authentication
+                    url_dict['auth'] = HTTPBasicAuth(username,password)
+                elif auth_method=='digest':
+                    # digest authentication
+                    url_dict['auth'] = HTTPDigestAuth(username,password)
+                elif auth_method=='none':
+                    # no authentication
+                    url_dict['auth'] = None
+                elif auth_method=='knmi':
+                    # KNMI authenthication (used for KNMI only)
+                    pass
+                else:
+                    logerr("thread '%s', section '%s': unknown authentication method '%s' ignored." % (self.name,section,auth_method))
+            # process section
             if provider!='--' and config_dict[section].get('model')=='wms':
                 # OGC WMS
                 confs = self.init_wms(
@@ -2046,7 +2069,6 @@ class DownloadThread(BaseThread):
                 else:
                     url = config_dict[section].get('url',section)
                 # authentication
-                if 'auth' in url_dict: url_dict.pop('auth')
                 if 'api_key' in url_dict:
                     url_dict['auth'] = KNMIAuth(url_dict.pop('api_key'))
             else:
@@ -2055,7 +2077,6 @@ class DownloadThread(BaseThread):
                 # The URL to retrieve is found in key `url` or the section 
                 # title.
                 url = config_dict[section].get('url',section)
-                if 'auth' in url_dict: url_dict.pop('auth')
             # compose the target file and path
             path = url_dict.pop('path','.')
             file = url_dict.pop('file',None)
@@ -2101,7 +2122,10 @@ class DownloadThread(BaseThread):
             base_url = 'https://maps.dwd.de/geoserver/dwd/ows'
             provider = 'DWD'
         elif provider.upper()=='KNMI':
-            base_url = 'https://anonymous.api.dataplatform.knmi.nl/wms/adaguc-server'
+            if section_dict.get('api_key') is not None:
+                base_url = 'https://api.dataplatform.knmi.nl/wms/adaguc-server'
+            else:
+                base_url = 'https://anonymous.api.dataplatform.knmi.nl/wms/adaguc-server'
             provider = 'KNMI'
         else:
             base_url = ''
@@ -2164,6 +2188,8 @@ class DownloadThread(BaseThread):
                 'compare_content': accumulated_dict.get('compare_content',True),
             })
             loginf(url)
+            if provider=='KNMI' and 'api_key' in section_dict:
+                confs[url]['auth'] = KNMIAuth(section_dict['api_key'])
         return confs
     
     def get_data(self, ts):
@@ -2194,6 +2220,7 @@ class DownloadThread(BaseThread):
             # content types
             url = base_url
             req_file_name = None
+        logdbg("thread '%s': req_file_name='%s', url='%s'" % (self.name,req_file_name,url))
         # get the files available for a given dataset
         reply = wget_extended(
             '%s/files?maxKeys=5&orderBy=lastModified&sorting=desc' % url,
@@ -2217,10 +2244,12 @@ class DownloadThread(BaseThread):
         else:
             # no required file name specified
             latest_file = data['files'][0].get('filename')
+        logdbg("thread '%s': latest_file='%s'" % (self.name,latest_file))
         # required content type
         # Note: The MIME type (media type) is case-insensitive.
         req_extension = options.get('content_type')
         req_extension = DownloadThread.KNMI_CONTENTTYPE.get(str(req_extension).lower(),req_extension)
+        logdbg("thread '%s': req_extension='%s'" % (self.name,req_extension))
         # find the newest file of a given content type
         if req_extension:
             base_name = latest_file.split('/')[-1].split('.')
@@ -2251,6 +2280,7 @@ class DownloadThread(BaseThread):
         if not reply: return None
         data = json.loads(reply[2].decode('utf-8','ignore'))
         url = data['temporaryDownloadUrl']
+        logdbg("thread '%s': temporary download URL found" % self.name)
         # download the file (no authentication here)
         reply = wget_extended(url,
                              log_success=self.log_download,
