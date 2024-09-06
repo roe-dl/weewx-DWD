@@ -26,6 +26,14 @@ With this extension you can receive and process the following data:
 * from **Meteorological Service Canada** (MSC)
   * weather alerts for counties (`msc-warnings`)
   * forecast via Open-Meteo
+* from **Koninklijk Nederlands Meteorologisch Instituut** (KNMI)
+
+  See [wiki page](https://github.com/roe-dl/weewx-DWD/wiki/Koninklijk-Nederlands-Meteorologisch-Instituut-(KNMI))
+  for mor details and instructions.
+
+  * text forecasts and warnings
+  * other data they provide on their open data server
+  * OGC maps
 * from **Deutscher Wetterdienst** (DWD)
   * pre-calculated weather forecasts based on hours, three-hours, and days
     for the next 10 days for about 6000 places around the world (`dwd-mosmix`)
@@ -907,6 +915,10 @@ Example:
             # what encoding is to used to save the file
             # optional
             #to_encoding = html_entities
+            # authentication (optional)
+            #auth_method = basic # or digest
+            #username = replace_me
+            #password = replace_me
         [[[Download2]]]
             # wather map from DWD
             provider = DWD
