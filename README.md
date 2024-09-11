@@ -28,13 +28,17 @@ With this extension you can receive and process the following data:
   * forecast via Open-Meteo
 * from **Koninklijk Nederlands Meteorologisch Instituut** (KNMI)
 
-  See [wiki page](https://github.com/roe-dl/weewx-DWD/wiki/Koninklijk-Nederlands-Meteorologisch-Instituut-(KNMI))
-  for mor details and instructions.
+  See [KNMI wiki page](https://github.com/roe-dl/weewx-DWD/wiki/Koninklijk-Nederlands-Meteorologisch-Instituut-(KNMI))
+  for more details and instructions.
 
   * text forecasts and warnings
   * other data they provide on their open data server
   * OGC maps
 * from **Deutscher Wetterdienst** (DWD)
+
+  See [DWD wiki page](https://github.com/roe-dl/weewx-DWD/wiki/Deutscher-Wetterdienst)
+  for more details and instructions
+
   * pre-calculated weather forecasts based on hours, three-hours, and days
     for the next 10 days for about 6000 places around the world (`dwd-mosmix`)
   * weather alerts for counties and places in Germany (`dwd-warnings` and
@@ -79,6 +83,8 @@ For icons and symbols in SVG vector graphic format see [images](https://github.c
 * [Programs](#programs)
   * [dwd-mosmix](#dwd-mosmix)
   * [dwd-cap-warnings](#dwd-cap-warnings)
+  * [bbk-warnings](#bbk-warnings)
+  * [msc-warnings](#msc-warnings)
   * [wget-dwd](#wget-dwd) (DEPRECATED)
   * [dwd-warnings](#dwd-warnings) (DEPRECATED)
   * [/etc/cron.hourly/dwd](#etccronhourlydwd)
@@ -334,6 +340,105 @@ weather service when using their data.
 ### dwd-cap-warnings
 
 Downloads CAP warning alerts and creates HTML and JSON files out of them.
+
+```
+Usage: dwd-cap-warnings [options] [zip_file_name [CAP_file_name]]
+
+  Without an option from the commands group HTML and JSON files are
+  created and saved according to the configuration.
+
+Options:
+  -h, --help            show this help message and exit
+  --config=CONFIG_FILE  Use configuration file CONFIG_FILE.
+  --weewx               Read config from /etc/weewx/weewx.conf.
+  --diff                Use diff files instead of status files.
+  --resolution=VALUE    Overwrite configuration setting for resolution.
+                        Possible values are 'county' and 'city'.
+  --lang=ISO639         Alert language. Default 'de'
+
+  Output and logging options:
+    --dry-run           Print what would happen but do not do it. Default is
+                        False.
+    --log-tags          Log tags while parsing the XML file.
+    -v, --verbose       Verbose output
+
+  Commands:
+    --get-warncellids   Download warn cell ids file.
+    --list-ii           List defined II event codes
+    --list-zip          Download and display zip file list
+    --list-cap          List CAP files within a zip file. Requires zip file
+                        name as argument
+    --print-cap         Convert one CAP file to JSON and print the result.
+                        Requires zip file name and CAP file name as arguments
+```
+
+> [!CAUTION]
+> If you installed WeeWX using `pip` you must use the option `--config`
+> instead of `--weewx`.
+
+The script creates an HTML file (`*.inc`) to include in skins and a
+JSON file for further processing.
+
+### bbk-warnings
+
+This script is to download and process warnings of Bundesamt für
+Bevölkerungsschutz und Katastrophenhilfe. Warnings are county based
+here. The county is specified by its ARS code, which has the last
+7 characters set to `0` to indicate that it is the whole county.
+
+[list of ARS codes of german counties](https://github.com/roe-dl/weewx-DWD/wiki/Namen-der-Landkreise-in-der-Schreibweise-des-Deutschen-Wetterdienstes)
+
+To get country-wide warnings you can use the following marks:
+* `katwarn`: "Katwarn" warnings
+* `biwapp`: "Biwapp" warnings
+* `mowas`: "Mowas" warnings
+* `dwd`: weather related warnings only (only together with `--include-dwd`)
+* `lhp`: flood warnings
+* `police`: warnings of the police authorities
+
+The script creates an HTML file (`*.inc`) to include in skins and a
+JSON file for further processing.
+
+To invoke in case of WeeWX packet installation:
+
+```shell
+bbk-warnings --weewx
+```
+
+To invoke in case of WeeWX `pip` installation or no WeeWX present:
+
+```shell
+bbk-warnings --config=/path/to/your/config_file
+```
+
+To invoke in case you cannot make files executable:
+
+```shell
+python3 /path/to/capwarnings.py --config=/path/to/your/config_file --provider=BBK
+```
+
+### msc-warnings
+
+This script is to download and process warnings of the Canadian MSC.
+
+To invoke in case of WeeWX packet installation:
+
+```shell
+msc-warnings --weewx
+```
+
+To invoke in case of WeeWX `pip` installation or no WeeWX present:
+
+```shell
+msc-warnings --config=/path/to/your/config_file
+```
+
+To invoke in case you cannot make files executable:
+
+```shell
+python3 /path/to/capwarnings.py --config=/path/to/your/config_file --provider=MSC
+```
+
 
 ### wget-dwd
 
