@@ -1997,6 +1997,7 @@ class DownloadThread(BaseThread):
             # get the options from the section
             url_dict = weeutil.config.accumulateLeaves(config_dict[section])
             provider = config_dict[section].get('provider','--')
+            model = config_dict[section].get('model','--')
             # authentication
             url_dict.pop('auth',None)
             auth_method = url_dict.pop('auth_method',None)
@@ -2019,12 +2020,13 @@ class DownloadThread(BaseThread):
                 else:
                     logerr("thread '%s', section '%s': unknown authentication method '%s' ignored." % (self.name,section,auth_method))
             # process section
-            if provider!='--' and config_dict[section].get('model')=='wms':
+            if provider!='--' and (model=='wms' or model.startswith('wms ')):
                 # OGC WMS
                 confs = self.init_wms(
                     provider,
                     config_dict[section],
-                    url_dict
+                    url_dict,
+                    model.split()[1] if ' ' in model else None
                 )
                 if confs:
                     self.urls.update(confs)
@@ -2032,7 +2034,6 @@ class DownloadThread(BaseThread):
             elif provider.upper()=='DWD' and 'model' in config_dict[section]:
                 # shortcuts for DWD products
                 providers['DWD'] = 'https://www.dwd.de'
-                model = config_dict[section].get('model','--')
                 area = config_dict[section].get('area','--')
                 if model=='bwk-map':
                     # DWD Bodenwetterkarte
@@ -2062,7 +2063,6 @@ class DownloadThread(BaseThread):
                     continue
             elif provider=='KNMI':
                 providers[provider] = config_dict[section].get('provider_url','https://www.knmi.nl')
-                model = config_dict[section].get('model','--')
                 if model in DownloadThread.KNMI_TEXT_FILES:
                     url = '%s/datasets/%s/versions/1.0' % (DownloadThread.KNMI_DATAPLATFORM,model)
                     url_dict['model'] = 'opendata'
@@ -2115,7 +2115,7 @@ class DownloadThread(BaseThread):
             })
         return confs
         
-    def init_wms(self, provider, section_dict, accumulated_dict):
+    def init_wms(self, provider, section_dict, accumulated_dict, wms_version):
         """ DWD GeoServer OGC WMS """
         loginf("INIT WMS")
         if provider.upper()=='DWD':
@@ -2154,8 +2154,8 @@ class DownloadThread(BaseThread):
         if provider=='KNMI':
             parameters['DATASET'] = section_dict.get('dataset')
         parameters['service'] = 'WMS'
-        if provider=='DWD':
-            parameters['version'] = '1.3'
+        if wms_version:
+            parameters['version'] = wms_version
         # The key 'map' is defined. That means we want to get a map.
         if bbox:
             parameters['request'] = 'GetMap'
