@@ -1743,8 +1743,7 @@ class OpenWeatherMapThread(BaseThread):
         log_failure = weeutil.weeutil.to_bool(conf_dict.get('log_failure',True))
         # whether to log the sleeping time
         self.log_sleeping = weeutil.weeutil.to_bool(conf_dict.get('log_sleeping',False))
-        # query interval
-        self.query_interval = query_interval
+        # initialize base class
         super(OpenWeatherMapThread,self).__init__('OpenWeather-%s' % name,log_success,log_failure)
         # debug mode
         if weeutil.weeutil.to_int(conf_dict.get('debug',0))>0:
@@ -1765,6 +1764,7 @@ class OpenWeatherMapThread(BaseThread):
         self.iconset = weeutil.weeutil.to_int(conf_dict.get('iconset',4))
         # URL
         self.base_url = config_dict.get('server_url',OpenWeatherMapThread.BASE_URL)
+        # register observation types and accumulators
         _accum = dict()
         weewx.units.obs_group_dict.setdefault(prefix+'DateTime','group_time')
         weewx.units.obs_group_dict.setdefault(prefix+'Dewpoint','group_temperature')
@@ -1779,8 +1779,10 @@ class OpenWeatherMapThread(BaseThread):
                 _accum[prefix+obstype[0].upper()+obstype[1:]] = { 'accumulator':'firstlast','extractor':'last' }
         if _accum:
             weewx.accum.accum_dict.maps.append(_accum)
+        # logging
         if not self.api_key:
             logerr('no API key present')
+        # internal data
         self.lock = threading.Lock()
         self.data = []
     
@@ -2114,7 +2116,7 @@ class DownloadThread(BaseThread):
                 'insert_lf_after_summary':ins_lf
             })
         return confs
-        
+    
     def init_wms(self, provider, section_dict, accumulated_dict, wms_version):
         """ DWD GeoServer OGC WMS """
         loginf("INIT WMS")

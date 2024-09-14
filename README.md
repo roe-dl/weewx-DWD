@@ -54,6 +54,9 @@ With this extension you can receive and process the following data:
     (`user.weatherservices.DWDservice`)
 * from Zentralanstalt für Meteorologie und Geodynamik (ZAMG) / **GeoSphere
   Austria**
+  
+  See [ZAMG wiki page](https://github.com/roe-dl/weewx-DWD/wiki/Zentralanstalt-für-Meteorologie-und-Geodynamik-(ZAMG)---GeoSphere-Austria)
+
   * actual readings of the ZAMG weather stations in Austria
     (`user.weatherservices.DWDservice`)
 * from Bundesanstalt für Bevölkerungsschutz und Katastrophenhilfe (**BBK**)
@@ -147,9 +150,9 @@ pip install requests
 
 1) Download the extension from Github
 
-```shell
-wget -O weewx-dwd.zip https://github.com/roe-dl/weewx-DWD/archive/master.zip
-```
+   ```shell
+   wget -O weewx-dwd.zip https://github.com/roe-dl/weewx-DWD/archive/master.zip
+   ```
 
 2) Installation
 
@@ -905,23 +908,6 @@ Example:
         data_services = ..., user.weatherservices.DWDservice
         ...
 ...
-[DeutscherWetterdienst]
-    # configuration for dwd-cap-warnings
-    [[warning]]
-        icons='../dwd/warn_icons_50x50'
-        states='Sachsen','Thüringen'
-        resolution = county|city
-        [[[counties]]]
-              'Kreis Mittelsachsen - Tiefland'='DL'
-              'Stadt Leipzig'='L'
-              'Stadt Jena'='J'
-              'Stadt Dresden'='DD'
-        [[[cities]]]
-              'Stadt Döbeln'='DL'
-              'Stadt Waldheim'='DL'
-              'Leipzig-Mitte'='L'
-              'Stadt Jena'='J'
-              'Dresden-Altstadt'='DD'
 [WeatherServices]
     # path to the directory to save the files there
     path='/etc/weewx/skins/Belchertown/dwd'
@@ -978,6 +964,8 @@ Example:
         #dwd_icons = ... # optional
         #dwd_status_url = ... # optional
         #dwd_diff_url = ... # optional
+        #dwd_resolution = county|city
+        #dwd_states = 'Sachsen', 'Thüringen'
         # examples
         [[[1]]]
             provider = MSC # Canada
@@ -992,6 +980,19 @@ Example:
             provider = BBK
             county = 147130000000 
             file = L
+        [[[counties]]]
+            provider = DWD
+            'Kreis Mittelsachsen - Tiefland'='DL'
+            'Stadt Leipzig'='L'
+            'Stadt Jena'='J'
+            'Stadt Dresden'='DD'
+        [[[cities]]]
+            provider = DWD
+            'Stadt Döbeln'='DL'
+            'Stadt Waldheim'='DL'
+            'Leipzig-Mitte'='L'
+            'Stadt Jena'='J'
+            'Dresden-Altstadt'='DD'
      # configuration for the --belchertown option of dwd-mosmix
      [[Belchertown]]
         # name of the section of the Belchertown skin in [StdReport]

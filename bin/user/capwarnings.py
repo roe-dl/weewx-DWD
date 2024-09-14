@@ -850,9 +850,10 @@ class DWD(CAP):
         if not isinstance(self.states,list): self.states=[self.states]
         _area = DWD.CAP_URL_RES.get(self.resolution,'COMMUNEUNION' if 'cities' in warn_dict else 'DISTRICT')
         if _area=='DISTRICT':
-            self.filter_area = warn_dict.get('counties',dict())
+            _area2 = 'counties'
         elif _area=='COMMUNEUNION':
-            self.filter_area = warn_dict.get('cities',dict())
+            _area2 = 'cities'
+        self.filter_area = { i:j for i,j in warn_dict.get(_area2,dict()).items() if i not in ('path','dwd_icons','dwd_resolution','provider') }
         # source urls
         self.dwd_status_url = warn_dict.get('dwd_status_url',DWD.get_cap_url(self.resolution,'cell','neutral',False))
         self.dwd_diff_url = warn_dict.get('dwd_diff_url',DWD.get_cap_url(self.resolution,'cell','neutral',True))
@@ -1764,8 +1765,11 @@ class CAPwarnings(object):
         if 'WeatherServices' in config_dict and 'warning' in config_dict['WeatherServices']:
             base_dict = accumulateLeaves(config_dict['WeatherServices'])
             ws_dict.update(accumulateLeaves(config_dict['WeatherServices']['warning']))
-            for sec in config_dict['WeatherServices']['warning']:
-                sec_dict = accumulateLeaves(config_dict['WeatherServices']['warning'][sec])
+            for sec in config_dict['WeatherServices']['warning'].sections:
+                if sec in ('counties','cities'):
+                    sec_dict = config_dict['WeatherServices']['warning'][sec]
+                else:
+                    sec_dict = accumulateLeaves(config_dict['WeatherServices']['warning'][sec])
                 ws_dict[sec] = sec_dict
         if 'DeutscherWetterdienst' in config_dict:
             if provider=='BBK' and 'BBK' in config_dict['DeutscherWetterdienst']:
@@ -1943,7 +1947,10 @@ if __name__ == "__main__" or invoke_fn in standalone:
                          '145210440440':'Oberwiesenthal'}}}})
 
     if options.resolution:
-        config['DeutscherWetterdienst']['warning']['resolution'] = options.resolution
+        if config.get('DeutscherWetterdienst',dict()).get('warning') is not None:
+            config['DeutscherWetterdienst']['warning']['resolution'] = options.resolution
+        if config.get('WeatherServices',dict()).get('warning') is not None:
+            config['WeatherServices']['warning']['dwd_resolution'] = options.resolution
     if options.target_path is not None:
         config['WeatherServices']['path'] = options.target_path
     

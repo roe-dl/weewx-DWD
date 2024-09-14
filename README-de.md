@@ -1019,23 +1019,6 @@ Beispiel:
         data_services = ..., user.weatherservices.DWDservice
         ...
 ...
-[DeutscherWetterdienst]
-    # Konfiguration für dwd-cap-warnings
-    [[warning]]
-        icons='../dwd/warn_icons_50x50'
-        states='Sachsen','Thüringen'
-        resolution = county|city
-        [[[counties]]]
-              'Kreis Mittelsachsen - Tiefland'='DL'
-              'Stadt Leipzig'='L'
-              'Stadt Jena'='J'
-              'Stadt Dresden'='DD'
-        [[[cities]]]
-              'Stadt Döbeln'='DL'
-              'Stadt Waldheim'='DL'
-              'Leipzig-Mitte'='L'
-              'Stadt Jena'='J'
-              'Dresden-Altstadt'='DD'
 [WeatherServices]
     # Verzeichnis, in das die Dateien gespeichert werden sollen
     path='/etc/weewx/skins/Belchertown/dwd'
@@ -1149,6 +1132,8 @@ Beispiel:
         #dwd_icons = ... # Optional, nur für DWD
         #dwd_status_url = ... # Optional, nur für DWD
         #dwd_diff_url = ... # Optional, nur für DWD
+        #dwd_states='Sachsen','Thüringen'
+        #dwd_resolution = county|city
         # Beispiele
         [[[1]]]
             provider = MSC # Canada
@@ -1163,6 +1148,19 @@ Beispiel:
             provider = BBK
             county = 147130000000 
             file = L
+        [[[counties]]]
+            provider = DWD
+            'Kreis Mittelsachsen - Tiefland'='DL'
+            'Stadt Leipzig'='L'
+            'Stadt Jena'='J'
+            'Stadt Dresden'='DD'
+        [[[cities]]]
+            provider = DWD
+            'Stadt Döbeln'='DL'
+            'Stadt Waldheim'='DL'
+            'Leipzig-Mitte'='L'
+            'Stadt Jena'='J'
+            'Dresden-Altstadt'='DD'
      # Konfiguration für die --belchertown Option von dwd-mosmix
      [[Belchertown]]
         # Name des Abschnittes der Belchertown-Skin in [StdReport]
