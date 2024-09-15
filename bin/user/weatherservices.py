@@ -2129,6 +2129,10 @@ class DownloadThread(BaseThread):
             else:
                 base_url = 'https://anonymous.api.dataplatform.knmi.nl/wms/adaguc-server'
             provider = 'KNMI'
+        elif provider.upper()=='EUMETSAT':
+            # https://view.eumetsat.int/productviewer?v=default
+            base_url = 'https://view.eumetsat.int/geoserver/ows'
+            provider = 'EUMETSAT'
         else:
             base_url = ''
         # map bounding box
@@ -2168,7 +2172,7 @@ class DownloadThread(BaseThread):
                 k = ','.join([str(jj).replace(',','_') for jj in j])
             else:
                 k = j
-            k = k.replace('$warncellids',warncellids).replace("'",'%27').replace('/','%2F').replace(' ','%20')
+            k = k.replace('$warncellids',warncellids).replace('%','%25').replace("'",'%27').replace('/','%2F').replace(' ','%20').replace('<','%3C').replace('=','%3D').replace('>','%3E')
             parameters[i] = k
         # URL to query
         url = '%s?%s' % (
