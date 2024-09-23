@@ -12,17 +12,24 @@ icons and symbols in skins by using the searchlist extension
 `$presentweather`, provided by this WeeWX extension.
 
 With this extension you can receive and process the following data:
-* from **OGC servers** of several weather services like NOAA, DWD, etc.
+* from **OGC OWS servers** of several weather services like NOAA, DWD, KNMI, etc.
+
+  See [Query Open Geospatial Consortium (OGC) Servers](https://github.com/roe-dl/weewx-DWD/wiki/Query-Open-Geospatial-Consortium-(OGC)-Servers-(English))
+
   * maps, satellite pictures, etc. 
-    (see [Query Open Geospatial Consortium (OGC) Servers](https://github.com/roe-dl/weewx-DWD/wiki/Query-Open-Geospatial-Consortium-(OGC)-Servers-(English)))
 * from **OpenWeather**
+
+  See [OpenWeather wiki article](https://github.com/roe-dl/weewx-DWD/wiki/OpenWeather-(English))
+
   * actual calculated weather data for every point on earth
-    (see [OpenWeather wiki article](https://github.com/roe-dl/weewx-DWD/wiki/OpenWeather-(English)))
+  * forecast for every point on earth (`dwd-mosmix`)
 * by using the **Open-Meteo** weather API
+
+  See [Open-Meteo wiki page](https://github.com/roe-dl/weewx-DWD/wiki/Open%E2%80%90Meteo-(English))
+  for details)
+
   * pre-calculated weather forecasts based on different weather models for
-    all over the world (`dwd-mosmix`, see
-    [Open-Meteo](https://github.com/roe-dl/weewx-DWD/wiki/Open%E2%80%90Meteo-(English))
-    wiki article for details)
+    all over the world (`dwd-mosmix`)
 * from **Meteorological Service Canada** (MSC)
   * weather alerts for counties (`msc-warnings`)
   * forecast via Open-Meteo
