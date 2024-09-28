@@ -26,7 +26,7 @@ With this extension you can receive and process the following data:
 * by using the **Open-Meteo** weather API
 
   See [Open-Meteo wiki page](https://github.com/roe-dl/weewx-DWD/wiki/Open%E2%80%90Meteo-(English))
-  for details)
+  for details
 
   * pre-calculated weather forecasts based on different weather models for
     all over the world (`dwd-mosmix`)
@@ -41,6 +41,8 @@ With this extension you can receive and process the following data:
   * text forecasts and warnings
   * other data they provide on their open data server
   * OGC maps
+* from **Finnish Meteorological Institute** (FMI)
+  * [radar maps, traffic state, etc](./wiki/Query-Open-Geospatial-Consortium-(OGC)-Servers-(English)#finnish-meteorological-institute-fmi)
 * from **Deutscher Wetterdienst** (DWD)
 
   See [DWD wiki page](https://github.com/roe-dl/weewx-DWD/wiki/Deutscher-Wetterdienst)
@@ -76,12 +78,13 @@ Data will be processed to:
 * observation types in WeeWX
 * maps (in case of radar data)
 
-If you look for a skin that supports weewx-DWD directly, you may want to
-have a look at
-[Weather Data Center weewx-wdc](https://github.com/Daveiano/weewx-wdc).
-There is a detailed instruction how to configure this extension for 
-that skin in 
-[their wiki](https://github.com/Daveiano/weewx-wdc/wiki/Support-for-weewx-DWD).
+> [!TIP]
+> If you look for a skin that supports weewx-DWD directly, you may want to
+> have a look at
+> [Weather Data Center weewx-wdc](https://github.com/Daveiano/weewx-wdc).
+> There is a detailed instruction how to configure this extension for 
+> that skin in 
+> [their wiki](https://github.com/Daveiano/weewx-wdc/wiki/Support-for-weewx-DWD).
 
 For icons and symbols in SVG vector graphic format see [images](https://github.com/roe-dl/weathericons).
 

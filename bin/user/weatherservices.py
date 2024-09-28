@@ -2122,6 +2122,7 @@ class DownloadThread(BaseThread):
         loginf("INIT WMS")
         if provider.upper()=='DWD':
             base_url = 'https://maps.dwd.de/geoserver/dwd/ows'
+            #base_url = 'https://maps.dwd.de/geoserver/ows'
             provider = 'DWD'
         elif provider.upper()=='KNMI':
             if section_dict.get('api_key') is not None:
@@ -2133,6 +2134,9 @@ class DownloadThread(BaseThread):
             # https://view.eumetsat.int/productviewer?v=default
             base_url = 'https://view.eumetsat.int/geoserver/ows'
             provider = 'EUMETSAT'
+        elif provider.upper()=='FMI':
+            base_url = 'https://openwms.fmi.fi/geoserver/ows'
+            provider = 'FMI'
         else:
             base_url = ''
         # map bounding box
