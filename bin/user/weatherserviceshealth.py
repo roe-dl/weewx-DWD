@@ -157,10 +157,10 @@ THERMO_SMILEY = """  <circle cx="17" cy="12.5" r="6" stroke="#000" stroke-width=
 """
 
 THERMO_SYMBOLS = {
-    'extreme Kältebelastung':-4,
-    'starke Kältebelastung':-3,
-    'mäßige Kältebelastung':-2,
-    'schwache Kältebelastung':-1,
+    'extreme Kältereize':-4,
+    'starke Kältereize':-3,
+    'mäßige Kältereize':-2,
+    'schwache Kältereize':-1,
     'keine':0,
     'schwache Wärmebelastung':1,
     'mäßige Wärmebelastung':2,
