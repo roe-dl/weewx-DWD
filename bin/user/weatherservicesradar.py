@@ -640,7 +640,7 @@ class DwdRadar(object):
     @classmethod
     def _read_tarfile(cls, tarf, log_success, log_failure, verbose):
         """ read a set of records, embedded in one tar file """
-        added_data = None
+        added_data = []
         dwd = list()
         for member in tarf:
             ff = tarf.extractfile(member)
@@ -648,16 +648,12 @@ class DwdRadar(object):
             newdwd.read_data(ff)
             ff.close()
             if newdwd.product=='RV':
-                if added_data:
-                    try:
-                        added_data = list(map(newdwd._add_none,added_data,newdwd.data))
-                    except (ValueError,TypeError,ArithmeticError):
-                        pass
-                else:
-                    added_data = newdwd.data
+                added_data.append(newdwd.data)
             dwd.append(newdwd)
         if dwd and dwd[0].product=='RV':
-            dwd[0].sum_data = added_data
+            if verbose: start_ts = time.thread_time_ns()
+            dwd[0].sum_data = list(map(newdwd._add_none,*added_data))
+            if verbose: print('RV added data: elapsed CPU time %.3fs' % ((time.thread_time_ns()-start_ts)*1e-9))
         return dwd
     
     def _add_none(self, *x):
@@ -692,10 +688,18 @@ class DwdRadar(object):
 
     def read_data(self, in_data):
         """ read radar data and convert to internal data structure
+        
+            Args:
+                in_data (iterator or list of bytes): raw data
+            
+            Returns:
+                nothing
+            
+            The result is saved to the internal structure.
         """
-        if self.verbose: start_ts = time.time()
+        if self.verbose: start_ts = time.thread_time()
         header = ""
-        self.data = []
+        out_data = []
         self.clutter_flag = []
         self.station_flag = []
         isheader = True
@@ -707,82 +711,71 @@ class DwdRadar(object):
         for reply in in_data:
             length += len(reply)
             if isheader:
-                i = reply.find(b'\x03')
-                if i==-1:
-                    i = len(reply)
-                else:
-                    isheader = False
+                i = reply.split(b'\x03',maxsplit=1)
                 if self.verbose:
-                    print('header',i)
-                header += reply[0:i].decode('ascii',errors='replace')
-                if not isheader:
-                    data_size, factor = self._decode_header(header)
-                if self.verbose:
-                    print('---> %i' % reply[i])
-                reply = reply[i+1:]
-            if not isheader:
-                try:
-                    data_size = DwdRadar.DATA_SIZE[self.product]
-                except LookupError:
-                    data_size = 256
-                '''
-                for ii in reply:
-                    by += ii*ct
-                    if ct==data_size:
-                        """
-                        if data_size==256:
-                            self.clutter_flag.append((by&0x8000)!=0)
-                            self.station_flag.append((by&0x1000)!=0)
-                        """
-                        self.data.append(by)
-                        by = 0
-                        ct = 1
-                    else:
-                        ct *= 256
-                '''
-                if by:
-                    reply = by+reply
-                    by = b''
-                if data_size==1:
-                    format = '<%sB' % len(reply)
-                elif data_size==16777216:
-                    if len(reply)%4:
-                        by = reply[-(len(reply)%4):]
-                        reply = reply[:-(len(reply)%4)]
-                    format = '<%sL' % int(len(reply)/4)
-                else: # data_size==256
-                    if len(reply)%2:
-                        by = reply[-1:]
-                        reply = reply[:-1]
-                    format = '<%sH' % int(len(reply)/2)
-                if reply:
-                    self.data.extend(struct.unpack(format,reply))
+                    print('header',len(i[0]))
+                header += i[0].decode('ascii',errors='replace')
+                if len(i)<2:
+                    # header is not complete --> look for more data
+                    continue
+                # the whole header is read --> decode it
+                data_size, factor = self._decode_header(header)
+                isheader = False
+                reply = i[1]
+            if by:
+                reply = by+reply
+                by = b''
+            if data_size==1:
+                format = '<%sB' % len(reply)
+            elif data_size==16777216:
+                i = len(reply)%4
+                if i:
+                    by = reply[-i:]
+                    reply = reply[:-i]
+                format = '<%sL' % int(len(reply)/4)
+            else: # data_size==256
+                if len(reply)%2:
+                    by = reply[-1:]
+                    reply = reply[:-1]
+                format = '<%sH' % int(len(reply)/2)
+            if reply:
+                out_data.extend(struct.unpack(format,reply))
         if self.verbose:
             print('file length:',length)
             #print(header)
-            time1_ts = time.time()
-        
+            time1_ts = time.thread_time()
         if data_size==256:
+            # Bit 15     0x8000: clutter mark
+            # Bit 14     0x4000: negative sign
+            # Bit 13     0x2000: error mark
+            # Bit 12     0x1000: station data instead of radar data, hail flag, 
+            # Bit 11...0 0x0FFF: value
+            # speed issues:
+            #     About 90% of the run time is consumed by the calculation.
+            #     An empty loop is short. Referencing values by `self.`
+            #     takes more time then by local variables.
             if self.header.get('VV',0)==0:
-                self.clutter_flag = [(x&0x8000)!=0 for x in self.data]
-                self.station_flag = [(x&0x1000)!=0 for x in self.data]
-            self.data = [(i&0x0FFF)*(-1 if (i&0x4000) else 1)*factor if (i&0xAFFF)<self.out_of_range_value else self.no_data_value for i in self.data]
-        
-        if self.verbose: time2_ts = time.time()
+                self.clutter_flag = [(x&0x8000)!=0 for x in out_data]
+                self.station_flag = [(x&0x1000)!=0 for x in out_data]
+            no_data_value = self.no_data_value
+            out_data = [no_data_value if (i&0x2000) else (-(i&0x0FFF) if (i&0x4000) else (i&0x0FFF))*factor for i in out_data]
+        if self.verbose: time2_ts = time.thread_time()
         # radar reflectivity factor
         if self.product in ('WN','WX','RX'):
-            self.data = [i/2-32.5 if i<self.no_data_value else i for i in self.data]
-        if self.verbose: time3_ts = time.time()
+            no_data_value = self.no_data_value
+            out_data = [0.5*i-32.5 if i<no_data_value else i for i in out_data]
+        if self.verbose: time3_ts = time.thread_time()
+        self.data = out_data
         # initialize coordinate data
         self.init_coords()
         if self.verbose:
             print(self.header)
             print('data',len(self.data),min(self.data),max(self.data))
-            print('time elapsed %.2fs - %.2fs - %.2fs - %.2fs' % (time1_ts-start_ts,time2_ts-time1_ts,time3_ts-time2_ts,time.time()-time3_ts))
+            print('time elapsed %.3fs - flags %.3fs - convert %.3fs - %.3fs' % (time1_ts-start_ts,time2_ts-time1_ts,time3_ts-time2_ts,time.thread_time()-time3_ts))
     
     def _decode_header(self, header):
         """ decode the file header """
-        if self.verbose: start_ts = time.time()
+        if self.verbose: start_ts = time.thread_time()
         # product code
         self.product = header[0:2]
         # data size
@@ -877,7 +870,7 @@ class DwdRadar(object):
                 factor = 1.0
         else:
             factor = 1.0
-        if self.verbose: time3_ts = time.time()
+        if self.verbose: time3_ts = time.thread_time()
         # colors
         if self.product=='HG':
             self.colors = {i[0]:ImageColor.getrgb(i[1]) for i in DwdRadar.COLORS_HG.items()}
@@ -906,7 +899,7 @@ class DwdRadar(object):
                     DwdRadar.colors[self.product][factor] = self.colors
                 finally:
                     DwdRadar.class_lock.release()
-        if self.verbose: print('time elapsed in _decode_header: %.2fs' % (time.time()-start_ts))
+        if self.verbose: print('time elapsed in _decode_header: %.2fs' % (time.thread_time()-start_ts))
         return data_size, factor
     
     def init_coords(self):

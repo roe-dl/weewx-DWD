@@ -2428,10 +2428,12 @@ class DWDservice(StdService):
             site_dict = weeutil.config.accumulateLeaves(config_dict.get('DeutscherWetterdienst',configobj.ConfigObj()))
         self.log_success = weeutil.weeutil.to_bool(site_dict.get('log_success',True))
         self.log_failure = weeutil.weeutil.to_bool(site_dict.get('log_failure',True))
+        self.log_load = weeutil.weeutil.to_int(site_dict.get('load_monitoring',0))
         self.debug = weeutil.weeutil.to_int(site_dict.get('debug',0))
         if self.debug>0:
             self.log_success = True
             self.log_failure = True
+            if not self.log_load: self.log_load = 1
         archive_interval = 300 # engine.archive_interval
 
         self.threads = dict()
@@ -2898,7 +2900,8 @@ class DWDservice(StdService):
                     event.record.update(x)
             except (LookupError,TypeError,ValueError,ArithmeticError,OSError) as e:
                 logerr("error processing data of thread '%s' for the new archive record: %s %s traceback %s" % (thread_name,e.__class__.__name__,e,gettraceback(e)))
-        logdbg('elapsed CPU time %s' % ' '.join(elapsed))
+        if self.log_load:
+            loginf('elapsed CPU time %s' % ' '.join(elapsed))
 
 
     def _to_weewx(self, thread_name, reply, usUnits):
