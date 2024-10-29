@@ -1961,6 +1961,8 @@ class XWeatherThread(BaseThread):
         'sunrise':('sunrise','unix_epoch','group_time'),
         'sunset':('sunset','unix_epoch','group_time'),
         'sky':('cloudcover','percent','group_percent'),
+        'icon':('icon',None,None),
+        'weatherPrimary':('iconTitle',None,None),
         'loc.long':('longitude','degree_compass','group_coordinate'),
         'loc.lat':('latitude','degree_compass','group_coordinate'),
         'profile.elevM':('altitude','meter','group_altitude'),
