@@ -31,7 +31,12 @@ With this extension you can receive and process the following data:
   * pre-calculated weather forecasts based on different weather models for
     all over the world (`dwd-mosmix`)
 * from VAISALA **Xweather** (formerly AerisWeather)
+
+  See [VAISALA Xweather (formerly Aeris) wiki page](https://github.com/roe-dl/weewx-DWD/wiki/VAISALA-Xweather-(formerly-Aeris)-(English))
+  for more details and descriptions
+
   * actual weather data of the nearest station
+  * other data they provide
 * from **Meteorological Service Canada** (MSC)
   * weather alerts for counties (`msc-warnings`)
   * forecast via Open-Meteo
@@ -89,6 +94,9 @@ Data will be processed to:
 > [their wiki](https://github.com/Daveiano/weewx-wdc/wiki/Support-for-weewx-DWD).
 
 For icons and symbols in SVG vector graphic format see [images](https://github.com/roe-dl/weathericons).
+
+For NOAA NWS forecasts see [weewx-nws](https://github.com/chaunceygardiner/weewx-nws)
+by John A Kline.
 
 ## Contents
 
