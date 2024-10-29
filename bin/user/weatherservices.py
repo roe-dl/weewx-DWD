@@ -1937,6 +1937,217 @@ class OpenWeatherMapThread(BaseThread):
             self.lock.release()
 
 
+class XWeatherThread(BaseThread):
+
+    BASE_URL = "https://data.api.xweather.com/observations/closest"
+
+    OBS = {
+        'timestamp':('dateTime','unix_epoch','group_time'),
+        'tempC':('outTemp','degree_C','group_temperature'),
+        'dewpointC':('dewpoint','degree_C','group_temperature'),
+        'humidity':('outHumidity','percent','group_percent'),
+        'pressureMB':('barometer','mbar','group_pressure'),
+        'spressureMB':('pressure','mbar','group_pressure'),
+        'altimeterMB':('altimeter','mbar','group_pressure'),
+        'windSpeedKPH':('windSpeed','kilometer_per_hour','group_speed'),
+        'windDirDEG':('windDir','degree_compass','group_direction'),
+        'windGustKPH':('windGust','kilometer_per_hour','group_speed'),
+        'visibilitiyKM':('visibility','kilometer','group_distance'),
+        'heatindexC':('heatindex','degree_C','group_temperature'),
+        'windchillC':('windchill','degree_C','group_temperature'),
+        'feelslikeC':('appTemp','degree_C','group_temperature'),
+        'weatherCoded':('aerisCodedWeather',None,None),
+        'weatherPrimaryCoded':('aerisCodedWeatherPrimary',None,None),
+        'sunrise':('sunrise','unix_epoch','group_time'),
+        'sunset':('sunset','unix_epoch','group_time'),
+        'sky':('cloudcover','percent','group_percent'),
+        'loc.long':('longitude','degree_compass','group_coordinate'),
+        'loc.lat':('latitude','degree_compass','group_coordinate'),
+        'profile.elevM':('altitude','meter','group_altitude'),
+        'place.name':('place',None,None),
+    }
+    
+    CLOUDCOVER = {
+        'CL':0,   # clear
+        'FW':20,  # fair/mostly sunny
+        'SC':51,  # partly cloudy
+        'BK':82,  # mostly cloudy
+        'OV':100  # cloudy/overvast
+    }
+    
+    INTENSITY = {
+        'VL':0,
+        'L':1,
+        '':2,
+        'H':3,
+        'VH':4
+    }
+
+    @property
+    def provider_name(self):
+        return 'Xweather'
+   
+    @property
+    def provider_url(self):
+        return 'https://xweather.com'
+    
+    def __init__(self, name, prefix, config_dict, query_interval):
+        conf_dict = weeutil.config.accumulateLeaves(config_dict)
+        log_success = weeutil.weeutil.to_bool(conf_dict.get('log_success',True))
+        log_failure = weeutil.weeutil.to_bool(conf_dict.get('log_failure',True))
+        # whether to log the sleeping time
+        self.log_sleeping = weeutil.weeutil.to_bool(conf_dict.get('log_sleeping',False))
+        # initialize base class
+        super(XWeatherThread,self).__init__('Xweather-%s' % name,log_success,log_failure)
+        # debug mode
+        if weeutil.weeutil.to_int(conf_dict.get('debug',0))>0:
+            self.log_success = True
+            self.log_failure = True
+            self.log_sleeping = True
+            self.log_download = True
+        # query interval
+        self.query_interval = query_interval
+        # API key
+        self.api_id = config_dict.get('api_id')
+        self.api_secret = config_dict.get('api_secret')
+        # location
+        self.latitude = config_dict.get('latitude')
+        self.longitude = config_dict.get('longitude')
+        # language
+        self.lang = conf_dict.get('lang','en')
+        # icon set
+        self.iconset = weeutil.weeutil.to_int(conf_dict.get('iconset',4))
+        # URL
+        self.base_url = config_dict.get('server_url',XWeatherThread.BASE_URL)
+        # register observation types and accumulators
+        _accum = dict()
+        weewx.units.obs_group_dict.setdefault(prefix+'DateTime','group_time')
+        weewx.units.obs_group_dict.setdefault(prefix+'Cloudcover','group_percent')
+        for key, obs in XWeatherThread.OBS.items():
+            obstype = obs[0]
+            obsgroup = obs[2]
+            if obsgroup:
+                # number variable
+                weewx.units.obs_group_dict.setdefault(prefix+obstype[0].upper()+obstype[1:],obsgroup)
+            else:
+                # string variable
+                _accum[prefix+obstype[0].upper()+obstype[1:]] = { 'accumulator':'firstlast','extractor':'last' }
+        if _accum:
+            weewx.accum.accum_dict.maps.append(_accum)
+        # logging
+        if not self.api_id:
+            logerr('no ID key present')
+        # internal data
+        self.lock = threading.Lock()
+        self.data = []
+    
+    def set_current_location(self, latitude, longitude):
+        """ set current location in case of a mobile station """
+        try:
+            self.lock.acquire()
+            self.latitude = latitude
+            self.longitude = longitude
+        finally:
+            self.lock.release()
+    
+    def get_data(self, ts):
+        _data = dict()
+        _interval = 5
+        try:
+            self.lock.acquire()
+            if len(self.data)>=2:
+                _interval = (self.data[-1]['dateTime'][0]-self.data[-2]['dateTime'][0])/60
+            if ts is None:
+                _data = self.data
+            else:
+                for val in self.data:
+                    key = val['dateTime'][0]
+                    if key>ts: break
+                    _data = val
+                if not _data and self.data:
+                    _data = self.data[-1]
+        finally:
+            self.lock.release()
+        return _data, _interval
+
+    def getRecord(self):
+        """ fetch and process data """
+        try:
+            self.lock.acquire()
+            latitude = self.latitude
+            longitude = self.longitude
+        finally:
+            self.lock.release()
+        url = '%s?p=%s,%s&limit=1&format=json&client_id=%s&client_secret=%s' % (
+            self.base_url,
+            self.latitude,self.longitude,
+            self.api_id,self.api_secret
+        )
+        try:
+            reply = wget(url,
+                     log_success=self.log_success,
+                     log_failure=self.log_failure)
+            reply = json.loads(reply)
+        except Exception as e:
+            logerr("thread '%s': wget %s - %s" % (self.name,e.__class__.__name__,e))
+            return
+        if not weeutil.weeutil.to_bool(reply.get('success',False)):
+            # unsuccessful response
+            err = reply.get('error',dict())
+            logerr("thread '%s': unsuccessful response %s - %s" % (self.name,err.get('code'),err.get('description')))
+            return
+        try:
+            response = reply['response'][0]
+        except LookupError:
+            try:
+                response = reply['response']
+            except LookupError:
+                return
+        # debugging output
+        logdbg("thread '%s': response: %s" % (self.name,response))
+        # process data
+        _data = dict()
+        observations = response.get('ob',dict())
+        for key,obs in XWeatherThread.OBS.items():
+            if key in observations:
+                val = observations[key]
+                if val==-999: val = None
+                _data[obs[0]] = (val,obs[1],obs[2])
+            else:
+                x = key.split('.')
+                if len(x)>1:
+                    val = response.get(x[0],dict()).get(x[1],None)
+                    _data[obs[0]] = (val,obs[1],obs[2])
+        coded_weather = observations.get('weatherCoded',None)
+        coded_weather_primary = observations.get('weatherPrimaryCoded',None)
+        if _data['cloudcover'][0] is None:
+            if coded_weather_primary.startswith('::') and coded_weather_primary[2:] in XWeatherThread.CLOUDCOVER:
+                _data['cloudcover'] = (XWeatherThread.CLOUDCOVER[coded_weather_primary[2:]],'percent','group_percent')
+            elif coded_weather.startswith('::') and coded_weather[2:] in XWeatherThread.CLOUDCOVER:
+                _data['cloudcover'] = (XWeatherThread.CLOUDCOVER[coded_weather[2:]],'percent','group_percent')
+            else:
+                _data['cloudcover'] = (None,'percent','group_percent')
+        coded_weather_primary = coded_weather_primary.split(':')
+        while len(coded_weather_primary)<3: coded_weather_primary.append('')
+        intensity = XWeatherThread.INTENSITY.get(coded_weather_primary[1],None)
+        # debug output
+        logdbg(_data)
+        # cache data
+        try:
+            self.lock.acquire()
+            # remove outdated elements
+            while self.data and self.data[0]['dateTime'][0]<(time.time()-10800):
+                del self.data[0]
+            # add new data
+            if not self.data or _data['dateTime'][0]>self.data[-1]['dateTime'][0]:
+                self.data.append(_data)
+        except LookupError as e:
+            if self.log_failure:
+                logerr("thread %s: %s %s" % (self.name,e.__class__.__name__,e))
+        finally:
+            self.lock.release()
+
+
 class DownloadThread(BaseThread):
     
     # German Weather Service DWD
@@ -2536,6 +2747,8 @@ class DWDservice(StdService):
                     self._create_openmeteo_thread(location, location_dict)
                 elif provider=='openweather':
                     self._create_openweather_thread(location, station, location_dict)
+                elif provider in ('xweather','aerisweather'):
+                    self._create_xweather_thread(location, station, location_dict)
                 else:
                     logerr("unknown weather service provider '%s'" % provider)
         
@@ -2779,6 +2992,20 @@ class DWDservice(StdService):
             'mobile': station=='mobile'
         }
         self.threads[thread_name]['thread'] = OpenWeatherMapThread(
+            thread_name,
+            prefix,
+            config_dict,
+            300)
+        self.threads[thread_name]['thread'].start()
+    
+    def _create_xweather_thread(self, thread_name, station, config_dict):
+        prefix = config_dict.get('prefix','id'+thread_name)
+        self.threads[thread_name] = {
+            'datasource': 'Xweather',
+            'prefix': prefix,
+            'mobile': station=='mobile'
+        }
+        self.threads[thread_name]['thread'] = XWeatherThread(
             thread_name,
             prefix,
             config_dict,

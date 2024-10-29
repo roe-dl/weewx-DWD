@@ -30,6 +30,8 @@ With this extension you can receive and process the following data:
 
   * pre-calculated weather forecasts based on different weather models for
     all over the world (`dwd-mosmix`)
+* from VAISALA **Xweather** (formerly AerisWeather)
+  * actual weather data of the nearest station
 * from **Meteorological Service Canada** (MSC)
   * weather alerts for counties (`msc-warnings`)
   * forecast via Open-Meteo
