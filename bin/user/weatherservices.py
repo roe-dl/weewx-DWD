@@ -1939,7 +1939,9 @@ class OpenWeatherMapThread(BaseThread):
 
 class XWeatherThread(BaseThread):
 
-    BASE_URL = "https://data.api.xweather.com/observations/closest"
+    BASE_URL = "https://data.api.xweather.com"
+    
+    ACTIONS = ('closest','search','within','route','affects','contains')
 
     OBS = {
         'timestamp':('dateTime','unix_epoch','group_time'),
@@ -1984,6 +1986,29 @@ class XWeatherThread(BaseThread):
         'H':3,
         'VH':4
     }
+    
+    WEATHER = {
+        'A': (89,89,90,90,90), # hail
+        'F': (44,44,45,45,45), # fog
+        'H': ( 5, 5, 5, 5, 5), # haze
+        'K': ( 4, 4, 4, 4, 4), # smoke
+        'L': (51,51,53,55,55), # drizzle
+        'R': (61,61,63,65,65), # rain
+        'S': (71,71,73,75,75), # snow
+        'T': (95,95,97,97,97), # thunderstorm
+        'BD':(31,31,34,34,34), # blowing dust
+        'BN':(31,31,34,34,34), # blowing sand
+        'BR':(45,45,45,45,45), # mist
+        'BS':(38,38,39,39,39), # blowing snow
+        'BY':(58,58,59,59,59), # blowing spray
+        'FC':(19,19,19,19,19), # funnel cloud
+        'RW':(80,80,81,82,82), # rain shower
+        'SW':(85,85,86,86,86), # snow shower
+        'TO':(19,19,19,19,19), # tornado
+        'ZL':(56,56,57,57,57), # freezing drizzle
+        'ZR':(66,66,67,67,67), # freezing rain
+        'ZY':(56,56,57,57,57), # freezing spray
+    }
 
     @property
     def provider_name(self):
@@ -1993,7 +2018,7 @@ class XWeatherThread(BaseThread):
     def provider_url(self):
         return 'https://xweather.com'
     
-    def __init__(self, name, prefix, config_dict, query_interval):
+    def __init__(self, name, station, prefix, config_dict, query_interval):
         conf_dict = weeutil.config.accumulateLeaves(config_dict)
         log_success = weeutil.weeutil.to_bool(conf_dict.get('log_success',True))
         log_failure = weeutil.weeutil.to_bool(conf_dict.get('log_failure',True))
@@ -2015,16 +2040,28 @@ class XWeatherThread(BaseThread):
         # location
         self.latitude = config_dict.get('latitude')
         self.longitude = config_dict.get('longitude')
+        self.station = station
         # language
         self.lang = conf_dict.get('lang','en')
         # icon set
         self.iconset = weeutil.weeutil.to_int(conf_dict.get('iconset',4))
         # URL
-        self.base_url = config_dict.get('server_url',XWeatherThread.BASE_URL)
+        base_url = config_dict.get('server_url',XWeatherThread.BASE_URL)
+        model = config_dict.get('model','observations/closest')
+        self.base_url = '%s/%s' % (base_url,model)
+        model = model.split('/')
+        if len(model)>1 and model[-1] in XWeatherThread.ACTIONS:
+            self.action = model.pop(-1)
+        else:
+            self.action = ''
+            if station and station not in ('mobile','here','thisstation','none'):
+                self.base_url = '%s/%s' % (self.base_url,station)
+        self.endpoint = '/'.join(model)
         # register observation types and accumulators
         _accum = dict()
         weewx.units.obs_group_dict.setdefault(prefix+'DateTime','group_time')
         weewx.units.obs_group_dict.setdefault(prefix+'Cloudcover','group_percent')
+        weewx.units.obs_group_dict.setdefault(prefix+'Ww','group_wmo_ww')
         for key, obs in XWeatherThread.OBS.items():
             obstype = obs[0]
             obsgroup = obs[2]
@@ -2038,7 +2075,13 @@ class XWeatherThread(BaseThread):
             weewx.accum.accum_dict.maps.append(_accum)
         # logging
         if not self.api_id:
-            logerr('no ID key present')
+            logerr("thread '%s': no ID key present" % self.name)
+        if self.action:
+            loginf("thread '%s': endpoint='%s', action='%s' lat=%s lon=%s" % (self.name,self.endpoint,self.action,self.latitude,self.longitude))
+        elif station:
+            loginf("thread '%s': endpoint='%s', station='%s'" % (self.name,self.endpoint,station))
+        else:
+            loginf("thread '%s': endpoint='%s'" % (self.name,self.endpoint))
         # internal data
         self.lock = threading.Lock()
         self.data = []
@@ -2080,11 +2123,17 @@ class XWeatherThread(BaseThread):
             longitude = self.longitude
         finally:
             self.lock.release()
-        url = '%s?p=%s,%s&limit=1&format=json&client_id=%s&client_secret=%s' % (
-            self.base_url,
-            self.latitude,self.longitude,
-            self.api_id,self.api_secret
-        )
+        if self.action=='closest':
+            url = '%s?p=%s,%s&limit=1&format=json&client_id=%s&client_secret=%s' % (
+                self.base_url,
+                self.latitude,self.longitude,
+                self.api_id,self.api_secret
+            )
+        else:
+            url = '%s?format=json&client_id=%s&client_secret=%s' % (
+                self.base_url,
+                self.api_id,self.api_secret
+            )
         try:
             reply = wget(url,
                      log_success=self.log_success,
@@ -2098,15 +2147,20 @@ class XWeatherThread(BaseThread):
             err = reply.get('error',dict())
             logerr("thread '%s': unsuccessful response %s - %s" % (self.name,err.get('code'),err.get('description')))
             return
-        try:
-            response = reply['response'][0]
-        except LookupError:
-            try:
-                response = reply['response']
-            except LookupError:
-                return
+        if 'response' not in reply:
+            logerr("thread '%s': no response section" % self.name)
+            return
+        response = reply['response']
         # debugging output
         logdbg("thread '%s': response: %s" % (self.name,response))
+        # process data
+        self.observations(response)
+    
+    def observations(self, response):
+        try:
+            response = response[0]
+        except LookupError:
+            pass
         # process data
         _data = dict()
         observations = response.get('ob',dict())
@@ -2132,8 +2186,30 @@ class XWeatherThread(BaseThread):
         coded_weather_primary = coded_weather_primary.split(':')
         while len(coded_weather_primary)<3: coded_weather_primary.append('')
         intensity = XWeatherThread.INTENSITY.get(coded_weather_primary[1],None)
+        weather = XWeatherThread.WEATHER.get(coded_weather_primary[2],None)
+        if weather:
+            if coded_weather_primary[0]=='VC':
+                # in the vicinity / nearby
+                if coded_weather_primary[2] in ('L','R','S','RW','RS','SI','WM','UP','ZL','ZR','ZY'):
+                    weather = 16
+                elif coded_weather_primary[2] in ('BR','F'):
+                    weather = 40
+                else:
+                    weather = 0
+            else:
+                weather = weather[intensity]
+                if (coded_weather_primary[0]=='IN' and 
+                                    coded_weather_primary[2] in ('L','R','S')):
+                    # intermittent
+                    weather -= 1
+        elif coded_weather_primary[2] in XWeatherThread.CLOUDCOVER:
+            weather = 0
+        _data['ww'] = (weather,'byte','group_wmo_ww')
+        self.cache_data(_data)
+    
+    def cache_data(self, data):
         # debug output
-        logdbg(_data)
+        logdbg(data)
         # cache data
         try:
             self.lock.acquire()
@@ -2141,8 +2217,8 @@ class XWeatherThread(BaseThread):
             while self.data and self.data[0]['dateTime'][0]<(time.time()-10800):
                 del self.data[0]
             # add new data
-            if not self.data or _data['dateTime'][0]>self.data[-1]['dateTime'][0]:
-                self.data.append(_data)
+            if not self.data or data['dateTime'][0]>self.data[-1]['dateTime'][0]:
+                self.data.append(data)
         except LookupError as e:
             if self.log_failure:
                 logerr("thread %s: %s %s" % (self.name,e.__class__.__name__,e))
@@ -3009,6 +3085,7 @@ class DWDservice(StdService):
         }
         self.threads[thread_name]['thread'] = XWeatherThread(
             thread_name,
+            station,
             prefix,
             config_dict,
             300)
