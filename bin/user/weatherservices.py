@@ -503,7 +503,7 @@ class DWDPOIthread(BaseThread):
     UNIT = {
         'Grad C':'degree_C',
         'W/m2':'watt_per_meter_squared',
-        'km/h':'kilometer_per_hour',
+        'km/h':'km_per_hour',
         'h':'hour',
         'min':'minute',
         '%':'percent'}
@@ -1229,7 +1229,7 @@ class DWDOPENMETEOthread(BaseThread):
         ,'hPa':'hPa'
         ,'kPa':'kPa'
         ,'W/m²':'watt_per_meter_squared'
-        ,'km/h':'kilometer_per_hour'
+        ,'km/h':'km_per_hour'
         ,'%':'percent'
         ,'wmo code':'count'
         ,'unixtime':'unix_epoch'
@@ -1807,7 +1807,7 @@ class OpenWeatherMapThread(BaseThread):
             else:
                 for val in self.data:
                     key = val['dateTime'][0]
-                    if key>ts: break
+                    if key is not None and key>ts: break
                     _data = val
                 if not _data and self.data:
                     _data = self.data[-1]
@@ -1951,10 +1951,10 @@ class XWeatherThread(BaseThread):
         'pressureMB':('barometer','mbar','group_pressure'),
         'spressureMB':('pressure','mbar','group_pressure'),
         'altimeterMB':('altimeter','mbar','group_pressure'),
-        'windSpeedKPH':('windSpeed','kilometer_per_hour','group_speed'),
+        'windSpeedKPH':('windSpeed','km_per_hour','group_speed'),
         'windDirDEG':('windDir','degree_compass','group_direction'),
-        'windGustKPH':('windGust','kilometer_per_hour','group_speed'),
-        'visibilitiyKM':('visibility','kilometer','group_distance'),
+        'windGustKPH':('windGust','km_per_hour','group_speed'),
+        'visibilitiyKM':('visibility','km','group_distance'),
         'heatindexC':('heatindex','degree_C','group_temperature'),
         'windchillC':('windchill','degree_C','group_temperature'),
         'feelslikeC':('appTemp','degree_C','group_temperature'),
@@ -1969,6 +1969,8 @@ class XWeatherThread(BaseThread):
         'loc.lat':('latitude','degree_compass','group_coordinate'),
         'profile.elevM':('altitude','meter','group_altitude'),
         'place.name':('place',None,None),
+        'relativeTo.bearing':('bearing','degree_compass','group_direction'),
+        'relativeTo.distanceKM':('distance','km','group_distance'),
     }
     
     CLOUDCOVER = {
@@ -2008,6 +2010,19 @@ class XWeatherThread(BaseThread):
         'ZL':(56,56,57,57,57), # freezing drizzle
         'ZR':(66,66,67,67,67), # freezing rain
         'ZY':(56,56,57,57,57), # freezing spray
+    }
+    
+    LIGHTNING_OBS = {
+        'id':('id',None,None),
+        'loc.long':('longitude','degree_compass','group_coordinate'),
+        'loc.lat':('latitude','degree_compass','group_coordinate'),
+        'ob.timestamp':('timestamp','unix_epoch','group_time'),
+        'ob.age':('age','second','group_deltatime'),
+        'ob.pulse.type':('type',None,None),
+        'ob.pulse.peakamp':('peakAmplitude','amp','group_amp'),
+        'ob.pulse.numSensors':('sensors','count','group_count'),
+        'relativeTo.bearing':('bearing','degree_compass','group_direction'),
+        'relativeTo.distanceKM':('distance','km','group_distance'),
     }
 
     @property
@@ -2057,12 +2072,26 @@ class XWeatherThread(BaseThread):
             if station and station not in ('mobile','here','thisstation','none'):
                 self.base_url = '%s/%s' % (self.base_url,station)
         self.endpoint = '/'.join(model)
+        parameters = dict()
+        if self.action=='closest':
+            parameters['p'] = '%s,%s' % (self.latitude,self.longitude)
+            parameters['limit'] = '1'
+        parameters['format'] = 'json'
+        parameters.update(self.get_parameters(config_dict))
+        self.parameters = '&'.join('%s=%s' % i for i in parameters.items())
         # register observation types and accumulators
         _accum = dict()
         weewx.units.obs_group_dict.setdefault(prefix+'DateTime','group_time')
-        weewx.units.obs_group_dict.setdefault(prefix+'Cloudcover','group_percent')
-        weewx.units.obs_group_dict.setdefault(prefix+'Ww','group_wmo_ww')
-        for key, obs in XWeatherThread.OBS.items():
+        if self.endpoint.startswith('observations'):
+            weewx.units.obs_group_dict.setdefault(prefix+'Cloudcover','group_percent')
+            weewx.units.obs_group_dict.setdefault(prefix+'Ww','group_wmo_ww')
+            obss = XWeatherThread.OBS
+        elif self.endpoint.startswith('lightning'):
+            weewx.units.obs_group_dict.setdefault(prefix+'recordSize','group_count')
+            obss = XWeatherThread.LIGHTNING_OBS
+        else:
+            obss = dict()
+        for key, obs in obss.items():
             obstype = obs[0]
             obsgroup = obs[2]
             if obsgroup:
@@ -2073,15 +2102,22 @@ class XWeatherThread(BaseThread):
                 _accum[prefix+obstype[0].upper()+obstype[1:]] = { 'accumulator':'firstlast','extractor':'last' }
         if _accum:
             weewx.accum.accum_dict.maps.append(_accum)
+        # file
+        if 'file' in config_dict and 'path' in conf_dict:
+            self.file = os.path.join(conf_dict['path'],config_dict['file'])
+        else:
+            self.file = None
         # logging
         if not self.api_id:
             logerr("thread '%s': no ID key present" % self.name)
         if self.action:
-            loginf("thread '%s': endpoint='%s', action='%s' lat=%s lon=%s" % (self.name,self.endpoint,self.action,self.latitude,self.longitude))
+            loginf("thread '%s': endpoint='%s', action='%s', lat=%s, lon=%s, parameters='%s'" % (self.name,self.endpoint,self.action,self.latitude,self.longitude,self.parameters))
         elif station:
-            loginf("thread '%s': endpoint='%s', station='%s'" % (self.name,self.endpoint,station))
+            loginf("thread '%s': endpoint='%s', station='%s', parameters='%s'" % (self.name,self.endpoint,station,self.parameters))
         else:
-            loginf("thread '%s': endpoint='%s'" % (self.name,self.endpoint))
+            loginf("thread '%s': endpoint='%s', parameters='%s'" % (self.name,self.endpoint,self.parameters))
+        if self.file:
+            loginf("thread '%s': save to file '%s'" % (self.name,self.file))
         # internal data
         self.lock = threading.Lock()
         self.data = []
@@ -2107,7 +2143,7 @@ class XWeatherThread(BaseThread):
             else:
                 for val in self.data:
                     key = val['dateTime'][0]
-                    if key>ts: break
+                    if key is not None and key>ts: break
                     _data = val
                 if not _data and self.data:
                     _data = self.data[-1]
@@ -2123,44 +2159,57 @@ class XWeatherThread(BaseThread):
             longitude = self.longitude
         finally:
             self.lock.release()
-        if self.action=='closest':
-            url = '%s?p=%s,%s&limit=1&format=json&client_id=%s&client_secret=%s' % (
-                self.base_url,
-                self.latitude,self.longitude,
-                self.api_id,self.api_secret
-            )
-        else:
-            url = '%s?format=json&client_id=%s&client_secret=%s' % (
-                self.base_url,
-                self.api_id,self.api_secret
-            )
+        url = '%s?%s&client_id=%s&client_secret=%s' % (
+            self.base_url,
+            self.parameters,
+            self.api_id,self.api_secret
+        )
         try:
-            reply = wget(url,
+            reply = wget_extended(url,
                      log_success=self.log_success,
                      log_failure=self.log_failure)
-            reply = json.loads(reply)
+            last_modified = reply[1]
+            reply = json.loads(reply[2])
         except Exception as e:
             logerr("thread '%s': wget %s - %s" % (self.name,e.__class__.__name__,e))
             return
+        # save reply to file if configured to do so
+        if self.file:
+            try:
+                with open(self.file,'wt') as file:
+                    json.dump(reply, file, indent=4, ensure_ascii=False)
+            except OSError as e:
+                logerr("thread '%s': could not save file %s - %s" % (self.name,e.__class__.__name__,e))
+        # remember error/warning information
+        err = reply.get('error',dict())
         if not weeutil.weeutil.to_bool(reply.get('success',False)):
             # unsuccessful response
-            err = reply.get('error',dict())
             logerr("thread '%s': unsuccessful response %s - %s" % (self.name,err.get('code'),err.get('description')))
             return
         if 'response' not in reply:
             logerr("thread '%s': no response section" % self.name)
             return
+        if reply.get('error'):
+            # 'success'==True and 'error' not None means warning
+            loginf("thread '%s': warning %s - %s" % (self.name,err.get('code'),err.get('description')))
         response = reply['response']
         # debugging output
+        logdbg("thread '%s': last modified: %s" % (self.name,last_modified))
         logdbg("thread '%s': response: %s" % (self.name,response))
+        # timestamp
+        if not last_modified:
+            last_modified = int(time.time())
         # process data
-        self.observations(response)
+        if self.endpoint.startswith('observations'):
+            self.observations(response, last_modified)
+        elif self.endpoint.startswith('lightning'):
+            self.lightnings(response, last_modified)
     
-    def observations(self, response):
+    def observations(self, response, last_modified):
         try:
             response = response[0]
         except LookupError:
-            pass
+            if len(response)==0: response = dict()
         # process data
         _data = dict()
         observations = response.get('ob',dict())
@@ -2207,6 +2256,30 @@ class XWeatherThread(BaseThread):
         _data['ww'] = (weather,'byte','group_wmo_ww')
         self.cache_data(_data)
     
+    def lightnings(self, response, last_modified):
+        try:
+            ct = len(response)
+            response = response[0]
+        except LookupError:
+            ct = 1
+            if len(response)==0: 
+                response = dict()
+                ct = 0
+        # process data
+        _data = dict()
+        _data['recordSize'] = (ct,'count','group_count')
+        for key,obs in XWeatherThread.LIGHTNING_OBS.items():
+            x = key.split('.')
+            if len(x)>=3:
+                val = response.get(x[0],dict()).get(x[1],dict()).get(x[2],None)
+            elif len(x)==2:
+                val = response.get(x[0],dict()).get(x[1],None)
+            else:
+                val = response.get(x[0],None)
+            _data[obs[0]] = (val,obs[1],obs[2])
+        _data['dateTime'] = (last_modified,'unix_epoch','group_time')
+        self.cache_data(_data)
+
     def cache_data(self, data):
         # debug output
         logdbg(data)
@@ -2460,6 +2533,7 @@ class DownloadThread(BaseThread):
             parameters['request'] = 'GetMap'
             parameters['bbox'] = ','.join(bbox)
         # get more URL parameters
+        """
         for i,j in section_dict.get('parameters',dict()).items():
             if isinstance(j,list):
                 k = ','.join([str(jj).replace(',','_') for jj in j])
@@ -2467,6 +2541,8 @@ class DownloadThread(BaseThread):
                 k = j
             k = k.replace('$warncellids',warncellids).replace('%','%25').replace("'",'%27').replace('/','%2F').replace(' ','%20').replace('<','%3C').replace('=','%3D').replace('>','%3E')
             parameters[i] = k
+        """
+        parameters.update(self.get_parameters(section_dict,{'$warncellids':warncellids}))
         # URL to query
         url = '%s?%s' % (
             section_dict.get('server_url',base_url),
@@ -2784,6 +2860,9 @@ class DWDservice(StdService):
         site_dict = config_dict.get('WeatherServices',configobj.ConfigObj()).get('current',configobj.ConfigObj())
         for location in site_dict.sections:
             location_dict = weeutil.config.accumulateLeaves(site_dict[location])
+            if 'parameters' in site_dict[location]:
+                location_dict['parameters'] = configobj.ConfigObj(
+                                             site_dict[location]['parameters'])
             # Icon set 
             iconset = location_dict.get('icon_set', iconset)
             if iconset is not None:

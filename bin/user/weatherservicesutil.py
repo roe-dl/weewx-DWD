@@ -310,6 +310,20 @@ class BaseThread(threading.Thread):
                     logerr("thread '%s': *** %s" % (self.name,jj.replace('\n',' ').strip()))
         finally:
             loginf("thread '%s' stopped" % self.name)
+    
+    def get_parameters(self, section_dict, replace_dict=dict()):
+        parameters = dict()
+        for i,j in section_dict.get('parameters',dict()).items():
+            if isinstance(j,list):
+                k = ','.join([str(jj).replace(',','_') for jj in j])
+            else:
+                k = j
+            for to_replace, replace_by in replace_dict.items():
+                k = k.replace(to_replace, replace_by)
+            k = k.replace('%','%25').replace("'",'%27').replace('/','%2F').replace(' ','%20').replace('<','%3C').replace('=','%3D').replace('>','%3E')
+            parameters[i] = k
+        return parameters
+
 
 if __name__ == '__main__':
     ts = http_timestamp_to_ts('Mon, 17 Jul 2024 12:13:14 GMT')
