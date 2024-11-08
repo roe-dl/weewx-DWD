@@ -2066,16 +2066,28 @@ class XWeatherThread(BaseThread):
         self.base_url = '%s/%s' % (base_url,model)
         model = model.split('/')
         if len(model)>1 and model[-1] in XWeatherThread.ACTIONS:
+            # one of the actions --> location is provided by parameter
             self.action = model.pop(-1)
         else:
+            # no location needed or location provided by URL
             self.action = ''
-            if station and station not in ('mobile','here','thisstation','none'):
+            if not station or station=='none':
+                # no location to be specified
+                pass
+            elif (station in ('mobile','here','thisstation') or 
+                   (self.latitude is not None and self.longitude is not None)):
+                # get data for the location of station
+                self.base_url = '%s/%s,%s' % (self.base_url,
+                                                  self.latitude,self.longitude)
+            else:
                 self.base_url = '%s/%s' % (self.base_url,station)
         self.endpoint = '/'.join(model)
         parameters = dict()
         if self.action=='closest':
             parameters['p'] = '%s,%s' % (self.latitude,self.longitude)
             parameters['limit'] = '1'
+        if model and model[0]=='observations':
+            parameters['filter'] = 'allstations'
         parameters['format'] = 'json'
         parameters.update(self.get_parameters(config_dict))
         self.parameters = '&'.join('%s=%s' % i for i in parameters.items())
@@ -2200,7 +2212,7 @@ class XWeatherThread(BaseThread):
         if not last_modified:
             last_modified = int(time.time())
         # process data
-        if self.endpoint.startswith('observations'):
+        if self.endpoint.startswith('observations') or self.endpoint.startswith('conditions'):
             self.observations(response, last_modified)
         elif self.endpoint.startswith('lightning'):
             self.lightnings(response, last_modified)
@@ -2212,7 +2224,19 @@ class XWeatherThread(BaseThread):
             if len(response)==0: response = dict()
         # process data
         _data = dict()
-        observations = response.get('ob',dict())
+        if 'ob' in response:
+            observations = response['ob']
+        elif 'periods' in response:
+            last_ts = 0
+            for period in response['periods']:
+                try:
+                    if period['timestamp']>last_ts:
+                        observations = period
+                        last_ts = observations['timestamp']
+                except (LookupError,TypeError):
+                    pass
+        else:
+            observations = dict()
         for key,obs in XWeatherThread.OBS.items():
             if key in observations:
                 val = observations[key]
