@@ -640,7 +640,7 @@ im Abschnitt `[[forecast]]` einzutragen:
 
 im Abschnit `[[download]]` einzutragen:
 
-* DWD Bodenwerkarte
+* DWD Bodenwetterkarte
 
   ```
             provider = DWD
@@ -1489,6 +1489,9 @@ Um damit Diagramme darstellen zu können, muß die Datenbank in
         database_type = SQLite
 ```
 
+Ab WeeWX 5.2 muß anstelle von `schemas.dwd.schema`
+`weewx.schemas.dwd.schema` geschrieben werden.
+
 In das Verzeichnis `schemas` muß eine Datei `dwd.py` geschrieben
 werden, die folgenden Inhalt hat:
 ```python
@@ -1577,7 +1580,7 @@ Der Pfad, hier `dwd`, ist entsprechend der eigenen Konfiguration anzupassen. Das
   </div>
   
   <div class="col-sm-12">
-    <img src="$relative_url/dwd/bwk_bodendruck_na_ana.png?v=<%=os.path.getmtime("/etc/weewx/skins/Belchertown-de/dwd/bwk_bodendruck_na_ana.png")%>" />
+    <img src="$relative_url/dwd/bwk_bodendruck_na_ana.png?v=<%=os.path.getmtime("/etc/weewx/skins/Belchertown/dwd/bwk_bodendruck_na_ana.png")%>" />
   </div>
 ```
 

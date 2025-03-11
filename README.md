@@ -7,9 +7,14 @@ download weather and warning data and use them in WeeWX and skins.
 
 <p align="center"><img src="Wettervorhersage-Warnungen-Fichtelberg.png" width="600px" /></p>
 
+### Display weather symbols
+
 Independent of certain weather services you can display weather
 icons and symbols in skins by using the searchlist extension
-`$presentweather`, provided by this WeeWX extension.
+[`$presentweather`](https://github.com/roe-dl/weewx-DWD/wiki/$presentweather()-(English)), 
+provided by this WeeWX extension.
+
+### Download and process data from weather services
 
 With this extension you can receive and process the following data:
 * from **OGC OWS servers** of several weather services like NOAA, DWD, KNMI, etc.
@@ -1253,6 +1258,9 @@ as follows:
         database_name = dwd-forecast-Stationscode.sdb
         database_type = SQLite
 ```
+
+From WeeWX 5.2 on replace `schemas.dwd.schema` by
+`weewx.schemas.dwd.schema`.
 
 Then write a file named `dwd.py` into the `schemas` directory of
 WeeWX, containing the following:
