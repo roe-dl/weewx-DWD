@@ -2074,7 +2074,7 @@ class XWeatherThread(BaseThread):
             if not station or station=='none':
                 # no location to be specified
                 pass
-            elif (station in ('mobile','here','thisstation') or 
+            elif (station in {'mobile','here','thisstation'} or 
                    (self.latitude is not None and self.longitude is not None)):
                 # get data for the location of station
                 self.base_url = '%s/%s,%s' % (self.base_url,
@@ -2263,16 +2263,16 @@ class XWeatherThread(BaseThread):
         if weather:
             if coded_weather_primary[0]=='VC':
                 # in the vicinity / nearby
-                if coded_weather_primary[2] in ('L','R','S','RW','RS','SI','WM','UP','ZL','ZR','ZY'):
+                if coded_weather_primary[2] in {'L','R','S','RW','RS','SI','WM','UP','ZL','ZR','ZY'}:
                     weather = 16
-                elif coded_weather_primary[2] in ('BR','F'):
+                elif coded_weather_primary[2] in {'BR','F'}:
                     weather = 40
                 else:
                     weather = 0
             else:
                 weather = weather[intensity]
                 if (coded_weather_primary[0]=='IN' and 
-                                    coded_weather_primary[2] in ('L','R','S')):
+                                    coded_weather_primary[2] in {'L','R','S'}):
                     # intermittent
                     weather -= 1
         elif coded_weather_primary[2] in XWeatherThread.CLOUDCOVER:
@@ -2899,7 +2899,7 @@ class DWDservice(StdService):
             # Station 
             # Note: Latitude and Longitude (if needed) are already in dict()
             station = location_dict.get('station',location)
-            if station.lower() in ('here','thisstation'):
+            if station.lower() in {'here','thisstation'}:
                 location_dict['latitude'] = engine.stn_info.latitude_f
                 location_dict['longitude'] = engine.stn_info.longitude_f
                 location_dict['altitude'] = weewx.units.convert(engine.stn_info.altitude_vt, 'meter')[0]
@@ -2928,7 +2928,7 @@ class DWDservice(StdService):
                     self._create_openmeteo_thread(location, location_dict)
                 elif provider=='openweather':
                     self._create_openweather_thread(location, station, location_dict)
-                elif provider in ('xweather','aerisweather'):
+                elif provider in {'xweather','aerisweather'}:
                     self._create_xweather_thread(location, station, location_dict)
                 else:
                     logerr("unknown weather service provider '%s'" % provider)
@@ -3045,7 +3045,7 @@ class DWDservice(StdService):
                     if thread:
                         self.threads[thread_name] = thread
                         if radar_dict[radar]['provider']=='DWD':
-                            if radar_dict[radar]['model'] in ('HG','RV','HGRV'):
+                            if radar_dict[radar]['model'] in {'HG','RV','HGRV'}:
                                 thread['thread'].hgrv_queue = q
                             if radar_dict[radar]['model']=='RV':
                                 rv_thread = thread['thread']
@@ -3303,7 +3303,7 @@ class DWDservice(StdService):
                     if x is None or x<(ts-10800):
                         # no recent readings found
                         for key in data:
-                            if key not in ('interval','latitude','longitude','altitude'):
+                            if key not in {'interval','latitude','longitude','altitude'}:
                                 data[key] = weewx.units.ValueTuple(None,data[key][1],data[key][2])
                     x = self._to_weewx(thread_name,data,event.record['usUnits'])
                     event.record.update(x)
@@ -3318,9 +3318,9 @@ class DWDservice(StdService):
         data = dict()
         for key in reply:
             #print('*',key)
-            if key in ('interval','count','sysStatus') or (key=='dateTime' and not prefix):
+            if key in {'interval','count','sysStatus'} or (key=='dateTime' and not prefix):
                 pass
-            elif key in ('interval','count'):
+            elif key in {'interval','count'}:
                 data[key] = reply[key]
             else:
                 try:

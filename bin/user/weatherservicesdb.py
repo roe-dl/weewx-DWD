@@ -148,7 +148,7 @@ class DatabaseThread(threading.Thread):
     
     def db_name(self, datasource, data):
         """ get database name out of provider and interval """
-        if datasource.lower() in ('poi','cdc','zamg','openmeteo','met','radolanhg','radolanwn','radolanrv'):
+        if datasource.lower() in {'poi','cdc','zamg','openmeteo','met','radolanhg','radolanwn','radolanrv'}:
             # non-varying interval
             try:
                 interval = weewx.units.convert(data[0].get('interval'),'minute')[0]
@@ -192,7 +192,7 @@ class DatabaseThread(threading.Thread):
         """ check if required columns exist """
         required_columns = set()
         for el in data:
-            required_columns.update([key for key in el if key not in ('dateTime','interval','usUnits')])
+            required_columns.update([key for key in el if key not in {'dateTime','interval','usUnits'}])
         logdbg("check_and_add_columns(): required_columns = %s" % required_columns)
         try:
             cur = con.cursor()
@@ -242,7 +242,7 @@ class DatabaseThread(threading.Thread):
                     reply = res.fetchone()
                     if reply and reply[0]:
                         # There is a row for that timestamp in the database.
-                        colvals = ','.join(['`%s`=%s' % (key,sqlstr(val)) for key,val in el.items() if key not in ('dateTime','usUnits','interval',None)])
+                        colvals = ','.join(['`%s`=%s' % (key,sqlstr(val)) for key,val in el.items() if key not in {'dateTime','usUnits','interval',None}])
                         if not colvals: continue
                         sql = 'UPDATE archive SET %s WHERE `dateTime`=%s' % (colvals,el['dateTime'])
                     else:
@@ -309,7 +309,7 @@ class DatabaseThread(threading.Thread):
                 try:
                     if key!='usUnits':
                         new_val = weewx.units.convertStd(val,weewx.METRIC)[0]
-                        if key in ('dateTime','interval'):
+                        if key in {'dateTime','interval'}:
                             new_key = key
                             new_val = weeutil.weeutil.to_int(new_val)
                         else:

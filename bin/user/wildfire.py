@@ -478,7 +478,7 @@ class WildfireThread(BaseThread):
 
                 valid_on = time.strftime('%d.%m.%Y',time.localtime((data['start']+data['end'])/2))
                 wbs = data.get('wbs')
-                color = data.get('color',LEVELCOLOR[wbs]) if wbs in (1,2,3,4,5) else LEVELCOLOR[0]
+                color = data.get('color',LEVELCOLOR[wbs]) if wbs in {1,2,3,4,5} else LEVELCOLOR[0]
                 s += '<table><tr>\n'
                 s += '<td style="vertical-align:middle;padding:0.2em">\n'
                 s += '<span style="color:%s">\n%s</span>\n' % (color,WILDFIRESQUIRREL)
@@ -520,7 +520,7 @@ class WildfireThread(BaseThread):
             for data in data_list:
                 valid_on = time.strftime('%d.%m.%Y',time.localtime((data['start']+data['end'])/2))
                 wbs = data.get('wbs')
-                color = data.get('color',LEVELCOLOR[wbs]) if wbs in (1,2,3,4,5) else LEVELCOLOR[0]
+                color = data.get('color',LEVELCOLOR[wbs]) if wbs in {1,2,3,4,5} else LEVELCOLOR[0]
                 linkname = 'wbs%s' % int(data.get('start',0)*1000)
                 s_link += '<div class="wildfire-link" style="line-height:1;vertical-align:middle">'
                 #if wbs and wbs!=1:
@@ -625,7 +625,7 @@ class SachsenforstThread(WildfireThread):
                 except (LookupError,ValueError,TypeError,ArithmeticError):
                     data['instruction'] = ''
                 data['wbs'] = wbs
-                data['color'] = reply.get('color',LEVELCOLOR[wbs if wbs in (1,2,3,4,5) else 0])
+                data['color'] = reply.get('color',LEVELCOLOR[wbs if wbs in {1,2,3,4,5} else 0])
                 data['text'] = reply.get('text','')
                 data['day'] = reply.get('date','')[0:6]
             else:

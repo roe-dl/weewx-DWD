@@ -529,12 +529,12 @@ class DwdRadar(object):
             'RQ':'%s',
         }[product.upper()]
         # The base URL depends on the product.
-        if product in ('HG','RV','WN'):
+        if product in {'HG','RV','WN'}:
             # HG actual precipitation type
             # RV actual precipitation amount and forecast
             # WN actual radar reflectivity factor dBZ and forecast
             url = DwdRadar.COMPOSITE_URL
-        elif product in ('RE','RQ'):
+        elif product in {'RE','RQ'}:
             # RQ calibrated precipitation analysis and forecast
             # RE analysis and forecast of the proportion of solid precipitation
             url = DwdRadar.RADVOR_URL
@@ -549,7 +549,7 @@ class DwdRadar(object):
         url = '/'.join((url,product.lower(),fn))
         # Depending on the structure of the files on the DWD opendata server
         # different downloading methods apply.
-        if product in ('RE','RQ'):
+        if product in {'RE','RQ'}:
             # Several files to download
             dwd = []
             for fn in fns:
@@ -761,7 +761,7 @@ class DwdRadar(object):
             out_data = [no_data_value if (i&0x2000) else (-(i&0x0FFF) if (i&0x4000) else (i&0x0FFF))*factor for i in out_data]
         if self.verbose: time2_ts = time.thread_time()
         # radar reflectivity factor
-        if self.product in ('WN','WX','RX'):
+        if self.product in {'WN','WX','RX'}:
             no_data_value = self.no_data_value
             out_data = [0.5*i-32.5 if i<no_data_value else i for i in out_data]
         if self.verbose: time3_ts = time.thread_time()
@@ -839,7 +839,7 @@ class DwdRadar(object):
         if self.product=='HG':
             self.no_data_value = 2147483648
             self.out_of_range_value = 2147483648
-        elif self.product in ('WX','RX','EX'):
+        elif self.product in {'WX','RX','EX'}:
             self.no_data_value = 250
             self.out_of_range_value = 249
         else:
@@ -874,7 +874,7 @@ class DwdRadar(object):
         # colors
         if self.product=='HG':
             self.colors = {i[0]:ImageColor.getrgb(i[1]) for i in DwdRadar.COLORS_HG.items()}
-        elif self.product in ('WX','RX','EX'):
+        elif self.product in {'WX','RX','EX'}:
             self.colors = dict()
             for i in range(249):
                 idx = i*factor
@@ -906,7 +906,7 @@ class DwdRadar(object):
         """ initialize coordinate data
         """
         if (self.version is None or 
-            (self.product in ('HG','WN','RV','HGRV') and self.version>=5)):
+            (self.product in {'HG','WN','RV','HGRV'} and self.version>=5)):
             self.coords = DwdRadar.BORDER_DE1200_WGS84
             self.coords.update(MAP_LOCATIONS_DE1200_WGS84)
             self.lines = []
@@ -1187,15 +1187,15 @@ class DwdRadar(object):
         time2_ts = time.thread_time_ns()
         # mark locations
         for location,coord in self.coords.items():
-            if location not in ('NW','NO','SW','SO') and location not in filter and scale>=coord['scale']:
+            if location not in {'NW','NO','SW','SO'} and location not in filter and scale>=coord['scale']:
                 cx = (coord['xy'][0]-self.coords['SW']['xy'][0])/1000
                 cy = (coord['xy'][1]-self.coords['SW']['xy'][1])/1000
                 peak = coord.get('peak',False)
-                if location in ('Dresden','Chemnitz','Aschberg'):
+                if location in {'Dresden','Chemnitz','Aschberg'}:
                     # label besides the dot
                     y_off = 4+font_size/4
                     x_off = 6
-                elif location in ('Fichtelberg','Zugspitze','Jelení','Weimar'):
+                elif location in {'Fichtelberg','Zugspitze','Jelení','Weimar'}:
                     # label right below the dot
                     y_off = 4-font_size/4
                     x_off = 4
@@ -1532,7 +1532,7 @@ class DwdRadarThread(BaseThread):
                         # remember actual data record
                         if vv==0: dwd0 = ii
                         # create map image
-                        if vv==0 or with_forecast in ('png','gif'):
+                        if vv==0 or with_forecast in {'png','gif'}:
                             img, desc, scale = self.write_map(map,ii,vv,save_forecast=with_forecast=='png')
                             if img:
                                 # add the time at the bottom right corner

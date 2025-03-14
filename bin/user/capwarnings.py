@@ -853,7 +853,7 @@ class DWD(CAP):
             _area2 = 'counties'
         elif _area=='COMMUNEUNION':
             _area2 = 'cities'
-        self.filter_area = { i:j for i,j in warn_dict.get(_area2,dict()).items() if i not in ('path','dwd_icons','dwd_resolution','provider') }
+        self.filter_area = { i:j for i,j in warn_dict.get(_area2,dict()).items() if i not in {'path','dwd_icons','dwd_resolution','provider'} }
         # source urls
         self.dwd_status_url = warn_dict.get('dwd_status_url',DWD.get_cap_url(self.resolution,'cell','neutral',False))
         self.dwd_diff_url = warn_dict.get('dwd_diff_url',DWD.get_cap_url(self.resolution,'cell','neutral',True))
@@ -1171,7 +1171,7 @@ class BBK(CAP):
         # list of counties to get warnings for
         self.filter_area = warn_dict.get('counties',configobj.ConfigObj())
         for section in warn_dict.sections:
-            if section not in ('counties','cities'):
+            if section not in {'counties','cities'}:
                 sec_dict = warn_dict[section]
                 if sec_dict.get('provider','------').upper()=='BBK':
                     self.filter_area[sec_dict.get('county',section)] = sec_dict.get('file',section)
@@ -1611,7 +1611,7 @@ class CapDirParser(html.parser.HTMLParser):
 
     def __init__(self, lang):
         super(CapDirParser,self).__init__()
-        if lang in ('de','en','es','fr'):
+        if lang in {'de','en','es','fr'}:
             self.lang = lang.lower()
         else:
             self.lang = 'ul'
@@ -1766,7 +1766,7 @@ class CAPwarnings(object):
             base_dict = accumulateLeaves(config_dict['WeatherServices'])
             ws_dict.update(accumulateLeaves(config_dict['WeatherServices']['warning']))
             for sec in config_dict['WeatherServices']['warning'].sections:
-                if sec in ('counties','cities'):
+                if sec in {'counties','cities'}:
                     sec_dict = config_dict['WeatherServices']['warning'][sec]
                 else:
                     sec_dict = accumulateLeaves(config_dict['WeatherServices']['warning'][sec])
@@ -1975,9 +1975,9 @@ if __name__ == "__main__" or invoke_fn in standalone:
         if provider=='DWD':
             arg_dict = {arg:arg for arg in args}
             res = config['DeutscherWetterdienst']['warning']['resolution']
-            if res in ('county','counties'):
+            if res in {'county','counties'}:
                 res = 'counties'
-            elif res in ('city','cities'):
+            elif res in {'city','cities'}:
                 res = 'cities'
             config['DeutscherWetterdienst']['warning'][res] = arg_dict
         else:

@@ -1410,7 +1410,7 @@ def get_ww(ww,n,night):
     # Otherwise use cloud coverage
     # see aerisweather for percentage values
     # https://www.aerisweather.com/support/docs/api/reference/weather-codes/
-    if wwcode[0] in (0,1,2,3,14,15,16,18,20,21,22,23,25,26,27,28,29,40):
+    if wwcode[0] in {0,1,2,3,14,15,16,18,20,21,22,23,25,26,27,28,29,40}:
         night = 1 if night else 0
         cover = get_cloudcover(n)
         if cover is not None:
@@ -2047,7 +2047,7 @@ if hasSearchList:
         def __str__(self):
             try:
                 if self.nn is not None:
-                    if self.ww is None or self.ww in (0,1,2,3,14,15,16,18,20,21,22,23,25,26,27,28,29,40,100,101,102,103,120,121,122,123,124,126):
+                    if self.ww is None or self.ww in {0,1,2,3,14,15,16,18,20,21,22,23,25,26,27,28,29,40,100,101,102,103,120,121,122,123,124,126}:
                         return svg_icon_n(int(round(float(self.nn)/100.0*8.0,0)),night=self.night,text=self.text,wind=3 if self.ww==18 else 0)
                 return svg_icon_ww(self.ww,text=self.text)
             except (LookupError,ArithmeticError,TypeError,ValueError):
@@ -2056,7 +2056,7 @@ if hasSearchList:
         def __call__(self, width=128, x=None, y=None, with_tooltip=True):
             try:
                 if self.nn is not None:
-                    if self.ww is None or self.ww in (0,1,2,3,14,15,16,18,20,21,22,23,25,26,27,28,29,40,100,101,102,103,120,121,122,123,124,126):
+                    if self.ww is None or self.ww in {0,1,2,3,14,15,16,18,20,21,22,23,25,26,27,28,29,40,100,101,102,103,120,121,122,123,124,126}:
                         return svg_icon_n(
                                    int(round(float(self.nn)/100.0*8.0,0)),
                                    night=self.night,
@@ -2095,7 +2095,7 @@ if hasSearchList:
         def _none_string(self, None_string=None):
             if None_string is not None:
                 return str(None_string)
-            elif self.code_table in (4561,4531):
+            elif self.code_table in {4561,4531}:
                 return '/'
             else:
                 return 'N/A'
@@ -2431,17 +2431,17 @@ if hasSearchList:
                     els.append(self.pressure_tendency_symbol(obsfmt[4]*width,obsfmt[5]*width,obsfmt[6]*width,self.kwargs['a']))
             # text 
             for obs,val in self.kwargs.items():
-                if obs in ('outTemp','TTT','TT'):
+                if obs in {'outTemp','TTT','TT'}:
                     obsfmt = format['TTT']
                     t = self.to_celsius(val,round_temp)
                     els.append(self.svg_text(obsfmt[4]*width,obsfmt[5]*width,width*0.4,id_prefix+'_'+obs,t,title='TTT'))
                     #els.append('<circle cx="%d" cy="%d" r="3" fill="red" />' % (-width/2,-width/2))
-                elif obs in ('dewpoint','TdTdTd','Td'):
+                elif obs in {'dewpoint','TdTdTd','Td'}:
                     obsfmt = format['Td']
                     td = self.to_celsius(val,round_temp)
                     els.append(self.svg_text(obsfmt[4]*width,obsfmt[5]*width,width*0.4,id_prefix+'_'+obs,td,title='Td'))
                     #els.append('<circle cx="%d" cy="%d" r="3" fill="red" />' % (-width/2,width*1.5))
-                elif obs in ('barometer','PPPP'):
+                elif obs in {'barometer','PPPP'}:
                     # barometer, barometer trend, pressure tendency symbol
                     # Note: If val is of type ObservationBinder like in
                     #       $span.barometer the barometer trend is derived
@@ -2482,7 +2482,7 @@ if hasSearchList:
                     else:
                         vv = weeutil.weeutil.to_float(val)
                     els.append(self.svg_text(obsfmt[4]*width,obsfmt[5]*width,width*0.4,id_prefix+'_'+'VV',visibility_code(vv),title='VV'))
-                elif obs in ('W1','W2','W1W2'):
+                elif obs in {'W1','W2','W1W2'}:
                     obsfmt = format[obs]
                     if isinstance(val,ObservationBinder):
                         ww = val.max.value_t
