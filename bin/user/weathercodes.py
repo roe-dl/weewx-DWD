@@ -2182,6 +2182,8 @@ if hasSearchList:
                 t = weewx.units.convert(x,'degree_C')[0]
             else:
                 t = weeutil.weeutil.to_float(x)
+            if t is None:
+                return ''
             if round: return '%.0f' % t
             return '%.1f' % t
         
