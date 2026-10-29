@@ -124,10 +124,15 @@ Für `dwd-mosmix` ist es vorteilhaft, `GeoPy` zu installieren.
 Wurde WeeWX mittels `pip` installiert, muß möglicherweise das Modul
 `requests` nachinstalliert werden.
 
+Für die Radarprodukte (`provider = DWD` im Abschnitt `[[radar]]`) wird
+`h5py` benötigt, weil der DWD die Radarkomposits seit Oktober 2026 im
+ODIM-HDF5-Format bereitstellt.
+
 Wenn WeeWX über die Paketinstallation installiert wurde:
 
 ```shell
 sudo apt-get install python3-geopy
+sudo apt-get install python3-h5py
 ```
 
 Wenn WeeWX mittels `pip` in eine virtuelle Umgebung installiert wurde:
@@ -136,6 +141,7 @@ Wenn WeeWX mittels `pip` in eine virtuelle Umgebung installiert wurde:
 source ~/weewx-venv/bin/activate
 pip install geopy
 pip install requests
+pip install h5py
 ```
 
 # Installation

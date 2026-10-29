@@ -450,9 +450,9 @@ class DWDXType(weewx.xtypes.XType):
         """ aggregations out of precipitation forecast for the next 2 hours """
         if self.rv_thread:
             forecast = self.rv_thread.get_forecast()
-            if not forecast:
-                raise weewx.CannotCalculate('no data available in RV thread')
-            if obs_type in forecast:
+            # Without RV data do not block the other observation types,
+            # but raise UnknownType like get_series() does.
+            if forecast and obs_type in forecast:
                 val = forecast[obs_type]
                 x = [x for x in val[0] if x is not None]
                 if aggregate_type=='not_null':

@@ -507,7 +507,13 @@ class DwdRadar(object):
         else:
             # one record in one file only, no forecast
             dwd = cls(log_success,log_failure,verbose)
-            dwd.read_data(DwdRadar._decompress_file(fn))
+            with open(fn,'rb') as f:
+                is_hdf5 = f.read(len(DwdRadar.HDF5_SIGNATURE))==DwdRadar.HDF5_SIGNATURE
+            if is_hdf5:
+                with open(fn,'rb') as f:
+                    dwd.read_hdf5(f.read())
+            else:
+                dwd.read_data(DwdRadar._decompress_file(fn))
         if verbose: print('elapsed time for loading from file: %.2f s' % (time.time()-start_ts))
         return dwd
     
@@ -519,8 +525,10 @@ class DwdRadar(object):
         # 'PG' is in BUFR format, not in the format handled here.
         fn = {
             'HG':'HG_LATEST_000.bz2',
-            'RV':'DE1200_RV_LATEST.tar.bz2',
-            'WN':'WN_LATEST.tar.bz2',
+            # Since October 2026 the DWD provides RV and WN as tar files
+            # of ODIM HDF5 files instead of RADOLAN binary format.
+            'RV':'composite_rv_LATEST.tar',
+            'WN':'composite_wn__LATEST.tar',
             'RW':'raa01-rw_10000-latest-dwd---bin.bz2',
             'RY':'raa01-ry_10000-latest-dwd---bin.bz2',
             'SF':'raa01-sf_10000-latest-dwd---bin.bz2',
@@ -569,7 +577,7 @@ class DwdRadar(object):
                 dwd = cls(log_success,log_failure,verbose)
                 dwd.read_data([bz2.decompress(reply)])
             else:
-                # actual record and forecast included in one tar.bz2 file
+                # actual record and forecast included in one tar file
                 dwd = []
                 with io.BytesIO(reply) as f:
                     with tarfile.open(fileobj=f) as tarf:
@@ -644,12 +652,20 @@ class DwdRadar(object):
         dwd = list()
         for member in tarf:
             ff = tarf.extractfile(member)
+            if ff is None: continue
             newdwd = cls(log_success,log_failure,verbose)
-            newdwd.read_data(ff)
+            if member.name.endswith('hd5') or member.name.endswith('.h5'):
+                # ODIM HDF5 format (DWD since October 2026)
+                newdwd.read_hdf5(ff.read())
+            else:
+                # RADOLAN binary format
+                newdwd.read_data(ff)
             ff.close()
             if newdwd.product=='RV':
                 added_data.append(newdwd.data)
             dwd.append(newdwd)
+        # The actual reading is expected to be the first element.
+        dwd.sort(key=lambda x:int(x.header.get('VV',0)))
         if dwd and dwd[0].product=='RV':
             if verbose: start_ts = time.thread_time_ns()
             dwd[0].sum_data = list(map(newdwd._add_none,*added_data))
@@ -885,22 +901,134 @@ class DwdRadar(object):
                 self.colors[idx] = col+(0xD0,)
             self.colors[self.no_data_value] = (255,255,255,0xD0) # no data 0x29C4
         else:
-            try:
-                DwdRadar.class_lock.acquire()
-                self.colors = DwdRadar.colors.get(self.product,{}).get(factor,None)
-            finally:
-                DwdRadar.class_lock.release()
-            if self.colors is None:
-                self.colors = DwdRadar.init_colors_2byte(self.product,factor)
-                try:
-                    DwdRadar.class_lock.acquire()
-                    if self.product not in DwdRadar.colors:
-                        DwdRadar.colors[self.product] = dict()
-                    DwdRadar.colors[self.product][factor] = self.colors
-                finally:
-                    DwdRadar.class_lock.release()
+            self._set_colors_2byte(factor)
         if self.verbose: print('time elapsed in _decode_header: %.2fs' % (time.thread_time()-start_ts))
         return data_size, factor
+    
+    def _set_colors_2byte(self, factor):
+        """ set the color table for 2-byte products, cached per factor """
+        try:
+            DwdRadar.class_lock.acquire()
+            self.colors = DwdRadar.colors.get(self.product,{}).get(factor,None)
+        finally:
+            DwdRadar.class_lock.release()
+        if self.colors is None:
+            self.colors = DwdRadar.init_colors_2byte(self.product,factor)
+            try:
+                DwdRadar.class_lock.acquire()
+                if self.product not in DwdRadar.colors:
+                    DwdRadar.colors[self.product] = dict()
+                DwdRadar.colors[self.product][factor] = self.colors
+            finally:
+                DwdRadar.class_lock.release()
+    
+    # products supported in HDF5 format: product code --> ODIM quantity 
+    # and accuracy factor as in the former RADOLAN format
+    HDF5_PRODUCTS = {
+        'RV':('ACRR',0.01), # precipitation amount in mm per 5 minutes
+        'WN':('DBZH',0.1),  # radar reflectivity factor in dBZ
+    }
+    
+    HDF5_SIGNATURE = b'\x89HDF\r\n\x1a\n'
+    
+    def read_hdf5(self, in_data):
+        """ read radar data in ODIM HDF5 format and convert to internal 
+            data structure
+            
+            Since October 2026 the DWD provides the composites RV and WN 
+            in this format. The result is the same as `read_data()` 
+            creates out of the former RADOLAN format, so that all the 
+            other methods work unchanged.
+            
+            Args:
+                in_data (bytes): content of one HDF5 file
+            
+            Returns:
+                nothing
+        """
+        try:
+            import h5py
+            import numpy
+        except ImportError as e:
+            raise ImportError('reading DWD radar data in HDF5 format requires the Python modules h5py and numpy: %s' % e)
+        if self.verbose: start_ts = time.thread_time()
+        def attrs(obj):
+            return {key:(val.decode('ascii',errors='replace') if isinstance(val,bytes) else val) for key,val in obj.attrs.items()}
+        with h5py.File(io.BytesIO(in_data),'r') as f:
+            what = attrs(f['what'])
+            where = attrs(f['where'])
+            dataset_what = attrs(f['dataset1/what'])
+            data_what = attrs(f['dataset1/data1/what'])
+            raw = f['dataset1/data1/data'][()]
+        # product code and accuracy
+        # (prodname is something like 'RV_top_view')
+        self.product = dataset_what.get('prodname','').split('_')[0].upper()
+        quantity = data_what.get('quantity')
+        try:
+            expected_quantity, factor = DwdRadar.HDF5_PRODUCTS[self.product]
+        except LookupError:
+            raise ValueError('product %s in HDF5 format is not supported' % self.product)
+        if quantity!=expected_quantity:
+            raise ValueError('unexpected quantity %s for product %s' % (quantity,self.product))
+        # issued
+        self.timestamp_dt = datetime.datetime.strptime(
+            what['date']+what['time'],'%Y%m%d%H%M%S'
+        ).replace(tzinfo=datetime.timezone.utc)
+        self.timestamp = self.timestamp_dt.timestamp()
+        # end of the interval the record is valid for
+        end_dt = datetime.datetime.strptime(
+            dataset_what['enddate']+dataset_what['endtime'],'%Y%m%d%H%M%S'
+        ).replace(tzinfo=datetime.timezone.utc)
+        # forecast time in minutes, rounded to the 5 minutes steps of
+        # the product (WN end times are some seconds after the full minute)
+        vv = int(round((end_dt-self.timestamp_dt).total_seconds()/300.0))*5
+        # WMO station code, for composite products 10000
+        self.wmo_nr = '10000'
+        # data size
+        self.data_height = int(where['ysize'])
+        self.data_width = int(where['xsize'])
+        if raw.shape!=(self.data_height,self.data_width):
+            raise ValueError('HDF5 radar data shape %s does not match %sx%s' % (raw.shape,self.data_height,self.data_width))
+        # The grid of the HDF5 files is the same as of the RADOLAN files
+        # of format version 5 (DE1200 WGS84).
+        self.version = 5
+        self.header = {
+            'VV':vv,
+            'PR':' E-%02d' % round(-math.log10(factor)),
+            'GP':'%4sx%4s' % (self.data_height,self.data_width),
+            'VS':self.version,
+        }
+        self.no_data_value = 0x29C4
+        self.out_of_range_value = 4096
+        self.clutter_flag = []
+        self.station_flag = []
+        # convert to physical values
+        nodata = raw==data_what['nodata']
+        undetect = raw==data_what['undetect']
+        val = raw*float(data_what['gain'])+float(data_what['offset'])
+        # Quantize to the same steps as the RADOLAN format, so that
+        # the values match the keys of the color table exactly.
+        if self.product=='WN':
+            # RADOLAN WN: (i*factor)*0.5-32.5 dBZ
+            idx = numpy.rint((val+32.5)*2.0/factor)
+        else:
+            idx = numpy.rint(val/factor)
+        idx[undetect] = 0
+        idx = numpy.clip(idx,0,4095)*factor
+        if self.product=='WN':
+            idx = 0.5*idx-32.5
+        out_data = idx.astype(object)
+        out_data[nodata] = self.no_data_value
+        # HDF5 rows go from north to south, the internal structure
+        # from south to north.
+        self.data = out_data[::-1].ravel().tolist()
+        self._set_colors_2byte(factor)
+        # initialize coordinate data
+        self.init_coords()
+        if self.verbose:
+            print(self.header)
+            print('data',len(self.data),'no data',int(nodata.sum()),'max',float(numpy.where(nodata,0,idx).max()))
+            print('time elapsed in read_hdf5: %.3fs' % (time.thread_time()-start_ts))
     
     def init_coords(self):
         """ initialize coordinate data
