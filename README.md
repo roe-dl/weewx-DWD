@@ -157,10 +157,15 @@ You may install `GeoPy`. It is useful, but not required.
 In case you installed WeeWX by `pip` you may have to install `requests`
 as well.
 
+For the radar products (`provider = DWD` in section `[[radar]]`) you
+need `h5py`, as the DWD provides the radar composites in ODIM HDF5 
+format since October 2026.
+
 If you installed WeeWX by packet installation:
 
 ```shell
 sudo apt-get install python3-geopy
+sudo apt-get install python3-h5py
 ```
 
 If you installed WeeWX by pip installation into a virtual environment:
@@ -169,6 +174,7 @@ If you installed WeeWX by pip installation into a virtual environment:
 source ~/weewx-venv/bin/activate
 pip install geopy
 pip install requests
+pip install h5py
 ```
 
 ## Installation
